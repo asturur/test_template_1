@@ -1,6 +1,6 @@
-## 2026-11-25 — scalar D-cache lock update qualified in simulation
+## 2026-11-26 — independent D-cache lock and ALU zero fits
 
-The scalar valid bit uses the existing pending-load tag and clears on the same registered return edge. The prototype matches all 105 fixed windows, four native PolyCount frames, four directed board profiles and the 171,496-event mixed replay. Fit the lock update alone at 104 MHz on the three matched seeds. [Patch and verification](experiments/v5-performance/dcache-lock-valid.md)
+The scalar D-cache pending-load valid bit and ALU zero-operation predecode each match all 105 fixed windows, four native PolyCount frames, four directed board profiles and the 171,496-event mixed replay. The production 104 MHz fits pin `8c5726f` for the lock and `3d57ba3` for the independent ALU change, with seeds 43, 13 and 31337. Both use the `e9552bd` tree as the control. [Lock patch and runs](experiments/v5-performance/dcache-lock-valid.md) · [ALU patch and runs](experiments/v5-performance/alu-zero-predecode.md)
 
 ## 2026-11-25 — SDRAM posted acceptance parked
 

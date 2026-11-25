@@ -1761,6 +1761,7 @@
     "id": "dcache-lock-valid",
     "kind": "design",
     "base": "81fa7685de2d43b4c60aad9e312bc454a49bef09",
+    "target": "8c5726fee4d7d2039ca6f4d96bc2edf72caae60a",
     "patches": [
       "patches/dcache-lock-valid.patch"
     ],
@@ -1785,6 +1786,37 @@
     ],
     "sha256": [
       "daa3b752a97397be580a48e307d058c41481928030af656878be20bfb7edbcea"
+    ]
+  },
+  {
+    "id": "alu-zero-predecode",
+    "kind": "design",
+    "base": "81fa7685de2d43b4c60aad9e312bc454a49bef09",
+    "target": "3d57ba329a0d81a8c91a93c9fa03f1a836ac78b4",
+    "patches": [
+      "patches/alu-zero-predecode.patch"
+    ],
+    "sha256": [
+      "4b94256bd41582938279d45f0b404d4a96afbb9c8007242695e8005e7945233e"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "3563fbb3cff7112599e605efa841c06205b861a07ebe2a1f151350ae96dbc8d5",
+      "tools/gen_arm9v2_phone.py": "27eb24abc54b372d0dc914047353e0de3f94d150a1dedff46704d803901e13a4"
+    }
+  },
+  {
+    "id": "alu-zero-predecode-replay",
+    "kind": "fixture",
+    "base": "81fa7685de2d43b4c60aad9e312bc454a49bef09",
+    "patches": [
+      "patches/alu-zero-predecode-replay.patch"
+    ],
+    "sha256": [
+      "6fed156540baa470dc71ca93a34ac68b815fb86bd1b45a647edb02edb19fea6d"
     ]
   }
 ]

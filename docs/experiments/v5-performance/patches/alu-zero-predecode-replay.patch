@@ -1,0 +1,137 @@
+diff --git a/scratch/v5-fit-loop/alu-zero-predecode/check-zero.v b/scratch/v5-fit-loop/alu-zero-predecode/check-zero.v
+new file mode 100644
+index 0000000..dd11d7c
+--- /dev/null
++++ b/scratch/v5-fit-loop/alu-zero-predecode/check-zero.v
+@@ -0,0 +1,78 @@
++`timescale 1ns / 1ps
++
++module check_zero;
++    reg [31:0] a, b;
++    reg [3:0] op, incoming;
++    reg shift_carry;
++    reg [6:0] select_z;
++    wire [31:0] retained_result, predecoded_result, plain_result;
++    wire [3:0] retained_flags, predecoded_flags, plain_flags;
++    reg [15:0] saw_zero = 0, saw_nonzero = 0;
++    integer code, flags, sample, tested = 0;
++    reg [31:0] random_a, random_b;
++
++    ngage2_arm9_alu_retained #(.FAST_Z(1)) retained (
++        .i_a(a), .i_b(b), .i_op(op), .i_flags(incoming), .i_shift_carry(shift_carry),
++        .o_result(retained_result), .o_flags(retained_flags)
++    );
++    ngage2_arm9_alu #(.FAST_Z(1)) predecoded (
++        .i_a(a), .i_b(b), .i_op(op), .i_zero_class(select_z), .i_flags(incoming),
++        .i_shift_carry(shift_carry), .o_result(predecoded_result), .o_flags(predecoded_flags)
++    );
++    ngage2_arm9_alu #(.FAST_Z(0)) plain (
++        .i_a(a), .i_b(b), .i_op(op), .i_zero_class(7'b0), .i_flags(incoming),
++        .i_shift_carry(shift_carry), .o_result(plain_result), .o_flags(plain_flags)
++    );
++
++    task compare;
++        input [31:0] lhs, rhs;
++        begin
++            a = lhs;
++            b = rhs;
++            #1;
++            if ({predecoded_result, predecoded_flags} !== {retained_result, retained_flags} ||
++                {plain_result, plain_flags} !== {retained_result, retained_flags} ||
++                predecoded_flags[2] !== (predecoded_result == 0))
++                $fatal(1, "ALU mismatch on operation %h, operands %h %h, flags %h", op, a, b, incoming);
++            if (predecoded_flags[2]) saw_zero[op] = 1;
++            else saw_nonzero[op] = 1;
++            tested = tested + 1;
++        end
++    endtask
++
++    initial begin
++        for (code = 0; code < 16; code = code + 1) begin
++            op = code[3:0];
++            case (op)
++                4'h1, 4'h2, 4'h3, 4'h9, 4'ha: select_z = 7'b0000010;
++                4'h0, 4'h8: select_z = 7'b0000100;
++                4'hc: select_z = 7'b0001000;
++                4'hd: select_z = 7'b0010000;
++                4'he: select_z = 7'b0100000;
++                4'hf: select_z = 7'b1000000;
++                default: select_z = 7'b0000001;
++            endcase
++            for (flags = 0; flags < 16; flags = flags + 1) begin
++                incoming = flags[3:0];
++                shift_carry = flags[2];
++                compare(0, 0);
++                compare(0, 32'hffffffff);
++                compare(32'h80000000, 32'h80000000);
++                for (sample = 0; sample < 128; sample = sample + 1) begin
++                    random_a = $random;
++                    random_b = $random;
++                    compare(random_a, random_b);
++                    compare(random_a, random_a);
++                    compare(random_a, ~random_a);
++                    compare(random_a, -random_a);
++                    compare(random_a, random_a + 1);
++                    compare(random_a, random_a - 1);
++                end
++            end
++        end
++        if (saw_zero != 16'hffff || saw_nonzero != 16'hffff)
++            $fatal(1, "Zero or nonzero ALU coverage missing");
++        $display("PASS %0d ALU result and NZCV checks across all 16 operations", tested);
++        $finish;
++    end
++endmodule
+diff --git a/scratch/v5-fit-loop/alu-zero-predecode/run-zero.sh b/scratch/v5-fit-loop/alu-zero-predecode/run-zero.sh
+new file mode 100644
+index 0000000..0a225f6
+--- /dev/null
++++ b/scratch/v5-fit-loop/alu-zero-predecode/run-zero.sh
+@@ -0,0 +1,11 @@
++#!/bin/sh
++set -eu
++area=$(dirname "$0")
++candidate="$area/source/rtl/arm9v2/arm925t_phone.v"
++sed -n '/^module ngage2_arm9_alu (/,/^endmodule/p' "$area/reference.v" |
++    sed 's/module ngage2_arm9_alu (/module ngage2_arm9_alu_retained (/' > "$area/alu-retained.v"
++sed -n '/^module ngage2_arm9_alu (/,/^endmodule/p' "$candidate" > "$area/alu-candidate.v"
++iverilog -g2012 -s check_zero -o "$area/check-zero" \
++    "$area/check-zero.v" "$area/alu-retained.v" "$area/alu-candidate.v"
++vvp "$area/check-zero" > "$area/directed.log"
++grep '^PASS ' "$area/directed.log"
+diff --git a/scratch/v5-fit-loop/alu-zero-predecode/mixed.py b/scratch/v5-fit-loop/alu-zero-predecode/mixed.py
+new file mode 100644
+index 0000000..261c887
+--- /dev/null
++++ b/scratch/v5-fit-loop/alu-zero-predecode/mixed.py
+@@ -0,0 +1,30 @@
++"""Stage the retained mixed board replay with only the candidate netlist replaced."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed')
++trial = Path('build/sim/v5-104-alu-zero-predecode-pin-mixed/mixed')
++trial.mkdir(parents=True)
++for name in ('source', 'build.sh', 'stress.hex', 'image.hex', 'program.hex'):
++    original = base / name
++    if original.is_dir():
++        shutil.copytree(original, trial / name)
++    else:
++        shutil.copyfile(original, trial / name)
++
++netlist = 'rtl/arm9v2/arm925t_phone.v'
++shutil.copyfile(stage / 'source' / netlist, trial / 'source' / netlist)
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert netlist in hashes
++for name, reference in hashes.items():
++    file = trial / 'source' / name
++    actual = sha256((file if file.is_file() else Path(name)).read_bytes()).hexdigest()
++    assert (actual != reference) == (name == netlist), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++build = trial / 'build.sh'
++build.write_text(build.read_text().replace(str(base), str(trial)))

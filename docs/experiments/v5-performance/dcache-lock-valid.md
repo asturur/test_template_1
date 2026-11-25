@@ -31,11 +31,18 @@ mixed replay matches all 171,496 events, including LCD, PCM, MMC and
 SDRAM pins. All 15 fixed workloads match over 105 windows, and all
 four native PolyCount frames match at 57,508,371 total clocks. The
 guest outputs, ordered architectural events and cycle-stamped
-Wishbone write traces also match. For the routed comparison, fit this
-patch alone at 104 MHz with DDR debug off on seeds 43, 13 and 31337.
-Compare the TLB-to-lock path, whole-core worst setup, total negative
-setup slack, hold and ALMs against the retained fits at `e9552bd`.
+Wishbone write traces also match.
 [Local verification receipt](../../evidence/v5-104-dcache-lock-valid.json)
+
+## Routed comparison
+
+Commit `8c5726f` changes only the design and generator in the lock patch.
+The production fits use the same 104 MHz clock and DDR debug setting as
+`e9552bd`. Compare the TLB-to-lock path, whole-core worst setup, total
+negative setup slack, hold and ALMs against the seed-matched control.
+[Seed 43](https://github.com/asturur/test_template_1/actions/runs/45720741108) ·
+[Seed 13](https://github.com/asturur/test_template_1/actions/runs/45720741046) ·
+[Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45720741271)
 
 ## Another CPU path to try
 
@@ -48,7 +55,8 @@ and the AND reduction for TST. Keep existing NZCV forwarding and
 measure the same workloads before fitting. Prior census counted
 126,086 flag-setting data-processing completions using a live load
 in one steady Sega scan window. A blanket stall would hit a much
-broader path. [Previous operand census](live-rs-prep.md)
+broader path. [Previous operand census](live-rs-prep.md) ·
+[Independent ALU zero trial](alu-zero-predecode.md)
 
 ## Replay
 

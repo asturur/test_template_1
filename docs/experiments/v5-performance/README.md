@@ -183,6 +183,12 @@ profiles and the 171,496-event mixed trace match the retained design.
 This targets the TLB-to-lock path without adding a clock. Routed timing
 remains open.
 
+The [ALU zero predecode trial](alu-zero-predecode.md) captures the zero
+operation with the existing execute packet and selects between single-bit
+predicates. The directed test and all workload, native frame and mixed
+replays match. The three routed fits compare it independently against
+the same retained production tree.
+
 The [prepared Wishbone write-data trial](prepared-wb-write-data.md)
 captures both tag-maintenance words and registers the existing advance
 decision. It keeps address and request timing on the original path.

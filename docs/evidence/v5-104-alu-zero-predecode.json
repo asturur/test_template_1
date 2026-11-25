@@ -1,0 +1,113 @@
+{
+  "base": "81fa7685de2d43b4c60aad9e312bc454a49bef09",
+  "netlist_sha256": "3563fbb3cff7112599e605efa841c06205b861a07ebe2a1f151350ae96dbc8d5",
+  "directed": "PASS 197376 ALU result and NZCV checks across all 16 operations",
+  "board": [
+    "PASS cycles=25816 scalar_wait_cycles=10307 swp_beats=2 clean_writes=1 walks=4 prefetch_aborts=1",
+    "LINES ram=0 rom=0 rejected=614 resident_capacity_bytes=16384",
+    "PASS cycles=51376 scalar_wait_cycles=35944 swp_beats=2 clean_writes=1 walks=4 prefetch_aborts=1",
+    "LINES ram=0 rom=0 rejected=614 resident_capacity_bytes=16384",
+    "PASS cycles=20449 scalar_wait_cycles=483 swp_beats=2 clean_writes=1 walks=4 prefetch_aborts=1",
+    "LINES ram=552 rom=63 rejected=0 resident_capacity_bytes=16384",
+    "PASS cycles=24497 scalar_wait_cycles=1560 swp_beats=2 clean_writes=1 walks=4 prefetch_aborts=1",
+    "LINES ram=552 rom=62 rejected=0 resident_capacity_bytes=16384"
+  ],
+  "mixed": {
+    "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+    "events": 171496
+  },
+  "fixed": {
+    "windows": 105,
+    "cases": [
+      {
+        "case": "sega-scan",
+        "total_clocks": 16771036,
+        "median": 2395767
+      },
+      {
+        "case": "matrix4",
+        "total_clocks": 119639,
+        "median": 16946
+      },
+      {
+        "case": "transpose4",
+        "total_clocks": 20890,
+        "median": 2976
+      },
+      {
+        "case": "triangle_edges",
+        "total_clocks": 86537,
+        "median": 12226
+      },
+      {
+        "case": "fill16_frame",
+        "total_clocks": 856946,
+        "median": 122402
+      },
+      {
+        "case": "fill16_tail",
+        "total_clocks": 5229,
+        "median": 725
+      },
+      {
+        "case": "fill8_tail",
+        "total_clocks": 5421,
+        "median": 753
+      },
+      {
+        "case": "monkey-forward",
+        "total_clocks": 111664,
+        "median": 15940
+      },
+      {
+        "case": "monkey-reverse",
+        "total_clocks": 111664,
+        "median": 15940
+      },
+      {
+        "case": "sega-span",
+        "total_clocks": 108165,
+        "median": 15430
+      },
+      {
+        "case": "sega-fill",
+        "total_clocks": 18525,
+        "median": 2628
+      },
+      {
+        "case": "asphalt-table",
+        "total_clocks": 148297,
+        "median": 21163
+      },
+      {
+        "case": "asphalt-double",
+        "total_clocks": 83995,
+        "median": 11974
+      },
+      {
+        "case": "asphalt-single",
+        "total_clocks": 54460,
+        "median": 7753
+      },
+      {
+        "case": "diffuse_m10_8x8_jpeg",
+        "total_clocks": 248275,
+        "median": 35324
+      }
+    ],
+    "exact_reference_match": true,
+    "receipt_sha256": "78a855fd6163837d13a6580a1f73424bb3d9042206b771627d1997d66bb92527"
+  },
+  "native": {
+    "windows": 4,
+    "cases": [
+      {
+        "case": "native",
+        "total_clocks": 57508371,
+        "median": 14346201
+      }
+    ],
+    "exact_reference_match": true,
+    "receipt_sha256": "d7c2c8bdc11c92adf9f14bf62ca09c061994db5acfb779ef5b4035083aa42574"
+  }
+}
