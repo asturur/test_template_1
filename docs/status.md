@@ -1,3 +1,7 @@
+## 2026-11-25 — Wishbone address selection parked
+
+Public `d87216a` restores the exact `e9552bd` production tree. The trial removed the sampled I-cache strobe paths into the merger address and matched every checked simulation cycle. Median setup on the three matched seeds went from −2.471 to −3.057 ns. Ten candidate fits ranged from −3.138 to −2.497 ns, with a −2.819 ns median. Use the same seed set on the next experiment. [Fit results and replay](experiments/v5-performance/wb-id-address.md)
+
 ## 2026-11-24 — two-edge UPP bridge trials parked
 
 Public `e7beaf2` restores the exact `e9552bd` tree. Both bridge versions passed the held-data timing checks at all corners. The DMA correction improved median whole-core setup from −3.664 to −2.645 ns, compared with −2.471 ns on the retained control, and used 598 more median ALMs than the control. The patches and bitstreams are archived. [Matched results and replay](v5-alm-storage-results.md#two-edge-upp-register-bridge)

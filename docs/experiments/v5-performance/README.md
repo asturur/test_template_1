@@ -198,7 +198,10 @@ Public restore `e7beaf2` matches `e9552bd`.
 
 The [Wishbone address trial](wb-id-address.md) uses the cache address
 registers and selects the address with the registered I/D owner. All
-checked workload cycles and the physical pin replay matched.
+checked workload cycles and the physical pin replay matched. Median
+setup regressed on the three matched seeds, from −2.471 to −3.057 ns.
+The ten-seed median was −2.819 ns. Park the trial. Public `d87216a`
+restores the retained source.
 
 ## Passive opportunity studies
 
