@@ -41,7 +41,8 @@ module ngage_sdram_stream #(
     input  wire         mem_cmd_ready,
     input  wire         mem_busy,
     input  wire         mem_valid,
-    input  wire [ 31:0] mem_rdata
+    input  wire [ 31:0] mem_rdata,
+    output wire         nonposted_ack
 );
     localparam IDLE = 0, READ_WORD = 1, WRITE_LOCKED = 2, LINE = 3;
     reg [1:0] state = IDLE;
@@ -109,6 +110,7 @@ module ngage_sdram_stream #(
     wire word_done = state == READ_WORD && mem_valid;
     wire locked_done = state == WRITE_LOCKED && !mem_busy;
     assign ack = owner_ready && (post || read_reply || locked_done);
+    assign nonposted_ack = owner_ready && (read_reply || locked_done);
 
     assign line_valid = state == LINE && owner_ready && (high_word || mem_valid);
     assign line_data  = high_word ? high_data : mem_rdata[15:0];
