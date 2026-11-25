@@ -10501,9 +10501,9 @@ module ngage2_zap_dcache_fsm (
 			line_req_ff <= line_req_nxt;
 			adr_ctr_ff <= adr_ctr_nxt;
 			lock_ff <= lock_nxt;
-			o_lock_any <= |lock_nxt;
-            // Only IDLE can install a new background read lock. The
-            // bitmap's registered nonempty bit qualifies the held tag.
+            // A new miss installs one lock. Otherwise the return clears
+            // the held lock only when it writes the owned register.
+            o_lock_any <= lock_set_nxt || (o_lock_any && !o_reg_idx[o_lock_tag]);
             if (lock_set_nxt) o_lock_tag <= i_reg_idx_bin;
 			o_lock_owner <= (i_lock_owner_move ? owner_advance_locked : owner_held_locked);
 			o_lock_return <= owner_held_locked;

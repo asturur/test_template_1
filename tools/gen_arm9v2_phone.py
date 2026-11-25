@@ -835,9 +835,9 @@ def register_background_load_tag(phone):
     parts[fsm] = edit(parts[fsm], '\t\t\to_lock_any <= 0;\n',
                       '\t\t\to_lock_any <= 0;\n\t\t\to_lock_tag <= 0;\n')
     parts[fsm] = edit(parts[fsm], '\t\t\to_lock_any <= |lock_nxt;\n', '''
-\t\t\to_lock_any <= |lock_nxt;
-            // Only IDLE can install a new background read lock. The
-            // bitmap's registered nonempty bit qualifies the held tag.
+            // A new miss installs one lock. Otherwise the return clears
+            // the held lock only when it writes the owned register.
+            o_lock_any <= lock_set_nxt || (o_lock_any && !o_reg_idx[o_lock_tag]);
             if (lock_set_nxt) o_lock_tag <= i_reg_idx_bin;
 '''.lstrip('\n'))
     parts[fsm] = edit(parts[fsm], 'endmodule\n', '''
