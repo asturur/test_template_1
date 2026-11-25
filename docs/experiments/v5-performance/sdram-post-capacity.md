@@ -66,8 +66,9 @@ The new limiting paths include the D-cache return into the CPU M
 packet, refill state into the Wishbone address, and TLB physical
 address into the D-cache lock decision. Seed 31337 produced the best
 candidate bitstream at `build/fit/v5-104mhz-ff66e03-seed31337/ngage1.rbf`.
-Hardware behavior remains unverified. The build branch still points to
-`ff66e03` for testing. [Matched fit evidence](../../evidence/v5-104-sdram-post-capacity-fits.json)
+Hardware behavior remains unverified. Public `81fa768` restores the
+exact retained tree and preserves `ff66e03` in history.
+[Matched fit evidence](../../evidence/v5-104-sdram-post-capacity-fits.json)
 
 ## Reproduce
 

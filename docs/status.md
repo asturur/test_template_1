@@ -1,6 +1,10 @@
-## 2026-11-25 — SDRAM posted acceptance from registered capacity
+## 2026-11-25 — scalar D-cache lock update staged locally
 
-Public `ff66e03` removes the sampled posted ACK paths into the Wishbone merger on all three 104 MHz seeds. Median setup moves from −2.471 to −2.588 ns, core setup TNS improves 822.484 ns and median area rises 677 ALMs. Every fit produces an RBF and misses setup. Seed 31337 is best at −2.310 ns. All 105 fixed windows and the mixed board replay match. Four native frames add 130 clocks (+0.00023%) with matching guest digests and output. [Patch, qualification and fits](experiments/v5-performance/sdram-post-capacity.md)
+The scalar valid bit uses the existing pending-load tag and clears on the same registered return edge. The local prototype matches the retained tree in all four directed ARM board profiles and the 171,496-event mixed replay. The shift and load flag paths remain separate timing candidates. [Patch and verification](experiments/v5-performance/dcache-lock-valid.md)
+
+## 2026-11-25 — SDRAM posted acceptance parked
+
+Public `81fa768` restores the exact retained tree. Candidate `ff66e03` removes the sampled posted ACK paths into the Wishbone merger on all three 104 MHz seeds. Median setup moves from −2.471 to −2.588 ns, core setup TNS improves 822.484 ns and median area rises 677 ALMs. Every fit produces an RBF and misses setup. Seed 31337 is best at −2.310 ns. All 105 fixed windows and the mixed board replay match. Four native frames add 130 clocks (+0.00023%) with matching guest digests and output. [Patch, qualification and fits](experiments/v5-performance/sdram-post-capacity.md)
 
 ## 2026-11-25 — live shift-count trial qualified in simulation
 

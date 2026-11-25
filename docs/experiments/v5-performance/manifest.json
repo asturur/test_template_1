@@ -1756,5 +1756,35 @@
     "sha256": [
       "cf64df18c36c5bb61e672fe8ff1a02a9e789348fe3c1fc0e40b9e5607c50d99e"
     ]
+  },
+  {
+    "id": "dcache-lock-valid",
+    "kind": "design",
+    "base": "81fa7685de2d43b4c60aad9e312bc454a49bef09",
+    "patches": [
+      "patches/dcache-lock-valid.patch"
+    ],
+    "sha256": [
+      "3671e2c934a1d85890168df579dff832a0e4db65d939cc8b704808a88cfc14b0"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "881868d746e577c1a42297123cd4ca621e246371ded8fd78de71a90b358cf204",
+      "tools/gen_arm9v2_phone.py": "bab2619a0dc6658f9147630b440451e062e4124ae0d380fbe96b5cf6b1a32fed"
+    }
+  },
+  {
+    "id": "dcache-lock-valid-replay",
+    "kind": "fixture",
+    "base": "81fa7685de2d43b4c60aad9e312bc454a49bef09",
+    "patches": [
+      "patches/dcache-lock-valid-replay.patch"
+    ],
+    "sha256": [
+      "daa3b752a97397be580a48e307d058c41481928030af656878be20bfb7edbcea"
+    ]
   }
 ]

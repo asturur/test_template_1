@@ -176,6 +176,12 @@ match. The narrower path topped one parked fit. The three retained hot
 exports prioritize posted SDRAM acceptance. The shift-count patch has
 simulation evidence and awaits a routed fit.
 
+The [scalar D-cache lock trial](dcache-lock-valid.md) updates the pending
+load's valid bit directly from miss admission and the tagged return.
+Four directed board profiles and the 171,496-event mixed trace match
+the retained design. This targets the TLB-to-lock path without adding
+a clock. Workload replay and a routed comparison remain open.
+
 The [prepared Wishbone write-data trial](prepared-wb-write-data.md)
 captures both tag-maintenance words and registers the existing advance
 decision. It keeps address and request timing on the original path.

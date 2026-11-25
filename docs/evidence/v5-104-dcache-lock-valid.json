@@ -1,0 +1,17 @@
+{
+  "base": "81fa7685de2d43b4c60aad9e312bc454a49bef09",
+  "netlist_sha256": "881868d746e577c1a42297123cd4ca621e246371ded8fd78de71a90b358cf204",
+  "transition_test": "PASS scalar valid equals bitmap nonempty over 1064960 transitions",
+  "board_profiles": [
+    "PASS cycles=25816 scalar_wait_cycles=10307 swp_beats=2 clean_writes=1 walks=4 prefetch_aborts=1",
+    "LINES ram=0 rom=0 rejected=614 resident_capacity_bytes=16384",
+    "PASS cycles=51376 scalar_wait_cycles=35944 swp_beats=2 clean_writes=1 walks=4 prefetch_aborts=1",
+    "LINES ram=0 rom=0 rejected=614 resident_capacity_bytes=16384",
+    "PASS cycles=20449 scalar_wait_cycles=483 swp_beats=2 clean_writes=1 walks=4 prefetch_aborts=1",
+    "LINES ram=552 rom=63 rejected=0 resident_capacity_bytes=16384",
+    "PASS cycles=24497 scalar_wait_cycles=1560 swp_beats=2 clean_writes=1 walks=4 prefetch_aborts=1",
+    "LINES ram=552 rom=62 rejected=0 resident_capacity_bytes=16384"
+  ],
+  "mixed_trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+  "mixed_trace_lines": 171496
+}
