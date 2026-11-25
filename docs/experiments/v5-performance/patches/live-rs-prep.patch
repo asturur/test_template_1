@@ -1,0 +1,150 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index bb4bd15..9524039 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -3503,18 +3503,19 @@ module ngage2_arm9v2_execute (
+ 	wire s_grant_hit = FREE_SELECT || s_load_hit;
+ 
+     wire [19:0] s_grant = i_forward_grant[5 * (s_grant_hit * 4)+:20];
+-    wire [4:0] rs_grant = s_grant[14:10];
++    wire [4:0] rs_grant = i_forward_grant[14:10];
+     // A younger M dependency still wins if its unavailable data temporarily
+     // leaves an older W value in the data mux. The ordinary wait check then
+     // holds the instruction until the younger value can actually be used.
+     wire rs_m_match = |i_forward_match[9:8];
+     wire late_w_aux_rs = !rs_m_match && rs_grant[2];
++    wire late_w_load_rs = s_wait_for_w[2];
+     // The fast count excludes the W auxiliary lane. Other consumers still
+     // see the full forwarded operand, including the existing held-count
+     // capture and the independently forwarded value being shifted.
+     wire [7:0] fast_rs = (i_mw_value[39:32] & {8{rs_grant[0]}})
+                       | (i_mw_value[7:0] & {8{rs_grant[1]}})
+-                      | (i_mw_value[71:64] & {8{rs_grant[3]}})
++                      | (i_w_alu_data[7:0] & {8{rs_grant[3]}})
+                       | ((holding ? held[71:64] : i_value[71:64]) & {8{rs_grant[4]}});
+ 	ngage2_arm9v2_forward u_forward(
+ 		.i_value((holding ? held : i_value)),
+@@ -3586,7 +3587,9 @@ module ngage2_arm9v2_execute (
+ 			shift_rot = (ref_type == 0 ? -ref_amount[4:0] : ref_amount[4:0]);
+ 		end
+ 
+-        if (direct_reg_shift) begin
++        // Prepare the fast rotate while the interlock resolves. Admission
++        // and held-count capture still check the original operand readiness.
++        if (fast_reg_eligible) begin
+             shift_amount = fast_rs;
+             shift_rot = (shift_type == 0 ? -fast_rs[4:0] : fast_rs[4:0]);
+         end
+@@ -3842,7 +3845,7 @@ module ngage2_arm9v2_execute (
+ 
+     wire direct_reg_eligible = i_reg_shift && i_kind == DP && !i_thumb && !prepared
+                               && i_early[2] && !tag_pc[2] && !tag_psr[2];
+-    wire fast_reg_eligible = direct_reg_eligible && !late_w_aux_rs;
++    wire fast_reg_eligible = direct_reg_eligible && !late_w_aux_rs && !late_w_load_rs;
+     wire direct_reg_shift = fast_reg_eligible && !s_wait[2];
+ 
+     assign o_shift_wait = i_valid && ((i_reg_shift && !direct_reg_shift) || agu_scaled) && !prepared;
+diff --git a/tests/cpu/arm9v2_board/wb_rs_tb.sv b/tests/cpu/arm9v2_board/wb_rs_tb.sv
+index 786a3dd..3727c89 100644
+--- a/tests/cpu/arm9v2_board/wb_rs_tb.sv
++++ b/tests/cpu/arm9v2_board/wb_rs_tb.sv
+@@ -83,6 +83,7 @@ module wb_rs_tb;
+             i_value            = {32'd0, 24'h01c9bb, count, operand, 32'd0};
+             i_forward_grant    = {RF_GRANTS, RF_GRANTS};
+             i_mw_value         = 0;
++            i_w_alu_data       = 0;
+             i_forward_match    = 0;
+             i_load_owner       = 0;
+             i_load_hit         = 0;
+@@ -159,6 +160,7 @@ module wb_rs_tb;
+             case (source)
+                 1: begin  // W auxiliary count and W load supplying Rm concurrently.
+                     i_forward_grant[34:30] = 5'b00100;
++                    i_forward_grant[14:10] = 5'b00100;
+                     i_forward_match[11:8]  = 4'b1000;
+                     i_mw_value[127:96]     = {24'h801325, count};
+                     i_forward_grant[29:25] = 5'b01000;
+@@ -172,6 +174,10 @@ module wb_rs_tb;
+                     i_forward_grant[34:30] = 5'b01000;
+                     i_forward_match[11:8]  = 4'b0100;
+                     i_mw_value[95:64]      = {24'h751ea2, count};
++                    if (source == 2) begin
++                        i_forward_grant[14:10] = 5'b01000;
++                        i_w_alu_data           = {24'h751ea2, count};
++                    end
+                     if (source == 3) begin
+                         i_self_dep        = 1;
+                         i_load_owner      = 2'b10;
+@@ -191,6 +197,7 @@ module wb_rs_tb;
+                 end
+                 4: begin  // Younger M count masks simultaneous older W.
+                     i_forward_grant[34:30] = 5'b00100;
++                    i_forward_grant[14:10] = 5'b00100;
+                     i_forward_match[11:8]  = 4'b1001;
+                     i_load_owner           = 2'b01;
+                     i_mw_value[127:96]     = 32'hdddd0044;
+@@ -200,6 +207,7 @@ module wb_rs_tb;
+                     tick();
+                     i_load_owner           = 0;
+                     i_forward_grant[34:30] = 5'b00010;
++                    i_forward_grant[14:10] = 5'b00010;
+                     i_mw_value[31:0]       = {24'h4beab1, count};
+                 end
+                 5: begin  // W auxiliary as Rm stays on the original fast data path.
+@@ -210,7 +218,7 @@ module wb_rs_tb;
+                 default: begin
+                 end
+             endcase
+-            use_prepare = source == 1;
++            use_prepare = source == 1 || source == 3;
+             #1;
+             if (!reference.accept || candidate.accept == use_prepare)
+                 $fatal(1, "unexpected issue phase at clock %0d source=%0d", clocks, source);
+@@ -284,6 +292,7 @@ module wb_rs_tb;
+         configure(32'h80000001, 0, 1, 1, 0);
+         reference_i_valid      = 0;
+         i_forward_grant[34:30] = 5'b00100;
++        i_forward_grant[14:10] = 5'b00100;
+         i_forward_match[11:8]  = 4'b1000;
+         i_mw_value[127:96]     = 1;
+         tick();
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index 75b39c4..1c29a43 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -1159,6 +1159,27 @@ def split_execute_readiness(phone):
+     return ''.join(parts)
+ 
+ 
++def isolate_live_load_shift_count(phone):
++    """Use the no-load forwarding bank to compute the fast ARM Rs count."""
++    start = phone.index('module ngage2_arm9v2_execute (')
++    end = phone.index('\nendmodule', start)
++    execute = phone[start:end]
++    execute = edit(execute, '    wire [4:0] rs_grant = s_grant[14:10];',
++                   '    wire [4:0] rs_grant = i_forward_grant[14:10];')
++    execute = edit(execute, '    wire late_w_aux_rs = !rs_m_match && rs_grant[2];',
++                   '''    wire late_w_aux_rs = !rs_m_match && rs_grant[2];
++    wire late_w_load_rs = s_wait_for_w[2];''')
++    execute = edit(execute, '(i_mw_value[71:64] & {8{rs_grant[3]}})',
++                   '(i_w_alu_data[7:0] & {8{rs_grant[3]}})')
++    execute = edit(execute, '    wire fast_reg_eligible = direct_reg_eligible && !late_w_aux_rs;',
++                   '    wire fast_reg_eligible = direct_reg_eligible && !late_w_aux_rs && !late_w_load_rs;')
++    execute = edit(execute, '        if (direct_reg_shift) begin',
++                   '''        // Prepare the fast rotate while the interlock resolves. Admission
++        // and held-count capture still check the original operand readiness.
++        if (fast_reg_eligible) begin''')
++    return phone[:start] + execute + phone[end:]
++
++
+ def move_fetch_payload_to_ram(phone):
+     """Give the fetch queue a synchronous backing store behind its head FF."""
+     start = phone.index('module ngage2_arm9v2_fetch (')
+@@ -1385,6 +1406,7 @@ def main():
+     if args.hinted_ldm:
+         generated = issue_hinted_ldm(generated, edit)
+     generated = keep_wishbone_request_boundary(generated)
++    generated = isolate_live_load_shift_count(generated)
+     generated = prepare_wishbone_write_data(generated)
+     if args.check:
+         if output.read_text() != generated:

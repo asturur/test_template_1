@@ -169,6 +169,13 @@ both-lane prototype removed the primary W fast path too and added
 0.133% to the native frame clocks in simulation. The fitted auxiliary-only
 trial improved every seed and saved 602 median ALMs. Keep `a846b87`.
 
+The [live-load shift-count trial](live-rs-prep.md) reuses that held count
+only when a returning W load supplies Rs. All 105 fixed windows, four
+native frames, four board profiles and the 171,496-event mixed replay
+match. The narrower path topped one parked fit. The three retained hot
+exports prioritize posted SDRAM acceptance. The shift-count patch has
+simulation evidence and awaits a routed fit.
+
 The [prepared Wishbone write-data trial](prepared-wb-write-data.md)
 captures both tag-maintenance words and registers the existing advance
 decision. It keeps address and request timing on the original path.
@@ -223,6 +230,12 @@ replay took 1.577% more clocks and changed one startup PCM sample.
 The named posted paths disappeared, while median whole-core setup
 moved from −2.471 to −2.823 ns. Public `e11a637` restores the retained
 source.
+
+The [posted SDRAM capacity trial](sdram-post-capacity.md) drives the
+posted ACK from the existing slot's registered occupancy. A full slot
+waits for the dequeue edge before accepting its successor. The 104 MHz
+physical stream test and the 171,496-event mixed trace match the retained
+control. The patch introduces no storage. Routed timing remains open.
 
 ## Passive opportunity studies
 

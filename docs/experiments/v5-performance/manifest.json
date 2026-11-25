@@ -1695,5 +1695,65 @@
     "sha256": [
       "ed5f739fc093a4b5445d1a532555f6215eb7a007057520629dcac67ab3938019"
     ]
+  },
+  {
+    "id": "live-rs-prep",
+    "kind": "design",
+    "base": "e11a637576e64e34ac4c3c9351a1e6c33f59d6b2",
+    "patches": [
+      "patches/live-rs-prep.patch"
+    ],
+    "sha256": [
+      "9cbb2722957a0509350761996afea02eb96370ac8787ee9773585548831fc255"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/wb_rs_tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "893764fe921a4b8c8892bab59d73aa5792f54731609748c552224b8d5b75f856",
+      "tests/cpu/arm9v2_board/wb_rs_tb.sv": "e85d176d6598370565e4f7bb3014566a3c87fd6acf2d16b240a1ae70f135e845",
+      "tools/gen_arm9v2_phone.py": "cad96cb675b543c4f09568280c8b155279d3668799f06bb543bf26cc306b8d82"
+    }
+  },
+  {
+    "id": "live-rs-prep-replay",
+    "kind": "fixture",
+    "base": "e11a637576e64e34ac4c3c9351a1e6c33f59d6b2",
+    "patches": [
+      "patches/live-rs-prep-replay.patch"
+    ],
+    "sha256": [
+      "03f02a1fdab6b663f80dc20c1969855c24429a957aa10f34d0e61e47b0e1edb9"
+    ]
+  },
+  {
+    "id": "sdram-post-capacity",
+    "kind": "design",
+    "base": "e11a637576e64e34ac4c3c9351a1e6c33f59d6b2",
+    "patches": [
+      "patches/sdram-post-capacity.patch"
+    ],
+    "sha256": [
+      "6fc3e2ef37e95029aee98cd66d4a2119477f7ba64d9c39f95070910da23bab18"
+    ],
+    "affected_paths": [
+      "rtl/ngage_sdram_stream.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_sdram_stream.v": "67a401dcbe3eaa7f48bb766a3d5be8c647238b83c001deaa1a587b2b409da02f"
+    }
+  },
+  {
+    "id": "sdram-post-capacity-replay",
+    "kind": "fixture",
+    "base": "e11a637576e64e34ac4c3c9351a1e6c33f59d6b2",
+    "patches": [
+      "patches/sdram-post-capacity-replay.patch"
+    ],
+    "sha256": [
+      "cf64df18c36c5bb61e672fe8ff1a02a9e789348fe3c1fc0e40b9e5607c50d99e"
+    ]
   }
 ]

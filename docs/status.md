@@ -1,3 +1,11 @@
+## 2026-11-25 — SDRAM posted acceptance from registered capacity
+
+The one-slot trial separates the posted ACK from the scheduler's command-ready signal and adds no storage. All 105 fixed windows and the mixed board replay match. Four native frames add 130 clocks (+0.00023%) with matching guest digests and output. The affected SDRAM-to-Wishbone path appears at hot ranks 2 and 1 on retained seeds 13 and 31337. Fit this candidate on the three matched 104 MHz seeds. [Patch and qualification](experiments/v5-performance/sdram-post-capacity.md)
+
+## 2026-11-25 — live shift-count trial qualified in simulation
+
+An isolated ARM shift-count patch matched 105 fixed windows, four native PolyCount frames, four board profiles and the 171,496-event mixed replay. The retained core used a live returning load as the direct shift count zero times. The narrow path topped one parked trial but was absent from the three retained hot exports. Keep the unfitted patch for combinations. The stronger fit target is posted SDRAM acceptance from registered queue capacity. [Patch, replay and next design](experiments/v5-performance/live-rs-prep.md)
+
 ## 2026-11-25 — posted SDRAM write acknowledgment parked
 
 Public `e11a637` restores the exact `e9552bd` production tree. A register removes the sampled CPU posted-write path through the Wishbone merger. All three matched fits lose setup slack and the median moves from −2.471 to −2.823 ns. Four native frames add 0.0115% cycles. The mixed replay adds 1.577% and changes one startup PCM sample. Preserve the exact patch and replay. [Results](experiments/v5-performance/cpu-posted-sdram-ack.md)

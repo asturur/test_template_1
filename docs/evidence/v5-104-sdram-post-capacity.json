@@ -1,0 +1,438 @@
+{
+  "base": "e11a637576e64e34ac4c3c9351a1e6c33f59d6b2",
+  "sdram_stream_sha256": "67a401dcbe3eaa7f48bb766a3d5be8c647238b83c001deaa1a587b2b409da02f",
+  "mixed_census": {
+    "direct": 19075,
+    "queued_empty": 0,
+    "replaced": 0,
+    "blocked_cycles": 0,
+    "blocked_offers": 0,
+    "blocked_block_cycles": 0
+  },
+  "mixed": {
+    "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+    "trace_lines": 171496,
+    "result": [
+      "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+      "PASS native LCD grants=4576 completed=4576",
+      "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+      "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+    ]
+  },
+  "directed": "PASS posted capacity, full-slot backpressure and ordered scalar/block writes",
+  "physical_stream": [
+    "SCRUB PASS bytes=16777216 clocks=9719846 all_four_banks=1",
+    "PASS stream grant-edge read, held fallback and cancelled response",
+    "PASS stream scalar reply latency, concurrent line admission and buffered cancellation",
+    "PASS stream packet lock: older posted block/DMA, SWP gap, lane order and physical completion",
+    "REFRESH PASS hz=104000000 count=12823 max_interval_clocks=758 limit=812",
+    "PASS stream command slot: accepted=1048650 issued=1048650 while_busy=1048604 grant_reads=35",
+    "PASS stream masks, physical burst shape, DMA/SWP order and logical reset drain"
+  ],
+  "fixed": [
+    {
+      "case": "sega-scan",
+      "control_median": 2395767,
+      "trial_median": 2395767,
+      "control_clocks": [
+        2396210,
+        2395853,
+        2395905,
+        2395767,
+        2395767,
+        2395767,
+        2395767
+      ],
+      "trial_clocks": [
+        2396210,
+        2395853,
+        2395905,
+        2395767,
+        2395767,
+        2395767,
+        2395767
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "matrix4",
+      "control_median": 16946,
+      "trial_median": 16946,
+      "control_clocks": [
+        17981,
+        16937,
+        16937,
+        16937,
+        16949,
+        16946,
+        16952
+      ],
+      "trial_clocks": [
+        17981,
+        16937,
+        16937,
+        16937,
+        16949,
+        16946,
+        16952
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "transpose4",
+      "control_median": 2976,
+      "trial_median": 2976,
+      "control_clocks": [
+        3055,
+        2964,
+        2964,
+        2976,
+        2976,
+        2979,
+        2976
+      ],
+      "trial_clocks": [
+        3055,
+        2964,
+        2964,
+        2976,
+        2976,
+        2979,
+        2976
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "triangle_edges",
+      "control_median": 12226,
+      "trial_median": 12226,
+      "control_clocks": [
+        13136,
+        12220,
+        12226,
+        12262,
+        12253,
+        12220,
+        12220
+      ],
+      "trial_clocks": [
+        13136,
+        12220,
+        12226,
+        12262,
+        12253,
+        12220,
+        12220
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "fill16_frame",
+      "control_median": 122402,
+      "trial_median": 122402,
+      "control_clocks": [
+        122534,
+        122402,
+        122402,
+        122402,
+        122402,
+        122402,
+        122402
+      ],
+      "trial_clocks": [
+        122534,
+        122402,
+        122402,
+        122402,
+        122402,
+        122402,
+        122402
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "fill16_tail",
+      "control_median": 725,
+      "trial_median": 725,
+      "control_clocks": [
+        876,
+        725,
+        725,
+        728,
+        725,
+        725,
+        725
+      ],
+      "trial_clocks": [
+        876,
+        725,
+        725,
+        728,
+        725,
+        725,
+        725
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "fill8_tail",
+      "control_median": 753,
+      "trial_median": 753,
+      "control_clocks": [
+        903,
+        753,
+        753,
+        753,
+        753,
+        753,
+        753
+      ],
+      "trial_clocks": [
+        903,
+        753,
+        753,
+        753,
+        753,
+        753,
+        753
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "monkey-forward",
+      "control_median": 15940,
+      "trial_median": 15940,
+      "control_clocks": [
+        16021,
+        15937,
+        15940,
+        15940,
+        15949,
+        15937,
+        15940
+      ],
+      "trial_clocks": [
+        16021,
+        15937,
+        15940,
+        15940,
+        15949,
+        15937,
+        15940
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "monkey-reverse",
+      "control_median": 15940,
+      "trial_median": 15940,
+      "control_clocks": [
+        16021,
+        15937,
+        15940,
+        15940,
+        15949,
+        15937,
+        15940
+      ],
+      "trial_clocks": [
+        16021,
+        15937,
+        15940,
+        15940,
+        15949,
+        15937,
+        15940
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "sega-span",
+      "control_median": 15430,
+      "trial_median": 15430,
+      "control_clocks": [
+        15585,
+        15430,
+        15430,
+        15430,
+        15430,
+        15430,
+        15430
+      ],
+      "trial_clocks": [
+        15585,
+        15430,
+        15430,
+        15430,
+        15430,
+        15430,
+        15430
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "sega-fill",
+      "control_median": 2628,
+      "trial_median": 2628,
+      "control_clocks": [
+        2757,
+        2628,
+        2628,
+        2628,
+        2628,
+        2628,
+        2628
+      ],
+      "trial_clocks": [
+        2757,
+        2628,
+        2628,
+        2628,
+        2628,
+        2628,
+        2628
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "asphalt-table",
+      "control_median": 21163,
+      "trial_median": 21163,
+      "control_clocks": [
+        21328,
+        21155,
+        21160,
+        21152,
+        21168,
+        21163,
+        21171
+      ],
+      "trial_clocks": [
+        21328,
+        21155,
+        21160,
+        21152,
+        21168,
+        21163,
+        21171
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "asphalt-double",
+      "control_median": 11974,
+      "trial_median": 11974,
+      "control_clocks": [
+        12140,
+        11974,
+        11982,
+        11974,
+        11977,
+        11974,
+        11974
+      ],
+      "trial_clocks": [
+        12140,
+        11974,
+        11982,
+        11974,
+        11977,
+        11974,
+        11974
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "asphalt-single",
+      "control_median": 7753,
+      "trial_median": 7753,
+      "control_clocks": [
+        7933,
+        7753,
+        7753,
+        7762,
+        7753,
+        7753,
+        7753
+      ],
+      "trial_clocks": [
+        7933,
+        7753,
+        7753,
+        7762,
+        7753,
+        7753,
+        7753
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    },
+    {
+      "case": "diffuse_m10_8x8_jpeg",
+      "control_median": 35324,
+      "trial_median": 35324,
+      "control_clocks": [
+        36331,
+        35324,
+        35324,
+        35324,
+        35324,
+        35324,
+        35324
+      ],
+      "trial_clocks": [
+        36331,
+        35324,
+        35324,
+        35324,
+        35324,
+        35324,
+        35324
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": true
+    }
+  ],
+  "native": [
+    {
+      "case": "native",
+      "control_median": 14346201,
+      "trial_median": 14346186,
+      "control_clocks": [
+        14391395,
+        14467552,
+        14346201,
+        14303223
+      ],
+      "trial_clocks": [
+        14391438,
+        14467615,
+        14346186,
+        14303262
+      ],
+      "architecture_exact": true,
+      "valid_write_trace_exact": false
+    }
+  ],
+  "native_write_acknowledged": {
+    "control": 278165,
+    "trial": 278165
+  },
+  "native_stalled_write_clocks": {
+    "control": 530081,
+    "trial": 535482
+  }
+}

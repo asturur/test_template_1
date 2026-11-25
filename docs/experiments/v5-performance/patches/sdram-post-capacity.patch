@@ -1,0 +1,14 @@
+diff --git a/rtl/ngage_sdram_stream.v b/rtl/ngage_sdram_stream.v
+index 9e7c339..b8c18f4 100644
+--- a/rtl/ngage_sdram_stream.v
++++ b/rtl/ngage_sdram_stream.v
+@@ -69,7 +69,8 @@ module ngage_sdram_stream #(
+     wire idle = state == IDLE && owner_ready;
+     wire scalar = idle && req && !seen;
+     wire take_pending = pending && mem_cmd_ready;
+-    wire post = scalar && we && !lock && (!pending || take_pending);
++    // Once the slot is full, wait for its registered release before posting.
++    wire post = scalar && we && !lock && !pending;
+     wire direct_post = post && !pending && mem_cmd_ready;
+     wire scalar_read = scalar && !we && !pending && mem_cmd_ready;
+     wire lock_write = scalar && we && lock && !pending && mem_cmd_ready;
