@@ -244,11 +244,9 @@ module emu (
     // Retain the CPU bus reservation across the read and write of an atomic swap.
     wire       cpu_bus_lock;
 
-    wire sdram_scrub_done, cpu_sdram_accept;
-    wire [ 1:0] sdram_ack;
+    wire sdram_scrub_done, sdram_ack, cpu_sdram_accept;
     wire [31:0] sdram_dout;
-    wire mem_req, mem_we, mem_lock;
-    wire [1:0] mem_ack;
+    wire mem_req, mem_we, mem_ack, mem_lock;
     wire [7:0] dma_error_pending;
     wire dma_cmd_valid, dma_cmd_ready, dma_cmd_write;
     wire [31:0] dma_cmd_addr, dma_cmd_data;
@@ -342,8 +340,7 @@ module emu (
     // Both DMA paths share SDRAM with the CPU and respect atomic CPU locks.
     // Keep the arbiter payload intact until a canceled physical transfer drains.
     ngage_sdram_arbiter #(
-        .CPU_BLOCK_WRITES(1),
-        .SPLIT_ACK       (1)
+        .CPU_BLOCK_WRITES(1)
     ) ram_arbiter (
         .clk            (clk_sys),
         .reset          (dma_reset || transport_reset),
@@ -423,9 +420,7 @@ module emu (
     wire         sdram_read_grant = (cpu_sdram_accept && !cpu_sdram_we) ||
                                      (shared_dma_accept && !shared_dma_write);
     wire [24:0] sdram_grant_addr = cpu_sdram_accept ? cpu_sdram_addr : shared_dma_addr;
-    ngage_sdram_stream #(
-        .SPLIT_ACK(1)
-    ) phone_sdram (
+    ngage_sdram_stream phone_sdram (
         .clk          (clk_sys),
         .cold         (transport_reset),
         .phone_reset  (dma_reset || transport_reset),
@@ -1243,7 +1238,6 @@ module emu (
         .ENABLE_DEBUGGER(`ENABLE_DEBUGGER),
         .LINE_REFILL    (1),
         .RAM_LINE_EARLY (1),
-        .SPLIT_SDRAM_ACK(1),
         .LCD_LINE_BYTES (LCD_LINE_BYTES),
         .DMA_LOCAL      (1),
         .GAME_PCM       (1),

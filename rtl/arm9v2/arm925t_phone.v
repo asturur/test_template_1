@@ -29,7 +29,6 @@ module ngage2_arm925t (
 	bus_bte,
 	bus_rdata,
 	bus_ack,
-	bus_write_ack,
 	bus_err,
 	bus_no_late_error,
 	dbg_pc,
@@ -87,7 +86,6 @@ module ngage2_arm925t (
 	output wire [1:0] bus_bte;
 	input wire [31:0] bus_rdata;
 	input wire bus_ack;
-	input wire bus_write_ack;
 	input wire bus_err;
 	input wire bus_no_late_error;
 	output wire [31:0] dbg_pc;
@@ -113,7 +111,6 @@ module ngage2_arm925t (
 	output wire [3:0] dbg_d_sel;
 	output wire [31:0] dbg_d_wdata;
 	output wire [31:0] dbg_d_rdata;
-	parameter SPLIT_WB_ACK = 0;
 	localparam [0:0] ARM9_PREDICTOR = 1'b1;
 	localparam [0:0] HIVECS = 1'b0;
 	localparam signed [31:0] ICACHE_WAYS = 2;
@@ -130,7 +127,6 @@ module ngage2_arm925t (
 	localparam signed [31:0] ICACHE_SIZE = 16384;
 	localparam signed [31:0] DCACHE_SIZE = 16384;
 	ngage2_zap_top #(
-		.SPLIT_WB_ACK(SPLIT_WB_ACK),
 		.ARM9_PREDICTOR(ARM9_PREDICTOR),
 		.CP15_ID(32'h54029252),
 		.CP15_CTYPE(32'h0514a14a),
@@ -191,7 +187,6 @@ module ngage2_arm925t (
         .o_dbg_fetch_valid(dbg_fetch_valid),
 		.o_wb_bte(bus_bte),
 		.i_wb_ack(bus_ack),
-		.i_wb_write_ack(bus_write_ack),
 		.i_wb_dat(bus_rdata),
 		.i_wb_err(bus_err),
 		.i_wb_no_late_error(bus_no_late_error)
@@ -15288,7 +15283,6 @@ module ngage2_zap_top (
 	o_wb_cti,
 	o_wb_bte,
 	i_wb_ack,
-	i_wb_write_ack,
 	i_wb_dat,
 	i_wb_err,
 	i_wb_no_late_error,
@@ -15310,7 +15304,6 @@ module ngage2_zap_top (
 	output wire o_dbg_fetch_valid;
 	output wire [31:0] o_dbg_instruction;
 	parameter [0:0] ARM9_PREDICTOR = 1'b1;
-	parameter SPLIT_WB_ACK = 0;
 	parameter [0:0] CP15_L4_DEFAULT = 1'd0;
 	parameter [31:0] RESET_VECTOR = 32'd0;
 	parameter [31:0] CPSR_INIT = 32'h000000d3;
@@ -15373,7 +15366,6 @@ module ngage2_zap_top (
 	output wire [2:0] o_wb_cti;
 	output wire [1:0] o_wb_bte;
 	input wire i_wb_ack;
-	input wire i_wb_write_ack;
 	input wire [31:0] i_wb_dat;
 	input wire i_wb_err;
 	input wire i_wb_no_late_error;
@@ -16078,9 +16070,7 @@ module ngage2_zap_top (
 			);
 		end
 		if (1) begin : l_merger_for_core_with_cache_mmu
-			ngage2_zap_wb_merger #(
-				.D_DATA_PREPARED(1'b1), .SPLIT_WB_ACK(SPLIT_WB_ACK)
-			) u_zap_wb_merger(
+			ngage2_zap_wb_merger #(.D_DATA_PREPARED(1'b1)) u_zap_wb_merger(
 				.i_clk(i_clk),
 				.i_reset(s_reset),
 				.i_c_wb_stb(c_wb_stb),
@@ -16117,7 +16107,6 @@ module ngage2_zap_top (
 				.o_wb_cti(wb_cti),
 				.o_wb_bte(o_wb_bte),
 				.i_wb_ack(wb_ack),
-				.i_wb_write_ack(i_wb_write_ack),
 				.i_wb_err(wb_err),
 				.i_wb_no_late_error(i_wb_no_late_error)
 			);
@@ -16350,13 +16339,11 @@ module ngage2_zap_wb_merger (
 	o_wb_cti,
 	o_wb_bte,
 	i_wb_ack,
-	i_wb_write_ack,
 	i_wb_err,
 	i_wb_no_late_error
 );
 	reg _sv2v_0;
     parameter D_DATA_PREPARED = 1'b0;
-    parameter SPLIT_WB_ACK = 0;
 	input wire i_clk;
 	input wire i_reset;
 	input wire i_c_wb_stb;
@@ -16393,7 +16380,6 @@ module ngage2_zap_wb_merger (
 	output reg [2:0] o_wb_cti;
 	output reg [1:0] o_wb_bte;
 	input wire i_wb_ack;
-	input wire i_wb_write_ack;
 	input wire i_wb_err;
 	input wire i_wb_no_late_error;
 	localparam [1:0] SECTION_ID = 2'b10;
@@ -16672,17 +16658,7 @@ module ngage2_zap_wb_merger (
 	reg state_nxt;
 	wire switch;
 	assign o_dbg_data_owner = state_ff == 1'd1;
-    // Only DATA owns the SDRAM write response. The common rail still
-    // carries native fills, scalar reads, slow replies, and ERR travels as before.
-    wire write_ack = SPLIT_WB_ACK ? i_wb_write_ack : 1'b0;
-    wire completion = i_wb_ack | write_ack | i_wb_err;
-    assign switch = completion & (o_wb_cti == CTI_EOB);
-`ifndef SYNTHESIS
-    always @(posedge i_clk)
-        if (!i_reset && write_ack &&
-            (state_ff != 1'd1 || !o_wb_stb || !o_wb_wen || i_wb_ack || i_wb_err))
-            $fatal(1, "SDRAM write completion without a matching DATA write");
-`endif
+	assign switch = (i_wb_ack | i_wb_err) & (o_wb_cti == CTI_EOB);
 	always @(*) begin
 		if (_sv2v_0)
 			;
@@ -16710,7 +16686,7 @@ module ngage2_zap_wb_merger (
 		else
 			state_ff <= state_nxt;
 	assign o_c_wb_ack = (state_ff == 1'd0) & (i_wb_err | i_wb_ack);
-	assign o_d_wb_ack = (state_ff == 1'd1) & completion;
+	assign o_d_wb_ack = (state_ff == 1'd1) & (i_wb_err | i_wb_ack);
 	assign o_c_wb_err = (state_ff == 1'd0) & i_wb_err;
 	assign o_c_wb_no_late_error = (state_ff == 1'd0) & i_wb_no_late_error;
 	assign o_d_wb_err = (state_ff == 1'd1) & i_wb_err;

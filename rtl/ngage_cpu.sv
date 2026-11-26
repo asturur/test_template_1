@@ -4,8 +4,7 @@
 module ngage_cpu #(
     parameter LINE_REFILL             = 0,
     parameter EXPLICIT_LINE_GUARANTEE = 0,
-    parameter REGISTERED_SCALAR_PEER  = 0,
-    parameter SPLIT_WB_ACK            = 0
+    parameter REGISTERED_SCALAR_PEER  = 0
 ) (
 
     output wire        line_req,
@@ -36,28 +35,24 @@ module ngage_cpu #(
     output logic [  3:0] wb_byte_enable,
     output logic [  2:0] wb_cycle_type,
     output logic [  1:0] wb_burst_type,
-
-    input logic [SPLIT_WB_ACK:0] wb_ack,
-
-    input  logic        wb_error,
-    input  logic [31:0] wb_read_data,
-    output wire  [31:0] debug_pc,
-    output wire  [31:0] debug_cpsr,
-    output wire  [31:0] debug_instruction,
-    output wire         debug_fetch
+    input  logic         wb_ack,
+    input  logic         wb_error,
+    input  logic [ 31:0] wb_read_data,
+    output wire  [ 31:0] debug_pc,
+    output wire  [ 31:0] debug_cpsr,
+    output wire  [ 31:0] debug_instruction,
+    output wire          debug_fetch
 );
 `ifdef NGAGE_ARM9V2
     wire [31:0] donor_pc, donor_cpsr, donor_instruction;
     wire donor_fetch, donor_line_candidate;
-    wire donor_cyc, donor_lock, donor_error, donor_no_late_error;
-    wire [SPLIT_WB_ACK:0] donor_ack;
-    wire [          31:0] donor_read_data;
+    wire donor_cyc, donor_lock, donor_ack, donor_error, donor_no_late_error;
+    wire [31:0] donor_read_data;
     assign wb_stb = wb_cyc;
 
     ngage_arm9v2_refill #(
         .ENABLE                (LINE_REFILL),
-        .REGISTERED_SCALAR_PEER(REGISTERED_SCALAR_PEER),
-        .SPLIT_WB_ACK          (SPLIT_WB_ACK)
+        .REGISTERED_SCALAR_PEER(REGISTERED_SCALAR_PEER)
     ) refill (
         .clk               (clk),
         .reset             (reset),
@@ -97,9 +92,7 @@ module ngage_cpu #(
     assign debug_fetch       = donor_fetch;
 `endif
 
-    ngage2_arm925t #(
-        .SPLIT_WB_ACK(SPLIT_WB_ACK)
-    ) u_arm925t (
+    ngage2_arm925t u_arm925t (
         .clk               (clk),
         .reset             (reset),
         .irq               (irq),
@@ -120,8 +113,7 @@ module ngage_cpu #(
         .bus_cti           (wb_cycle_type),
         .bus_bte           (wb_burst_type),
         .bus_burst         (),
-        .bus_ack           (donor_ack[0]),
-        .bus_write_ack     (SPLIT_WB_ACK ? donor_ack[SPLIT_WB_ACK] : 1'b0),
+        .bus_ack           (donor_ack),
         .bus_err           (donor_error),
         .bus_rdata         (donor_read_data),
         .bus_no_late_error (donor_no_late_error),
@@ -171,7 +163,7 @@ module ngage_cpu #(
         .o_wb_sel           (wb_byte_enable),
         .o_wb_cti           (wb_cycle_type),
         .o_wb_bte           (wb_burst_type),
-        .i_wb_ack           (|wb_ack),
+        .i_wb_ack           (wb_ack),
         .i_wb_dat           (wb_read_data),
         .i_wb_err           (wb_error)
     );
@@ -193,31 +185,26 @@ endmodule
 // Deliver each registered word in order while the rest of the line arrives.
 module ngage_arm9v2_refill #(
     parameter ENABLE                 = 0,
-    parameter REGISTERED_SCALAR_PEER = 0,
-    parameter SPLIT_WB_ACK           = 0
+    parameter REGISTERED_SCALAR_PEER = 0
 ) (
-    input wire        clk,
-    input wire        reset,
-    input wire        cpu_cyc,
-    input wire        cpu_lock,
-    input wire        cpu_line_candidate,
-    input wire [31:0] cpu_address,
-    input wire        cpu_write,
-    input wire [ 3:0] cpu_sel,
-    input wire [ 2:0] cpu_cti,
-    input wire [ 1:0] cpu_bte,
-
-    output wire [SPLIT_WB_ACK:0] cpu_ack,
-
+    input  wire        clk,
+    input  wire        reset,
+    input  wire        cpu_cyc,
+    input  wire        cpu_lock,
+    input  wire        cpu_line_candidate,
+    input  wire [31:0] cpu_address,
+    input  wire        cpu_write,
+    input  wire [ 3:0] cpu_sel,
+    input  wire [ 2:0] cpu_cti,
+    input  wire [ 1:0] cpu_bte,
+    output wire        cpu_ack,
     output wire        cpu_error,
     output wire        cpu_no_late_error,
     input  wire        line_no_late_error,
     output wire [31:0] cpu_data,
     output wire        wb_cyc,
     output wire        wb_lock,
-
-    input wire [SPLIT_WB_ACK:0] wb_ack,
-
+    input  wire        wb_ack,
     input  wire        wb_error,
     input  wire [31:0] wb_data,
     output wire        line_req,
@@ -253,21 +240,14 @@ module ngage_arm9v2_refill #(
     // A same-edge responder still uses the current scalar offer.
     (* dont_retime *)reg  scalar_offered;
     wire scalar_reply = REGISTERED_SCALAR_PEER ? !reset && cpu_cyc && scalar_offered : wb_cyc;
-    wire scalar_complete = (|wb_ack) || wb_error;
-    always @(posedge clk) scalar_offered <= wb_cyc && !(scalar_offered && scalar_complete);
+    always @(posedge clk) scalar_offered <= wb_cyc && !(scalar_offered && (wb_ack || wb_error));
 
-    wire line_ack = cpu_cyc && !failed && received[4:1] > {1'b0, consumed};
-    assign cpu_ack[0] = state == LINE ? line_ack : scalar_reply && wb_ack[0];
-    generate
-        if (SPLIT_WB_ACK) begin : write_reply
-            assign cpu_ack[1] = state != LINE && scalar_reply && wb_ack[1];
-        end
-    endgenerate
-    assign cpu_error         = state == LINE ? cpu_cyc && failed : scalar_reply && wb_error;
+    assign cpu_ack   = state == LINE ? cpu_cyc && !failed && received[4:1] > {1'b0, consumed} : scalar_reply && wb_ack;
+    assign cpu_error = state == LINE ? cpu_cyc && failed : scalar_reply && wb_error;
     // A scalar fallback never grants the promise, including a line rejected
     // before its first beat. The cache samples this alongside the first ACK.
-    assign cpu_no_late_error = state == LINE && guaranteed && cpu_ack[0];
-    assign cpu_data          = state == LINE ? words[consumed] : wb_data;
+    assign cpu_no_late_error = state == LINE && guaranteed && cpu_ack;
+    assign cpu_data = state == LINE ? words[consumed] : wb_data;
 
     always @(posedge clk) begin
         if (reset) begin
@@ -293,12 +273,12 @@ module ngage_arm9v2_refill #(
                         received <= received + (line_wide ? 5'd4 : 5'd1);
                         if (line_error) failed <= 1;
                     end
-                    if (line_ack || cpu_error) begin
+                    if (cpu_ack || cpu_error) begin
                         consumed <= consumed + 1'b1;
                         if (consumed == 7) state <= IDLE;
                     end
                 end
-                SCALAR:  if (scalar_reply && !burst && scalar_complete) state <= IDLE;
+                SCALAR:  if (scalar_reply && !burst && (wb_ack || wb_error)) state <= IDLE;
                 default: state <= IDLE;
             endcase
         end

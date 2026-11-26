@@ -2,8 +2,7 @@
 // Pipelined scalar and refill port shared by the CPU, LCD and DMA.
 module ngage_sdram_stream #(
     parameter        WIDE_PORT   = 1,
-    parameter [24:0] SCRUB_BYTES = 25'h1000000,
-    parameter        SPLIT_ACK   = 0
+    parameter [24:0] SCRUB_BYTES = 25'h1000000
 ) (
     input  wire         clk,
     input  wire         cold,
@@ -21,9 +20,7 @@ module ngage_sdram_stream #(
     input  wire [ 24:0] addr,
     input  wire [ 31:0] din,
     input  wire [  3:0] be,
-
-    output wire [SPLIT_ACK:0] ack,
-
+    output wire         ack,
     output wire [ 31:0] dout,
     input  wire         line_req,
     input  wire         line_short,
@@ -111,16 +108,7 @@ module ngage_sdram_stream #(
     assign dout = read_data;
     wire word_done = state == READ_WORD && mem_valid;
     wire locked_done = state == WRITE_LOCKED && !mem_busy;
-    // Split mode carries the read and write completions on separate rails.
-    // The command capture and response clock are the same in both modes.
-    generate
-        if (SPLIT_ACK) begin : split_ack
-            assign ack[0] = owner_ready && read_reply;
-            assign ack[1] = owner_ready && (post || locked_done);
-        end else begin : shared_ack
-            assign ack = owner_ready && (post || read_reply || locked_done);
-        end
-    endgenerate
+    assign ack = owner_ready && (post || read_reply || locked_done);
 
     assign line_valid = state == LINE && owner_ready && (high_word || mem_valid);
     assign line_data  = high_word ? high_data : mem_rdata[15:0];

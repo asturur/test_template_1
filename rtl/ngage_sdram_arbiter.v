@@ -2,22 +2,19 @@
 // across the SWP read/write gap. The MiSTer top connects LCD DMA.
 module ngage_sdram_arbiter #(
     parameter integer AW               = 25,
-    parameter integer CPU_BLOCK_WRITES = 0,
-    parameter integer SPLIT_ACK        = 0
+    parameter integer CPU_BLOCK_WRITES = 0
 ) (
-    input wire          clk,
-    input wire          reset,
-    input wire          cpu_lock,
-    input wire          cpu_req,
-    input wire          cpu_we,
-    input wire [AW-1:0] cpu_addr,
-    input wire [  31:0] cpu_data,
-    input wire          cpu_write_block,
-    input wire [ 127:0] cpu_block_data,
-    input wire [   3:0] cpu_be,
-
-    output wire [SPLIT_ACK:0] cpu_ack,
-
+    input  wire          clk,
+    input  wire          reset,
+    input  wire          cpu_lock,
+    input  wire          cpu_req,
+    input  wire          cpu_we,
+    input  wire [AW-1:0] cpu_addr,
+    input  wire [  31:0] cpu_data,
+    input  wire          cpu_write_block,
+    input  wire [ 127:0] cpu_block_data,
+    input  wire [   3:0] cpu_be,
+    output wire          cpu_ack,
     output wire [  31:0] cpu_rdata,
     input  wire          dma_req,
     input  wire          dma_we,
@@ -33,13 +30,11 @@ module ngage_sdram_arbiter #(
     output reg           mem_write_block,
     output reg  [ 127:0] mem_block_data,
     output reg  [   3:0] mem_be,
-
-    input wire [SPLIT_ACK:0] mem_ack,
-
-    input  wire [31:0] mem_rdata,
-    output wire        cpu_accept,
-    output wire        dma_accept,
-    output wire        mem_lock
+    input  wire          mem_ack,
+    input  wire [  31:0] mem_rdata,
+    output wire          cpu_accept,
+    output wire          dma_accept,
+    output wire          mem_lock
 );
     localparam FREE = 0, ACTIVE = 1;
     reg [1:0] state = FREE;
@@ -53,12 +48,10 @@ module ngage_sdram_arbiter #(
     assign cpu_accept = !reset && state == FREE && choose_cpu;
     assign dma_accept = !reset && state == FREE && choose_dma;
     assign mem_req    = (state == ACTIVE);
-    wire cpu_owns_memory = mem_req && !owner && !reset;
-    // Every rail uses the held scalar owner. DMA consumes either kind of reply.
-    assign cpu_ack   = mem_ack & {(SPLIT_ACK + 1) {cpu_owns_memory}};
-    assign dma_ack   = mem_req && owner && (|mem_ack) && !reset;
-    assign cpu_rdata = mem_rdata;
-    assign dma_rdata = mem_rdata;
+    assign cpu_ack    = mem_req && !owner && mem_ack && !reset;
+    assign dma_ack    = mem_req && owner && mem_ack && !reset;
+    assign cpu_rdata  = mem_rdata;
+    assign dma_rdata  = mem_rdata;
     always @(posedge clk) begin
         if (reset) begin
             state       <= FREE;
@@ -81,7 +74,7 @@ module ngage_sdram_arbiter #(
                     mem_be <= choose_dma ? dma_be : cpu_be;
                     state  <= ACTIVE;
                 end
-                ACTIVE:  if (|mem_ack) state <= FREE;
+                ACTIVE:  if (mem_ack) state <= FREE;
                 default: state <= FREE;
             endcase
     end
