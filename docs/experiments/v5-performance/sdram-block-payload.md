@@ -38,6 +38,25 @@ The dirty descriptor was parked. The standalone payload candidate
 physical 104 MHz and DDR debug off. The matched control is timer-only
 `9f16d1a`. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45856840289) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45856845012) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45856850190)
 
+## Routed decision
+
+Park `b7cf9fc`. All three fits pass hold, recovery, removal, minimum pulse
+width and SDRAM pin register packing. Seed 31337 has +0.003 ns of hold
+slack. All three builds miss 104 MHz setup.
+
+| Seed | Worst setup, timer → capture | Core TNS delta | Occupied ALM delta | Estimated ALMs needed delta |
+| ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.214 → −2.419 ns | −491.295 ns | +52 | +130 |
+| 43 | −2.403 → −2.781 ns | −1,668.070 ns | +106 | +131 |
+| 31337 | −2.452 → −2.930 ns | −1,568.630 ns | +153 | +296 |
+
+The `ram_arbiter.mem_block_data` destination leaves every top-1,000
+corner export. The new limiting paths end in the Wishbone address,
+Thumb decode stage and D-cache lock-valid. Whole-core median setup falls
+by 0.378 ns and median TNS worsens by 1,568.630 ns. The paired median
+occupied count rises by 106 ALMs. M10Ks remain at 321.
+[Matched fits and path samples](../../evidence/v5-104-sdram-block-payload-fits.json)
+
 ## Reproduction
 
 Restore the helpers from the [replay patch](patches/sdram-block-payload-replay.patch) at the repository root. Use the existing frozen timer and retained replay decks, pinned Verible, cached Jotego image and established ARM cross-toolchain.

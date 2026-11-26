@@ -339,7 +339,9 @@ leaves the reports and all three whole-core setups regress. Park.
 The [SDRAM block-payload trial](sdram-block-payload.md) stages the CPU's
 128-bit payload on the arbiter's free edge. The request retains its owner,
 lock and block qualification. The full cold scrub, queued reset drain,
-real ARM dirty writeback and workload traces match. Routed timing is pending.
+real ARM dirty writeback and workload traces match. The block-data endpoints
+leave the samples, while all three full-core setups and occupied counts
+worsen. Park.
 
 The [native refill word-ready trial](refill-line-word-ready.md) registers
 line occupancy so the ACK no longer compares the received and consumed

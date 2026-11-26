@@ -108,3 +108,4 @@ fit while the estimated number needed rose. [ALM accounting audit](fitter-alm-ac
 | [MMC HPS owner on the timer base](mmc-hps-cancel-owner.md) | −2.079 ns | −2.615 ns | 36,918 | Park for area |
 | [Compact D-cache lock on the timer base](dcache-compact-lock.md) | −2.513 ns | −2.712 ns | 36,622 | Park |
 | [D-cache dirty-clear descriptor on the timer base](dcache-dirty-clean-descriptor.md) | −2.583 ns | −2.648 ns | 36,274 | Park |
+| [SDRAM block payload on the timer base](sdram-block-payload.md) | −2.419 ns | −2.781 ns | 37,169 | Park |

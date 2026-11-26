@@ -28,6 +28,12 @@ The [stack with the SDRAM payload change](refill-payload-combined.md)
 uses the same qualified wrapper and matches the exact payload control
 in the native refill workload decks and all three pin replays.
 
+## 104 MHz fit
+
+The SDRAM payload trial was parked. Standalone native refill candidate
+`9929983` builds above exact timer restore `85b21a4`, with physical 104 MHz
+and DDR debug off. The matched control is timer-only `9f16d1a`. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45863520207) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45863524825) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45863528948)
+
 ## Reproduction
 
 Run from the repository root with the archived design and fixture patches, the private timer object chain, the existing timer and prepared Wishbone replay decks, the ARM GNU tools, and the cached Jotego ARM64 image. The design and [replay patch](patches/refill-line-word-ready-replay.patch) are in the experiment archive.
