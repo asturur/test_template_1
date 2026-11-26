@@ -42,6 +42,7 @@ module ngage_mmc_hps (
     reg mount_known, mount_pending, admitted, cancelled;
     reg [63:0] image_size;
     reg image_readonly, owned_write;
+    reg [31:0] generation, request_generation;
     reg [31:0] owned_lba;
     reg [ 5:0] owned_count;
     reg [14:0] expected_words, received_words;
@@ -72,6 +73,8 @@ module ngage_mmc_hps (
         image_size         = 0;
         image_readonly     = 1;
         owned_write        = 0;
+        generation         = 0;
+        request_generation = 0;
         owned_lba          = 0;
         owned_count        = 0;
         expected_words     = 0;
@@ -112,9 +115,7 @@ module ngage_mmc_hps (
                           {2'b0, hps_buff_addr} != received_words;
     wire write_word_ok = {2'b0, hps_buff_addr} == received_words + 15'd1 &&
                          received_words < expected_words;
-    // IDLE only publishes without a media/reset event. A later event
-    // cancels the owner on the same edge and the old HPS request drains.
-    wire current_request = !cancelled;
+    wire current_request = !cancelled && request_generation == generation;
     wire blocked = init_reset || guest_reset || hps_img_mounted ||
                    !mount_known || mount_pending || fault;
     wire malformed_word = ((selected_word && !word_ok) ||
@@ -171,7 +172,8 @@ module ngage_mmc_hps (
         else if (quiet != 3) quiet <= quiet + 1'b1;
 
         if (changed) begin
-            admitted <= 0;
+            generation <= generation + 1'b1;
+            admitted   <= 0;
             if (state != IDLE) cancelled <= 1;
         end
         if (init_event) begin
@@ -232,6 +234,7 @@ module ngage_mmc_hps (
                         owned_write        <= card_sd_wr;
                         expected_words     <= {request_blocks, 8'd0};
                         received_words     <= 0;
+                        request_generation <= generation;
                         state              <= REQUEST;
                     end
                 end
