@@ -2142,5 +2142,63 @@
       "scratch/v5-fit-loop/lltune-clock/evidence/mock-lltune.tcl": "54eea00f2609b35761adc63688f6816a9c952a52f771e40ec22dcec6e8a5b920",
       "scratch/v5-fit-loop/lltune-clock/evidence/same-fit-audit.tcl": "12dcfb7ccbe49fd14f34b2a47a18bc318f2f7d927b3327f5fcaed25495af4a6b"
     }
+  },
+  {
+    "id": "timer-write-prepare",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare.patch"
+    ],
+    "sha256": [
+      "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a"
+    ],
+    "affected_paths": [
+      "rtl/ngage_timers.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/timer_conformance/tb.v",
+      "tests/phone/timers/tb.sv"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+      "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+      "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+      "tests/phone/timer_conformance/tb.v": "2716e8f144611319d38079a4e4870432292eadd721970960f45ea47f23b08ed0",
+      "tests/phone/timers/tb.sv": "df48a45fbc9bdf41ba283b1bcd696f58f9c335698e265ad78fa4d93b4d958a44"
+    }
+  },
+  {
+    "id": "timer-write-prepare-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare-replay.patch"
+    ],
+    "sha256": [
+      "8395a1c3becb5c698d5016dc5271cb287edd032e1e19c51362c218d5a9c017c9"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/timer-write-prepare/board.sh",
+      "scratch/v5-fit-loop/timer-write-prepare/coexistence.sh",
+      "scratch/v5-fit-loop/timer-write-prepare/mixed.py",
+      "scratch/v5-fit-loop/timer-write-prepare/original.sh",
+      "scratch/v5-fit-loop/timer-write-prepare/prepare-coexistence.py",
+      "scratch/v5-fit-loop/timer-write-prepare/prepare-directed.py",
+      "scratch/v5-fit-loop/timer-write-prepare/record.py",
+      "scratch/v5-fit-loop/timer-write-prepare/replay.py",
+      "scratch/v5-fit-loop/timer-write-prepare/timer-directed.sv"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/timer-write-prepare/board.sh": "df556ac4c0760f0e6f502d3642d348660f45ae15976af0872f89539dfa34d0a2",
+      "scratch/v5-fit-loop/timer-write-prepare/coexistence.sh": "6e4dc726ac9a34f5dad72a8ff8ff46ed602b1c9202168ada69c5e8e5901be02e",
+      "scratch/v5-fit-loop/timer-write-prepare/mixed.py": "5cc13f65cae38cd70e0fbfa4bbda46d1dd728955182775906177b5c32f74bfed",
+      "scratch/v5-fit-loop/timer-write-prepare/original.sh": "fe4b1ebeeb549292881318d0de20ca99f3a5a293760d3d2b65cefd9581e2414e",
+      "scratch/v5-fit-loop/timer-write-prepare/prepare-coexistence.py": "cf5c9e18008fc76481887e4901f473a88af8491ed88741af3a403ee1ea22ec6d",
+      "scratch/v5-fit-loop/timer-write-prepare/prepare-directed.py": "f63b948f06483c0d76c909635bf84092b2daa9398e2dbff7e347f42a030a29db",
+      "scratch/v5-fit-loop/timer-write-prepare/record.py": "ed44f0292ba0399a108d973d731f9a70fb68dbb29fa3cd613181e57a9b62b1fd",
+      "scratch/v5-fit-loop/timer-write-prepare/replay.py": "c29edfccdaec6afbd4e38df09e1c7b31dc8cb0163f418b9a945bdbecce9d9a15",
+      "scratch/v5-fit-loop/timer-write-prepare/timer-directed.sv": "585b3f88a3b66b0614a92f32b79969652b37dfc0284911e82ba767365ed342d0"
+    }
   }
 ]

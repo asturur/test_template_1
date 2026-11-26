@@ -5,7 +5,9 @@
 pilot. The private candidate tree is
 `7127805827ab48253d9b60ab880ccb2fd751e5d7`. The patch applies to the
 exact retained `11c4a0c` tree and changes three timing and report files.
-The first TimeQuest run is pending.
+The first 104 MHz TimeQuest run uses `5f764ef`, seed 13 and DDR
+debugging off. Its parent `6aba907` matches the retained tree.
+[Pilot run](https://github.com/asturur/test_template_1/actions/runs/45805636505)
 
 ## Gate identity
 

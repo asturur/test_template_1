@@ -1,0 +1,296 @@
+diff --git a/rtl/ngage_timers.v b/rtl/ngage_timers.v
+index a612008..ba5f5b1 100644
+--- a/rtl/ngage_timers.v
++++ b/rtl/ngage_timers.v
+@@ -3,8 +3,9 @@
+ // Timer 0 supplies the OS tick; medint uses timer 3 with reload/count 390.
+ // The board selects a 26 MHz enable (/3 at 78 MHz, /4 at 104 MHz).
+ module ngage_timers #(
+-    parameter integer CLOCK_DIV       = 1,
+-                      PASSIVE_STORAGE = 1
++    parameter integer CLOCK_DIV        = 1,
++                      PASSIVE_STORAGE  = 1,
++                      PREDECODE_WRITES = 0
+ ) (
+     input  wire        clk,
+     input  wire        reset,
+@@ -26,7 +27,9 @@ module ngage_timers #(
+     input  wire        sysc74_seen,
+     output wire [ 5:0] pending_sources,
+     output wire        ready,
+-    output wire [ 5:0] status_clear
++    output wire [ 5:0] status_clear,
++    input  wire [ 5:0] count_write_sel,
++    input  wire [ 5:0] stop_sel
+ );
+     wire [31:0] a = {addr[31:2], 2'b00};
+     wire [ 2:0] unit_index = addr[7:5];
+@@ -133,11 +136,16 @@ module ngage_timers #(
+             reg [31:0] count, reload;
+             reg status;
+             reg running, pending;
+-            reg  [31:0] data;
+-            wire        hit = write_access && unit_index == t;
+-            wire        count_write = hit && register_index == 4;
+-            wire        stopping = hit && register_index == 1 && din[1:0] == 0;
+-            wire        expiry = timer_ce && running && count == 1 && !count_write && !stopping;
++            reg [31:0] data;
++            wire hit = write_access && unit_index == t;
++            // The held decode is qualified by local access on the original
++            // edge, after live cancellation and before the response is held.
++            wire count_write = PREDECODE_WRITES ? commit && count_write_sel[t] :
++                hit && register_index == 4;
++            wire stopping = PREDECODE_WRITES ? commit && stop_sel[t] :
++                hit && register_index == 1 && din[1:0] == 0;
++            wire tick_count = timer_ce && running && !count_write && !stopping;
++            wire expiry = tick_count && count == 1;
+             assign status_clear[t]    = count_write || expiry;
+             assign pending_sources[t] = pending;
+             assign periodic[t]        = running && control[1] && reload != 0;
+@@ -165,7 +173,13 @@ module ngage_timers #(
+                     running <= 0;
+                     pending <= 0;
+                 end else begin
+-                    if (timer_ce && running && !count_write && !stopping) begin
++                    if (count_write) begin
++                        count  <= din;
++                        // Original 50323f4c programs and polls again without
++                        // ACK. A new deadline clears status and retains IRQ.
++                        status <= 0;
++                        if (control[1:0] != 0) running <= 1;
++                    end else if (tick_count) begin
+                         // Zero wraps naturally: a zero load takes 2^32 enables.
+                         if (count == 1) begin
+                             count <= control[1] ? reload : 0;
+@@ -184,15 +198,6 @@ module ngage_timers #(
+                                 status  <= din[0];
+                                 pending <= 0;
+                             end
+-                            4: begin
+-                                count  <= din;
+-                                // Original 50323f4c programs and polls again
+-                                // without ACK: completion belongs to the new
+-                                // deadline. This transaction-level inference
+-                                // does not acknowledge an older IRQ event.
+-                                status <= 0;
+-                                if (control[1:0] != 0) running <= 1;
+-                            end
+                             6: reload <= din;
+                         endcase
+                     end
+diff --git a/rtl/ngage_upp.v b/rtl/ngage_upp.v
+index 12305f1..55ecf16 100644
+--- a/rtl/ngage_upp.v
++++ b/rtl/ngage_upp.v
+@@ -200,6 +200,7 @@ module ngage_upp #(
+     wire mmc_rx_ready, mmc_tx_ready, mmc_route_ready, mmc_read_waiting, mmc_write_waiting;
+     wire [4:0] dma_packet_decode;
+     wire [7:0] dma_packet_targets;
++    wire [5:0] timer_packet_count_write, timer_packet_stop;
+     generate
+         if (INTERNAL_CPU) begin : cpu_inside
+             wire master_cyc, master_stb, master_we, master_code;
+@@ -315,28 +316,31 @@ module ngage_upp #(
+             // selection nor its wide address/lane mux crosses device command
+             // decode in the same cycle. Fast SDRAM/LCD streams bypass this bus.
+             ngage_upp_request_stage #(
+-                .EXPLICIT_LIVE(1),
+-                .DMA_PREDECODE(GENERAL_DMA)
++                .EXPLICIT_LIVE  (1),
++                .DMA_PREDECODE  (GENERAL_DMA),
++                .TIMER_PREDECODE(1)
+             ) request_stage (
+-                .clk        (clk),
+-                .reset      (rst),
+-                .in_cyc     (dma_bus_active || cpu_bus_cyc),
+-                .in_stb     (dma_bus_active || cpu_bus_stb),
+-                .in_live    (dma_bus_active || cpu_bus_live),
+-                .in_we      (dma_bus_active ? dma_write : cpu_bus_we),
+-                .in_code    (!dma_bus_active && cpu_bus_code),
+-                .in_address (dma_bus_active ? dma_addr : cpu_bus_adr),
+-                .in_data    (dma_bus_active ? dma_data : cpu_bus_din),
+-                .in_sel     (dma_bus_active ? dma_be : cpu_bus_sel),
+-                .out_cyc    (bus_cyc),
+-                .out_stb    (bus_stb),
+-                .out_we     (bus_we),
+-                .out_code   (bus_code),
+-                .out_address(bus_adr),
+-                .out_data   (bus_din),
+-                .out_sel    (bus_sel),
+-                .out_dma_ctl(dma_packet_decode),
+-                .out_dma_ch (dma_packet_targets)
++                .clk              (clk),
++                .reset            (rst),
++                .in_cyc           (dma_bus_active || cpu_bus_cyc),
++                .in_stb           (dma_bus_active || cpu_bus_stb),
++                .in_live          (dma_bus_active || cpu_bus_live),
++                .in_we            (dma_bus_active ? dma_write : cpu_bus_we),
++                .in_code          (!dma_bus_active && cpu_bus_code),
++                .in_address       (dma_bus_active ? dma_addr : cpu_bus_adr),
++                .in_data          (dma_bus_active ? dma_data : cpu_bus_din),
++                .in_sel           (dma_bus_active ? dma_be : cpu_bus_sel),
++                .out_cyc          (bus_cyc),
++                .out_stb          (bus_stb),
++                .out_we           (bus_we),
++                .out_code         (bus_code),
++                .out_address      (bus_adr),
++                .out_data         (bus_din),
++                .out_sel          (bus_sel),
++                .out_dma_ctl      (dma_packet_decode),
++                .out_dma_ch       (dma_packet_targets),
++                .timer_count_write(timer_packet_count_write),
++                .timer_stop       (timer_packet_stop)
+             );
+ 
+             always @(posedge clk) begin
+@@ -472,6 +476,8 @@ module ngage_upp #(
+             assign ram_response = 0;
+             assign dma_packet_decode = 0;
+             assign dma_packet_targets = 0;
++            assign timer_packet_count_write = 0;
++            assign timer_packet_stop = 0;
+             assign bus_code = 1'b0;
+             assign bus_cyc = ext_cyc;
+             assign bus_stb = ext_stb;
+@@ -631,6 +637,7 @@ module ngage_upp #(
+         .TIMER_CLK_DIV     (TIMER_CLK_DIV),
+         .NOS_TICK_HZ       (NOS_TICK_HZ),
+         .REGISTER_RESPONSES(INTERNAL_CPU),
++        .TIMER_PREDECODE   (INTERNAL_CPU),
+         .LCD_QUEUE_ENABLE  (LCD_QUEUE_ENABLE),
+         .SIMIF_ENABLE      (SIMIF_ENABLE),
+         .KEYPAD_ENABLE     (KEYPAD_ENABLE)
+@@ -676,6 +683,8 @@ module ngage_upp #(
+         .din                 (bus_din),
+         .sel                 (bus_sel),
+         .commit              (bus_access),
++        .timer_count_write   (timer_packet_count_write),
++        .timer_stop          (timer_packet_stop),
+         .dma_shadow_claim    (lcd_dma_claim),
+         .lcd_direct_collision(lcd_dma_valid && bus_we && bus_adr == 32'h0c121208),
+         .response_pending    (peripheral_response_pending),
+@@ -932,8 +941,9 @@ endmodule
+ // DMA gap provide the request-low edge. Cancellation immediately suppresses
+ // side effects, while an already captured downstream transaction may drain.
+ module ngage_upp_request_stage #(
+-    parameter EXPLICIT_LIVE = 0,
+-              DMA_PREDECODE = 0
++    parameter EXPLICIT_LIVE   = 0,
++              DMA_PREDECODE   = 0,
++              TIMER_PREDECODE = 0
+ ) (
+     input  wire        clk,
+     input  wire        reset,
+@@ -953,7 +963,9 @@ module ngage_upp_request_stage #(
+     output reg  [31:0] out_data,
+     output reg  [ 3:0] out_sel,
+     output wire [ 4:0] out_dma_ctl,
+-    output wire [ 7:0] out_dma_ch
++    output wire [ 7:0] out_dma_ch,
++    output wire [ 5:0] timer_count_write,
++    output wire [ 5:0] timer_stop
+ );
+     (* dont_retime *)reg  valid = 0;
+     wire offered = in_cyc && in_stb;
+@@ -996,6 +1008,33 @@ module ngage_upp_request_stage #(
+             assign out_dma_ch  = 0;
+         end
+     endgenerate
++    generate
++        if (TIMER_PREDECODE) begin : timer_packet
++            // The peripheral fabric word-aligns addresses before timer decode.
++            wire timer_write = in_we && (&in_sel) && in_address[31:8] == 24'h0c120a;
++            wire count_write = timer_write && in_address[4:2] == 4;
++            wire stop = timer_write && in_address[4:2] == 1 && in_data[1:0] == 0;
++            genvar unit_index;
++            for (unit_index = 0; unit_index < 6; unit_index = unit_index + 1) begin : timer_unit
++                wire same_unit = in_address[7:5] == unit_index;
++                (* dont_retime *) reg held_count_write, held_stop;
++                always @(posedge clk) begin
++                    if (reset) begin
++                        held_count_write <= 0;
++                        held_stop        <= 0;
++                    end else if (!valid && offered) begin
++                        held_count_write <= count_write && same_unit;
++                        held_stop        <= stop && same_unit;
++                    end
++                end
++                assign timer_count_write[unit_index] = held_count_write;
++                assign timer_stop[unit_index]        = held_stop;
++            end
++        end else begin : no_timer_packet
++            assign timer_count_write = 0;
++            assign timer_stop        = 0;
++        end
++    endgenerate
+     always @(posedge clk) begin
+         if (reset) begin
+             valid       <= 0;
+diff --git a/rtl/ngage_upp_peripherals.v b/rtl/ngage_upp_peripherals.v
+index 101f51b..8ab744b 100644
+--- a/rtl/ngage_upp_peripherals.v
++++ b/rtl/ngage_upp_peripherals.v
+@@ -50,6 +50,7 @@ module ngage_upp_peripherals #(
+               DDR_UPP_RAM        = 0,
+               SYS_CLK_HZ         = 104000000,
+               TIMER_CLK_DIV      = 1,
++              TIMER_PREDECODE    = 0,
+               NOS_TICK_HZ        = 1000
+ ) (
+     input  wire        rst,
+@@ -73,6 +74,8 @@ module ngage_upp_peripherals #(
+     input  wire        we,
+     input  wire [31:0] din,
+     input  wire [ 3:0] sel,
++    input  wire [ 5:0] timer_count_write,
++    input  wire [ 5:0] timer_stop,
+     input  wire        commit,                // authorize local access checks this cycle
+     // configuration (from the harness command line)
+     input  wire        cfg_lcd,               // lcd-probe option
+@@ -418,8 +421,9 @@ module ngage_upp_peripherals #(
+         .ready       (icu_ready)
+     );
+     ngage_timers #(
+-        .CLOCK_DIV      (TIMER_CLK_DIV),
+-        .PASSIVE_STORAGE(0)
++        .CLOCK_DIV       (TIMER_CLK_DIV),
++        .PASSIVE_STORAGE (0),
++        .PREDECODE_WRITES(TIMER_PREDECODE)
+     ) timers (
+         .clk            (clk),
+         .reset          (rst),
+@@ -429,6 +433,8 @@ module ngage_upp_peripherals #(
+         .addr           (a),
+         .din            (din),
+         .sel            (sel),
++        .count_write_sel(timer_count_write),
++        .stop_sel       (timer_stop),
+         // Masking the shared line must not acknowledge the timer producer.
+         .clear_unit1    (1'b0),
+         .claim          (timer_claim),
+diff --git a/tests/phone/timers/tb.sv b/tests/phone/timers/tb.sv
+index a9e7364..1841c5d 100644
+--- a/tests/phone/timers/tb.sv
++++ b/tests/phone/timers/tb.sv
+@@ -11,7 +11,7 @@ integer cycles=0, cases=0,n,k,first,last,elapsed;reg [31:0] saved;
+ always @(posedge clk) cycles=cycles+1;
+ wire [5:0] unused_status_clear;
+ ngage_timers #(.CLOCK_DIV(DIV)) dut(clk,reset,req,commit,we,addr,din,sel,clear1,
+- claim,bad,dout,p0,p1,p60,rearm,periodic,1'b0,pending,ready,unused_status_clear);
++ claim,bad,dout,p0,p1,p60,rearm,periodic,1'b0,pending,ready,unused_status_clear,6'd0,6'd0);
+ task tick;begin @(posedge clk);#1;end endtask
+ task fresh;begin @(negedge clk);reset=1;req=0;commit=0;we=0;tick();@(negedge clk);reset=0;end endtask
+ task wr(input integer unit_no,input integer off,input [31:0] value);begin
+diff --git a/tests/phone/timer_conformance/tb.v b/tests/phone/timer_conformance/tb.v
+index 99d654c..1e6b696 100644
+--- a/tests/phone/timer_conformance/tb.v
++++ b/tests/phone/timer_conformance/tb.v
+@@ -13,7 +13,7 @@ wire [95:0] fiq_sources={90'd0,pending};
+ integer cycles=0,cases=0;
+ always @(posedge clk)cycles=cycles+1;
+ ngage_timers timers(clk,reset,req,commit,we,addr,din,4'hf,1'b0,tc,tb,td,
+- ,,,rearm,,1'b0,pending,timer_ready);
++ ,,,rearm,,1'b0,pending,timer_ready,,6'd0,6'd0);
+ ngage_icu icu(clk,reset,req,commit,we,addr,din,4'hf,irq_sources,fiq_sources,
+  ic,ib,id,irq,fiq,clear,rearm,icu_ready);
+ task tick;begin @(posedge clk);#1;end endtask

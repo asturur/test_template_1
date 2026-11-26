@@ -17,8 +17,7 @@ predicates use the same sampling and hold condition as their data and error.
 Ready, commit and valid still use the same edges. SIMIF still owns its
 overlapping status accesses and samples the EUART contribution on that
 edge. The immediate fabric uses the original data mux and owner. The keypad
-overlay and EUART address decoding are the retained versions. Routed area
-and timing remain open.
+overlay and EUART address decoding follow their original routes.
 
 The lane-only production build is `5e91495`, a child of the exact
 retained-tree forward restore `88796f65`. It uses the same-day retained
@@ -26,6 +25,25 @@ controls at 104 MHz with DDR debugging off.
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45800010061) ·
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45800009911) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45800009711)
+
+## Routed results
+
+| Seed | Retained setup | Lane split setup | Change | Retained ALMs | Lane split ALMs |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.061 ns | −3.029 ns | −0.968 ns | 36,420 | 37,205 |
+| 43 | −2.508 ns | −3.164 ns | −0.656 ns | 36,446 | 37,247 |
+| 31337 | −2.471 ns | −2.895 ns | −0.424 ns | 36,461 | 37,348 |
+| Median | −2.471 ns | −3.029 ns | −0.558 ns | 36,446 | 37,247 |
+
+Park `5e91495`. The hot reports contain zero named lane 13 data paths
+after 7/15/0 on the controls. All three lose setup, median core setup
+TNS falls from −5143.651 to −6471.121 ns, and median area grows by
+801 ALMs. The limiting paths move to DMA descriptor RAM, execute
+feedback and D-cache lock. All three pass hold, recovery, removal,
+pulse width and SDRAM pin packing and use 321 M10Ks. Forward restore
+`6aba907` matches the retained tree. The best trial RBF is
+`build/fit/v5-104mhz-5e91495-seed31337/ngage1.rbf`.
+[Matched fit and route evidence](../../evidence/v5-104-lane13-register-sources-fits.json)
 
 ## Qualification
 

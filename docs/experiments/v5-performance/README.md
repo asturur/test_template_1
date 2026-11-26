@@ -270,7 +270,9 @@ and median setup moves from −2.471 to −2.811 ns. Park for area combinations.
 The [separate lane 13 result captures](lane13-register-sources.md) reuse
 the existing keypad sample and let the UART word register independently.
 The directed responses, 105 fixed windows, four native frames and mixed
-pin trace match the retained design. Routed timing is pending.
+pin trace match the retained design. The named lane paths disappear
+from the hot exports. Median setup moves from −2.471 to −3.029 ns
+and median area grows by 801 ALMs. Park the trial.
 
 The [D-cache live-trust trial](dcache-live-trust.md) removes the wide
 next-fill decode from the trust register's update. The exact transition
@@ -282,7 +284,12 @@ The [HDMI tuner clock model](lltune-generated-clock.md) declares a
 generated clock for the existing low-latency scaler feedback path.
 The retained global clock uses the gated branch's uncertainty. The
 candidate checks clock ownership and all-corner uncertainty before
-accepting any timing result. A real Quartus pilot is pending.
+accepting any timing result. The first 104 MHz pilot is running.
+
+The [prepared timer writes](timer-write-prepare.md) capture the
+count-write and stop predicates with the held UPP packet. Directed tests
+and the full workload suites match, including a timer-expiry trace
+with MMC and LCD DMA busy. Routed timing is pending.
 
 ## Passive opportunity studies
 
