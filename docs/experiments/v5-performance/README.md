@@ -388,6 +388,11 @@ board, workload, pin, ACK and ERR checks match the two-cut control. The
 [A-space operand alternative](a-right-payload.md) is parked before fitting
 because active production lookahead observes a vacant operand change.
 
+The [conservative W same-destination guard](waw-retire-two-cut.md) has
+active replay proof on the best refill and SDRAM tree and the prepared D
+beat variant. Native PolyCount adds 0.1011% clocks. Three fixed medians
+cost 0.0818%, 1.1860%, and 0.5662%, and twelve tie. Routed timing is open.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
