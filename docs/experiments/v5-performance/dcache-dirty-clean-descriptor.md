@@ -25,6 +25,15 @@ Dirty-group scan, lookahead and read enables retain their existing clocks and co
 
 [Qualification receipt](../../evidence/v5-104-dcache-dirty-clean-descriptor.json)
 
+## Qualification on the compact-lock variant
+
+The [standalone descriptor](patches/dcache-dirty-descriptor-on-timer.patch) and the [descriptor on compact lock](patches/dcache-dirty-descriptor-on-compact.patch) both pass the same board, CP15, fixed, native and physical pin replays. Each exact candidate also passes the dirty-lane miter and the 1,281-cycle critical refill abort and reset fixture. The generated combined CPU contains the four tested compact-lock modules and the tested dirty half-tag RAM byte-for-byte. Production preflight selects 133 inputs, with only the emitted CPU changed from each control. DDR debugging is off at physical 104 MHz.
+
+- [Standalone receipt](../../evidence/v5-104-dcache-dirty-descriptor-on-timer.json)
+- [Compact-lock combination receipt](../../evidence/v5-104-dcache-dirty-descriptor-on-compact.json)
+- [Exact candidates and all three seeds' preflight checks](../../evidence/v5-104-dcache-dirty-compact-preflight.json)
+- [Combined replay fixture](patches/dcache-dirty-compact-combined-replay.patch)
+
 ## Reproduction
 
 Run from the repository root using the prior private timer objects, pinned donor, prepared Wishbone workloads, and already-qualified timer pin and overlap decks. The ARM GNU tools and cached Jotego ARM64 image supply the directed tests. Set `patches` to the archive containing the design and fixture patches.
