@@ -894,6 +894,14 @@ endmodule
     return ''.join(parts)
 
 
+def simplify_dcache_live_trust(phone):
+    """Keep the full refill-state decode out of D-cache live-hit trust."""
+    return edit(phone,
+                '\t\t\to_live_trust <= (state_nxt[IDLE] || hum_slot_nxt) && !(o_fill_busy && !fill_busy_nxt);',
+                '\t\t\t// The fill slot implies next fill busy. One-hot IDLE excludes it.\n'
+                '\t\t\to_live_trust <= hum_slot_nxt || (state_nxt[IDLE] && !o_fill_busy);')
+
+
 def resolve_execute_forward_candidates(phone):
     """Resolve each possible A-entry/hold grant in parallel with W completion."""
     parts = re.split(r'(?=^module )', phone, flags=re.M)
@@ -1379,6 +1387,7 @@ def main():
     generated = predecode_refill_candidates(half_dirty_writeback(generated))
     generated = predecode_dcache_write_enable(generated)
     generated = register_background_load_tag(generated)
+    generated = simplify_dcache_live_trust(generated)
     generated = resolve_execute_forward_candidates(generated)
     generated = split_execute_readiness(generated)
     generated = move_fetch_payload_to_ram(generated)
