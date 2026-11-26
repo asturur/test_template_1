@@ -347,6 +347,12 @@ counters. Narrow and wide assembly, same-edge ACK, error and scalar fallback
 match the control in all workloads and both physical traces. Routed timing
 is pending.
 
+The [A-stage multiply trial](arm9-a-only-product.md) follows the donor's
+registered DSP operands and removes the early live SMULL bypass.
+Native PolyCount takes 1.253% more clocks, Matrix4 5.895% more and
+triangle edges 0.344% more. All game windows match. Hold behind the
+same-cycle trials. Routed timing is pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
