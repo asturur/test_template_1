@@ -1,0 +1,1252 @@
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/board.sh b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/board.sh
+new file mode 100644
+index 0000000..e598b66
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/board.sh
+@@ -0,0 +1,47 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/tlb-victims-mmc-fifo
++out=build/sim/v5-104-tlb-victims-mmc-fifo/board
++fixture=tests/cpu/arm9v2_board
++mkdir -p "$out"
++arm-none-eabi-gcc -c -mcpu=arm920t -marm -DEXPECTED_CTYPE=0x0514a14a -DASSOC_WAYS=2 \
++    -DSECTION_INDEX_TEST "$area/reference/$fixture/contract.S" -o "$out/guest.o"
++arm-none-eabi-ld -T "$area/reference/sim/programs/link.ld" "$out/guest.o" -o "$out/guest.elf"
++arm-none-eabi-objcopy -O binary "$out/guest.elf" "$out/guest.bin"
++python3 -B - "$out" <<'PY'
++from pathlib import Path
++import struct
++import sys
++
++out = Path(sys.argv[1])
++words = struct.iter_unpack('<I', (out / 'guest.bin').read_bytes())
++(out / 'guest.hex').write_text(''.join(f'{word:08x}\n' for (word,) in words))
++PY
++
++for leg in reference source; do
++    mkdir -p "$out/$leg"
++    docker run --rm --pull=never --network none --platform linux/arm64 \
++        -v "$PWD/$area/$leg:/work:ro" -v "$PWD/$out:/results" -w /work \
++        --entrypoint sh jotego/simulator:arm64 -ec '
++        out=/results/$1
++        verilator --binary --timing --assert -j 2 \
++            -Wno-fatal -Wno-lint -DNGAGE_ARM9V2 --top-module contract --Mdir "$out/obj" \
++            rtl/ngage_cpu.sv rtl/ngage_upp.v rtl/arm9v2/arm925t_phone.v \
++            rtl/arm9v2/upstream/sim/stubs/*.sv tests/cpu/arm9v2_board/contract.v > "$out/build.log" 2>&1
++        for burst in 0 1; do
++            for wait in 0 5; do
++                log="$out/burst-$burst-wait-$wait.log"
++                "$out/obj/Vcontract" +program=/results/guest.hex "+wait=$wait" "+burst=$burst" \
++                    +half-writeback +section-reads=2 > "$log" 2>&1
++                grep -E "^(PASS|LINES|ASSOC|SECTION|DATA_FAULT|REFILL_FAULT) " "$log" > "${log%.log}.trace"
++                grep -q "^PASS " "$log"
++            done
++        done' board "$leg"
++done
++for burst in 0 1; do
++    for wait in 0 5; do
++        name=burst-$burst-wait-$wait.trace
++        cmp "$out/reference/$name" "$out/source/$name"
++        grep '^PASS ' "$out/source/$name"
++    done
++done
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/replay.py b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/replay.py
+new file mode 100644
+index 0000000..45feef3
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/replay.py
+@@ -0,0 +1,182 @@
++"""Replay prepared UPP timer writes against the retained 104 MHz control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = repo / 'build/sim/v5-104-tlb-victims-mmc-fifo' / args.output
++work.mkdir(parents=True, exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(stage / 'source/tests/cpu/arm9v2_board'))
++import payload_clocks
++payload_clocks.OUT = repo / "build/sim"
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_upp_peripherals.v', 'rtl/ngage_keypad.v', 'rtl/ngage_upp_euart.v', 'rtl/ngage_timers.v', 'rtl/ngage_mmc_host.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/tlb-victims-mmc-fifo/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_upp_peripherals.v', 'ngage_keypad.v', 'ngage_upp_euart.v', 'ngage_timers.v', 'ngage_mmc_host.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/tlb-victims-mmc-fifo/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((stage.parent/'prepared-wb-write-data'/'candidate'/f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                source_sha256={name:digest(stage / 'source/rtl' / name) for name in ('ngage_upp.v','ngage_upp_peripherals.v','ngage_upp_euart.v', 'ngage_timers.v','ngage_keypad.v','ngage_mmc_host.v')}, rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/mixed.py b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/mixed.py
+new file mode 100644
+index 0000000..0c8937f
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/mixed.py
+@@ -0,0 +1,34 @@
++"""Stage the frozen physical-SDRAM replay with the prepared UPP timer writes."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-timer-write-prepare/mixed')
++trial = Path('build/sim/v5-104-tlb-victims-mmc-fifo/mixed')
++changed = {'rtl/arm9v2/arm925t_phone.v', 'rtl/ngage_mmc_host.v'}
++peer = 'tests/phone/upp_ddr_ram/peer.v'
++
++trial.mkdir(parents=True, exist_ok=True)
++shutil.copytree(base / 'source', trial / 'source', dirs_exist_ok=True)
++for name in ('stress.hex', 'image.hex', 'program.hex'):
++    shutil.copyfile(base / name, trial / name)
++(trial / 'source' / peer).parent.mkdir(parents=True, exist_ok=True)
++shutil.copyfile(stage / 'source' / peer, trial / 'source' / peer)
++for name in changed:
++    shutil.copyfile(stage / 'source' / name, trial / 'source' / name)
++
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert changed <= hashes.keys() and peer in hashes
++for name, reference in hashes.items():
++    if name.startswith('rtl/'):
++        assert sha256((stage / 'reference' / name).read_bytes()).hexdigest() == reference, name
++    actual = sha256((trial / 'source' / name).read_bytes()).hexdigest()
++    assert (actual != reference) == (name in changed), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++
++build = (base / 'build.sh').read_text().replace(str(base), str(trial))
++(trial / 'build.sh').write_text(build)
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/coexistence.sh b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/coexistence.sh
+new file mode 100644
+index 0000000..5638058
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/coexistence.sh
+@@ -0,0 +1,20 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/tlb-victims-mmc-fifo
++out=build/sim/v5-104-tlb-victims-mmc-fifo/coexistence
++retained=build/sim/v5-104-timer-write-prepare/mixed
++candidate=build/sim/v5-104-tlb-victims-mmc-fifo/mixed
++python3 -B "$area/prepare-coexistence.py"
++guest_path=build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed/stress.hex
++for leg in retained candidate; do
++  if [ "$leg" = retained ]; then replay=$retained; else replay=$candidate; fi
++  docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++    -v "$PWD/$out/stress-timer.hex:/work/$guest_path:ro" -w /work \
++    --entrypoint "/work/$replay/obj/Vtb" jotego/simulator:arm64 \
++    +upp_stress "+compare_trace=$out/$leg.trace" > "$out/$leg.log"
++  grep '^PASS ' "$out/$leg.log" > "$out/$leg.pass"
++done
++cmp "$out/retained.trace" "$out/candidate.trace"
++cmp "$out/retained.pass" "$out/candidate.pass"
++wc -l "$out/candidate.trace"
++cat "$out/candidate.pass"
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/prepare-coexistence.py b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/prepare-coexistence.py
+new file mode 100644
+index 0000000..978a91b
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/prepare-coexistence.py
+@@ -0,0 +1,51 @@
++"""Insert a one-shot timer into the active physical MMC/LCD replay."""
++from pathlib import Path
++import subprocess
++
++
++stage = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-tlb-victims-mmc-fifo/coexistence')
++out.mkdir(parents=True, exist_ok=True)
++base = Path('build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed')
++guest = (base / 'stress.S').read_text()
++marker = ' // Read/copy/partial-write round trips while LCD DMA and PCM are active.'
++assert guest.count(marker) == 1
++guest = guest.replace(marker, ''' // Timer4 must expire with both transfers still active.
++ mov r12,#83
++ ldr r0,=0x0c120a80
++ put r0,4,1
++ put r0,0x10,13
++timer4_wait:
++ ldr r4,[r0,#8]
++ tst r4,#1
++ beq timer4_wait
++ ldr r4,[r8,#0x18]
++ tst r4,#4
++ beq fail
++ ldr r1,=0x0c120348
++ ldr r4,[r1]
++ cmp r4,#0
++ beq fail
++ put r0,4,0
++ put r0,8,0
++ ldr r4,[r0,#8]
++ tst r4,#1
++ bne fail
++
++''' + marker)
++assembly = out / 'stress-timer.S'
++obj = assembly.with_suffix('.o')
++elf = assembly.with_suffix('.elf')
++binary = assembly.with_suffix('.bin')
++assembly.write_text(guest)
++for command in (
++    ['arm-none-eabi-gcc', '-c', '-mcpu=arm920t', '-marm', assembly, '-o', obj],
++    ['arm-none-eabi-ld', '-T', stage / 'source/sim/programs/link.ld', obj, '-o', elf],
++    ['arm-none-eabi-objcopy', '-O', 'binary', elf, binary],
++):
++    subprocess.run(command, check=True)
++raw = binary.read_bytes()
++assert len(raw) % 4 == 0 and len(raw) <= 8192
++assembly.with_suffix('.hex').write_text(''.join(
++    f'{int.from_bytes(raw[i:i+4], "little"):08x}\n' for i in range(0, len(raw), 4)
++))
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/architectural_trace.vh b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/architectural_trace.vh
+new file mode 100644
+index 0000000..88b6546
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/architectural_trace.vh
+@@ -0,0 +1,69 @@
++`define RESUPP dut.board.upp.cpu_inside
++`define RESZAP `RESUPP.cpu.u_arm925t.u_zap
++`define RESCORE `RESZAP.g_arm9.u_arm9_core
++`define RESFETCH `RESCORE.u_front_decode.u_fetch
++
++reg [31:0] res_begin, res_end;
++integer res_window = 0;
++integer res_retired, res_data, res_mmio, res_recover;
++reg res_active = 0;
++reg [63:0] res_retire_hash, res_data_hash, res_mmio_hash;
++localparam [63:0] RES_INITIAL = 64'hcbf29ce484222325;
++initial begin
++    if (!$value$plusargs("begin_pc=%h", res_begin) || !$value$plusargs("end_pc=%h", res_end))
++        $fatal(1, "Missing architectural digest window");
++end
++
++function automatic [63:0] res_mix(input [63:0] digest, input [63:0] data);
++    res_mix = (digest ^ data) * 64'h00000100000001b3;
++endfunction
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        res_active = 1;
++        res_retired = 0;
++        res_data = 0;
++        res_mmio = 0;
++        res_recover = 0;
++        res_retire_hash = RES_INITIAL;
++        res_data_hash = RES_INITIAL;
++        res_mmio_hash = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && res_active) begin
++        $display("RES_ARCH window=%0d retired=%0d data=%0d mmio=%0d recover=%0d retire_hash=%016x data_hash=%016x mmio_hash=%016x",
++                 res_window, res_retired, res_data, res_mmio, res_recover,
++                 res_retire_hash, res_data_hash, res_mmio_hash);
++        res_window++;
++        res_active = 0;
++    end else if (res_active) begin
++        if (`RESCORE.wb_complete) begin
++            res_retired++;
++            res_retire_hash = res_mix(res_retire_hash, {`RESCORE.w[526:495], `RESCORE.w[494:463]});
++            res_retire_hash = res_mix(res_retire_hash, {25'b0, exceptions, `RESCORE.cpsr_next});
++            if (`RESCORE.wb_valid) begin
++                if (`RESCORE.wb_tag0 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {26'b0, `RESCORE.wb_tag0, `RESCORE.wb_data0});
++                if (`RESCORE.wb_pair && `RESCORE.wb_tag1 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {25'b0, 1'b1, `RESCORE.wb_tag1, `RESCORE.wb_data1});
++            end
++        end
++        if (`RESZAP.o_dbg_d_done) begin
++            res_data++;
++            res_data_hash = res_mix(res_data_hash, {26'b0, `RESZAP.data_err, `RESZAP.o_dbg_d_we,
++                                                   `RESZAP.o_dbg_d_sel, `RESZAP.o_dbg_d_va});
++            res_data_hash = res_mix(res_data_hash, {32'b0, `RESZAP.o_dbg_d_we ?
++                                                   `RESZAP.o_dbg_d_wdata : `RESZAP.o_dbg_d_rdata});
++        end
++        if (`RESUPP.master_cyc && `RESUPP.master_stb && !`RESUPP.master_code &&
++            (`RESUPP.slow_ack || `RESUPP.slow_error)) begin
++            res_mmio++;
++            res_mmio_hash = res_mix(res_mmio_hash, {26'b0, `RESUPP.slow_error, `RESUPP.master_we,
++                                                   `RESUPP.master_sel, `RESUPP.master_address});
++            res_mmio_hash = res_mix(res_mmio_hash, {32'b0, `RESUPP.master_we ?
++                                                   `RESUPP.master_data : `RESUPP.slow_read_data});
++        end
++    end
++end
++`undef RESFETCH
++`undef RESCORE
++`undef RESZAP
++`undef RESUPP
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/wb-write-trace.vh b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/wb-write-trace.vh
+new file mode 100644
+index 0000000..e4ee4c7
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/wb-write-trace.vh
+@@ -0,0 +1,98 @@
++`define WC dut.board.upp.cpu_inside.cpu
++`define WZ `WC.u_arm925t.u_zap
++`define WD `WZ.l_generate_with_cache_mmu.u_data_cache
++`define WM `WZ.l_merger_for_core_with_cache_mmu.u_zap_wb_merger
++wire obs_bus_on = `WM.o_wb_cyc && `WM.o_wb_stb;
++wire obs_write = obs_bus_on && `WM.o_wb_wen;
++wire obs_ack = obs_bus_on && `WM.i_wb_ack && !`WM.i_wb_err;
++wire obs_err = obs_bus_on && `WM.i_wb_err;
++wire obs_native = obs_write && `WC.wb_write_block;
++wire [3:0] obs_owner = `WM.o_dbg_data_owner ? `WD.state_ff : 4'b0;
++wire [7:0] obs_ctl = {`WM.o_wb_cti, `WM.o_wb_sel, obs_native};
++wire [31:0] obs_adr = `WM.o_wb_adr;
++wire [31:0] obs_data = `WM.o_wb_dat;
++wire [127:0] obs_block = obs_native ? `WC.wb_block_data : 128'b0;
++wire [199:0] obs_payload = {obs_adr, obs_ctl, obs_data, obs_block};
++wire [2:0] obs_source = {obs_native, `WD.u_zap_cache_fsm.state_ff[`WD.u_zap_cache_fsm.CLEAN_SINGLE], `WM.o_dbg_data_owner};
++
++integer wbt_window = 0;
++integer wbt_clock, wbt_writes, wbt_stalls, wbt_read_acks, wbt_write_acks, wbt_errors;
++integer wbt_read_to_write, wbt_write_next_changed, wbt_owner_changes;
++integer wbt_tag_changed, wbt_cch_changed, wbt_native_changed, wbt_post_changed, wbt_unc_changed;
++integer wbt_tag, wbt_cch, wbt_native, wbt_post, wbt_unc;
++reg wbt_active = 0;
++reg wbt_prev_read_ack, wbt_prev_write_ack, wbt_prev_stalled;
++reg [3:0] wbt_prev_owner;
++reg [199:0] wbt_prev_payload;
++reg [63:0] wbt_digest;
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        wbt_active = 1;
++        wbt_clock = 0;
++        wbt_writes = 0; wbt_stalls = 0; wbt_read_acks = 0; wbt_write_acks = 0; wbt_errors = 0;
++        wbt_read_to_write = 0; wbt_write_next_changed = 0; wbt_owner_changes = 0;
++        wbt_tag_changed = 0; wbt_cch_changed = 0; wbt_native_changed = 0;
++        wbt_post_changed = 0; wbt_unc_changed = 0;
++        wbt_tag = 0; wbt_cch = 0; wbt_native = 0; wbt_post = 0; wbt_unc = 0;
++        wbt_prev_read_ack = 0; wbt_prev_write_ack = 0; wbt_prev_stalled = 0;
++        wbt_prev_owner = 0; wbt_prev_payload = 0;
++        wbt_digest = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && wbt_active) begin
++        $display("RES_WB window=%0d offer=%0d stall=%0d read_ack=%0d write_ack=%0d write_error=%0d read_to_write=%0d changed_after_write_ack=%0d owner_changes=%0d tag=%0d evict_scalar=%0d evict_native=%0d post=%0d unc=%0d tag_changed=%0d evict_scalar_changed=%0d evict_native_changed=%0d post_changed=%0d unc_changed=%0d write_hash=%016x",
++                 wbt_window,wbt_writes,wbt_stalls,wbt_read_acks,wbt_write_acks,wbt_errors,
++                 wbt_read_to_write,wbt_write_next_changed,wbt_owner_changes,
++                 wbt_tag,wbt_cch,wbt_native,wbt_post,wbt_unc,wbt_tag_changed,
++                 wbt_cch_changed,wbt_native_changed,wbt_post_changed,wbt_unc_changed,wbt_digest);
++        wbt_window++;
++        wbt_active = 0;
++    end else if (wbt_active) begin
++        wbt_clock++;
++        if (obs_ack && !obs_write) wbt_read_acks++;
++        if (wbt_prev_stalled && !obs_write) $fatal(1, "write withdrawn while stalled");
++        if (obs_write) begin
++            wbt_writes++;
++            if (wbt_prev_stalled && obs_payload !== wbt_prev_payload)
++                $fatal(1, "stalled write changed payload");
++            if (obs_ack) begin
++                wbt_write_acks++;
++                case (obs_owner)
++                    4'b0010: wbt_tag++;
++                    4'b1000: wbt_post++;
++                    4'b0001: if (obs_native) wbt_native++; else if (obs_source[1]) wbt_cch++; else wbt_unc++;
++                    default: $fatal(1, "unexpected write owner %b", obs_owner);
++                endcase
++            end else if (obs_err) wbt_errors++;
++            else wbt_stalls++;
++            if (wbt_prev_read_ack) wbt_read_to_write++;
++            if (wbt_prev_write_ack) begin
++                if (wbt_prev_owner != obs_owner) wbt_owner_changes++;
++                if (obs_payload[159:0] != wbt_prev_payload[159:0]) begin
++                    wbt_write_next_changed++;
++                    if (wbt_prev_owner == obs_owner)
++                        case (obs_owner)
++                            4'b0010: wbt_tag_changed++;
++                            4'b1000: wbt_post_changed++;
++                            4'b0001: if (obs_native) wbt_native_changed++; else if (obs_source[1]) wbt_cch_changed++; else wbt_unc_changed++;
++                            default: ;
++                        endcase
++                end
++            end
++            wbt_digest = res_mix(wbt_digest, {obs_adr, wbt_clock[21:0], obs_ctl, obs_ack, obs_err});
++            wbt_digest = res_mix(wbt_digest, {31'b0, `WC.wb_lock, obs_data});
++            if (obs_native) begin
++                wbt_digest = res_mix(wbt_digest, obs_block[63:0]);
++                wbt_digest = res_mix(wbt_digest, obs_block[127:64]);
++            end
++        end
++        wbt_prev_read_ack = obs_ack && !obs_write;
++        wbt_prev_write_ack = obs_ack && obs_write;
++        wbt_prev_stalled = obs_write && !obs_ack && !obs_err;
++        wbt_prev_owner = obs_owner;
++        wbt_prev_payload = obs_payload;
++    end
++end
++`undef WM
++`undef WD
++`undef WZ
++`undef WC
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/directed.sh b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/directed.sh
+new file mode 100644
+index 0000000..b2a4d53
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/directed.sh
+@@ -0,0 +1,48 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/tlb-victims-mmc-fifo
++out=build/sim/v5-104-tlb-victims-mmc-fifo/directed
++image=jotego/simulator:arm64
++python3 -B "$area/prepare-directed.py"
++case "${1:-all}" in
++  tlb|mmc|all) suite="${1:-all}" ;;
++  *) exit 2 ;;
++esac
++
++if [ "$suite" != mmc ]; then
++    docker run --rm --pull=never --network none --platform linux/arm64 \
++        -v "$PWD/$area:/bench:ro" -v "$PWD/$out:/results" -w /bench/source \
++        --entrypoint sh "$image" -ec '
++        verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
++            --top-module walker_tb --Mdir /results/obj-tlb rtl/arm9v2/arm925t_phone.v \
++            rtl/arm9v2/upstream/sim/stubs/*.sv /results/reference_zap_tlb.v /bench/tlb_victim_tb.sv \
++            > /results/tlb-build.log 2>&1
++        /results/obj-tlb/Vwalker_tb > /results/tlb.log 2>&1
++        grep -E "^PASS walker " /results/tlb.log'
++fi
++if [ "$suite" != tlb ]; then
++    docker run --rm --pull=never --network none --platform linux/arm64 \
++        -v "$PWD/$area:/bench:ro" -v "$PWD/$out:/results" -w /results \
++        --entrypoint sh "$image" -ec '
++        rtl=/bench/source/rtl
++        iverilog -g2001 -s ngage_mmc_host -o strict "$rtl/ngage_mmc_host.v" "$rtl/ngage_bram.v"
++        for config in "2 16" "3 16" "4 16" "12 8"; do
++            set -- $config
++            tag=mmc-data-$1-$2
++            iverilog -g2012 -I/bench -s tb -Ptb.DIV="$1" -Ptb.FIFO_DEPTH="$2" -o "$tag" \
++                "$rtl/ngage_mmc_host.v" register_mmc_host.v poison_bram.v data_fifo_tb.v
++            vvp "$tag" > "$tag.log"
++            grep "^PASS MMC host data " "$tag.log"
++        done
++        iverilog -g2012 -I/bench -s fifo_banks_tb -o banks \
++            "$rtl/ngage_mmc_host.v" register_mmc_host.v poison_bram.v /bench/fifo_banks_tb.sv
++        vvp banks > banks.log
++        grep "^PASS MMC FIFO " banks.log
++        fixture=/bench/source/tests/phone/mmc_host
++        iverilog -g2001 -s tb -o cmd16 "$rtl/ngage_mmc_host.v" "$rtl/ngage_bram.v" "$fixture/cmd16_tb.v"
++        vvp cmd16 > cmd16.log
++        grep "^PASS CMD16 " cmd16.log
++        iverilog -g2001 -s integer_clock_tb -o integer "$rtl/ngage_mmc_host.v" "$rtl/ngage_bram.v" "$fixture/integer_clock_tb.v"
++        vvp integer > integer.log
++        grep "^PASS MMC integer " integer.log'
++fi
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/prepare-directed.py b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/prepare-directed.py
+new file mode 100644
+index 0000000..ca65b00
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/prepare-directed.py
+@@ -0,0 +1,34 @@
++"""Stage exact timer-reference models for the archived TLB and MMC fixtures."""
++from pathlib import Path
++import re
++
++
++stage = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-tlb-victims-mmc-fifo/directed')
++out.mkdir(parents=True, exist_ok=True)
++
++cpu = (stage / 'reference/rtl/arm9v2/arm925t_phone.v').read_text()
++tlb = re.search(r'^module ngage2_zap_tlb \(.*?^endmodule$', cpu, re.M | re.S)[0]
++(out / 'reference_zap_tlb.v').write_text(tlb.replace(
++    'module ngage2_zap_tlb (', 'module reference_zap_tlb (', 1) + '\n')
++
++host = (stage / 'reference/rtl/ngage_mmc_host.v').read_text()
++assert host.count('module ngage_mmc_host #(') == 1
++(out / 'register_mmc_host.v').write_text(host.replace(
++    'module ngage_mmc_host #(', 'module mmc_host_fifo_reference #(', 1))
++
++bram = (stage / 'source/rtl/ngage_bram.v').read_text()
++marker = 'b_q[lane*BYTE_WIDTH+:BYTE_WIDTH] <= we_b[lane] ?'
++assert bram.count(marker) == 1
++poisoned = ('b_q[lane*BYTE_WIDTH+:BYTE_WIDTH] <= '
++            "(we_a[lane] && addr_a == addr_b) ? {BYTE_WIDTH{1'bx}} : we_b[lane] ?")
++(out / 'poison_bram.v').write_text(bram.replace(marker, poisoned))
++
++pin = (stage / 'source/tests/phone/mmc_host/data_tb.v').read_text()
++anchor = '    always @(posedge clk)begin cycles<=cycles+1;'
++assert pin.count(anchor) == 1
++monitor = '''    `include "fifo_reference.vh"
++    // Let the register model sample a mask transition before leaving reset.
++    initial begin #1; be = 0; #1; be = 15; end
++'''
++(out / 'data_fifo_tb.v').write_text(pin.replace(anchor, monitor + anchor))
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/tlb_victim_tb.sv b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/tlb_victim_tb.sv
+new file mode 100644
+index 0000000..67cc9ab
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/tlb_victim_tb.sv
+@@ -0,0 +1,195 @@
++`timescale 1ns / 1ps
++
++module walker_case #(
++    parameter bit CHECK_WALK = 1'b0
++) (
++    output bit done
++);
++  bit clk, reset, inv, mmu_enable = 1, access_rd, hold, access_done;
++  bit pause_response, allow_walk = 1;
++  bit [31:0] address;
++  wire [1:0] busy, hit, fast_hit, ready, fault, cacheable, bufferable, wt;
++  wire [1:0] wb_stb, wb_cyc, wb_wen;
++  wire [31:0] physical[2], far[2], wb_address[2];
++  wire [7:0] fsr[2];
++  wire [3:0] wb_sel[2];
++
++  integer cycles = 0, l1_reads = 0, l2_reads = 0, writes = 0, resolved = 0;
++  wire registered_request = reference_dut.u_zap_tlb_fsm.wb_stb_ff;
++  wire [31:0] registered_address = reference_dut.u_zap_tlb_fsm.wb_adr_ff;
++  wire bus_ack = !reset && !pause_response && registered_request && cycles % 4 != 0;
++  wire [31:0] bus_data = registered_address[31:28] == 4'h1 ? 32'h2000_0001 :
++                          32'h3000_0ffe | (reference_dut.tlb_address & 32'h0fff_f000);
++
++  `define WALKER_PORTS(leg) \
++      .i_clk(clk), .i_reset(reset), .i_address(address), .i_address_check(address), \
++      .i_address_nxt(address), .i_wr_check(1'b0), .i_rd_check(access_rd), .i_hold(hold), \
++      .i_cpsr(5'h13), .i_sr(2'b00), .i_dac_reg(32'hffff_ffff), \
++      .i_baddr(32'h1000_0000), .i_mmu_en(mmu_enable), .i_inv(inv), \
++      .o_phy_addr(physical[leg]), .o_fsr(fsr[leg]), .o_far(far[leg]), .o_fault(fault[leg]), \
++      .o_cacheable(cacheable[leg]), .o_bufferable(bufferable[leg]), .o_wt(wt[leg]), \
++      .o_busy(busy[leg]), .o_hit_ready(ready[leg]), .o_hit_ok(hit[leg]), \
++      .o_hit_ok_short(fast_hit[leg]), .i_idle(allow_walk), .i_access_done(access_done), \
++      .i_access(access_rd), .o_wb_stb_nxt(wb_stb[leg]), .o_wb_cyc_nxt(wb_cyc[leg]), \
++      .o_wb_adr_nxt(wb_address[leg]), .o_wb_wen_nxt(wb_wen[leg]), .o_wb_sel_nxt(wb_sel[leg]), \
++      .i_wb_dat(bus_data), .o_wb_dat_nxt(), .i_wb_ack(bus_ack), .i_wb_err(1'b0)
++
++  reference_zap_tlb #(
++      .SPAGE_TLB_ENTRIES(256),
++      .SPAGE_TLB_WAYS(2),
++      .CHECK_WALK(CHECK_WALK),
++      .SECTION_INDEX_XOR(CHECK_WALK)
++  ) reference_dut (
++      `WALKER_PORTS(0)
++  );
++  ngage2_zap_tlb #(
++      .SPAGE_TLB_ENTRIES(256),
++      .SPAGE_TLB_WAYS(2),
++      .CHECK_WALK(CHECK_WALK),
++      .SECTION_INDEX_XOR(CHECK_WALK)
++  ) ram_dut (
++      `WALKER_PORTS(1)
++  );
++  `undef WALKER_PORTS
++
++  task automatic check_same;
++    if ({busy[0], hit[0], fast_hit[0], ready[0], fault[0], fsr[0], far[0], cacheable[0],
++             bufferable[0], wt[0], physical[0], wb_stb[0], wb_cyc[0], wb_wen[0], wb_sel[0]} !==
++            {busy[1], hit[1], fast_hit[1], ready[1], fault[1], fsr[1], far[1], cacheable[1],
++             bufferable[1], wt[1], physical[1], wb_stb[1], wb_cyc[1], wb_wen[1], wb_sel[1]} ||
++            (wb_stb[0] && wb_address[0] !== wb_address[1]) ||
++            {reference_dut.sptlb_wen, reference_dut.sptlb_wen_way, reference_dut.sp_way,
++             reference_dut.sp_again} !==
++            {ram_dut.sptlb_wen, ram_dut.sptlb_wen_way, ram_dut.sp_way, ram_dut.sp_again})
++      $fatal(1, "check walk %0d: TLB difference at cycle %0d VA %h", CHECK_WALK, cycles, address);
++  endtask
++
++  task automatic tick;
++    #1;
++    if (cycles > 1) check_same();
++    if (bus_ack) begin
++      if (registered_address[31:28] == 4'h1) l1_reads++;
++      else if (registered_address[31:28] == 4'h2) l2_reads++;
++      else $fatal(1, "Unexpected descriptor address %h", registered_address);
++    end
++    if (!reset && ram_dut.sptlb_wen) writes++;
++    clk = 1;
++    #1;
++    clk = 0;
++    #1;
++    if (cycles > 1) check_same();
++    cycles++;
++  endtask
++
++  task automatic lookup(input bit [31:0] va, input bit miss);
++    int l1_before, l2_before, for_cycles;
++    bit [31:0] physical_expected;
++    access_rd = 0;
++    address   = va;
++    tick();
++    access_rd = 1;
++    allow_walk = 1;
++    l1_before = l1_reads;
++    l2_before = l2_reads;
++    physical_expected = 32'h3000_0000 | va;
++    for_cycles = 0;
++    do begin
++      tick();
++      // Once admitted, the cache owns this access until its
++      // translation returns. Suppress stale miss re-admission.
++      if (reference_dut.u_zap_tlb_fsm.state_ff != 7'd1) allow_walk = 0;
++      for_cycles++;
++      if (for_cycles == 48)
++        $fatal(
++            1,
++            "CHECK_WALK=%0d lookup timeout at %h physical=%h hit=%b busy=%b %d:%d",
++            CHECK_WALK,
++            va,
++            physical[0],
++            fast_hit[0],
++            busy[0],
++            l1_reads,
++            l2_reads
++        );
++    end while (!fast_hit[0] || busy[0] || physical[0] != physical_expected);
++    if (l1_reads - l1_before != int'(miss) || l2_reads - l2_before != int'(miss))
++      $fatal(
++          1,
++          "CHECK_WALK=%0d lookup %h missed %0d:%0d, expected miss=%b",
++          CHECK_WALK,
++          va,
++          l1_reads - l1_before,
++          l2_reads - l2_before,
++          miss
++      );
++    resolved++;
++    access_rd   = 0;
++    allow_walk  = 0;
++    access_done = 1;
++    tick();
++    access_done = 0;
++  endtask
++
++  task automatic reset_tlb;
++    reset = 1;
++    access_rd = 0;
++    tick();
++    reset = 0;
++    repeat (3) tick();
++  endtask
++
++  initial begin
++    reset_tlb();
++    // Populate and hit both ways of every set through real L1/L2 walks.
++    for (int tag_idx = 1; tag_idx < 3; tag_idx++)
++    for (int idx = 0; idx < 256; idx++) lookup((tag_idx << 20) | (idx << 12), 1);
++    for (int tag_idx = 1; tag_idx < 3; tag_idx++)
++    for (int idx = 0; idx < 256; idx++) lookup((tag_idx << 20) | (idx << 12), 0);
++
++    // A third page evicts the original way, preserving the second.
++    for (int idx = 0; idx < 256; idx += 17) begin
++      lookup(32'h0030_0000 | (idx << 12), 1);
++      lookup(32'h0020_0000 | (idx << 12), 0);
++      lookup(32'h0010_0000 | (idx << 12), 1);
++    end
++    // Repeat a warm reset with an in-flight descriptor request.
++    for (int pass = 0; pass < 12; pass++) begin
++      address = 32'h0040_0000 | (pass << 12);
++      tick();
++      access_rd = 1;
++      allow_walk = 1;
++      pause_response = 1;
++      repeat (6) tick();
++      if (!busy[0] || !registered_request) $fatal(1, "Warm reset did not interrupt an active walk");
++      reset_tlb();
++      pause_response = 0;
++      lookup(32'h0100_0000 | (pass << 12), 1);
++      lookup(32'h0110_0000 | (pass << 12), 1);
++      lookup(32'h0100_0000 | (pass << 12), 0);
++      inv  = 1;
++      hold = 1;
++      tick();
++      inv  = 0;
++      hold = 0;
++      tick();
++      lookup(32'h0100_0000 | (pass << 12), 1);
++      mmu_enable = 0;
++      repeat (2) tick();
++      mmu_enable = 1;
++      lookup(32'h0100_0000 | (pass << 12), 1);
++    end
++    $display("PASS walker check=%0d cycles=%0d resolved=%0d l1=%0d l2=%0d small_fills=%0d",
++             CHECK_WALK, cycles, resolved, l1_reads, l2_reads, writes);
++    done = 1;
++  end
++endmodule
++
++module walker_tb;
++  wire code_done, data_done;
++  walker_case #(.CHECK_WALK(1'b0)) code_tlb (code_done);
++  walker_case #(.CHECK_WALK(1'b1)) data_tlb (data_done);
++  initial begin
++    wait (code_done && data_done);
++    $finish;
++  end
++endmodule
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/fifo_banks_tb.sv b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/fifo_banks_tb.sv
+new file mode 100644
+index 0000000..07b102f
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/fifo_banks_tb.sv
+@@ -0,0 +1,149 @@
++`timescale 1ns / 1ps
++
++// Drive full-rate edges at the FIFO boundary. The public serial test uses
++// ordinary commands and pin timing, including stalls and completion order.
++module fifo_banks_tb;
++  localparam DIV = 3, FIFO_DEPTH = 16;
++  reg clk = 0, reset = 1;
++  always #5 clk = !clk;
++
++  reg acc = 1, we = 0, wr = 0, rd = 0;
++  reg [ 5:0] off = 'h24;
++  reg [ 3:0] be = 0;
++  reg [31:0] wdata = 0;
++  wire [31:0] rmask, rdata;
++  wire busy, rx_ready, tx_ready;
++  wire [3:0] irq;
++  wire mmc_clk, cmd_o, cmd_oe, dat_o, dat_oe;
++  wire cmd_i = 1;
++  reg  dat_i = 0;
++  ngage_mmc_host #(
++      .DIV(DIV),
++      .RESP_WAIT(12),
++      .TIMEOUT_LOG2(10),
++      .FIFO_DEPTH(FIFO_DEPTH)
++  ) dut (
++      .clk(clk),
++      .reset(reset),
++      .acc(acc),
++      .we(we),
++      .wr(wr),
++      .rd(rd),
++      .off(off),
++      .be(be),
++      .wdata(wdata),
++      .rmask(rmask),
++      .rdata(rdata),
++      .busy(busy),
++      .rx_ready(rx_ready),
++      .tx_ready(tx_ready),
++      .irq(irq),
++      .mmc_clk(mmc_clk),
++      .cmd_o(cmd_o),
++      .cmd_oe(cmd_oe),
++      .cmd_i(cmd_i),
++      .dat_o(dat_o),
++      .dat_oe(dat_oe),
++      .dat_i(dat_i)
++  );
++  `include "fifo_reference.vh"
++
++  reg [31:0] random_bits = 32'h5d492aab;
++  reg pulse = 0;
++  reg [15:0] write_masks = 0, read_masks = 0;
++  integer writes_and_pops = 0, reads_and_pushes = 0, wraps = 0, forwards = 0;
++  wire [3:0] bank_forward = {
++    dut.banked_fifo.byte_bank[3].forward_byte,
++    dut.banked_fifo.byte_bank[2].forward_byte,
++    dut.banked_fifo.byte_bank[1].forward_byte,
++    dut.banked_fifo.byte_bank[0].forward_byte
++  };
++  always @(posedge clk)
++    if (!reset) begin
++      // The old array is the oracle for every live byte, including the
++      // serializer head when the CPU endpoint is looking elsewhere.
++      for (integer i = 0; i < 4; i++)
++      if (i < reference.fcnt &&
++                    dut.fifo_bytes[i*8+:8] !== reference.fmem[(int'(reference.frp) + i) & 15])
++        $fatal(1, "MMC bank returned the wrong byte at head offset %0d", i);
++      if (wr) write_masks[be] <= 1;
++      if (rd) read_masks[be] <= 1;
++      if (wr && pulse) writes_and_pops <= writes_and_pops + 1;
++      if (rd && pulse) reads_and_pushes <= reads_and_pushes + 1;
++      if (reference.frp + int'(dut.pop_count) >= 16 || reference.fwp + int'(dut.push_count) >= 16)
++        wraps <= wraps + 1;
++      if (|bank_forward) forwards <= forwards + 1;
++    end
++
++  task automatic step_random;
++    @(negedge clk);
++    random_bits = {
++      random_bits[30:0], random_bits[31] ^ random_bits[21] ^ random_bits[1] ^ random_bits[0]
++    };
++    be = random_bits[3:0];
++    wdata = random_bits;
++    dat_i = random_bits[15];
++    if (we) begin
++      wr = (16 - dut.fcnt >= $countones(be)) && random_bits[17];
++      pulse = dut.fcnt != 0 && random_bits[30];
++    end else begin
++      rd = (dut.fcnt >= $countones(be)) && random_bits[17];
++      pulse = dut.fcnt != 16 && random_bits[30];
++    end
++  endtask
++
++  initial begin
++    #1;
++    be = 15;
++    #1;
++    be = 0;
++    repeat (4) @(negedge clk);
++    force dut.blen = 4096;
++    force reference.blen = 4096;
++    force dut.rise = 0;
++    force reference.rise = 0;
++    force dut.fall = pulse;
++    force reference.fall = pulse;
++    force dut.dbit = 0;
++    force reference.dbit = 0;
++    force dut.dstate = 5;
++    force reference.dstate = 5;
++    we = 1;
++    reset = 0;
++    repeat (2048) step_random();
++
++    @(negedge clk);
++    reset = 1;
++    wr = 0;
++    pulse = 0;
++    repeat (2) @(negedge clk);
++    force dut.rise = pulse;
++    force reference.rise = pulse;
++    force dut.fall = 0;
++    force reference.fall = 0;
++    force dut.dbit = 7;
++    force reference.dbit = 7;
++    force dut.dstate = 2;
++    force reference.dstate = 2;
++    we = 0;
++    reset = 0;
++    repeat (2048) step_random();
++
++    @(negedge clk);
++    if (write_masks != 16'hffff || read_masks != 16'hffff ||
++            !wraps || !forwards || !writes_and_pops || !reads_and_pushes)
++      $fatal(
++          1,
++          "incomplete MMC FIFO coverage w=%04x r=%04x wrap=%0d fwd=%0d tx=%0d rx=%0d",
++          write_masks,
++          read_masks,
++          wraps,
++          forwards,
++          writes_and_pops,
++          reads_and_pushes
++      );
++    $display("PASS MMC FIFO all masks, wrap=%0d forwarded=%0d simultaneous TX=%0d RX=%0d", wraps,
++             forwards, writes_and_pops, reads_and_pushes);
++    $finish;
++  end
++endmodule
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/fifo_reference.vh b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/fifo_reference.vh
+new file mode 100644
+index 0000000..0e45397
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/fifo_reference.vh
+@@ -0,0 +1,21 @@
++// Included by the pin peer and directed FIFO schedule.
++wire [31:0] reference_mask, reference_data;
++wire reference_busy, reference_rx_ready, reference_tx_ready;
++wire [3:0] reference_irq;
++wire reference_clk, reference_cmd, reference_cmd_oe, reference_dat, reference_dat_oe;
++mmc_host_fifo_reference #(.DIV(DIV), .RESP_WAIT(12), .TIMEOUT_LOG2(10), .FIFO_DEPTH(FIFO_DEPTH)) reference (
++    .clk(clk), .reset(reset), .acc(acc), .we(we), .wr(wr), .rd(rd), .off(off), .be(be), .wdata(wdata),
++    .rmask(reference_mask), .rdata(reference_data), .busy(reference_busy),
++    .rx_ready(reference_rx_ready), .tx_ready(reference_tx_ready), .irq(reference_irq),
++    .mmc_clk(reference_clk), .cmd_o(reference_cmd), .cmd_oe(reference_cmd_oe), .cmd_i(cmd_i),
++    .dat_o(reference_dat), .dat_oe(reference_dat_oe), .dat_i(dat_i)
++);
++
++always @(posedge clk) begin
++    if (!reset && ({rmask, rdata, busy, rx_ready, tx_ready, irq, mmc_clk, cmd_oe, dat_oe} !==
++            {reference_mask, reference_data, reference_busy, reference_rx_ready, reference_tx_ready,
++             reference_irq, reference_clk, reference_cmd_oe, reference_dat_oe} ||
++            (cmd_oe && cmd_o !== reference_cmd) || (dat_oe && dat_o !== reference_dat)))
++        $fatal(1, "MMC FIFO diverged at %t data=%08x/%08x busy=%b/%b IRQ=%b/%b",
++            $time, rdata, reference_data, busy, reference_busy, irq, reference_irq);
++end
+diff --git a/scratch/v5-fit-loop/tlb-victims-mmc-fifo/record.py b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/record.py
+new file mode 100644
+index 0000000..502a688
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-victims-mmc-fifo/record.py
+@@ -0,0 +1,226 @@
++"""Validate and seal the matched TLB victim and MMC FIFO replay."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++from statistics import median
++import subprocess
++
++
++stage = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-tlb-victims-mmc-fifo')
++control = Path('build/sim/v5-104-timer-write-prepare')
++archive = Path('docs/experiments/v5-performance/patches')
++rtl = 'rtl/arm9v2/arm925t_phone.v'
++fifo = 'rtl/ngage_mmc_host.v'
++generator = 'tools/gen_arm9v2_phone.py'
++changed = [rtl, fifo, generator]
++base = '9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e'
++base_tree = '0ccd13d8cd502bc14d3b89c6431ff0ebe4745612'
++joint_tree = '6ce1695c169affd9c1b9c1d8033724cd49cff637'
++tlb_commit = '723e2b7eb3ce77a36550c32bd2230e8145813078'
++fifo_commit = 'd790e966390a2fa2af10a836ec0d4543037c509a'
++
++
++def digest(path):
++    return sha256(path.read_bytes()).hexdigest()
++
++
++def load(path):
++    return json.loads(path.read_bytes())
++
++
++def match(left, right):
++    assert left.read_bytes() == right.read_bytes(), (left, right)
++    return digest(left)
++
++
++def historical_source(commit, path):
++    return subprocess.check_output(['git', 'show', f'{commit}:{path}'])
++
++
++def modules(source):
++    return {match[1]: match[0] for match in re.finditer(
++        rb'^module\s+(\w+)\b.*?^endmodule\s*?$', source, re.M | re.S)}
++
++
++def victim_logic(tlb):
++    return tlb.split(b'\n\treg [1:0] sp_way;', 1)[1].split(b'\n\t\telse begin : l_sp_one_way', 1)[0]
++
++
++def fingerprint(manifest, path):
++    rows = [shlex.split(line) for line in manifest.read_text().splitlines()
++            if line.startswith('S ') and shlex.split(line)[-1].endswith(path)]
++    (row,) = rows
++    return row[-2]
++
++
++patch = stage / 'tlb-victims-mmc-fifo.patch'
++stats = subprocess.check_output(['git', 'apply', '--numstat', str(patch)], text=True)
++assert [line.split('\t')[-1] for line in stats.splitlines()] == changed
++assert (stage / 'combined-tree.sha').read_text().strip() == joint_tree
++candidate = {name: digest(stage / 'source' / name) for name in changed}
++baseline = {name: digest(stage / 'reference' / name) for name in changed}
++prior, current = [modules((stage / leg / rtl).read_bytes()) for leg in ('reference', 'source')]
++assert prior.keys() == current.keys()
++assert {name for name in prior if prior[name] != current[name]} == {b'ngage2_zap_tlb'}
++victim = victim_logic(current[b'ngage2_zap_tlb'])
++assert victim == victim_logic(modules(historical_source(tlb_commit, rtl))[b'ngage2_zap_tlb'])
++assert (stage / 'source' / fifo).read_bytes() == historical_source(fifo_commit, fifo)
++for token in (b'if (SPAGE_TLB_WAYS == 2 && SPAGE_TLB_ENTRIES == 256) begin : g_victim_ram',
++              b'reg [15:0] rows [0:15];', b'else begin : g_victim_regs'):
++    assert token in victim
++
++gen_pattern = rb'^def bank_small_page_victims\(phone\):.*?(?=^def )'
++new_transform = re.search(gen_pattern, (stage / 'source' / generator).read_bytes(), re.M | re.S)[0]
++old_transform = re.search(gen_pattern, historical_source(tlb_commit, generator), re.M | re.S)[0]
++assert new_transform == old_transform
++
++geometry = {'ICACHE_SIZE': 16384, 'DCACHE_SIZE': 16384, 'CACHE_LINE': 32,
++            'ICACHE_WAYS': 2, 'DCACHE_WAYS': 2, 'ITLB_SPAGE_SETS': 256,
++            'DTLB_SPAGE_SETS': 256, 'ITLB_SPAGE_WAYS': 2, 'DTLB_SPAGE_WAYS': 2}
++wrapper = current[b'ngage2_arm925t'].decode()
++assert wrapper == prior[b'ngage2_arm925t'].decode()
++for name, value in geometry.items():
++    assert f'localparam signed [31:0] {name} = {value};' in wrapper
++for side, suffix in (('CODE', 'I'), ('DATA', 'D')):
++    for parameter, local in (('CACHE_SIZE', f'{suffix}CACHE_SIZE'), ('CACHE_WAYS', f'{suffix}CACHE_WAYS'),
++                             ('CACHE_LINE', 'CACHE_LINE'), ('SPAGE_TLB_ENTRIES', f'{suffix}TLB_SPAGE_SETS'),
++                             ('SPAGE_TLB_WAYS', f'{suffix}TLB_SPAGE_WAYS')):
++        assert f'.{side}_{parameter}({local})' in wrapper
++
++pinned = Path('build/arm9v2-assoc/stock-pinned.v')
++for leg in ('reference', 'source'):
++    subprocess.run(['python3', '-B', str(stage / leg / generator),
++                    '--stock', str(pinned), '--check'], check=True)
++
++production = {}
++for seed, run in ((13, 45824513460), (43, 45824520116), (31337, 45824525843)):
++    provenance = load(Path(f'build/timing-audit-{run}/output_files/resident-fit-manifest.json'))
++    assert provenance['actual_commit'] == base and provenance['seed'] == seed
++    assert provenance['physical_cpu_mhz'] == 104 and provenance['debugger'] is False
++    hashes = provenance['compiled_source_sha256']
++    assert len(hashes) == 133 and hashes[rtl] == baseline[rtl] and hashes[fifo] == baseline[fifo]
++    assert generator not in hashes
++    production[seed] = {'timer_control_run': run, 'selected_inputs': len(hashes)}
++
++prev_fits = load(Path('docs/evidence/v5-104-bram-mix-fits.json'))
++area = {}
++for leg in ('all_four', 'tlb', 'mmc'):
++    runs = {}
++    for row in prev_fits[leg]:
++        report = Path(f"build/timing-audit-{row['run']}/output_files/Template.fit.rpt").read_text(errors='replace')
++        final_placement = re.search(r'^; +\[A\] ALMs used in final placement .*?; +([\d,]+) /', report, re.M)[1]
++        m10k = int(re.search(r'^; M10K blocks +; +(\d+) /', report, re.M)[1])
++        assert m10k == row['m10ks']
++        runs[row['seed']] = {'run': row['run'], 'commit': row['sha'],
++                            'occupied_alms': int(final_placement.replace(',', '')), 'm10k': m10k,
++                            'worst_setup_ns': row['worst_setup_ns']}
++    area[leg] = runs
++for leg, expected, blocks in (('tlb', -536, 2), ('mmc', -206, 4)):
++    diffs = []
++    for seed, row in area[leg].items():
++        row['delta_occupied_alms'] = row['occupied_alms'] - area['all_four'][seed]['occupied_alms']
++        row['delta_m10k'] = row['m10k'] - area['all_four'][seed]['m10k']
++        assert row['delta_m10k'] == blocks
++        diffs.append(row['delta_occupied_alms'])
++    assert median(diffs) == expected
++
++mixed = out / 'mixed'
++old_mixed = control / 'mixed'
++manifest = load(mixed / 'source-hashes.json')
++reference_manifest = load(old_mixed / 'source-hashes.json')
++assert manifest.keys() == reference_manifest.keys() and len(manifest) == 114
++assert {name: value for name, value in manifest.items() if value != reference_manifest[name]} == {
++    name: candidate[name] for name in (rtl, fifo)}
++for name, expected in manifest.items():
++    assert digest(mixed / 'source' / name) == expected
++compiled = {name: fingerprint(mixed / 'obj/Vtb__verFiles.dat', f'{mixed}/source/{name}')
++            for name in (rtl, fifo)}
++
++board = {}
++for burst in (0, 1):
++    for wait in (0, 5):
++        profile = f'burst-{burst}-wait-{wait}'
++        trace = out / f'board/source/{profile}.trace'
++        board[profile] = {'cycles': int(re.search(r'^PASS cycles=(\d+)', trace.read_text(), re.M)[1]),
++                          'trace_sha256': match(trace, out / f'board/reference/{profile}.trace')}
++assert fingerprint(out / 'board/source/obj/Vcontract__verFiles.dat', rtl) == compiled[rtl]
++assert fingerprint(out / 'board/reference/obj/Vcontract__verFiles.dat', rtl) != compiled[rtl]
++
++directed = out / 'directed'
++assert fingerprint(directed / 'obj-tlb/Vwalker_tb__verFiles.dat', rtl) == compiled[rtl]
++walker = sorted(re.findall(r'^PASS walker .*$', (directed / 'tlb.log').read_text(), re.M))
++assert walker == [f'PASS walker check={leg} cycles=7765 resolved=1132 l1=592 l2=592 small_fills=592'
++                  for leg in (0, 1)]
++mmc = {}
++for tag, marker in (
++    ('mmc-data-2-16', 'DIV=2 FIFO=16 cases=28 clocks=41152'),
++    ('mmc-data-3-16', 'DIV=3 FIFO=16 cases=28 clocks=61578'),
++    ('mmc-data-4-16', 'DIV=4 FIFO=16 cases=28 clocks=82004'),
++    ('mmc-data-12-8', 'DIV=12 FIFO=8 cases=28 clocks=244751'),
++    ('banks', 'all masks, wrap=260 forwarded=939 simultaneous TX=331 RX=312'),
++    ('cmd16', '33 pin-observed probes'),
++    ('integer', 'CMD0=12, rises=696, falls=696'),
++):
++    log = directed / f'{tag}.log'
++    [result] = re.findall(r'^PASS .*$', log.read_text(), re.M)
++    assert marker in result
++    mmc[tag] = {'result': result, 'log_sha256': digest(log)}
++assert (directed / 'strict').stat().st_size > 0
++
++workloads = {}
++for kind, field, count in (('fixed', 'windows', 105), ('native', 'frames', 4)):
++    receipt = out / f'qualification/{kind}.json'
++    result = load(receipt)
++    timer = load(control / f'qualification/{kind}.json')
++    assert result['status'] == timer['status'] == 'PASS'
++    assert result['rows'] == timer['rows']
++    assert result['source_sha256'] == {**timer['source_sha256'], Path(fifo).name: candidate[fifo]}
++    copied = out / f'qualification/{kind}-candidate-cpu.v'
++    assert digest(copied) == result['netlist_sha256'] == candidate[rtl]
++    files = out / f'qualification/obj-{kind}/Vtb__verFiles.dat'
++    assert fingerprint(files, f'/work/{copied.name}') == compiled[rtl]
++    assert fingerprint(files, f'/{stage.name}/source/{fifo}') == compiled[fifo]
++    assert sum(len(row['candidate'][field]) for row in result['rows']) == count
++    workloads[kind] = {'count': count, 'receipt_sha256': digest(receipt)}
++    if kind == 'fixed':
++        cases = [row['candidate']['case'] for row in result['rows']]
++        assert len(set(cases)) == 15
++        for case in cases:
++            assert (out / f'qualification/{case}-00-1.log').is_file()
++            wrong = out / f'qualification/{case}-00-0-wrong.log'
++            assert 'Guest output check rejected payload' in wrong.read_text()
++        workloads[kind].update(repeated_cases=15, rejected_wrong_outputs=15)
++    else:
++        native = result['rows'][0]['candidate']
++        assert native['output_sha256'] == '6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77'
++        clocks = [frame['clocks'] for frame in native['frames']]
++        assert clocks == [14391395, 14467552, 14346201, 14303223]
++        workloads[kind].update(frame_cycles=clocks, output_sha256=native['output_sha256'])
++
++physical = {}
++for mode, trace, witness, log, count, clocks in (
++    ('normal', mixed / 'traffic.log', old_mixed / 'traffic.log', mixed / 'replay.log', 171496, 1201547),
++    ('timer_mmc_lcd', out / 'coexistence/candidate.trace', control / 'coexistence/candidate.trace',
++     out / 'coexistence/candidate.log', 171497, 1201528),
++):
++    assert len(trace.read_bytes().splitlines()) == count
++    assert f'persisted512bytes+PIOreadback cycles={clocks} reads=4 writes=1' in log.read_text()
++    physical[mode] = {'cycles': clocks, 'events': count, 'trace_sha256': match(trace, witness)}
++assert match(out / 'coexistence/stress-timer.hex', control / 'coexistence/stress-timer.hex')
++
++summary = {'status': 'PASS', 'base': base, 'base_tree': base_tree, 'joint_tree': joint_tree,
++           'design_patch_sha256': digest(patch),
++           'replay_patch_sha256': digest(stage / 'tlb-victims-mmc-fifo-replay.patch'),
++           'archived_patch_sha256': {name: digest(archive / name) for name in
++                                     ('tlb-victims-m10k.patch', 'mmc-host-fifo-m10k.patch')},
++           'simulator_image': (out / 'image.id').read_text().strip(),
++           'reference_sha256': baseline, 'source_sha256': candidate, 'pinned_generator_donor_sha256': digest(pinned),
++           'geometry': geometry, 'production_control_sources': production,
++           'walker': walker, 'mmc': mmc, 'board': board, 'workloads': workloads, 'physical': physical,
++           'physical_sources': len(manifest), 'compiled_fingerprints': compiled,
++           'prior_independent_fits': area, 'candidate_routed': False}
++(stage / 'qualification.json').write_text(json.dumps(summary, indent=2) + '\n')
++print('PASS exact design, TLB walkers, MMC FIFO and pins, board, 105 fixed windows, four native frames and mixed traces')

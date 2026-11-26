@@ -353,6 +353,11 @@ Native PolyCount takes 1.253% more clocks, Matrix4 5.895% more and
 triangle edges 0.344% more. All game windows match. Hold behind the
 same-cycle trials. Routed timing is pending.
 
+The [TLB victim and MMC FIFO RAM pair](tlb-victims-mmc-fifo.md) combines
+both physical ALM reductions on the exact timer base. The walker, MMC
+bank tests, all fixed and native workloads and both physical traces match.
+The combined fit remains pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

@@ -1,0 +1,221 @@
+{
+  "status": "PASS",
+  "base": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+  "base_tree": "0ccd13d8cd502bc14d3b89c6431ff0ebe4745612",
+  "joint_tree": "6ce1695c169affd9c1b9c1d8033724cd49cff637",
+  "design_patch_sha256": "669a017ea2c38e462f8df321622f3bc7592fe2a690643b7f3c3416c93d7ba532",
+  "replay_patch_sha256": "e012ba6976cf041f713fa087c8464d13679486dda2ed2e4c7d3fae2ebf13e019",
+  "archived_patch_sha256": {
+    "tlb-victims-m10k.patch": "32136bfde35c34aa43123c5e98d0ae4d11297196b335fbb3201c0528cc987282",
+    "mmc-host-fifo-m10k.patch": "2363c6b282083a7a3f52934b585485157741e9521c40fbfbeccd7e79181158cd"
+  },
+  "simulator_image": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "reference_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "4aa8037c0051b43819de2dc9d9f96322ea2e2bb2d91c82df1383ad6840d5d37e",
+    "rtl/ngage_mmc_host.v": "ab08844346ddfd6b7246a8b08ead7030de88d9cbbe8d46832ccdb9ee0204be31",
+    "tools/gen_arm9v2_phone.py": "88613ebf9a8c15b63411992fd7e551bc31f953bb8cd3f9178f3c7ba13caf8b7f"
+  },
+  "source_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "07428d764ed75a2f42e4a71aebf5ff5870cd2041099c2cf9c9f66d6d0a9e0eab",
+    "rtl/ngage_mmc_host.v": "6cf5cae2039d19fe6ca4f6d70ff8f514fa3f98097f894429892af38deea13d87",
+    "tools/gen_arm9v2_phone.py": "33ad2d5f955ae4d6cefc48bd86d3cb8e513cd3fe411ab676995ef7761ed4fd11"
+  },
+  "pinned_generator_donor_sha256": "087714b2a692fb949bf8a0586674742118383eb18452f1357c4b4e786a69ab4c",
+  "geometry": {
+    "ICACHE_SIZE": 16384,
+    "DCACHE_SIZE": 16384,
+    "CACHE_LINE": 32,
+    "ICACHE_WAYS": 2,
+    "DCACHE_WAYS": 2,
+    "ITLB_SPAGE_SETS": 256,
+    "DTLB_SPAGE_SETS": 256,
+    "ITLB_SPAGE_WAYS": 2,
+    "DTLB_SPAGE_WAYS": 2
+  },
+  "production_control_sources": {
+    "13": {
+      "timer_control_run": 45824513460,
+      "selected_inputs": 133
+    },
+    "43": {
+      "timer_control_run": 45824520116,
+      "selected_inputs": 133
+    },
+    "31337": {
+      "timer_control_run": 45824525843,
+      "selected_inputs": 133
+    }
+  },
+  "walker": [
+    "PASS walker check=0 cycles=7765 resolved=1132 l1=592 l2=592 small_fills=592",
+    "PASS walker check=1 cycles=7765 resolved=1132 l1=592 l2=592 small_fills=592"
+  ],
+  "mmc": {
+    "mmc-data-2-16": {
+      "result": "PASS MMC host data peer DIV=2 FIFO=16 cases=28 clocks=41152: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering",
+      "log_sha256": "0686be9f7eaa14a53cc33213ae15b028420994840633d2eb779248e463b375b0"
+    },
+    "mmc-data-3-16": {
+      "result": "PASS MMC host data peer DIV=3 FIFO=16 cases=28 clocks=61578: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering",
+      "log_sha256": "0f06aceb957c9328acbc3f61c5ae19d4d9493648c0c0202c3bf13bfc0c192525"
+    },
+    "mmc-data-4-16": {
+      "result": "PASS MMC host data peer DIV=4 FIFO=16 cases=28 clocks=82004: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering",
+      "log_sha256": "0a0d44f30e6092f0eeb1baf799c8d9004ec3057cf9c4429111cdde1ead2d00fd"
+    },
+    "mmc-data-12-8": {
+      "result": "PASS MMC host data peer DIV=12 FIFO=8 cases=28 clocks=244751: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering",
+      "log_sha256": "4bb0093c2c47092744886de80afded4d781ce7809af9fc6ae42447651ef1ab70"
+    },
+    "banks": {
+      "result": "PASS MMC FIFO all masks, wrap=260 forwarded=939 simultaneous TX=331 RX=312",
+      "log_sha256": "b51bae012c3f1fe9f94938fefaccaa88fe3a05c16a2e0b3d5207e584f048e2c8"
+    },
+    "cmd16": {
+      "result": "PASS CMD16 accepted-length cache: 33 pin-observed probes, R1 error bits, CRC/framing/type rejection, status-only success and reset in 126430 clocks",
+      "log_sha256": "7499c5fc68ea68549ff0a858a5a36c9558a213f4d3510993f0c33919978ea5d7"
+    },
+    "integer": {
+      "result": "PASS MMC integer /3 clock: CMD0=12, rises=696, falls=696",
+      "log_sha256": "5016d002ad6788802997383d30689ad26848fc8040cd5de6b7d285287b6ff28f"
+    }
+  },
+  "board": {
+    "burst-0-wait-0": {
+      "cycles": 33464,
+      "trace_sha256": "5eb36a2549bc68ac5e750b70d2e5ddb95e97900ce3d5a39ecfa59971bdc46c57"
+    },
+    "burst-0-wait-5": {
+      "cycles": 67865,
+      "trace_sha256": "6d7c90428c2072dcba11c44b696e1e2d19b8d6f46f38973b840f09f1ecfed809"
+    },
+    "burst-1-wait-0": {
+      "cycles": 28464,
+      "trace_sha256": "31cd1b51eb82c54931c436fcfa8b933f8fba7b6dcac00d9bb26f3df437b0f2ee"
+    },
+    "burst-1-wait-5": {
+      "cycles": 42543,
+      "trace_sha256": "12349a2fe3c61600eb64ba3f1214fbdc25324d5fb59e6f5a90e96511eb6d26f4"
+    }
+  },
+  "workloads": {
+    "fixed": {
+      "count": 105,
+      "receipt_sha256": "2cfd4d352b3557bd84425933df4d57fe3d39af341e0b262e7e18c8616c116090",
+      "repeated_cases": 15,
+      "rejected_wrong_outputs": 15
+    },
+    "native": {
+      "count": 4,
+      "receipt_sha256": "e7d74f6981f8e9262216c8befd7ab521be67ede0d29295f61432b0848d571a16",
+      "frame_cycles": [
+        14391395,
+        14467552,
+        14346201,
+        14303223
+      ],
+      "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77"
+    }
+  },
+  "physical": {
+    "normal": {
+      "cycles": 1201547,
+      "events": 171496,
+      "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26"
+    },
+    "timer_mmc_lcd": {
+      "cycles": 1201528,
+      "events": 171497,
+      "trace_sha256": "0e9fb47c965bab211b315c129e08effab414ed1ccc9e579aee4d56d9d29ba824"
+    }
+  },
+  "physical_sources": 114,
+  "compiled_fingerprints": {
+    "rtl/arm9v2/arm925t_phone.v": "B0KNdk7XWi9C5Kca6BXBWHDNIEEJnCz5yfZtbQqe",
+    "rtl/ngage_mmc_host.v": "bPXK4gOdGf5spPbXDBj1FPoBmAlBiUQpiSrzje6h"
+  },
+  "prior_independent_fits": {
+    "all_four": {
+      "43": {
+        "run": 45206755388,
+        "commit": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+        "occupied_alms": 38815,
+        "m10k": 321,
+        "worst_setup_ns": -2.851
+      },
+      "13": {
+        "run": 45206762467,
+        "commit": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+        "occupied_alms": 38799,
+        "m10k": 321,
+        "worst_setup_ns": -2.803
+      },
+      "31337": {
+        "run": 45206768879,
+        "commit": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+        "occupied_alms": 38823,
+        "m10k": 321,
+        "worst_setup_ns": -2.852
+      }
+    },
+    "tlb": {
+      "43": {
+        "run": 45232753533,
+        "commit": "723e2b7eb3ce77a36550c32bd2230e8145813078",
+        "occupied_alms": 38186,
+        "m10k": 323,
+        "worst_setup_ns": -3.088,
+        "delta_occupied_alms": -629,
+        "delta_m10k": 2
+      },
+      "13": {
+        "run": 45232752956,
+        "commit": "723e2b7eb3ce77a36550c32bd2230e8145813078",
+        "occupied_alms": 38288,
+        "m10k": 323,
+        "worst_setup_ns": -3.089,
+        "delta_occupied_alms": -511,
+        "delta_m10k": 2
+      },
+      "31337": {
+        "run": 45232753430,
+        "commit": "723e2b7eb3ce77a36550c32bd2230e8145813078",
+        "occupied_alms": 38287,
+        "m10k": 323,
+        "worst_setup_ns": -2.999,
+        "delta_occupied_alms": -536,
+        "delta_m10k": 2
+      }
+    },
+    "mmc": {
+      "43": {
+        "run": 45231987887,
+        "commit": "d790e966390a2fa2af10a836ec0d4543037c509a",
+        "occupied_alms": 38609,
+        "m10k": 325,
+        "worst_setup_ns": -2.98,
+        "delta_occupied_alms": -206,
+        "delta_m10k": 4
+      },
+      "13": {
+        "run": 45231987701,
+        "commit": "d790e966390a2fa2af10a836ec0d4543037c509a",
+        "occupied_alms": 38717,
+        "m10k": 325,
+        "worst_setup_ns": -2.713,
+        "delta_occupied_alms": -82,
+        "delta_m10k": 4
+      },
+      "31337": {
+        "run": 45231987009,
+        "commit": "d790e966390a2fa2af10a836ec0d4543037c509a",
+        "occupied_alms": 38611,
+        "m10k": 325,
+        "worst_setup_ns": -2.993,
+        "delta_occupied_alms": -212,
+        "delta_m10k": 4
+      }
+    }
+  },
+  "candidate_routed": false
+}
