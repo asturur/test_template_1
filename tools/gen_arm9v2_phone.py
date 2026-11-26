@@ -210,6 +210,88 @@ def fold_section_index(phone):
     return ''.join(parts)
 
 
+def bank_small_page_victims(phone):
+    """Keep the small-page victim read on the existing walk-address edge."""
+    start = phone.index('module ngage2_zap_tlb (')
+    end = phone.index('\nendmodule', start)
+    tlb = phone[start:end]
+    body_start = tlb.index('\treg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_lo;')
+    body_end = tlb.index('\tgenvar _gv_w_4;', body_start)
+    body = tlb[body_start:body_end]
+    body = edit(body, '\treg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_lo;\n'
+                     '\treg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_hi;\n', '')
+    body = edit(body, '\t\t\twire sp_again_nxt = sp_last_valid && (sp_page == sp_last_page);\n', """\
+            wire sp_again_nxt = sp_last_valid && (sp_page == sp_last_page);
+            wire [1:0] victim_way;
+            localparam integer SET_WIDTH = $clog2(SPAGE_TLB_ENTRIES);
+            wire [SET_WIDTH - 1:0] read_set = sp_page[12+:SET_WIDTH];
+            wire [SET_WIDTH - 1:0] write_set = tlb_address[12+:SET_WIDTH];
+            wire update_victim = sptlb_wen && !sp_again;
+
+            if (SPAGE_TLB_WAYS == 2 && SPAGE_TLB_ENTRIES == 256) begin : g_victim_ram
+                wire [3:0] row = tlb_address[19:16];
+                wire row_write = update_victim && !i_reset;
+                (* ramstyle = "M10K" *) reg [15:0] rows [0:15];
+                reg [15:0] written_rows;
+                reg [15:0] row_read, row_next;
+                wire row_valid = written_rows[sp_page[19:16]];
+
+                // The page walker holds its address through the L2
+                // descriptor write. This row was read with sp_page on the
+                // previous edge, so the write can reuse it immediately.
+                always @(*) begin
+                    row_next = row_valid ? row_read : 16'd0;
+                    row_next[tlb_address[15:12]] = !sp_way[0];
+                end
+
+                // First write to a row after reset zeroes the untouched
+                // bits. The RAM uses same-port new data on a write.
+                always @(posedge i_clk) begin
+                    if (row_write)
+                        rows[row] = row_next;
+                    row_read <= rows[row];
+                end
+                always @(posedge i_clk) begin
+                    if (i_reset)
+                        written_rows <= 16'd0;
+                    else if (row_write)
+                        written_rows[row] <= 1'b1;
+                end
+                assign victim_way = {1'b0, row_valid && row_read[sp_page[15:12]]};
+`ifndef SYNTHESIS
+                always @(posedge i_clk)
+                    if (row_write && sp_page !== tlb_address[31:12])
+                        $fatal(1, "Small-page victim write lost its captured walk address");
+`endif
+            end else begin : g_victim_regs
+                reg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_lo;
+                reg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_hi;
+
+                assign victim_way = {sp_victim_hi[read_set], sp_victim_lo[read_set]};
+                always @(posedge i_clk) begin
+                    if (i_reset) begin
+                        sp_victim_lo <= 0;
+                        sp_victim_hi <= 0;
+                    end else if (update_victim) begin
+                        sp_victim_lo[write_set] <= !sp_way[0];
+                        sp_victim_hi[write_set] <= (SPAGE_TLB_WAYS > 2) && (sp_way[1] ^ sp_way[0]);
+                    end
+                end
+            end
+""")
+    old_way = ("{sp_victim_hi[sp_page[(12 + $clog2(SPAGE_TLB_ENTRIES)) - 1:12]], "
+               "sp_victim_lo[sp_page[(12 + $clog2(SPAGE_TLB_ENTRIES)) - 1:12]]}")
+    body = edit(body, old_way, 'victim_way')
+    legacy_start = body.index('\t\t\t\t\tif (!sp_again) begin')
+    legacy_end = body.index('\n\t\t\t\tend', legacy_start)
+    body = body[:legacy_start] + body[legacy_end+1:]
+    body = edit(body, "\t\t\t\t\tsp_victim_lo <= 1'sb0;\n\t\t\t\t\tsp_victim_hi <= 1'sb0;\n", '')
+    constant_start = body.index('\t\t\twire [SPAGE_TLB_ENTRIES:1] sv2v_tmp_AFC39;')
+    constant_end = body.index('\t\t\twire [2:1] sv2v_tmp_A8694;', constant_start)
+    body = body[:constant_start] + body[constant_end:]
+    return phone[:start] + tlb[:body_start] + body + tlb[body_end:] + phone[end:]
+
+
 def expose_block_writeback(phone):
     """Carry each captured 16-byte RAM victim half beside its bus request."""
     parts = re.split(r'(?=^module )', phone, flags=re.M)
@@ -1370,6 +1452,7 @@ def main():
     generated = expose_block_writeback(fold_section_index(expose(stock.decode())))
     generated = move_posted_store_payload_to_ram(generated)
     generated = schedule_ready_register_shift(generated)
+    generated = bank_small_page_victims(generated)
     generated = schedule_early_smull(generated)
     generated = restart_streamed_icache(direct_accumulate(generated))
     generated = resident_during_fill(generated)
