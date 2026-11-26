@@ -361,6 +361,13 @@ bank tests, all fixed and native workloads and both physical traces match.
 The fit saves 322 occupied ALMs at the paired median for six M10Ks, with
 worse setup and TNS on every seed. Park for area.
 
+The [production D-line admission trial](d-line-admission.md) registers
+D-only address and validity. The native replay adds 0.0522% and Sega adds
+0.213% at its warm median. The 36-phase native LCD contention test sees
+three priority changes with 15, 16 or 27 extra D clocks. The timer route
+sample does not show the proposed D-only grant boundary as a current
+critical path. Save for a fit where that path emerges.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
