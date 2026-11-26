@@ -340,6 +340,12 @@ The [SDRAM block-payload trial](sdram-block-payload.md) stages the CPU's
 lock and block qualification. The full cold scrub, queued reset drain,
 real ARM dirty writeback and workload traces match. Routed timing is pending.
 
+The [native refill word-ready trial](refill-line-word-ready.md) registers
+line occupancy so the ACK no longer compares the received and consumed
+counters. Narrow and wide assembly, same-edge ACK, error and scalar fallback
+match the control in all workloads and both physical traces. Routed timing
+is pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
