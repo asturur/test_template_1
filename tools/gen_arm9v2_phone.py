@@ -992,77 +992,6 @@ def resolve_execute_forward_candidates(phone):
     return ''.join(parts)
 
 
-def prepare_w_completion(phone):
-    """Store the static W completion choices beside the selected W record."""
-    parts = re.split(r'(?=^module )', phone, flags=re.M)
-    core = next(i for i, part in enumerate(parts) if part.startswith('module ngage2_arm9v2_core ('))
-    source = parts[core]
-    start = source.index('\twire fast_pc_hit =')
-    end = source.index('\twire [23:0] advance_tag;', start)
-    original = source[start:end]
-    live_start = original.index('\t\t\t\tif (w[541] && !wb_flush)')
-    live_end = original.index('\n\t\t\tend\n', live_start)
-    live = original[live_start:live_end]
-    reference = '\n'.join(line.removeprefix('\t\t\t\t') for line in live.splitlines())
-    reference = reference.replace('complete_class[consumer]', 'live_complete_ref')
-    reference = '\n'.join('        ' + line.expandtabs(4) for line in reference.splitlines())
-    prepared = '''    // These selects follow the same owner and state edge as W.
-    localparam W_COMPLETE_NOW = 0, W_COMPLETE_EXCEPTION = 1, W_COMPLETE_CP = 2,
-               W_COMPLETE_SAVED = 3, W_COMPLETE_MEMORY = 4;
-    (* dont_retime *) reg [4:0] w_completion_eligible;
-    function automatic [4:0] w_completion_of;
-        input valid, exception_pending, copro, swp, memory;
-        input [3:0] state;
-        begin
-            w_completion_of = 0;
-            if (valid) begin
-                if (state == 4'd10)
-                    w_completion_of[W_COMPLETE_NOW] = 1'b1;
-                else if (exception_pending)
-                    w_completion_of[W_COMPLETE_EXCEPTION] = 1'b1;
-                else if (copro)
-                    w_completion_of[W_COMPLETE_CP] = 1'b1;
-                else if (state == 4'd6)
-                    w_completion_of[W_COMPLETE_SAVED] = !swp;
-                else if (state == 4'd0 || state == 4'd1) begin
-                    w_completion_of[W_COMPLETE_NOW] = !memory;
-                    w_completion_of[W_COMPLETE_MEMORY] = 1'b1;
-                end
-            end
-        end
-    endfunction
-'''
-    updated = edit(original, '\t\t\t\tif (w[541] && !wb_flush)', '''                if (W_CLASS) begin
-                    if (!wb_flush)
-                        complete_class[consumer] = w_completion_eligible[W_COMPLETE_NOW] ||
-                            (w_completion_eligible[W_COMPLETE_EXCEPTION] && !i_dc_lock_any) ||
-                            (w_completion_eligible[W_COMPLETE_CP] && cp_finished) ||
-                            (w_completion_eligible[W_COMPLETE_SAVED] && !w_locked) ||
-                            (w_completion_eligible[W_COMPLETE_MEMORY] && memory_can_complete);
-                end else if (w[541] && !wb_flush)''')
-    updated = edit(updated, '\talways @(*) begin : sv2v_autoblock_1', '''    wire memory_can_complete = (request_done && !retry) &&
-        (COMPLETE_FLAT ? (resp_err || w_mem_immediate || fast_pc_hit) : !defer_load);
-\talways @(*) begin : sv2v_autoblock_1''')
-    check = '''`ifndef SYNTHESIS
-    reg live_complete_ref;
-    always @(*) begin
-        live_complete_ref = 0;
-''' + reference + '''
-    end
-    always @(posedge i_clk)
-        if (!i_reset && complete_class !== {3{live_complete_ref}})
-            $fatal(1, "Prepared W completion changed at %h", w[526-:32]);
-`endif
-'''
-    source = source[:start] + prepared + updated + check + source[end:]
-    source = edit(source, '\t\t\tw_cls <= 0;', '\t\t\tw_cls <= 0;\n            w_completion_eligible <= 0;')
-    source = edit(source, '\t\t\tw_cls <= w_cls_next;', '''\t\t\tw_cls <= w_cls_next;
-            w_completion_eligible <= w_completion_of(w_next[541], w_cls_next[5],
-                w_cls_next[4], w_cls_next[3], w_next[535], memory_state_next);''')
-    parts[core] = source
-    return ''.join(parts)
-
-
 def split_execute_readiness(phone):
     """Resolve the two complete admission decisions before selecting on W hit."""
     parts = re.split(r'(?=^module )', phone, flags=re.M)
@@ -1455,8 +1384,6 @@ def main():
     generated = move_fetch_payload_to_ram(generated)
     if args.hinted_ldm:
         generated = issue_hinted_ldm(generated, edit)
-    else:
-        generated = prepare_w_completion(generated)
     generated = keep_wishbone_request_boundary(generated)
     generated = prepare_wishbone_write_data(generated)
     if args.check:
