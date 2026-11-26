@@ -1,0 +1,86 @@
+--- a/tb.v
++++ b/tb.v
+@@ -175,7 +175,9 @@
+  reg [7:0] dma_errors_seen=0;
+ 
+  wire sdram_owner_ready;
+- wire cswe,csreq,csack,dsreq,dsack,swe,sreq;wire sack; wire [31:0] sdata;assign sr=sdata;
++ wire cswe,csreq,dsreq,dsack,swe,sreq;
++ wire [1:0] csack_rails, sack_rails;
++ wire csack = |csack_rails, sack = |sack_rails; wire [31:0] sdata;assign sr=sdata;
+  wire ram_line_req,ram_line_ready,ram_line_valid,ram_line_last;
+  wire [24:0] ram_line_addr;wire [15:0] ram_line_data;
+ `ifndef NGAGE_REAL_SDRAM
+@@ -195,7 +197,7 @@
+   end
+  end
+  reg ram_discard=0;
+- reg sack_model=0; reg [31:0] sdata_model=0; assign sack=sack_model; assign sdata=sdata_model;
++ reg sack_model=0; reg [31:0] sdata_model=0; assign sack_rails = {sack_model && swrite, sack_model && !swrite}; assign sdata=sdata_model;
+ `else
+  wire scrub_done, sdr_ready;
+  wire sdr_req,sdr_we,sdr_line,sdr_busy,sdr_rvalid,sdr_cmd_ready;
+@@ -210,11 +212,11 @@
+  wire dqml,dqmh,nwe,ncas,nras,ncs,cke,memclk;
+  ngage_sdram_clock forward_clock(.clk(clk),.sdram_clk(memclk));
+  assign #5.5 sdr_dq = memory.Dq_reg;
+- ngage_sdram_stream #(.WIDE_PORT(1), .SCRUB_BYTES(25'd32)) sadapter(
++ ngage_sdram_stream #(.WIDE_PORT(1), .SCRUB_BYTES(25'd32), .SPLIT_ACK(1)) sadapter(
+   .clk(clk),.cold(cold),.phone_reset(dma_reset || cold),.lock(mem_lock),.owner_ready(sdram_owner_ready),
+   .grant_read((cpu_ram_accept && !cswe) || (shared_dma_accept && !shared_dma_write)),.grant_addr(cpu_ram_accept ? csa : shared_dma_addr),
+   .req(sreq),.we(swe),.write_block(mem_write_block),.block_data(mem_block_data),
+-  .addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sdata),
++  .addr(sa),.din(sd),.be(sb),.ack(sack_rails),.dout(sdata),
+   .line_req(ram_line_req && !lock),.line_short(1'b0),.line_addr(ram_line_addr),.line_ready(ram_line_ready),
+   .line_valid(ram_line_valid),.line_data(ram_line_data),.line_last(ram_line_last),
+   .mem_req(sdr_req),.mem_we(sdr_we),.mem_line(sdr_line),.mem_addr(sdr_addr),
+@@ -332,7 +334,7 @@
+  wire cpu_ram_accept;
+  wire cpu_write_block, mem_write_block, mem_lock;
+  wire [127:0] cpu_block_data, mem_block_data;
+- ngage_mister #(.ENABLE_DEBUGGER(1),.RAM_LINE_EARLY(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.GAME_PCM(GAME_PCM)) dut(
++ ngage_mister #(.ENABLE_DEBUGGER(1),.SPLIT_SDRAM_ACK(1),.RAM_LINE_EARLY(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.GAME_PCM(GAME_PCM)) dut(
+   .mmc_card_reset(1'b0),.mmc_img_mounted(1'b0),.mmc_img_readonly(1'b1),.mmc_img_size(64'd0),
+   .mmc_sd_ack(1'b0),.mmc_sd_buff_addr(13'd0),.mmc_sd_buff_dout(16'd0),.mmc_sd_buff_wr(1'b0),
+ .ddram_line(ddr_line),.ddram_beat_valid(core_beat_valid),.ddram_beat_data(core_beat_data),.ddram_beat_last(core_beat_last),
+@@ -343,7 +345,7 @@
+  1'b1
+ `endif
+  ),.diagnostic_status(8'b0),.debug_freeze_trace(1'b0),.debug_read_word(11'b0),.board_init_done(init_done),.bus_lock(lock),
+-  .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csr),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack),.sdram_accept(cpu_ram_accept),
++  .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csr),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack_rails),.sdram_accept(cpu_ram_accept),
+   .sdram_write_block(cpu_write_block),.sdram_block_data(cpu_block_data),
+   .dma_reset(dma_reset),.dma_sdram_accept(lcd_fast_accept),
+   .dma_sdram_req(lcd_fast_req),.dma_sdram_addr(lcd_fast_addr),.dma_sdram_ack(lcd_fast_ack),.dma_sdram_data(lcd_fast_data),
+@@ -379,9 +381,9 @@
+   .mem_req(shared_dma_req),.mem_write(shared_dma_write),.mem_addr(shared_dma_addr),.mem_data(shared_dma_data),.mem_be(shared_dma_be),
+   .mem_accept(shared_dma_accept),.mem_ack(shared_dma_ack),.mem_rdata(shared_dma_rdata)
+  );
+- ngage_sdram_arbiter #(.CPU_BLOCK_WRITES(1)) arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(dma_reset || cold),.cpu_lock(lock),.cpu_req(csreq && sdram_owner_ready),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
++ ngage_sdram_arbiter #(.CPU_BLOCK_WRITES(1),.SPLIT_ACK(1)) arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(dma_reset || cold),.cpu_lock(lock),.cpu_req(csreq && sdram_owner_ready),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack_rails),.cpu_rdata(csr),
+   .cpu_write_block(cpu_write_block),.cpu_block_data(cpu_block_data),.mem_write_block(mem_write_block),.mem_block_data(mem_block_data),
+-  .dma_req(shared_dma_req && sdram_owner_ready),.dma_we(shared_dma_write),.dma_addr(shared_dma_addr),.dma_data(shared_dma_data),.dma_be(shared_dma_be),.dma_ack(shared_dma_ack),.dma_rdata(shared_dma_rdata),.dma_accept(shared_dma_accept),.mem_req(sreq),.mem_we(swe),.mem_lock(mem_lock),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
++  .dma_req(shared_dma_req && sdram_owner_ready),.dma_we(shared_dma_write),.dma_addr(shared_dma_addr),.dma_data(shared_dma_data),.dma_be(shared_dma_be),.dma_ack(shared_dma_ack),.dma_rdata(shared_dma_rdata),.dma_accept(shared_dma_accept),.mem_req(sreq),.mem_we(swe),.mem_lock(mem_lock),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack_rails),.mem_rdata(sr));
+ `ifdef NGAGE_NOS_OVERLAY_RUN
+  // Separate experiment: exercise the real staged loader and shared DDR path,
+  // not a host-prepatched ROM. The CPU remains reset until application completes.
+@@ -834,4 +836,19 @@
+ `undef FRAME_RAM_DATA
+ `endif
+ 
++
++    integer physical_write_replies = 0, donor_write_replies = 0, donor_common_replies = 0;
++    integer donor_line_replies = 0;
++    always @(posedge clk) begin
++        if (csack_rails[1]) physical_write_replies++;
++        if (dut.board.upp.cpu_inside.cpu.donor_ack[1]) donor_write_replies++;
++        if (dut.board.upp.cpu_inside.cpu.donor_ack[0]) begin
++            donor_common_replies++;
++            if (dut.board.upp.cpu_inside.cpu.refill.state == 2'd1) donor_line_replies++;
++        end
++    end
++    final begin
++        $display("REPLY_CLASS physical_cpu_write=%0d donor_write=%0d donor_common=%0d donor_line=%0d",
++                 physical_write_replies, donor_write_replies, donor_common_replies, donor_line_replies);
++    end
+ endmodule

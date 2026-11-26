@@ -1,6 +1,6 @@
 ## 2026-11-26 — retained ten-seed sweep and closure investigation
 
-The retained `11c4a0c` and `81a1b45` sources are the exact `e9552bd` tree. Seven new seeds join the three same-day controls at physical 104 MHz. The −1.5 ns mark is a milestone on the way to setup closure across all corners. The local MMC byte-counter change matches all directed, fixed, native and mixed replays. The separate Wishbone check traces early SDRAM response class through arbitration and the cache. [Runs and investigation](experiments/v5-performance/retained-104-seed-sweep.md)
+The retained `11c4a0c` and `81a1b45` sources are the exact `e9552bd` tree. Seven new seeds join the three same-day controls at physical 104 MHz. The −1.5 ns mark is a milestone on the way to setup closure across all corners. Two isolated patches passed directed, fixed, native and mixed replays. The Wishbone split gives SDRAM writes a D-only ACK and removes their route through I-cache completion. The MMC trial independently prepares the upper byte counter before late FIFO acceptance. Both await routed fits. [Runs and investigation](experiments/v5-performance/retained-104-seed-sweep.md)
 
 ## 2026-11-26 — same-day placement and refill fits parked
 

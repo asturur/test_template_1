@@ -255,6 +255,15 @@ setup moves from −2.471 to −2.588 ns while median core setup TNS improves
 822.484 ns. The candidate adds 677 median ALMs and no M10Ks. Seed 31337
 reaches −2.310 ns. All three RBFs are saved.
 
+The [Wishbone reply split](wb-reply-class.md) keeps SDRAM writes out
+of the I-cache ACK path and preserves the D-cache response edge.
+The directed checks, 105 fixed windows, four native frames and
+171,496 mixed pin events match. Routed timing is pending.
+
+The [prepared MMC counter](mmc-count-prepare.md) removes the wide
+byte-count carry after late FIFO acceptance. The 4 KiB directed tests,
+mixed replay, fixed and native workloads match. Routed timing is pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

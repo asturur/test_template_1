@@ -1,0 +1,254 @@
+diff --git a/tests/cpu/arm9v2_board/reply_class_tb.sv b/tests/cpu/arm9v2_board/reply_class_tb.sv
+new file mode 100644
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/reply_class_tb.sv
+@@ -0,0 +1,249 @@
++module reply_class_tb;
++    localparam [2:0] BURST = 3'b010, EOB = 3'b111;
++    reg clk = 0, reset = 1;
++    reg code_req = 0, data_req = 0, code_line = 0, lock = 0;
++    reg [2:0] code_cti = EOB, data_cti = EOB;
++    reg [31:0] code_addr = 32'h0a000020, data_addr = 32'h0a001000;
++    reg [1:0] ram_reply = 0;
++    reg line_ready = 0, line_reject = 0, line_valid = 0, line_last = 0;
++    reg slow_ack = 0, slow_err = 0;
++    reg data_write = 1;
++
++    wire [1:0] code_ack, data_ack, code_err, data_err, data_owner;
++    wire [1:0] cyc, stb, write, candidate, scalar, scalar_lock, line_req, guarantee;
++    wire [1:0] ready_to_ram, pending, response, slow_req;
++    wire [31:0] addr [0:1], read_data [0:1];
++    wire [2:0] cti [0:1];
++
++    for (genvar leg = 0; leg < 2; leg = leg + 1) begin : variant
++        localparam integer LEG = leg;
++        wire [LEG:0] route_ack, merged_ack;
++        wire [LEG:0] ram_ack_lanes;
++        wire merged_write_ack;
++        if (LEG) begin : split
++            assign ram_ack_lanes = ram_reply;
++            assign merged_write_ack = merged_ack[1];
++        end else begin : shared
++            assign ram_ack_lanes = |ram_reply;
++            assign merged_write_ack = 1'b0;
++        end
++        wire route_err, merged_err;
++        wire [31:0] route_data;
++
++        ngage2_zap_wb_merger #(.SPLIT_WB_ACK(LEG)) merger (
++            .i_clk(clk), .i_reset(reset),
++            .i_c_wb_stb(code_req), .i_c_wb_cyc(code_req), .i_c_wb_wen(1'b0),
++            .i_c_wb_sel(4'hf), .i_c_wb_dat(32'd0), .i_c_wb_adr(code_addr),
++            .i_c_line_candidate(code_line), .i_c_wb_cti(code_cti), .i_c_wb_bte(2'd0),
++            .o_c_wb_ack(code_ack[LEG]), .o_c_wb_err(code_err[LEG]),
++            .o_dbg_data_owner(data_owner[LEG]),
++            .i_d_wb_stb(data_req), .i_d_wb_cyc(data_req), .i_d_wb_wen(data_write),
++            .i_d_wb_sel(4'hf), .i_d_wb_dat(32'habcdef01), .i_d_wb_adr(data_addr),
++            .i_d_line_candidate(1'b0), .i_d_wb_cti(data_cti), .i_d_wb_bte(2'd0),
++            .o_d_wb_ack(data_ack[LEG]), .o_d_wb_err(data_err[LEG]),
++            .o_wb_cyc(cyc[LEG]), .o_wb_stb(stb[LEG]), .o_wb_wen(write[LEG]),
++            .o_wb_adr(addr[LEG]), .o_wb_line_candidate(candidate[LEG]), .o_wb_cti(cti[LEG]),
++            .i_wb_ack(merged_ack[0]), .i_wb_write_ack(merged_write_ack),
++            .i_wb_err(merged_err), .i_wb_no_late_error(guarantee[LEG])
++        );
++
++        ngage_arm9v2_refill #(
++            .ENABLE(1), .REGISTERED_SCALAR_PEER(1), .SPLIT_WB_ACK(LEG)
++        ) refill (
++            .clk(clk), .reset(reset), .cpu_cyc(cyc[LEG] && stb[LEG]), .cpu_lock(lock),
++            .cpu_line_candidate(candidate[LEG]), .cpu_address(addr[LEG]), .cpu_write(write[LEG]),
++            .cpu_sel(4'hf), .cpu_cti(cti[LEG]), .cpu_bte(2'd0),
++            .cpu_ack(merged_ack), .cpu_error(merged_err), .cpu_no_late_error(guarantee[LEG]),
++            .cpu_data(read_data[LEG]), .wb_cyc(scalar[LEG]), .wb_lock(scalar_lock[LEG]),
++            .wb_ack(route_ack), .wb_error(route_err), .wb_data(route_data),
++            .line_req(line_req[LEG]), .line_ready(line_ready), .line_reject(line_reject),
++            .line_valid(line_valid), .line_data(64'hfedcba9876543210), .line_wide(1'b1),
++            .line_last(line_last), .line_error(1'b0), .line_no_late_error(1'b1)
++        );
++
++        ngage_cpu_memory_route #(
++            .CPU_OWNS_SCALAR_REPLY(1), .SPLIT_SDRAM_ACK(LEG)
++        ) route (
++            .clk(clk), .reset(reset), .master_cyc(scalar[LEG]), .master_stb(scalar[LEG]),
++            .master_we(write[LEG]), .master_code(!data_owner[LEG]), .master_address(addr[LEG]),
++            .master_data(32'habcdef01), .master_sel(4'hf),
++            .master_ack(route_ack), .master_error(route_err), .master_rdata(route_data),
++            .slow_idle(1'b1), .slow_stb(slow_req[LEG]), .slow_ack(slow_ack), .slow_error(slow_err),
++            .slow_rdata(32'h10203040), .ram_req(ready_to_ram[LEG]),
++            .ram_accept(ready_to_ram[LEG]), .ram_ack(ram_ack_lanes),
++            .ram_rdata(32'hdeadc0de), .ram_pending(pending[LEG]), .ram_response(response[LEG])
++        );
++    end
++
++    integer edges = 0;
++    task compare_legs;
++        if ({code_ack[0], data_ack[0], code_err[0], data_err[0], data_owner[0],
++             cyc[0], stb[0], write[0], addr[0], cti[0], candidate[0], scalar[0], scalar_lock[0],
++             line_req[0], guarantee[0], ready_to_ram[0], pending[0], response[0],
++             slow_req[0], read_data[0], variant[0].route_ack, variant[0].merged_ack} !==
++            {code_ack[1], data_ack[1], code_err[1], data_err[1], data_owner[1],
++             cyc[1], stb[1], write[1], addr[1], cti[1], candidate[1], scalar[1], scalar_lock[1],
++             line_req[1], guarantee[1], ready_to_ram[1], pending[1], response[1],
++             slow_req[1], read_data[1], (|variant[1].route_ack), (|variant[1].merged_ack)})
++            $fatal(1, "Reply rails changed the observable protocol at clock %0d", edges);
++    endtask
++
++    task tick;
++        #1 compare_legs;
++        clk = 1;
++        edges = edges + 1;
++        #1 clk = 0;
++        #1 compare_legs;
++    endtask
++
++    task expect_reply(input [1:0] want, input bit instruction);
++        #1;
++        compare_legs;
++        if (variant[1].merged_ack !== want ||
++            code_ack[1] !== (instruction && (|want)) ||
++            data_ack[1] !== (!instruction && (|want)))
++            $fatal(1, "Wrong reply class or owner at clock %0d", edges);
++    endtask
++
++    integer word;
++    initial begin
++        tick;
++        reset = 0;
++        data_req = 1;
++        data_cti = BURST;
++        tick;
++        tick;
++        code_req = 1;
++        code_cti = BURST;
++        code_line = 1;
++        ram_reply = 2'b10;
++        data_addr = data_addr + 16;
++        data_cti = EOB;
++        expect_reply(2'b10, 0);
++        tick;
++        ram_reply = 0;
++        if (!data_owner[1] || cti[1] != EOB || addr[1] != data_addr)
++            $fatal(1, "Intermediate write response interrupted the burst");
++        tick;
++        data_req = 0;
++        ram_reply = 2'b10;
++        expect_reply(2'b10, 0);
++        tick;
++        ram_reply = 0;
++        if (data_owner[1] || !line_req[1] || addr[1] != code_addr)
++            $fatal(1, "Last write response missed the same-edge instruction turn");
++
++        line_ready = 1;
++        tick;
++        line_ready = 0;
++        line_valid = 1;
++        tick;
++        for (word = 0; word < 8; word = word + 1) begin
++            expect_reply(2'b01, 1);
++            if (!guarantee[1] || read_data[1] != (word[0] ? 32'hfedcba98 : 32'h76543210))
++                $fatal(1, "Native instruction data/guarantee changed at word %0d", word);
++            code_line = 0;
++            code_addr = code_addr + 4;
++            if (word == 6) code_cti = EOB;
++            if (word == 7) code_req = 0;
++            line_valid = word < 3;
++            line_last = word == 2;
++            tick;
++        end
++
++        code_req = 1;
++        code_line = 1;
++        code_cti = BURST;
++        code_addr = 32'h0a000060;
++        line_ready = 1;
++        tick;
++        tick;
++        line_ready = 0;
++        line_reject = 1;
++        tick;
++        line_reject = 0;
++        tick;
++        ram_reply = 2'b01;
++        expect_reply(2'b01, 1);
++        if (guarantee[1]) $fatal(1, "Rejected line granted a native guarantee");
++        code_cti = EOB;
++        code_line = 0;
++        code_addr = code_addr + 4;
++        tick;
++        ram_reply = 0;
++        tick;
++        ram_reply = 2'b01;
++        expect_reply(2'b01, 1);
++        code_req = 0;
++        tick;
++        ram_reply = 0;
++
++        // SWP's read and locked write retain the same grant and return edges.
++        data_req = 1;
++        data_write = 0;
++        lock = 1;
++        tick;
++        tick;
++        ram_reply = 2'b01;
++        expect_reply(2'b01, 0);
++        if (!scalar_lock[1]) $fatal(1, "SWP read released the lock");
++        data_write = 1;
++        tick;
++        ram_reply = 0;
++        tick;
++        ram_reply = 2'b10;
++        expect_reply(2'b10, 0);
++        if (!scalar_lock[1]) $fatal(1, "SWP write released the lock");
++        data_req = 0;
++        tick;
++        ram_reply = 0;
++        lock = 0;
++
++        // Cancel a held write, then let it drain before serving a new fetch.
++        data_req = 1;
++        tick;
++        tick;
++        data_req = 0;
++        tick;
++        tick;
++        code_req = 1;
++        code_addr = 32'h0a000100;
++        tick;
++        ram_reply = 2'b10;
++        expect_reply(2'b00, 1);
++        if (!pending[1] || ready_to_ram[1]) $fatal(1, "Cancelled write lost its drain");
++        tick;
++        ram_reply = 0;
++        tick;
++        ram_reply = 2'b01;
++        expect_reply(2'b01, 1);
++        code_req = 0;
++        tick;
++        ram_reply = 0;
++
++        // A slow error still counts as completion for the granted side.
++        code_req = 1;
++        code_addr = 32'h0c120000;
++        tick;
++        tick;
++        slow_err = 1;
++        #1;
++        compare_legs;
++        if (!code_err[1] || !code_ack[1] || data_ack[1])
++            $fatal(1, "Slow error did not stay with the instruction owner");
++        code_req = 0;
++        tick;
++        slow_err = 0;
++
++        data_req = 1;
++        tick;
++        tick;
++        reset = 1;
++        ram_reply = 2'b10;
++        expect_reply(2'b00, 0);
++        tick;
++        if (pending[1] || line_req[1]) $fatal(1, "Reset leaked a live owner");
++        $display("PASS shared vs split SDRAM replies across %0d directed clocks", edges);
++        $finish;
++    end
++endmodule

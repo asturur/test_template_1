@@ -1,0 +1,91 @@
+--- a/tests/phone/mmc_mister/tb.v
++++ b/tests/phone/mmc_mister/tb.v
+@@ -5,11 +5,11 @@
+  wire dma_reset;
+  reg discard=0;
+  always #(500000000.0/104000000) clk=~clk;
+- wire init_done,bus_lock;wire [24:0] csa,dsa;wire [31:0] csd,csread,dsread;wire [3:0] csb;wire cswe,csreq,csack,dsreq,dsack;
++ wire init_done,bus_lock;wire [24:0] csa,dsa;wire [31:0] csd,csread,dsread;wire [3:0] csb;wire cswe,csreq,dsreq,dsack; wire [1:0] csack_rails; wire csack = |csack_rails;
+  wire [24:0] sa;wire [31:0] sd;wire [3:0] sb;wire swe,sreq;
+ 
+  wire [31:0] sr;
+- wire sack, packet_lock, memory_owner, scrub_done;
++ wire [1:0] sack_rails; wire sack = |sack_rails; wire packet_lock, memory_owner, scrub_done;
+  wire [24:0] saved_sa=sa;
+  wire [31:0] saved_sd=sd;
+  wire [3:0] saved_sb=sb;
+@@ -92,7 +92,7 @@
+   .local_valid(local_valid),.local_waiting(local_waiting),.local_ready(local_ready),.local_write(local_write),.local_addr(local_addr),
+   .local_data(local_data),.local_be(local_be),.local_done(local_done),.local_error(local_error),.local_rdata(local_rdata)
+  );
+- ngage_mister #(.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.DMA_LOCAL(1),.GAME_PCM(1),.DDR_UPP_RAM(1),.LCD_LINE_BYTES(16),.SYS_CLK_HZ(104000000)) dut(.debug_freeze_trace(1'b0),.sim_present(1'b1),.clk_sys(clk),.reset(reset || cpu_hold),.cold_reset(cold),.dma_reset(dma_reset),
++ ngage_mister #(.SPLIT_SDRAM_ACK(1),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.DMA_LOCAL(1),.GAME_PCM(1),.DDR_UPP_RAM(1),.LCD_LINE_BYTES(16),.SYS_CLK_HZ(104000000)) dut(.debug_freeze_trace(1'b0),.sim_present(1'b1),.clk_sys(clk),.reset(reset || cpu_hold),.cold_reset(cold),.dma_reset(dma_reset),
+   .upp_ddr_req(ddr_req),.upp_ddr_we(ddr_we),.upp_ddr_addr(ddr_addr),
+   .upp_ddr_wdata(ddr_wdata),.upp_ddr_be(ddr_be),.upp_ddr_ack(ddr_ack),.upp_ddr_rdata(ddr_rdata),
+   .upp_ddr_clear(ddr_clear),.upp_ddr_clear_done(ddr_clear_done),.board_init_done(init_done),.bus_lock(bus_lock),
+@@ -103,7 +103,7 @@
+   .lcd_line_req(lcd_line_req),.lcd_line_addr(lcd_line_addr),.lcd_line_ready(lcd_line_ready),
+   .lcd_line_valid(lcd_line_valid),.lcd_line_data(shared_line_data),.lcd_line_last(lcd_line_last),
+   .sdram_write_block(cpu_block_write),.sdram_block_data(cpu_block_data),
+-  .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csread),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack),.sdram_accept(cpu_ram_accept),
++  .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csread),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack_rails),.sdram_accept(cpu_ram_accept),
+ 
+   .pcm_sdram_req(pcm_req),.pcm_sdram_addr(pcm_addr),.pcm_sdram_ack(pcm_ack),
+   .pcm_sdram_data(pcm_data),.pcm_left(pcm_l),.pcm_right(pcm_r),.pcm_valid(pcm_valid),
+@@ -122,9 +122,9 @@
+  .pcm_req(pcm_req),.pcm_addr(pcm_addr),.pcm_ack(pcm_ack),.pcm_rdata(pcm_data),
+  .lcd_req(fast_req),.lcd_addr(fast_addr),.lcd_accept(fast_accept),.lcd_ack(fast_ack),.lcd_rdata(fast_data),
+  .mem_req(merge_req),.mem_write(merge_write),.mem_addr(merge_addr),.mem_data(merge_data),.mem_be(merge_be),.mem_accept(merge_accept),.mem_ack(merge_ack),.mem_rdata(merge_rdata));
+- ngage_sdram_arbiter #(.CPU_BLOCK_WRITES(1)) arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(dma_reset),.cpu_lock(bus_lock),.cpu_req(csreq && memory_owner && !hold_scalar),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_write_block(cpu_block_write),.cpu_block_data(cpu_block_data),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csread),
++ ngage_sdram_arbiter #(.CPU_BLOCK_WRITES(1),.SPLIT_ACK(1)) arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(dma_reset),.cpu_lock(bus_lock),.cpu_req(csreq && memory_owner && !hold_scalar),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_write_block(cpu_block_write),.cpu_block_data(cpu_block_data),.cpu_be(csb),.cpu_ack(csack_rails),.cpu_rdata(csread),
+  .dma_accept(merge_accept),.dma_req(merge_req && memory_owner && !hold_scalar),.dma_we(merge_write),.dma_addr(merge_addr),.dma_data(merge_data),.dma_be(merge_be),.dma_ack(merge_ack),.dma_rdata(merge_rdata),
+- .mem_req(sreq),.mem_we(swe),.mem_lock(packet_lock),.mem_write_block(active_block_write),.mem_block_data(active_block_data),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
++ .mem_req(sreq),.mem_we(swe),.mem_lock(packet_lock),.mem_write_block(active_block_write),.mem_block_data(active_block_data),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack_rails),.mem_rdata(sr));
+ 
+  wire pin_req,pin_we,pin_line,pin_cmd_ready,pin_busy,pin_valid,pin_ready,pin_short;
+  wire lcd_line_req, lcd_line_ready, lcd_line_valid, lcd_line_last;
+@@ -160,11 +160,11 @@
+  tri [15:0] unused_dq;
+  ngage_sdram_clock forward_clock(.clk(clk),.sdram_clk(pin_clk));
+  assign #5.5 pin_in = memory.Dq_reg;
+- ngage_sdram_stream #(.SCRUB_BYTES(25'd32)) bridge(
++ ngage_sdram_stream #(.SCRUB_BYTES(25'd32),.SPLIT_ACK(1)) bridge(
+    .clk(clk),.cold(cold),.phone_reset(dma_reset),.lock(packet_lock),.owner_ready(memory_owner),
+    .grant_read((cpu_ram_accept && !cswe) || (merge_accept && !merge_write)),
+    .grant_addr(cpu_ram_accept ? csa : merge_addr),.req(sreq),.we(swe),
+-   .write_block(active_block_write),.block_data(active_block_data),.addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sr),
++   .write_block(active_block_write),.block_data(active_block_data),.addr(sa),.din(sd),.be(sb),.ack(sack_rails),.dout(sr),
+    .line_req(shared_line_req),.line_short(shared_line_short),.line_addr(shared_line_addr),.line_ready(shared_line_ready),.line_valid(shared_line_valid),.line_last(shared_line_last),.line_data(shared_line_data),.mem_short(pin_short),
+    .mem_req(pin_req),.mem_we(pin_we),.mem_line(pin_line),.mem_addr(pin_address),
+    .mem_wdata(pin_write_data),.mem_wbe(pin_write_mask),.scrub_done(scrub_done),
+@@ -278,9 +278,9 @@
+    memory.Bank0[i]=16'ha5a5; memory.Bank1[i]=16'ha5a5;
+    memory.Bank2[i]=16'ha5a5; memory.Bank3[i]=16'ha5a5;
+   end
+-  if ($test$plusargs("upp_stress")) $readmemh("build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed/stress.hex",rom);
+-  else $readmemh("build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed/program.hex",rom);
+-  $readmemh("build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed/image.hex",image);
++  if ($test$plusargs("upp_stress")) $readmemh("build/reply-class/mixed/stress.hex",rom);
++  else $readmemh("build/reply-class/mixed/program.hex",rom);
++  $readmemh("build/reply-class/mixed/image.hex",image);
+   for(i=0;i<1280;i=i+1)original_image[i]=image[i];
+   repeat(4)@(negedge clk);cold=0;
+   @(negedge clk);img_mount=1;@(negedge clk);img_mount=0;
+@@ -386,4 +386,17 @@
+                     bank,pin_a,controller.sdram_dq_oe,pin_out & controller.sdram_dq_oe);
+     end
+ 
++
++    integer physical_write_replies = 0, donor_write_replies = 0, donor_common_replies = 0;
++    always @(posedge clk) begin
++        if (csack_rails[1]) physical_write_replies++;
++        if (dut.board.upp.cpu_inside.cpu.donor_ack[1]) donor_write_replies++;
++        if (dut.board.upp.cpu_inside.cpu.donor_ack[0]) donor_common_replies++;
++    end
++    final begin
++        if (physical_write_replies == 0 || donor_write_replies == 0 || donor_common_replies == 0)
++            $fatal(1, "Split reply coverage is missing");
++        $display("REPLY_CLASS physical_cpu_write=%0d donor_write=%0d donor_common=%0d",
++                 physical_write_replies, donor_write_replies, donor_common_replies);
++    end
+ endmodule

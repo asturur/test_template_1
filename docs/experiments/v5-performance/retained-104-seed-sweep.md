@@ -35,3 +35,21 @@ The [prepared counter trial](mmc-count-prepare.md) splits that carry while
 preserving the same MMC request and update edges. Fixed workloads, the
 native frames, the mixed pin model and directed host tests measure the
 prototype independently.
+
+The [Wishbone reply split](wb-reply-class.md) takes SDRAM writes out
+of the common reply that can feed I-cache next-request logic. Retained
+seed 13 and seed 31337 have this route near or at the setup minimum.
+The prototype preserves the D-cache response and arbitration edges.
+All fixed, native and mixed replays match. It is the first candidate
+to fit, with the MMC change as an independent follow-up if those UPP
+endpoints remain prominent.
+
+The worst timer witness ends at timer 4's synchronous clear. The seed
+13 hot report shows a 10.833 ns data path from reset drain through two
+request-stage CYC cells, timer claim, write access and two count-control
+cells. The timer decrement carry is outside this witness. If new fits
+still expose it, capture the timer unit and write operation from the
+incoming request alongside the held UPP packet. Qualify each prepared
+operation with the existing live commit, so cancellation and write or
+expiry priority stay on the original edge. Check coincident expiry,
+reload, count writes, stop, invalid lanes and reset before fitting.
