@@ -2054,5 +2054,53 @@
       "scratch/v5-fit-loop/dcache-live-trust/replay.py": "693558d76b0c9c4734ebab900d71429199937c39aaf6853572ea5ef46f4349f4",
       "scratch/v5-fit-loop/dcache-live-trust/routes.py": "a94a749552a13f25facc57cd17ab7c4406510a010a1a87a66225543ddfe3df5b"
     }
+  },
+  {
+    "id": "lane13-mmc-combined",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-count-prepare.patch",
+      "patches/lane13-register-sources.patch"
+    ],
+    "sha256": [
+      "96f4747b20c7b6557fc26587dabfc5a759adabb0ee5f6431abbb19474623eeb4",
+      "314eb584bdfd3b42cd7d21dde32232f068c39c8694dff25b024cd062730005bc"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_host.v",
+      "rtl/ngage_upp_peripherals.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_mmc_host.v": "b13acfef39ede0231b563198b221bf5ec8d428bf2c12e339f6a27bec2b751c73",
+      "rtl/ngage_upp_peripherals.v": "5189d7da1cd75052e0075af9a7966dc39399939446163529a86f89ca325f986f"
+    }
+  },
+  {
+    "id": "lane13-mmc-combined-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/lane13-mmc-combined-replay.patch"
+    ],
+    "sha256": [
+      "b40569c7b8d45abe561424ee337b28a772381378061cd848701640f5854b9fa4"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/lane13-mmc-combined/mixed.py",
+      "scratch/v5-fit-loop/lane13-mmc-combined/preflight.py",
+      "scratch/v5-fit-loop/lane13-mmc-combined/prepare-host-tests.py",
+      "scratch/v5-fit-loop/lane13-mmc-combined/prepare.py",
+      "scratch/v5-fit-loop/lane13-mmc-combined/record-qualification.py",
+      "scratch/v5-fit-loop/lane13-mmc-combined/replay.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/lane13-mmc-combined/mixed.py": "026c74f13ddbb94f158a588ae05e3de78c12ecb9347934d3d3b93035da34417e",
+      "scratch/v5-fit-loop/lane13-mmc-combined/preflight.py": "268c4ffb6c1377893749797438440e9fc07e806cdb0c394c3e82850779f9a4d1",
+      "scratch/v5-fit-loop/lane13-mmc-combined/prepare-host-tests.py": "109bff560f32d6e43393b68b2030ad247bd53623f3bea62e53544f5ed0b62c47",
+      "scratch/v5-fit-loop/lane13-mmc-combined/prepare.py": "ba7e7e3533e8181e7eb72a31d03d50689e8fd413d0daa4c97da4e72b0780bb48",
+      "scratch/v5-fit-loop/lane13-mmc-combined/record-qualification.py": "b94506c598b0a1d3b74960be4cfe13ffeccb7ff067104c3ed29862c476c22ac4",
+      "scratch/v5-fit-loop/lane13-mmc-combined/replay.py": "c0684e1bf7a1eb960a767abaa62bbd9ce590e1f8ac7054f65f52cc33ab7b0e2a"
+    }
   }
 ]

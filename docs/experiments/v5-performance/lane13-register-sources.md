@@ -36,6 +36,9 @@ LCD, PCM, MMC persistence and both UPP DDR banks active. A hash comparison
 of all 114 pin-model sources identified the UPP peripheral file as the
 single changed source. [Qualification receipt](../../evidence/v5-104-lane13-register-sources.json)
 
+The [combined replay with the MMC counter](lane13-mmc-combined.md)
+also matches the retained directed tests, workloads and physical trace.
+
 ## Reproduction
 
 Run from the repository root with the existing offline Jotego simulator
