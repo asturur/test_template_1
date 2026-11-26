@@ -2414,5 +2414,109 @@
       "scratch/v5-fit-loop/mmc-footer-crc-direct/record-qualification.py": "6f4327dbea24d71a513f19c7c1cbd71f966afc73bdc20f737d4df730375fd953",
       "scratch/v5-fit-loop/mmc-footer-crc-direct/replay.py": "2004665ee7e267ff0fe0bb70786ca07ce6ead33bf249a78d14a6084d85979323"
     }
+  },
+  {
+    "id": "mmc-footer-timer-combined",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare.patch",
+      "patches/mmc-footer-crc-direct.patch"
+    ],
+    "sha256": [
+      "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a",
+      "1f41e4feed53c1345dd3a114d0a99eaf8b0e4b21cf21c354999535377200d9f2"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_hps.v",
+      "rtl/ngage_timers.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/timer_conformance/tb.v",
+      "tests/phone/timers/tb.sv"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+      "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+      "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+      "tests/phone/timer_conformance/tb.v": "2716e8f144611319d38079a4e4870432292eadd721970960f45ea47f23b08ed0",
+      "tests/phone/timers/tb.sv": "df48a45fbc9bdf41ba283b1bcd696f58f9c335698e265ad78fa4d93b4d958a44",
+      "rtl/ngage_mmc_hps.v": "0df16bfd82217bd5fb600ad37d472d668b98aca4fbae759c2b101651a376d342"
+    }
+  },
+  {
+    "id": "mmc-footer-timer-combined-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-footer-timer-combined-replay.patch"
+    ],
+    "sha256": [
+      "f50d8ebb8597bca46cd0f26f3bbb357d9ed88fab86a6bd0dc42d8221cd5f9e76"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/coexistence.sh",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/mixed.py",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/prepare-coexistence.py",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/prepare-fit.py",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/qualify.sh",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/record.py",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/replay.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/coexistence.sh": "070f7caf3b5bbdbcc70fca59d9a435b81050f1d5c8226b406c74decfd49bcb04",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/mixed.py": "24c48972adb28d7385041680a17ee0388e224bbc74c330f10d3256d70a582b89",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/prepare-coexistence.py": "f45831ecbd9ab5905c2f10a36b1fa779d44e6cb2f6e4c3eeb208e88be3d3a5aa",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/prepare-fit.py": "1da77b2bea48257810e6dcb70410e8bd3a65f63da9d375d8ac721da90585e5b4",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/qualify.sh": "9e0369b45723a534b39edf3d1f549f9546b8da045920c639e49a3a959cefc8ee",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/record.py": "a1060cffce61dc6ab40fc7e0a87286d4261e14a05f4dcbe1bdd6cc0139db3775",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/replay.py": "d972cb88624653956fbc1b3e272a482d9218133ae8f8cc3f9aec428c7f665ff7"
+    }
+  },
+  {
+    "id": "mmc-hps-cancel-owner",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-hps-cancel-owner.patch"
+    ],
+    "sha256": [
+      "05163a00fc8da36feef4505b51cc9968e4d797c3c0c28d54a37b6a432da08f12"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_hps.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_mmc_hps.v": "1578f8fd6f8065dc9bd96e7d5cd32d426c9664f7986c17a78440cf7ac84fb13a"
+    }
+  },
+  {
+    "id": "mmc-hps-cancel-owner-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-hps-cancel-owner-replay.patch"
+    ],
+    "sha256": [
+      "98d3bb8fa0879032bbb38641dc68719ebf23e04bed4a1b34e12f91169947dc50"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/architectural_trace.vh",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/mixed.py",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/owner-phase.vh",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/prepare-owner-miter.py",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/record-qualification.py",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/replay.py",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/wb-write-trace.vh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/architectural_trace.vh": "fd2af36acb4e5bd0e8e9caa95f4ad39404f06e4ce2f15bfb56cadd0d4c6ef151",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/mixed.py": "29f9b0baa8cd9075fcb2e6e04beda9fd69fc79e5d6cead997364413ee52f62b3",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/owner-phase.vh": "51cf048d24729c2fb65afe330280f2ca47abc2140cd41fd211f71f88f0c8ce5d",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/prepare-owner-miter.py": "3b9aff73297953f291b292d361e79a40f5587d5825fb4e77d144243ce5ca22f2",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/record-qualification.py": "da5768d8a6f801db7e1bff014f239500499a1be533a9cce6e00d7b9fea0e35dd",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/replay.py": "ff88ec2a24a4675e75e8a95e288d3b0e4078afb243837e845e05893c7b12a37c",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
+    }
   }
 ]

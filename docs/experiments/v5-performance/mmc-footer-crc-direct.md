@@ -15,6 +15,10 @@ The design removes 240 sequential bits and adds two byte selectors with a common
 
 [Machine-readable receipt](../../evidence/v5-104-mmc-footer-crc-direct.json)
 
+The [combined timer and footer replay](mmc-footer-timer-combined.md)
+also matches the actual card and HPS test, both physical traces, and
+the workload digests.
+
 ## Reproduction
 
 Run from the repository root with the frozen fixed/native decks, the prepared Wishbone observers and receipts, the physical SDRAM replay input and the cached Jotego image. The [fixture patch](patches/mmc-footer-crc-direct-replay.patch) installs the scripts into the scratch directory.

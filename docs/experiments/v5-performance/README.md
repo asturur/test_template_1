@@ -312,6 +312,11 @@ CRC window. The expanded footer checks, all workload windows and the
 physical replay with the real backing adapter match. Routed timing
 and area are pending. [Matched ALM accounting](fitter-alm-accounting.md)
 
+The [MMC HPS owner trial](mmc-hps-cancel-owner.md) removes two redundant
+32-bit generation registers and uses the existing cancellation state.
+The equivalence bench covers wrap and malformed events, and the actual
+HPS peer and full byte traces match. Routed timing and area are pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
