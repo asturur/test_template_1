@@ -340,8 +340,7 @@ module emu (
     // Both DMA paths share SDRAM with the CPU and respect atomic CPU locks.
     // Keep the arbiter payload intact until a canceled physical transfer drains.
     ngage_sdram_arbiter #(
-        .CPU_BLOCK_WRITES     (1),
-        .PRECAPTURE_BLOCK_DATA(1)
+        .CPU_BLOCK_WRITES(1)
     ) ram_arbiter (
         .clk            (clk_sys),
         .reset          (dma_reset || transport_reset),
