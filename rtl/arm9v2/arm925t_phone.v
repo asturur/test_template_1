@@ -9730,7 +9730,6 @@ module ngage2_zap_dcache_fsm (
 	reg _sv2v_0;
 	parameter [0:0] FLAT_ACK = 1'b0;
 	parameter [0:0] LOCK_SPLIT = 1'b0;
-    parameter PREPARE_BEAT = 0;
 	parameter [31:0] CACHE_SIZE = 32'd1024;
 	parameter [31:0] CACHE_LINE = 32'd8;
 	parameter [0:0] BE_32_ENABLE = 1'd0;
@@ -10685,56 +10684,8 @@ module ngage2_zap_dcache_fsm (
 	localparam integer EVICT_INDEX_BITS = $clog2(CACHE_LINE / 4) + 1;
 	wire [EVICT_INDEX_BITS-1:0] last_block_word = last_evict_word - 4'd3;
 	wire [EVICT_INDEX_BITS-1:0] last_writeback_word = block_target ? last_block_word : last_evict_word;
-    wire [1:0] clean_valid;
-    wire [1:0] fetch_valid;
-    generate
-        if (PREPARE_BEAT) begin : g_prepared_beat
-            // Check both strides for the counter and victim mask being installed.
-            // A live region or block-enable change can still select either stride.
-            wire [EVICT_INDEX_BITS-1:0] next_word = i_reset ? 0 : adr_ctr_nxt;
-            wire [EVICT_INDEX_BITS-1:0] next_scalar = next_word + 4'd1;
-            wire [EVICT_INDEX_BITS-1:0] next_block = next_word + 4'd4;
-            wire next_victim_high = state_ff[IDLE] ? i_cache_victim_halves[1] : victim_halves[1];
-            wire [EVICT_INDEX_BITS-1:0] scalar_last =
-                HALF_WRITEBACK && !next_victim_high ? CACHE_LINE / 8 - 1 : CACHE_LINE / 4 - 1;
-            wire [EVICT_INDEX_BITS-1:0] block_last = scalar_last - 4'd3;
-            localparam [EVICT_INDEX_BITS-1:0] FETCH_LAST = CACHE_LINE / 4 - 1;
-            reg [1:0] clean_scalar, clean_block, fetch_word;
-            always @(posedge i_clk) begin
-                clean_scalar <= {next_scalar <= scalar_last, next_word <= scalar_last};
-                clean_block <= {next_block <= block_last, next_word <= block_last};
-                fetch_word <= {next_scalar <= FETCH_LAST, next_word <= FETCH_LAST};
-            end
-            assign clean_valid = block_target ? clean_block : clean_scalar;
-            assign fetch_valid = fetch_word;
-        end else begin : g_live_beat
-            assign clean_valid = 2'b00;
-            assign fetch_valid = 2'b00;
-        end
-    endgenerate
-
-    wire writeback_live_valid = (take ? adr_ctr_inc : adr_ctr_ff) <= last_writeback_word;
-    wire fetch_live_valid = take ? beat_inc_ok : beat_cur_ok;
-    wire writeback_next_valid = PREPARE_BEAT
-        ? (take ? clean_valid[1] : clean_valid[0]) : writeback_live_valid;
-    wire fetch_next_valid = PREPARE_BEAT
-        ? (take ? fetch_valid[1] : fetch_valid[0]) : fetch_live_valid;
-    wire [31:0] clean_address_hold = clean_valid[0] ? wb_adr_cur : 32'b0;
-    wire [31:0] clean_address_next = clean_valid[1] ? wb_adr_inc : 32'b0;
-    wire [31:0] fetch_address_hold = fetch_valid[0] ? fetch_adr_cur : 32'b0;
-    wire [31:0] fetch_address_next = fetch_valid[1] ? fetch_adr_inc : 32'b0;
-`ifndef SYNTHESIS
-    always @(posedge i_clk)
-        if (!i_reset && PREPARE_BEAT) begin
-            if (state_ff[CLEAN_SINGLE] && (writeback_next_valid !== writeback_live_valid ||
-                o_wb_adr_nxt !== (writeback_live_valid ? (take ? wb_adr_inc : wb_adr_cur) : 32'b0)))
-                $fatal(1, "Prepared D-cache clean beat differs");
-            if (state_ff[FETCH_SINGLE] && (fetch_next_valid !== fetch_live_valid ||
-                o_wb_adr_nxt !== (fetch_live_valid ? (take ? fetch_adr_inc : fetch_adr_cur) : 32'b0)))
-                $fatal(1, "Prepared D-cache fetch beat differs");
-        end
-`endif
-	assign o_wb_stb_nxt = ((((((((((state_ff[IDLE] && (i_rd || i_wr)) && !i_align_fault) && !i_fault) && !i_busy) && !i_cache_en) && !(i_wr && post_stream)) || state_ff[UNCACHEABLE_PREPARE]) || (state_ff[UNLOCK_REG] && o_writeback_busy)) || ((state_ff[UNCACHEABLE] && o_wb_stb_ff) && !(i_wb_ack || i_wb_err))) || (state_ff[CLEAN_SINGLE] && writeback_next_valid)) || (state_ff[FETCH_SINGLE] && fetch_next_valid);
+	wire writeback_next_valid = (take ? adr_ctr_inc : adr_ctr_ff) <= last_writeback_word;
+	assign o_wb_stb_nxt = ((((((((((state_ff[IDLE] && (i_rd || i_wr)) && !i_align_fault) && !i_fault) && !i_busy) && !i_cache_en) && !(i_wr && post_stream)) || state_ff[UNCACHEABLE_PREPARE]) || (state_ff[UNLOCK_REG] && o_writeback_busy)) || ((state_ff[UNCACHEABLE] && o_wb_stb_ff) && !(i_wb_ack || i_wb_err))) || (state_ff[CLEAN_SINGLE] && writeback_next_valid)) || (state_ff[FETCH_SINGLE] && (take ? beat_inc_ok : beat_cur_ok));
 	assign o_wb_cyc_nxt = o_wb_stb_nxt;
 	task automatic kill_bus_payload;
 		begin
@@ -10937,8 +10888,7 @@ module ngage2_zap_dcache_fsm (
 				if (writeback_next_valid) begin
 					o_wb_wen_nxt = 1'd1;
 					o_wb_dat_nxt = (take ? clean_single_d(cache_line, adr_ctr_inc) : clean_single_d(cache_line, adr_ctr_ff));
-					if (!PREPARE_BEAT)
-						o_wb_adr_nxt = (take ? wb_adr_inc : wb_adr_cur);
+					o_wb_adr_nxt = (take ? wb_adr_inc : wb_adr_cur);
 					o_wb_cti_nxt = ((take ? adr_ctr_inc : adr_ctr_ff) == last_writeback_word ? CTI_EOB : CTI_BURST);
 					o_wb_sel_nxt = 4'b1111;
 				end
@@ -10954,16 +10904,13 @@ module ngage2_zap_dcache_fsm (
 					else
 						state_nxt[FETCH_SINGLE] = 1'd1;
 				end
-                if (PREPARE_BEAT)
-                    o_wb_adr_nxt = take ? clean_address_next : clean_address_hold;
 			end
 			state_ff[FETCH_SINGLE]: begin
 				adr_ctr_nxt = (take ? adr_ctr_inc : adr_ctr_ff);
-				if (fetch_next_valid) begin
+				if ((take ? beat_inc_ok : beat_cur_ok)) begin
 					o_wb_wen_nxt = 1'b0;
 					o_wb_sel_nxt = 4'b1111;
-					if (!PREPARE_BEAT)
-						o_wb_adr_nxt = (take ? fetch_adr_inc : fetch_adr_cur);
+					o_wb_adr_nxt = (take ? fetch_adr_inc : fetch_adr_cur);
 					o_wb_cti_nxt = (take ? cti_inc : cti_cur);
 					o_wb_dat_nxt = 32'b00000000000000000000000000000000;
 				end
@@ -10972,8 +10919,6 @@ module ngage2_zap_dcache_fsm (
 					state_nxt[FETCH_SINGLE] = 1'd0;
 					state_nxt[UNLOCK_REG] = 1'd1;
 				end
-                if (PREPARE_BEAT)
-                    o_wb_adr_nxt = take ? fetch_address_next : fetch_address_hold;
 			end
 			state_ff[UNLOCK_REG]: begin
 				state_nxt[UNLOCK_REG] = 1'd0;
@@ -11177,7 +11122,6 @@ module ngage2_zap_dcache (
 	parameter [0:0] HIT_FF = 1'b0;
 	parameter [0:0] FLAT_ACK = 1'b0;
 	parameter [0:0] LOCK_SPLIT = 1'b0;
-    parameter PREPARE_BEAT = 0;
 	parameter [31:0] CACHE_SIZE = 32'd1024;
 	parameter [31:0] SPAGE_TLB_ENTRIES = 32'd8;
 	parameter [31:0] SPAGE_TLB_WAYS = 32'd1;
@@ -11671,7 +11615,6 @@ module ngage2_zap_dcache (
 	wire victim_writeback_busy, victim_write_block;
 	assign o_write_block = state_ff == SELECT_CCH && victim_write_block;
 	ngage2_zap_dcache_fsm #(
-        .PREPARE_BEAT(PREPARE_BEAT),
 		.HALF_WRITEBACK(HALF_WRITEBACK),
 		.CACHE_SIZE(CACHE_SIZE),
 		.CACHE_LINE(CACHE_LINE),
@@ -16170,7 +16113,6 @@ module ngage2_zap_top (
 		end
 		if (1) begin : l_generate_with_cache_mmu
 			ngage2_zap_dcache #(
-				.PREPARE_BEAT(DATA_CACHE_LINE == 32),
 				.CACHE_SIZE(DATA_CACHE_SIZE),
 				.SPAGE_TLB_ENTRIES(DATA_SPAGE_TLB_ENTRIES),
 				.SPAGE_TLB_WAYS(DATA_SPAGE_TLB_WAYS),
