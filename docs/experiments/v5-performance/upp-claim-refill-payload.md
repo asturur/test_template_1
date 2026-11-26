@@ -24,6 +24,14 @@ The block eviction case checks both full 128-bit masked CPU commands and ARM rea
 
 [Fit preflight](../../evidence/v5-104-upp-claim-refill-payload-preflight.json) · [Replay receipt](../../evidence/v5-104-upp-claim-refill-payload.json) · [Replay patch](patches/upp-claim-refill-payload-replay.patch)
 
+## 104 MHz fit
+
+The combined refill and SDRAM tree stays as an experimental base because
+seed 13 improves to −2.006 ns. Its median result remains behind timer-only.
+The UPP candidate `96d108d` is its direct child, with 104 MHz production and
+DDR debug off. The corresponding three `ab75a62` fits are the controls.
+[Seed 13](https://github.com/asturur/test_template_1/actions/runs/45883742970) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45883746480) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45883749964)
+
 ## Reproduce both lineages and the combined replay
 
 Use the standalone sealed patch and proof, the private two-cut object chain, and the exact archived two-cut replay under `build/sim/v5-104-refill-payload-combined`. The timer hold workload and the original pin guests come from that common pin lineage. The block eviction and timer-overlap program overlays live under `build/sim/v5-104-sdram-block-payload`.

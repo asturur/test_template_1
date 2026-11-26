@@ -112,3 +112,4 @@ fit while the estimated number needed rose. [ALM accounting audit](fitter-alm-ac
 | [Native refill word-ready on the timer base](refill-line-word-ready.md) | −2.262 ns | −2.594 ns | 36,878 | Park for area |
 | [TLB victim and MMC FIFO RAM on the timer base](tlb-victims-mmc-fifo.md) | −2.665 ns | −2.907 ns | 35,774 | Park for area |
 | [A-stage multiply on the timer base](arm9-a-only-product.md) | −2.662 ns | −3.014 ns | 35,914 | Park |
+| [Native refill and SDRAM block capture](refill-payload-combined.md) | −2.006 ns | −2.636 ns | 37,189 | Keep as the next experimental base |

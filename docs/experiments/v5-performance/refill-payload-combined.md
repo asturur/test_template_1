@@ -22,6 +22,33 @@ exact qualified tree of `8d72c2b`. It builds above an exact timer restore
 `6c7ccec`, at physical 104 MHz with DDR debug off. Compare the combination
 against timer-only `9f16d1a`. [Final Git and input preflight](../../evidence/v5-104-refill-payload-combined-launch-preflight.json) · [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45879015397) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45879019116) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45879022396)
 
+## Routed decision
+
+Retain `ab75a62` as the next experimental source. Its seed 13 reaches
+−2.006 ns, the best single physical 104 MHz fit in this sweep. It improves
+by 0.208 ns against timer seed 13 and 0.055 ns against the earlier best
+`e9552bd` tree. Timer `9f16d1a` remains the more consistent three-seed
+reference. All three combined fits pass hold, recovery, removal, minimum
+pulse width and SDRAM pin registers, and all fail setup.
+
+| Seed | Worst setup, timer → combined | Core TNS delta | Occupied ALM delta | Estimated ALMs needed delta |
+| ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.214 → −2.006 ns | +684.034 ns | +222 | +176 |
+| 43 | −2.403 → −2.636 ns | −1,299.951 ns | +149 | +120 |
+| 31337 | −2.452 → −2.902 ns | −3,024.008 ns | +113 | +281 |
+
+The block payload destination leaves every sample. The refill-to-merger
+family nearly disappears from the two slow corners. At 100 °C it goes
+from 10 to zero on seed 43 and 32 to one on seed 31337. At −40 °C it goes
+from three to zero and from 33 to two. Core median setup regresses by
+0.233 ns, and paired median occupied ALMs increase by 149. M10Ks stay at 321.
+The seed 13 limiting route is W packet valid through writeback completion
+and execute's hit-ready gate into the A packet on both slow corners.
+
+The best RBF is `build/fit/v5-104mhz-ab75a62-seed13/ngage1.rbf`, SHA-256
+`b3507e0fa817696687ec349c5f8eaba9c706c29db8a7315c755d5e09da9da48e`.
+It is a failing setup image. [Matched fits and hashes](../../evidence/v5-104-refill-payload-combined-fits.json)
+
 ## Reproduction
 
 Restore the helpers from the [replay patch](patches/refill-payload-combined-replay.patch). The preflight uses both sealed design patches and the public payload run receipt with its private object chain. Replays use the cached Jotego simulator and the existing payload benchmark, pin and targeted eviction inputs.
