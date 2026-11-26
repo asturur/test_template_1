@@ -1,3 +1,7 @@
+## 2026-11-26 — same-day placement comparison toward −1.5 ns
+
+The historical retained seed 13 has 297 hot and 107 cold setup paths below −1.5 ns at 104 MHz. Public `bffd426` tests automatic periphery placement. Public `81a1b45` restores the exact retained source tree for three same-day control fits so generated build-date changes are measured. [Patch and all six builds](experiments/v5-performance/periphery-auto.md)
+
 ## 2026-11-26 — independent D-cache lock and ALU zero fits parked
 
 Public `bbed9e4` restores the exact `e9552bd` tree. D-cache lock `8c5726f` and ALU zero predecode `3d57ba3` each matched all fixed windows, native frames, directed board profiles and the mixed replay. Both lost worst setup on all three matched 104 MHz seeds. Median setup was −2.471 ns retained, −2.552 ns lock and −2.983 ns ALU. Median ALM changes were +762 and −363. All six runs produced an RBF and missed setup. [Lock patch and fits](experiments/v5-performance/dcache-lock-valid.md) · [ALU patch and fits](experiments/v5-performance/alu-zero-predecode.md)

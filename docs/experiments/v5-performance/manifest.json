@@ -1818,5 +1818,23 @@
     "sha256": [
       "6fed156540baa470dc71ca93a34ac68b815fb86bd1b45a647edb02edb19fea6d"
     ]
+  },
+  {
+    "id": "periphery-auto",
+    "kind": "design",
+    "base": "bbed9e4a4bbc42d7c11f47b2e9685902c0bfa187",
+    "target": "bffd426971639c1cd17342ca36fa448415e3ac50",
+    "patches": [
+      "patches/periphery-auto.patch"
+    ],
+    "sha256": [
+      "6262d3efe2332b6c14e024064b29457b66824ae04f2368ce1f2fe9d55dc11bcd"
+    ],
+    "affected_paths": [
+      "Template.qsf"
+    ],
+    "measured_sha256": {
+      "Template.qsf": "fc90b1d9ad145bee2a6081e328f1a34e7c77b3484e6749cf08bbabc951f30890"
+    }
   }
 ]
