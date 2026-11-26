@@ -1348,66 +1348,6 @@ def prepare_wishbone_write_data(phone):
     return ''.join(modules)
 
 
-def predecode_alu_zero(phone):
-    """Capture the Z comparison selection before the forwarded operands settle."""
-    start = phone.index('module ngage2_arm9_alu (')
-    end = phone.index('\nendmodule', start)
-    alu = phone[start:end]
-    alu = edit(alu, '\ti_op,\n', '\ti_op,\n    i_zero_class,\n')
-    alu = edit(alu, '\tinput wire [3:0] i_op;\n',
-               '\tinput wire [3:0] i_op;\n    input wire [6:0] i_zero_class;\n')
-    alu = edit(alu, '\treg logic_zero;\n', '''    // A registered one-hot selection combines single-bit tests rather
-    // than selecting a 32-bit logical result and then reducing it.
-    wire predecoded_zero = (i_zero_class[0] && arith_zero)
-                        || (i_zero_class[1] && i_a == i_b)
-                        || (i_zero_class[2] && !(|(i_a & i_b)))
-                        || (i_zero_class[3] && !(|i_a) && !(|i_b))
-                        || (i_zero_class[4] && !(|i_b))
-                        || (i_zero_class[5] && !(|(i_a & ~i_b)))
-                        || (i_zero_class[6] && (&i_b));
-''')
-    alu = edit(alu, '\t\tlogic_zero = logic_result == 0;\n', '')
-    alu = edit(alu, '\t\t\to_flags[3:2] = {logic_result[31], logic_zero};',
-               '\t\t\to_flags[3] = logic_result[31];')
-    alu = edit(alu, '\t\t\to_flags[3:2] = {sum[31], (FAST_Z ? arith_zero : sum[31:0] == 0)};',
-               '\t\t\to_flags[3:2] = {sum[31], sum[31:0] == 0};')
-    alu = edit(alu, '\t\t\to_flags[0] = (a[31] == b[31]) && (a[31] != sum[31]);\n\t\tend',
-               '''\t\t\to_flags[0] = (a[31] == b[31]) && (a[31] != sum[31]);
-\t\tend
-        if (FAST_Z) o_flags[2] = predecoded_zero;''')
-    phone = phone[:start] + alu + phone[end:]
-
-    start = phone.index('module ngage2_arm9v2_execute (')
-    end = phone.index('\nendmodule', start)
-    execute = phone[start:end]
-    execute = edit(execute, '\tngage2_arm9_alu #(.FAST_Z(FAST_Z)) u_alu(', '''    wire [3:0] s_alu_op = i_kind == MEM ? (i_instruction[23] ? 4'h4 : 4'h2) :
-                          i_kind == BLOCK || i_kind == SUFFIX ? 4'h4 : i_instruction[24:21];
-    reg [6:0] alu_zero_class;
-    always @(posedge i_clk) begin
-        if (i_reset)
-            alu_zero_class <= 7'b0000100;
-        else if (accept)
-            case (s_alu_op)
-                4'h1, 4'h2, 4'h3, 4'h9, 4'ha: alu_zero_class <= 7'b0000010;
-                4'h0, 4'h8: alu_zero_class <= 7'b0000100;
-                4'hc: alu_zero_class <= 7'b0001000;
-                4'hd: alu_zero_class <= 7'b0010000;
-                4'he: alu_zero_class <= 7'b0100000;
-                4'hf: alu_zero_class <= 7'b1000000;
-                default: alu_zero_class <= 7'b0000001;
-            endcase
-    end
-`ifndef SYNTHESIS
-    always @(posedge i_clk)
-        if (!i_reset && a_valid && alu_flags[2] !== (alu_result == 0))
-            $fatal(1, "Predecoded ALU zero differs at %h", a[515-:32]);
-`endif
-    ngage2_arm9_alu #(.FAST_Z(FAST_Z)) u_alu(''')
-    execute = edit(execute, '\t\t.i_op(a[153-:4]),\n',
-                   '\t\t.i_op(a[153-:4]),\n        .i_zero_class(alu_zero_class),\n')
-    return phone[:start] + execute + phone[end:]
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -1446,7 +1386,6 @@ def main():
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)
     generated = prepare_wishbone_write_data(generated)
-    generated = predecode_alu_zero(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

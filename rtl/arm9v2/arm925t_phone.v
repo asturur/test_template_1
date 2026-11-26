@@ -199,7 +199,6 @@ module ngage2_arm9_alu (
 	i_a,
 	i_b,
 	i_op,
-    i_zero_class,
 	i_flags,
 	i_shift_carry,
 	o_result,
@@ -210,7 +209,6 @@ module ngage2_arm9_alu (
 	input wire [31:0] i_a;
 	input wire [31:0] i_b;
 	input wire [3:0] i_op;
-    input wire [6:0] i_zero_class;
 	input wire [3:0] i_flags;
 	input wire i_shift_carry;
 	output reg [31:0] o_result;
@@ -231,15 +229,7 @@ module ngage2_arm9_alu (
 	assign sum = ({1'b0, a} + {1'b0, b}) + {32'd0, cin};
 	reg [31:0] logic_result;
 	reg arith_zero;
-    // A registered one-hot selection combines single-bit tests rather
-    // than selecting a 32-bit logical result and then reducing it.
-    wire predecoded_zero = (i_zero_class[0] && arith_zero)
-                        || (i_zero_class[1] && i_a == i_b)
-                        || (i_zero_class[2] && !(|(i_a & i_b)))
-                        || (i_zero_class[3] && !(|i_a) && !(|i_b))
-                        || (i_zero_class[4] && !(|i_b))
-                        || (i_zero_class[5] && !(|(i_a & ~i_b)))
-                        || (i_zero_class[6] && (&i_b));
+	reg logic_zero;
 	always @(*) begin
 		if (_sv2v_0)
 			;
@@ -252,6 +242,7 @@ module ngage2_arm9_alu (
 			default: logic_result = i_b;
 		endcase
 		arith_zero = (a ^ b) == {a[30:0] | b[30:0], cin};
+		logic_zero = logic_result == 0;
 	end
 	always @(*) begin
 		if (_sv2v_0)
@@ -271,13 +262,12 @@ module ngage2_arm9_alu (
 		endcase
 		o_flags = {o_result[31], o_result == 0, i_shift_carry, i_flags[0]};
 		if (FAST_Z)
-			o_flags[3] = logic_result[31];
+			o_flags[3:2] = {logic_result[31], logic_zero};
 		if (arithmetic) begin
-			o_flags[3:2] = {sum[31], sum[31:0] == 0};
+			o_flags[3:2] = {sum[31], (FAST_Z ? arith_zero : sum[31:0] == 0)};
 			o_flags[1] = sum[32];
 			o_flags[0] = (a[31] == b[31]) && (a[31] != sum[31]);
 		end
-        if (FAST_Z) o_flags[2] = predecoded_zero;
 	end
 	initial _sv2v_0 = 0;
 endmodule
@@ -3776,33 +3766,10 @@ module ngage2_arm9v2_execute (
 		if (a[146])
 			right_a[31] = flags[1];
 	end
-    wire [3:0] s_alu_op = i_kind == MEM ? (i_instruction[23] ? 4'h4 : 4'h2) :
-                          i_kind == BLOCK || i_kind == SUFFIX ? 4'h4 : i_instruction[24:21];
-    reg [6:0] alu_zero_class;
-    always @(posedge i_clk) begin
-        if (i_reset)
-            alu_zero_class <= 7'b0000100;
-        else if (accept)
-            case (s_alu_op)
-                4'h1, 4'h2, 4'h3, 4'h9, 4'ha: alu_zero_class <= 7'b0000010;
-                4'h0, 4'h8: alu_zero_class <= 7'b0000100;
-                4'hc: alu_zero_class <= 7'b0001000;
-                4'hd: alu_zero_class <= 7'b0010000;
-                4'he: alu_zero_class <= 7'b0100000;
-                4'hf: alu_zero_class <= 7'b1000000;
-                default: alu_zero_class <= 7'b0000001;
-            endcase
-    end
-`ifndef SYNTHESIS
-    always @(posedge i_clk)
-        if (!i_reset && a_valid && alu_flags[2] !== (alu_result == 0))
-            $fatal(1, "Predecoded ALU zero differs at %h", a[515-:32]);
-`endif
-    ngage2_arm9_alu #(.FAST_Z(FAST_Z)) u_alu(
+	ngage2_arm9_alu #(.FAST_Z(FAST_Z)) u_alu(
 		.i_a(left_a),
 		.i_b(right_a),
 		.i_op(a[153-:4]),
-        .i_zero_class(alu_zero_class),
 		.i_flags(flags),
 		.i_shift_carry((a[147] ? flags[1] : a[148])),
 		.o_result(alu_result),
