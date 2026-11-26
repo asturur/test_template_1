@@ -20,6 +20,35 @@ over the native routed corners and the SDRAM pin-register check.
 | 43 | [45771267820](https://github.com/asturur/test_template_1/actions/runs/45771267820) |
 | 31337 | [45771266151](https://github.com/asturur/test_template_1/actions/runs/45771266151) |
 
+## Routed results
+
+All ten builds produced an RBF. Fit provenance confirms the same
+production source tree and generated build date (`261126`). Seed is
+the only changed effective assignment. All ten pass the hold, recovery,
+removal, minimum pulse width and SDRAM I/O register checks. All ten
+fail setup at 104 MHz, with worst setup from −2.905 to −2.061 ns and a
+median of −2.598 ns. Seed 13 is best by both worst slack and total
+negative core setup slack. It has 297 paths below −1.5 ns hot and
+107 cold. Both cutoffs include every path below that threshold.
+
+| Rank | Seed | Worst setup (ns) | Core setup TNS (ns) | ALMs | Limiting path |
+| ---: | ---: | ---: | ---: | ---: | --- |
+| 1 | 13 | −2.061 | −4606.649 | 36,420 | UPP request address to lane-13 UART response |
+| 2 | 31337 | −2.471 | −5143.651 | 36,461 | SDRAM scheduler readiness through posted ACK to Wishbone merger address |
+| 3 | 4 | −2.473 | −5086.712 | 36,489 | Native refill received count to Wishbone merger address |
+| 4 | 43 | −2.508 | −5288.569 | 36,446 | UPP request address to lane-13 UART response |
+| 5 | 6 | −2.579 | −5455.505 | 36,375 | D-side TLB walk to D-cache live-hit trust |
+| 6 | 5 | −2.616 | −5509.917 | 36,550 | Fetch address to I-cache fill readiness |
+| 7 | 1 | −2.631 | −5484.046 | 36,475 | DMA destination width to queued descriptor RAM |
+| 8 | 2 | −2.720 | −6198.163 | 36,424 | D-cache bank RAM to checked cache word |
+| 9 | 3 | −2.870 | −6954.138 | 36,462 | D-cache strobe to Wishbone merger line candidate |
+| 10 | 7 | −2.905 | −5967.618 | 36,381 | SDRAM scheduler readiness through posted ACK to Wishbone merger address |
+
+The retained best RBF is `build/fit/v5-104mhz-81a1b45-seed13/ngage1.rbf`,
+SHA-256 `46e6e28a4ec926271331ebe0a6d747186b428beedab38773181fa0a5951dfb6a`.
+It remains an experimental build with a failing setup gate.
+[Full native corner results, route witnesses and bitstream hashes](../../evidence/v5-104-retained-sweep.json)
+
 ## Timing investigation during the sweep
 
 At the hot corner on seed 13, 81 of 111 UPP peripheral paths below
@@ -37,12 +66,16 @@ native frames, the mixed pin model and directed host tests measure the
 prototype independently.
 
 The [Wishbone reply split](wb-reply-class.md) takes SDRAM writes out
-of the common reply that can feed I-cache next-request logic. Retained
-seed 13 and seed 31337 have this route near or at the setup minimum.
-The prototype preserves the D-cache response and arbitration edges.
-All fixed, native and mixed replays match. It is the first candidate
-to fit, with the MMC change as an independent follow-up if those UPP
-endpoints remain prominent.
+of the common reply that can feed I-cache next-request logic. The
+posted-write route limits seed 31337 and seed 7, and is within 0.006 ns
+of the worst setup on seed 13. The same path has a routed witness in
+both slow models. In total four seeds are limited by distinct routes
+ending at the Wishbone merger. The prototype preserves the D-cache
+response and arbitration edges and matches all fixed, native and mixed
+replays. Fit it on seeds 13, 43 and 31337 against the same source settings.
+Check the named write-to-I-cache route and compare whole-core setup and
+TNS. The prepared MMC counter is an independent follow-up if the MMC
+endpoints remain prominent. Both prototypes still need routed timing.
 
 The worst timer witness ends at timer 4's synchronous clear. The seed
 13 hot report shows a 10.833 ns data path from reset drain through two

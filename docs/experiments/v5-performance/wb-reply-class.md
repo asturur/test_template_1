@@ -14,6 +14,7 @@ The cache sizes, production clocks and constraints stay as before.
 
 | Seed | Worst merger-address path, slow 100 °C | Worst merger-address path, slow −40 °C |
 | ---: | --- | --- |
+| 7 | −2.602 ns, SDRAM scheduler readiness through posted ACK and I-cache `take` | −2.905 ns, same start and destination |
 | 43 | −2.495 ns, CP15 MMU enable through I-cache request | −2.428 ns, same path |
 | 13 | −2.055 ns, SDRAM scheduler readiness through posted ACK and I-cache `take` | −1.950 ns, stream `seen` through the same ACK |
 | 31337 | −2.278 ns, scheduler readiness through posted ACK and I-cache `take` | −2.471 ns, same path |
