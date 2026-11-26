@@ -32,6 +32,12 @@ The [configuration with the native refill word-ready flag](tlb-fifo-refill-combi
 uses the same RAM implementations. The exact candidate passes the directed
 RAM tests and matches all workloads and both physical pin-model replays.
 
+## 104 MHz fit
+
+The word-ready refill trial was parked. Standalone joint RAM candidate
+`ae3654c` builds above exact timer restore `6db50ed`, with physical 104 MHz
+and DDR debug off. The matched control is timer-only `9f16d1a`. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45869671440) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45869675764) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45869680539)
+
 ## Reproduction
 
 Use the pinned ARM9 donor at `build/arm9v2-assoc/stock-pinned.v` and the existing cached `jotego/simulator:arm64` image. The workload fixture uses the fixed and native inputs under `build/sim/{payload-clocks,polycount}/v5-104-all-four-ram-candidate`, the original compile deck `scratch/refill-issue-739d3bd/leg`, and the prepared write-data receipt under `scratch/v5-fit-loop/prepared-wb-write-data/candidate`. The timer qualification supplies exact compare receipts and the normal/overlap physical decks in `build/sim/v5-104-timer-write-prepare`. Production controls 45824513460, 45824520116 and 45824525843 and the historical Fitter reports listed in the receipt are used by the final validator.

@@ -34,6 +34,27 @@ The SDRAM payload trial was parked. Standalone native refill candidate
 `9929983` builds above exact timer restore `85b21a4`, with physical 104 MHz
 and DDR debug off. The matched control is timer-only `9f16d1a`. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45863520207) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45863524825) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45863528948)
 
+## Routed decision
+
+Park `9929983` for mix-and-match. All three fits pass native hold,
+recovery, removal, minimum pulse width and SDRAM pin register packing,
+and all three fail 104 MHz setup. Seed 31337 improves by 0.190 ns.
+
+| Seed | Worst setup, timer → word-ready | Core TNS delta | Occupied ALM delta | Estimated ALMs needed delta |
+| ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.214 → −2.764 ns | −3,292.695 ns | −165 | −161 |
+| 43 | −2.403 → −2.594 ns | −1,321.134 ns | −59 | −184 |
+| 31337 | −2.452 → −2.262 ns | −1,169.901 ns | −29 | −18 |
+
+The old refill-to-merger family leaves all four corner samples across
+all three seeds. It had appeared in both slow samples on seeds 43 and
+31337. No new `ready_words` destination enters those samples. Median setup
+falls by 0.191 ns and median core TNS worsens by 1,350.926 ns. The paired
+median TNS delta is −1,321.134 ns. Occupancy falls on each seed, with a
+paired median reduction of 59 ALMs. M10Ks remain at 321. The new limiting
+paths end in predictor validity, the invalid-UPP response, and the SDRAM
+command address. [Matched fits and route sample](../../evidence/v5-104-refill-line-word-ready-fits.json)
+
 ## Reproduction
 
 Run from the repository root with the archived design and fixture patches, the private timer object chain, the existing timer and prepared Wishbone replay decks, the ARM GNU tools, and the cached Jotego ARM64 image. The design and [replay patch](patches/refill-line-word-ready-replay.patch) are in the experiment archive.

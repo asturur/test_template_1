@@ -346,8 +346,8 @@ worsen. Park.
 The [native refill word-ready trial](refill-line-word-ready.md) registers
 line occupancy so the ACK no longer compares the received and consumed
 counters. Narrow and wide assembly, same-edge ACK, error and scalar fallback
-match the control in all workloads and both physical traces. Routed timing
-is pending.
+match the control in all workloads and both physical traces. Three fits
+use fewer occupied ALMs. Median setup and every TNS result regress. Park.
 
 The [A-stage multiply trial](arm9-a-only-product.md) follows the donor's
 registered DSP operands and removes the early live SMULL bypass.
