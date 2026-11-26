@@ -1,0 +1,57 @@
+{
+  "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+  "sibling_change": "afd9642201ba31888a216f568077196864002f9e",
+  "status": "STAGED; real candidate TimeQuest run pending",
+  "patch_sha256": "c1d71d2e242d74e727d493dd7a4a98c779f3a2733b9f8e06a39cea51fc0332f5",
+  "affected_sha256": {
+    "sys/sys_top.sdc": "cb8789f1db7b90fb598451d52261a69396ff4e2506b33cb7da840c22f24c2825",
+    "tools/lltune_clock.tcl": "654eb9548fcb57fcb4a2a17fd46d0f1335cbc7413edd5185a75d3e63137aa935",
+    "tools/probe_retime_fit/report.tcl": "f4a4230cdfaf11ee273372afd4a581a72436292ce952330a27bd9c8babf99779"
+  },
+  "retained": [
+    {
+      "seed": 43,
+      "run": 45414696142,
+      "local_clock_gate": "comb~0|combout",
+      "atom_location": "LABCELL_X10_Y52_N57",
+      "clock_fanout": 41,
+      "delay_duplicates": [],
+      "mock_pass": 12
+    },
+    {
+      "seed": 13,
+      "run": 45414703565,
+      "local_clock_gate": "comb~0|combout",
+      "atom_location": "LABCELL_X10_Y52_N48",
+      "clock_fanout": 44,
+      "delay_duplicates": [
+        "pll_hdmi_adj:pll_hdmi_adj|i_delay[10]",
+        "pll_hdmi_adj:pll_hdmi_adj|i_delay[12]",
+        "pll_hdmi_adj:pll_hdmi_adj|i_linecpt[6]"
+      ],
+      "mock_pass": 12
+    },
+    {
+      "seed": 31337,
+      "run": 45414709004,
+      "local_clock_gate": "comb~0|combout",
+      "atom_location": "LABCELL_X22_Y58_N54",
+      "clock_fanout": 45,
+      "delay_duplicates": [
+        "pll_hdmi_adj:pll_hdmi_adj|i_delay[3]",
+        "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+        "pll_hdmi_adj:pll_hdmi_adj|i_linecpt[3]",
+        "pll_hdmi_adj:pll_hdmi_adj|i_linecpt[4]"
+      ],
+      "mock_pass": 12
+    }
+  ],
+  "sibling_routed": {
+    "run": 44777214314,
+    "active_core_to_lltune": 238,
+    "active_lltune_self": 874,
+    "lltune_to_fpga_clk1_50": "existing clock-group false path"
+  },
+  "candidate_tree": "7127805827ab48253d9b60ab880ccb2fd751e5d7",
+  "fixture_sha256": "a9edffe91f992b2ac195ee4d5f0408f494b7637e6d8d34540756321a3691982d"
+}

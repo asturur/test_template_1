@@ -1,0 +1,313 @@
+diff --git a/scratch/v5-fit-loop/lltune-clock/evidence/mock-lltune.tcl b/scratch/v5-fit-loop/lltune-clock/evidence/mock-lltune.tcl
+new file mode 100644
+index 0000000..0421d1a
+--- /dev/null
++++ b/scratch/v5-fit-loop/lltune-clock/evidence/mock-lltune.tcl
+@@ -0,0 +1,196 @@
++# Exercise selection and auditing against a renamed gate and fail-closed cases.
++if {[llength $argv] != 2} {error "usage: mock-lltune.tcl <base-artifact-dir> <mock-output-dir>"}
++lassign $argv artifacts output
++file mkdir $output
++set core_name {emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk}
++set gate_name {renamed_tuner_gate~37|combout}
++set core_period 9.615
++set tuner_regs {}
++foreach leaf {i_de2 i_vss2 i_vss_delay {i_delay[4]~DUPLICATE}} {
++    lappend tuner_regs "pll_hdmi_adj:pll_hdmi_adj|$leaf"
++}
++foreach {name width} {i_linecpt 12 i_line 12 i_delay 14} {
++    for {set bit 0} {$bit < $width} {incr bit} {
++        lappend tuner_regs [format {pll_hdmi_adj:pll_hdmi_adj|%s[%d]} $name $bit]
++    }
++}
++set mode valid
++set derived {}
++set groups {}
++proc get_collection_size {collection} {return [llength $collection]}
++proc foreach_in_collection {var collection script} {uplevel 1 [list foreach $var $collection $script]}
++proc get_registers {args} {
++    if {$::mode eq "absent"} {return {}}
++    if {$::mode eq "missing"} {return [lrange $::tuner_regs 1 end]}
++    return [concat $::tuner_regs {pll_hdmi_adj:pll_hdmi_adj|osc}]
++}
++proc get_node_info {flag node} {
++    switch -- $flag {
++        -name {return $node}
++        -type {
++            if {$node eq $::gate_name || [string match {*|combout} $node]} {return pin}
++            return reg
++        }
++        -clock_edges {return [list $node]}
++        default {error "Unexpected mock node-info $flag"}
++    }
++}
++proc get_edge_info {flag node} {
++    if {$flag ne "-src"} {error "Expected -src"}
++    if {$::mode eq "split" && $node eq [lindex $::tuner_regs 3]} {return {other_gate|combout}}
++    return $::gate_name
++}
++proc get_fanouts {args} {
++    if {$::mode eq "extra"} {return [concat $::tuner_regs {some_other_register}]}
++    return $::tuner_regs
++}
++proc get_fanins {args} {
++    if {$::mode eq "wrong-parent"} {return {}}
++    if {$::mode eq "ungated"} {return [list $::core_name]}
++    return [list $::core_name cfg_done~DUPLICATE]
++}
++proc get_pins {args} {return [lindex $args end]}
++proc get_ports {args} {return [lindex $args end]}
++proc get_clocks {args} {
++    set pattern [string trim [lindex $args end]]
++    switch -- $pattern {
++        {emu|pll|pll_inst|altera_pll_i|*[0].*|divclk} {return [list $::core_name]}
++        lltune_clk {return lltune_clk}
++        spi_sck {
++            if {$::mode in {spi-active spi-present}} {return spi_sck}
++            return {}
++        }
++        default {return $pattern}
++    }
++}
++proc get_clock_info {flag clk} {
++    switch -- $flag {
++        -name {return $clk}
++        -period {return $::core_period}
++        -waveform {return {0.000 4.807}}
++        -targets {
++            if {$clk eq "lltune_clk"} {return [list $::gate_name]}
++            return [list $::core_name]
++        }
++        -master_clock {return $::core_name}
++        -master_clock_pin {return $::core_name}
++        -nreg_pos {return [llength $::tuner_regs]}
++        -nreg_neg {return 0}
++        default {error "Unexpected mock clock-info $flag"}
++    }
++}
++proc create_generated_clock {args} {set ::derived $args}
++proc create_clock {args} {}
++proc derive_pll_clocks {} {}
++proc derive_clock_uncertainty {} {}
++proc set_clock_groups {args} {set ::groups $args}
++proc set_false_path {args} {}
++proc set_multicycle_path {args} {}
++proc post_message {args} {}
++proc get_timing_paths {check args} {
++    set from [lindex $args [expr {[lsearch -exact $args -from_clock] + 1}]]
++    set to [lindex $args [expr {[lsearch -exact $args -to_clock] + 1}]]
++    set from [lindex $from 0]
++    set to [lindex $to 0]
++    if {$::mode eq "spi-active" && $from eq "lltune_clk" && $to eq "spi_sck"} {
++        return [list [list $check $from $to]]
++    }
++    set internal [list $::core_name lltune_clk]
++    if {$from ni $internal || $to ni $internal ||
++        ($from eq "lltune_clk" && $to eq $::core_name)} {return {}}
++    if {$::mode eq "cut-inbound" && $from ne $to} {return {}}
++    return [list [list $check $from $to]]
++}
++proc get_path_info {flag path} {
++    lassign $path check from to
++    switch -- $flag {
++        -required_points {
++            if {$check eq "-hold"} {return 0.000}
++            if {$from ne $to} {return 0.220}
++            if {$from eq "lltune_clk"} {return 0.300}
++            return 0.140
++        }
++        -from {return reg_from}
++        -to {return reg_to}
++        -slack {return 0.100}
++        default {error "Unexpected mock path-info $flag"}
++    }
++}
++proc get_point_info {flag item} {if {$flag eq "-type"} {return unc}; return $item}
++proc get_clock_domain_info {flag} {return [list [list $::core_name 4.2 0 0] {lltune_clk 3.9 0 0}]}
++proc report_clock_transfers {flag path} {close [open $path w]}
++
++set mode spi-present
++source sys/sys_top.sdc
++if {[lindex $derived end] ne $gate_name || [lsearch -exact $groups [list spi_sck]] == -1} {
++    error "Renamed gate was not constrained or the SPI group vanished"
++}
++puts "PASS renamed clock driver, 41 Delay registers and one duplicate, SPI group preserved"
++
++foreach {variant failure} {
++    missing {Incomplete HDMI tuner Delay register set*}
++    extra {Gate * fanout is not exactly the HDMI Delay registers}
++    split {HDMI Delay registers do not share a single LUT clock driver}
++    wrong-parent {HDMI tuner gate does not have the fitted core PLL output in its fanin}
++    ungated {HDMI tuner gate does not have cfg_done in its fanin}
++} {
++    set mode $variant
++    if {![catch {::lltune_clock::create} why] || ![string match $failure $why]} {
++        error "Expected $variant to fail, result: $why"
++    }
++    puts "PASS rejecting $variant"
++}
++set mode absent
++if {[::lltune_clock::create] ne ""} {error "Debug build unexpectedly created a clock"}
++set mode valid
++set core_period 12.821
++if {[::lltune_clock::create] ne ""} {error "Legacy 78 MHz release would be changed"}
++set core_period 9.615
++puts "PASS no HDMI debug and 78 MHz models unchanged"
++
++set retained_tables [glob -nocomplain $artifacts/corner-*/constraints.rpt]
++if {[llength $retained_tables] != 4} {error "Expected four archived retained constraint reports"}
++foreach p $retained_tables {
++    set fd [open $p]
++    set table [read $fd]
++    close $fd
++    ::lltune_clock::check_uncertainty_table $table setup $core_name $core_name 0.300
++    ::lltune_clock::check_uncertainty_table $table hold $core_name $core_name 0.280
++}
++puts "PASS derived-table parsing of retained reports"
++
++proc emit_table {path bad_margin} {
++    set fd [open $path w]
++    foreach {from to setup hold} [list $::core_name $::core_name 0.140 0.080 \
++                                     lltune_clk lltune_clk $bad_margin 0.280 \
++                                     $::core_name lltune_clk 0.220 0.180] {
++        foreach check {setup hold} {
++            foreach source {-rise_from -fall_from} {
++                foreach target {-rise_to -fall_to} {
++                    puts $fd [format {; set_clock_uncertainty ; -%s ; %s ; [get_clocks {%s}] ; %s ; [get_clocks {%s}] ; %s ;} \
++                        $check $source $from $target $to [set $check]]
++                }
++            }
++        }
++    }
++    close $fd
++}
++emit_table $output/constraints.rpt 0.300
++::lltune_clock::audit $output
++foreach {variant failure} {
++    spi-active {Unexpected active setup crossing from lltune_clk to spi_sck}
++    cut-inbound {Missing setup path from * to lltune_clk}
++} {
++    set mode $variant
++    if {![catch {::lltune_clock::audit $output} why] || ![string match $failure $why]} {
++        error "Expected $variant audit rejection, result: $why"
++    }
++    puts "PASS rejecting $variant"
++}
++set mode valid
++emit_table $output/constraints.rpt 0.140
++if {![catch {::lltune_clock::audit $output} why] ||
++    ![string match {Derived setup uncertainty on lltune_clk to lltune_clk is *} $why]} {
++    error "Expected underconstraint audit rejection, result: $why"
++}
++puts "PASS rejecting weak gated uncertainty"
+diff --git a/scratch/v5-fit-loop/lltune-clock/evidence/same-fit-audit.tcl b/scratch/v5-fit-loop/lltune-clock/evidence/same-fit-audit.tcl
+new file mode 100644
+index 0000000..add63d5
+--- /dev/null
++++ b/scratch/v5-fit-loop/lltune-clock/evidence/same-fit-audit.tcl
+@@ -0,0 +1,105 @@
++# Run from the candidate checkout against a fitted Template database.
++# quartus_sta -t /path/same-fit-audit.tcl /path/retained-sys_top.sdc
++package require ::quartus::project
++package require ::quartus::sta
++if {[llength $argv] != 1 || ![file isfile [lindex $argv 0]]} {
++    error "Supply retained sys/sys_top.sdc from 11c4a0c"
++}
++set retained [file normalize [lindex $argv 0]]
++project_open -revision Template Template
++source tools/lltune_clock.tcl
++
++proc clocks {} {
++    set result [dict create]
++    foreach_in_collection clock [get_clocks *] {
++        set name [get_clock_info -name $clock]
++        set properties {}
++        foreach property {period waveform master_clock nreg_pos nreg_neg} {
++            lappend properties [get_clock_info -$property $clock]
++        }
++        dict set result $name $properties
++    }
++    return $result
++}
++
++set snapshots [dict create]
++foreach variant {retained separated} {
++    create_timing_netlist -model slow
++    if {$variant eq "retained"} {
++        # Read all default SDC files in the original order. Exchange just the
++        # system file that defines the generated tuner clock.
++        set replaced 0
++        foreach file [get_default_sdc_file_names] {
++            if {[file tail $file] eq "sys_top.sdc"} {
++                incr replaced
++                read_sdc $retained
++            } else {
++                read_sdc $file
++            }
++        }
++        if {$replaced != 1} {error "Expected exactly one system SDC"}
++    } else {
++        read_sdc
++    }
++    update_timing_netlist
++    set count 0
++    foreach_in_collection corner [get_available_operating_conditions] {
++        incr count
++        set_operating_conditions $corner
++        update_timing_netlist
++        set d output_files/timing/lltune-same-fit/$variant/corner-$count
++        file mkdir $d
++        set name [get_operating_conditions_info -name $corner]
++        dict set snapshots $variant $name [clocks]
++        report_clocks -file $d/clocks.rpt
++        report_sdc -file $d/constraints.rpt
++        report_sdc -ignored -file $d/ignored-constraints.rpt
++        report_clock_transfers -file $d/transfers.rpt
++        report_ucp -file $d/unconstrained.rpt
++        check_timing -include {no_clock multiple_clock generated_clock uncertainty} -file $d/check-timing.rpt
++        foreach check {setup hold recovery removal} {
++            report_timing -$check -npaths 1 -detail full_path -file $d/$check.rpt
++        }
++        report_min_pulse_width -nworst 25 -detail full_path -file $d/min-pulse.rpt
++
++        if {$variant eq "separated"} {
++            ::lltune_clock::audit $d
++        } else {
++            set core [get_clock_info -name [::lltune_clock::core]]
++            set handle [open $d/constraints.rpt]
++            set table [read $handle]
++            close $handle
++            ::lltune_clock::check_uncertainty_table $table setup $core $core 0.300
++            ::lltune_clock::check_uncertainty_table $table hold $core $core 0.280
++        }
++    }
++    if {$count != 4} {error "Expected four native operating conditions, got $count"}
++    delete_timing_netlist
++}
++
++set before [dict get $snapshots retained]
++set after [dict get $snapshots separated]
++if {[lsort [dict keys $before]] ne [lsort [dict keys $after]]} {error "Operating corners changed"}
++dict for {corner clocks_before} $before {
++    set clocks_after [dict get $after $corner]
++    set tuned [dict get $clocks_after lltune_clk]
++    dict unset clocks_after lltune_clk
++    if {[lsort [dict keys $clocks_before]] ne [lsort [dict keys $clocks_after]]} {
++        error "Unexpected clock object changes in $corner"
++    }
++    set master [lindex $tuned 2]
++    dict for {clock properties} $clocks_before {
++        set new_properties [dict get $clocks_after $clock]
++        if {$clock eq $master} {
++            set expected [expr {[lindex $new_properties 3] + [lindex $tuned 3]}]
++            if {[lindex $properties 3] != $expected ||
++                [lreplace $properties 3 3] ne [lreplace $new_properties 3 3]} {
++                error "Gated sinks did not move exactly once in $corner"
++            }
++        } elseif {$properties ne $new_properties} {
++            error "Unrelated clock changed in $corner: $clock"
++        }
++    }
++    puts "PASS same fitted database, $corner, all other clocks and sink totals preserved"
++}
++project_close

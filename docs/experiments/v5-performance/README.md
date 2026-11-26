@@ -277,6 +277,12 @@ differential and all board and workload regressions match. The sampled
 retained trust endpoint misses by more than 1.5 ns at all ten hot corners.
 Routed timing is pending.
 
+The [HDMI tuner clock model](lltune-generated-clock.md) declares a
+generated clock for the existing low-latency scaler feedback path.
+The retained global clock uses the gated branch's uncertainty. The
+candidate checks clock ownership and all-corner uncertainty before
+accepting any timing result. A real Quartus pilot is pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

@@ -2102,5 +2102,45 @@
       "scratch/v5-fit-loop/lane13-mmc-combined/record-qualification.py": "b94506c598b0a1d3b74960be4cfe13ffeccb7ff067104c3ed29862c476c22ac4",
       "scratch/v5-fit-loop/lane13-mmc-combined/replay.py": "c0684e1bf7a1eb960a767abaa62bbd9ce590e1f8ac7054f65f52cc33ab7b0e2a"
     }
+  },
+  {
+    "id": "lltune-generated-clock",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/lltune-generated-clock.patch"
+    ],
+    "sha256": [
+      "c1d71d2e242d74e727d493dd7a4a98c779f3a2733b9f8e06a39cea51fc0332f5"
+    ],
+    "affected_paths": [
+      "sys/sys_top.sdc",
+      "tools/lltune_clock.tcl",
+      "tools/probe_retime_fit/report.tcl"
+    ],
+    "measured_sha256": {
+      "sys/sys_top.sdc": "cb8789f1db7b90fb598451d52261a69396ff4e2506b33cb7da840c22f24c2825",
+      "tools/lltune_clock.tcl": "654eb9548fcb57fcb4a2a17fd46d0f1335cbc7413edd5185a75d3e63137aa935",
+      "tools/probe_retime_fit/report.tcl": "f4a4230cdfaf11ee273372afd4a581a72436292ce952330a27bd9c8babf99779"
+    }
+  },
+  {
+    "id": "lltune-generated-clock-audit",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/lltune-generated-clock-audit.patch"
+    ],
+    "sha256": [
+      "a9edffe91f992b2ac195ee4d5f0408f494b7637e6d8d34540756321a3691982d"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/lltune-clock/evidence/mock-lltune.tcl",
+      "scratch/v5-fit-loop/lltune-clock/evidence/same-fit-audit.tcl"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/lltune-clock/evidence/mock-lltune.tcl": "54eea00f2609b35761adc63688f6816a9c952a52f771e40ec22dcec6e8a5b920",
+      "scratch/v5-fit-loop/lltune-clock/evidence/same-fit-audit.tcl": "12dcfb7ccbe49fd14f34b2a47a18bc318f2f7d927b3327f5fcaed25495af4a6b"
+    }
   }
 ]
