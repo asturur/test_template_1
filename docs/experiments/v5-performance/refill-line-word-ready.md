@@ -24,6 +24,10 @@ The original active-owner assertion requires CYC high, a read packet, the addres
 
 [Qualification receipt](../../evidence/v5-104-refill-line-word-ready.json)
 
+The [stack with the SDRAM payload change](refill-payload-combined.md)
+uses the same qualified wrapper and matches the exact payload control
+in the native refill workload decks and all three pin replays.
+
 ## Reproduction
 
 Run from the repository root with the archived design and fixture patches, the private timer object chain, the existing timer and prepared Wishbone replay decks, the ARM GNU tools, and the cached Jotego ARM64 image. The design and [replay patch](patches/refill-line-word-ready-replay.patch) are in the experiment archive.
