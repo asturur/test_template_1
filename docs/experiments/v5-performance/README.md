@@ -258,7 +258,9 @@ reaches −2.310 ns. All three RBFs are saved.
 The [Wishbone reply split](wb-reply-class.md) keeps SDRAM writes out
 of the I-cache ACK path and preserves the D-cache response edge.
 The directed checks, 105 fixed windows, four native frames and
-171,496 mixed pin events match. Routed timing is pending.
+171,496 mixed pin events match. Named posted-write ACK paths through
+I-cache fall to zero in the hot exports, while median setup moves from
+−2.471 to −2.566 ns and median ALMs increase by 685. Park the trial.
 
 The [prepared MMC counter](mmc-count-prepare.md) removes the wide
 byte-count carry after late FIFO acceptance. The 4 KiB directed tests,
@@ -268,6 +270,12 @@ The [separate lane 13 result captures](lane13-register-sources.md) reuse
 the existing keypad sample and let the UART word register independently.
 The directed responses, 105 fixed windows, four native frames and mixed
 pin trace match the retained design. Routed timing is pending.
+
+The [D-cache live-trust trial](dcache-live-trust.md) removes the wide
+next-fill decode from the trust register's update. The exact transition
+differential and all board and workload regressions match. The sampled
+retained trust endpoint misses by more than 1.5 ns at all ten hot corners.
+Routed timing is pending.
 
 ## Passive opportunity studies
 

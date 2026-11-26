@@ -23,9 +23,8 @@ The patch removes the structural write-completion dependency from
 I-cache ACK. The D-cache and end-of-burst owner paths still need that
 completion. Seed 43 also shows genuine D-cache paths from `mem_we` at
 −2.421 ns hot and `WRITE_LOCKED` at −2.340 ns cold. The native reply
-and MMU/TLB paths remain relevant. Use three matched production seeds
-to compare these routes, worst setup, core TNS and ALMs. Timing and
-the RBF are unmeasured for this trial.
+and MMU/TLB paths remain relevant. The matched fits below compare these
+routes, worst setup, core TNS and ALMs.
 
 The production fits run `91ee5c456144cdba8cdf7a9112dca64d1ab6ffe5`
 at physical 104 MHz with DDR debugging off. Their control is the
@@ -33,6 +32,24 @@ same-day retained `81a1b45` tree.
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45786912492) ·
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45786908403) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45786907340)
+
+| Seed | Retained setup | Split setup | Change | Retained ALMs | Split ALMs |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.061 ns | −2.566 ns | −0.505 ns | 36,420 | 37,121 |
+| 43 | −2.508 ns | −2.450 ns | +0.058 ns | 36,446 | 37,131 |
+| 31337 | −2.471 ns | −3.122 ns | −0.651 ns | 36,461 | 37,170 |
+| Median | −2.471 ns | −2.566 ns | −0.095 ns | 36,446 | 37,131 |
+
+Park `91ee5c4`. Named posted ACK routes through I-cache to the merger
+fell from 26, 17 and 46 to zero in the hot exports. Median core setup
+TNS moved from −5143.651 to −5504.602 ns. The new limiting paths went
+to execute feedback, the D-side section TLB and the D-cache lock.
+All three built RBFs and passed hold, recovery, removal, pulse width
+and SDRAM pin packing. All three failed setup and used 321 M10Ks.
+Forward restore `2e410c9` matches the retained tree. The best candidate,
+seed 43, is archived at
+`build/fit/v5-104mhz-91ee5c4-seed43/ngage1.rbf`.
+[Fit manifests and route evidence](../../evidence/v5-104-wb-reply-class-fits.json)
 
 ## Qualification
 

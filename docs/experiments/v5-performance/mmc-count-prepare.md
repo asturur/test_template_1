@@ -23,6 +23,13 @@ Routed checks remain open.
 | 13 | 15 | 15 | −1.932 ns |
 | 31337 | 12 | 14 | −2.243 ns |
 
+The standalone 104 MHz production candidate is `9a02faf`, the child
+of forward restore `2e410c9`. The restore matches the retained tree.
+The fitter uses the same-day `81a1b45` controls with DDR debugging off.
+[Seed 13](https://github.com/asturur/test_template_1/actions/runs/45793456733) ·
+[Seed 43](https://github.com/asturur/test_template_1/actions/runs/45793453000) ·
+[Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45793455943)
+
 ## Qualification
 
 The arithmetic checks cover every byte mask and remaining count,

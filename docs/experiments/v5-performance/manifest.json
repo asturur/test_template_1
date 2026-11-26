@@ -2010,5 +2010,49 @@
       "scratch/v5-fit-loop/lane13-register-sources/mixed.py": "e90b226e366369964a70cc73ffa513c1861d21c412388bf15325c5b378ccd92e",
       "scratch/v5-fit-loop/lane13-register-sources/replay.py": "b2d579b433cf96c09c8ae0fc01c9a5403edd89025f898a0da8b7cef49d9c9181"
     }
+  },
+  {
+    "id": "dcache-live-trust",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-live-trust.patch"
+    ],
+    "sha256": [
+      "3c6470af90f5c7c08bdde8c4ac5cd9323c95fc70faeac46b413aa94284316192"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "65e6870bebab65f66b507cdd4a63c5e5bd33ad24ec6ccadc3ecff128f205a491",
+      "tools/gen_arm9v2_phone.py": "888046b6e913b6631fae497fdc72f0b6554ed66eca0a8a08a4f45e58ae5c7dd2"
+    }
+  },
+  {
+    "id": "dcache-live-trust-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-live-trust-replay.patch"
+    ],
+    "sha256": [
+      "d53076634674141191daa637b07d3526493a360e085b3112f1f7191cd857f501"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/dcache-live-trust/board.sh",
+      "scratch/v5-fit-loop/dcache-live-trust/mixed.py",
+      "scratch/v5-fit-loop/dcache-live-trust/prepare-proof.py",
+      "scratch/v5-fit-loop/dcache-live-trust/replay.py",
+      "scratch/v5-fit-loop/dcache-live-trust/routes.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/dcache-live-trust/board.sh": "a0d8833b304d3390d20b81b2598ae4fe21185a4d52b234e296ce2e812cc991c6",
+      "scratch/v5-fit-loop/dcache-live-trust/mixed.py": "e15c62c5f31555f160e87e7f641830d65a9d57a731fd66ee9dd71c56548a77c3",
+      "scratch/v5-fit-loop/dcache-live-trust/prepare-proof.py": "e0c5b36f48d6626b6d92852194a0e3579398573ba5bdc4fb4fec265234dd4378",
+      "scratch/v5-fit-loop/dcache-live-trust/replay.py": "693558d76b0c9c4734ebab900d71429199937c39aaf6853572ea5ef46f4349f4",
+      "scratch/v5-fit-loop/dcache-live-trust/routes.py": "a94a749552a13f25facc57cd17ab7c4406510a010a1a87a66225543ddfe3df5b"
+    }
   }
 ]
