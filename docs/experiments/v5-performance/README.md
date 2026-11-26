@@ -280,6 +280,12 @@ differential and all board and workload regressions match. The sampled
 retained trust endpoint misses by more than 1.5 ns at all ten hot corners.
 Routed timing is pending.
 
+The [trusted D-cache hit ACK trial](dcache-trusted-hit-ack.md) removes
+uncached completion from the W-load ordering fast path, the worst path
+on the audited tuner pilot. Directed alignment and uncached abort tests,
+the extracted equivalence checks and all workload replays matched.
+Routed timing is pending.
+
 The [HDMI tuner clock model](lltune-generated-clock.md) declares a
 generated clock for the existing low-latency scaler feedback path.
 The retained global clock uses the gated branch's uncertainty. The

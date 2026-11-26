@@ -2200,5 +2200,55 @@
       "scratch/v5-fit-loop/timer-write-prepare/replay.py": "c29edfccdaec6afbd4e38df09e1c7b31dc8cb0163f418b9a945bdbecce9d9a15",
       "scratch/v5-fit-loop/timer-write-prepare/timer-directed.sv": "585b3f88a3b66b0614a92f32b79969652b37dfc0284911e82ba767365ed342d0"
     }
+  },
+  {
+    "id": "dcache-trusted-hit-ack",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-trusted-hit-ack.patch"
+    ],
+    "sha256": [
+      "e756d997a69e8e3b75a2e3f9b5f508f3dbac9e49d6d30000d3a1ac6db834f06f"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "df0581e580b5aa4c920e0f275e5a849f6bbb7f17561b1d5010ddb73177f5e65b",
+      "tools/gen_arm9v2_phone.py": "81b4199e904f9f324a902de4389a53fc4a31e419faa6975d723662ddec4a9470"
+    }
+  },
+  {
+    "id": "dcache-trusted-hit-ack-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-trusted-hit-ack-replay.patch"
+    ],
+    "sha256": [
+      "2bc06ca43022dea0b3f86fb0ac76236f21da013e480a39bd7210d2338d94de81"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/architectural_trace.vh",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/board-phase.sh",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/board.sh",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/collect-receipt.py",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/mixed.py",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/prepare-proof.py",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/replay.py",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/wb-write-trace.vh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/architectural_trace.vh": "fd2af36acb4e5bd0e8e9caa95f4ad39404f06e4ce2f15bfb56cadd0d4c6ef151",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/board-phase.sh": "f91e923b084a1340d75c2aee3428334f4fecffb3251212631d3135800b26ce9e",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/board.sh": "7bf77411d4ce9c929274515552b7713e6a051efd728055058ada6f9049d7a091",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/collect-receipt.py": "e5ed2e13a8a5e465fca9864b44093b7037ac403096aa1000637e9f15117b1456",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/mixed.py": "18018b2ef39b4a1c0a320ea6d0d3a5a23630e10450428a9047d76786f4b179e2",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/prepare-proof.py": "2efbffb7f6815a6a6717456ee07aabd08335396bd8c47ffbb28cb422ddbf5dc2",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/replay.py": "27ce108884d8910e16c125a8fd9ed60c09c5349e77f61629a51e9010dcbffcca",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
+    }
   }
 ]

@@ -1,0 +1,244 @@
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -380,8 +380,10 @@
+ 	o_dbg_wb_cpsr,
+ 	o_dbg_wb_cpsr_nxt,
+ 	o_dbg_stall,
+-	o_dbg_fetch
++	o_dbg_fetch,
++	i_data_hit_ack_fast
+ );
++	input wire i_data_hit_ack_fast;
+ 	reg _sv2v_0;
+ 	parameter [0:0] ARM9_PREDICTOR = 1'b1;
+ 	parameter [0:0] S_AGU = 1'b0;
+@@ -433,6 +435,7 @@
+ 	parameter [31:0] CP15_ID = 32'h0005aaa0;
+ 	parameter [31:0] CP15_CTYPE = 32'd0;
+ 	parameter [0:0] HIVECS = 1'd0;
++    parameter TRUSTED_HIT_ACK = 1'b0;
+ 	input wire i_clk;
+ 	input wire i_reset;
+ 	output wire o_data_wb_we;
+@@ -1425,8 +1428,41 @@
+     wire s_wait_older = s_order_load &&
+         (m_same_writer || skid_same_writer || (i_dc_lock_any && i_dc_lock_tag == s_writer_tag));
+     wire s_wait_w_nohit = s_order_load && w_same_writer;
+-    wire s_wait_w_hit = s_wait_w_nohit &&
+-        !(load_trust && wb_valid && request_done && !retry && !resp_err);
++    wire s_wait_w_hit;
++    generate
++        if (TRUSTED_HIT_ACK && REG_DONE && TRUST_FF && COMPLETE_FLAT) begin : g_trusted_hit_ack
++            // Registered trust excludes UNC_DONE. The late response suppresses
++            // request and carries the precise error and retry independently.
++            wire load_success = (late_done && !late_err && !late_err2) ||
++                                (request && i_data_hit_ack_fast);
++            // Evaluate wb_valid for a successful response. Using wb_valid
++            // directly here would also bring the uncached ACK back in through
++            // writeback completion and data-abort qualification.
++            wire wb_complete_on_success = w[541] && !wb_flush &&
++                (w_exception ? !i_dc_lock_any :
++                 w_cp ? cp_finished :
++                 memory_state == 4'd6 ? !w_locked && !w_swp :
++                 (memory_state == 4'd0 || memory_state == 4'd1) &&
++                 (!w[535] || w_mem_immediate || fast_pc_hit));
++            wire wb_valid_on_success = wb_restore ||
++                (wb_complete_on_success && w[540] &&
++                 memory_state != 4'd10 && !w_cls_ref[5]);
++            assign s_wait_w_hit = s_wait_w_nohit &&
++                !(load_trust && load_success && wb_valid_on_success);
++`ifndef SYNTHESIS
++            always @(posedge i_clk)
++                if (!i_reset && load_trust &&
++                    {load_success, load_success && wb_valid_on_success} !==
++                    {request_done && !retry && !resp_err,
++                     request_done && !retry && !resp_err && wb_valid})
++                    $fatal(1, "Trusted W-load completion changed at %h", d_pc);
++`endif
++        end
++        else begin : g_full_ack
++            assign s_wait_w_hit = s_wait_w_nohit &&
++                !(load_trust && wb_valid && request_done && !retry && !resp_err);
++        end
++    endgenerate
+ `ifndef SYNTHESIS
+     wire s_waw_ref = d_valid && d_advanced_load_writer &&
+         (m_same_writer || skid_same_writer || (i_dc_lock_any && i_dc_lock_tag == s_writer_tag) ||
+@@ -9721,8 +9757,10 @@
+ 	i_block_enable,
+ 	o_write_block,
+ 	o_block_data,
+-	o_block_address
++	o_block_address,
++	o_hit_ack_fast
+ );
++	output wire o_hit_ack_fast;
+ 	input wire i_block_enable;
+ 	output wire o_write_block;
+ 	output wire [127:0] o_block_data;
+@@ -10633,7 +10671,14 @@
+ 	assign o_ack = (FLAT_ACK ? (ack_idle_flat || state_ff[UNC_DONE]) || hum_ack : idle_ack || hum_ack);
+ 	assign o_err = (FLAT_ACK ? err_flat : err_case);
+ 	assign o_err2 = (FLAT_ACK ? err2_flat : err2_case);
+-	assign o_ack_fast = ((((((state_ff[IDLE] && !i_align_fault) && i_cache_en) && i_hit_ok) && i_tlb_hit_ready) && !(i_wr && i_post_full)) || hum_ack) || state_ff[UNC_DONE];
++    assign o_hit_ack_fast = (state_ff[IDLE] && !i_align_fault && i_cache_en &&
++        i_hit_ok && i_tlb_hit_ready && !(i_wr && i_post_full)) || hum_ack;
++    assign o_ack_fast = o_hit_ack_fast || state_ff[UNC_DONE];
++`ifndef SYNTHESIS
++    always @(posedge i_clk)
++        if (!i_reset && state_ff[UNC_DONE] && o_live_trust)
++            $fatal(1, "Uncached D-cache completion marked as a trusted hit");
++`endif
+ 	assign o_err_fast = state_ff[UNC_DONE] && unc_err_ff;
+ 	assign o_fill_busy_nxt = fill_busy_nxt;
+ 	assign fill_busy_nxt = (((((state_nxt[CLEAN_SINGLE] || state_nxt[FETCH_SINGLE]) || state_nxt[UNLOCK_REG]) || state_nxt[UNLOCK_WR]) || state_nxt[RELOOKUP0]) || state_nxt[RELOOKUP1]) || state_nxt[RELOOKUP2];
+@@ -11108,8 +11153,10 @@
+ 	o_write_block,
+ 	o_block_data,
+ 	o_block_address,
+-	o_prepared_write_data
++	o_prepared_write_data,
++	o_hit_ack_fast
+ );
++	output wire o_hit_ack_fast;
+ 	output wire [31:0] o_prepared_write_data;
+ 	input wire i_block_enable;
+ 	output wire o_write_block;
+@@ -11712,6 +11759,7 @@
+ 		.o_lock_owner(o_lock_owner),
+ 		.o_lock_return(o_lock_return),
+ 		.o_ack_fast(o_ack_fast),
++		.o_hit_ack_fast(o_hit_ack_fast),
+ 		.o_err_fast(o_err_fast),
+ 		.o_fill_busy_nxt(o_fill_busy_nxt),
+ 		.o_fill_keep_nxt(o_fill_keep_nxt),
+@@ -15895,6 +15943,7 @@
+ 	wire dc_lock_owner;
+ 	wire dc_lock_return;
+ 	wire dc_ack_fast;
++	wire dc_hit_ack_fast;
+ 	wire dc_err_fast;
+ 	wire data_fill_busy_nxt;
+ 	wire data_fill_keep_nxt;
+@@ -15939,6 +15988,7 @@
+ 	generate
+ 		if (1) begin : g_arm9
+ 			ngage2_arm9v2_core #(
++				.TRUSTED_HIT_ACK(1'b1),
+ 				.ARM9_PREDICTOR(ARM9_PREDICTOR),
+ 				.CP15_L4_DEFAULT(CP15_L4_DEFAULT),
+ 				.BP_ENTRIES(BP_ENTRIES),
+@@ -16050,6 +16100,7 @@
+ 				.i_dc_lock_owner(dc_lock_owner),
+ 				.i_dc_lock_return(dc_lock_return),
+ 				.i_data_ack_fast(dc_ack_fast),
++				.i_data_hit_ack_fast(dc_hit_ack_fast),
+ 				.i_data_err_fast(dc_err_fast),
+ 				.i_data_fill_busy_nxt(data_fill_busy_nxt),
+ 				.i_data_fill_keep_nxt(data_fill_keep_nxt),
+@@ -16177,6 +16228,7 @@
+ 				.o_lock_owner(dc_lock_owner),
+ 				.o_lock_return(dc_lock_return),
+ 				.o_ack_fast(dc_ack_fast),
++				.o_hit_ack_fast(dc_hit_ack_fast),
+ 				.o_err_fast(dc_err_fast),
+ 				.o_fill_busy_nxt(data_fill_busy_nxt),
+ 				.o_fill_keep_nxt(data_fill_keep_nxt),
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -1348,6 +1348,87 @@
+     return ''.join(modules)
+ 
+ 
++def narrow_trusted_load_ack(phone):
++    """Use the D-cache hit acknowledgment for trusted W-load ordering."""
++    modules = re.split(r'(?=^module )', phone, flags=re.M)
++    slots = {name: next(i for i, module in enumerate(modules)
++                        if module.startswith(f'module ngage2_{name} ('))
++             for name in ('arm9v2_core', 'zap_dcache_fsm', 'zap_dcache', 'zap_top')}
++
++    fsm = ports(modules[slots['zap_dcache_fsm']], 'o_block_address',
++                ['output wire o_hit_ack_fast'])
++    fsm = edit(fsm,
++               '\tassign o_ack_fast = ((((((state_ff[IDLE] && !i_align_fault) && i_cache_en) && i_hit_ok) && i_tlb_hit_ready) && !(i_wr && i_post_full)) || hum_ack) || state_ff[UNC_DONE];',
++               '''    assign o_hit_ack_fast = (state_ff[IDLE] && !i_align_fault && i_cache_en &&
++        i_hit_ok && i_tlb_hit_ready && !(i_wr && i_post_full)) || hum_ack;
++    assign o_ack_fast = o_hit_ack_fast || state_ff[UNC_DONE];
++`ifndef SYNTHESIS
++    always @(posedge i_clk)
++        if (!i_reset && state_ff[UNC_DONE] && o_live_trust)
++            $fatal(1, "Uncached D-cache completion marked as a trusted hit");
++`endif''')
++    modules[slots['zap_dcache_fsm']] = fsm
++
++    cache = ports(modules[slots['zap_dcache']], 'o_prepared_write_data',
++                  ['output wire o_hit_ack_fast'])
++    cache = edit(cache, '\t\t.o_ack_fast(o_ack_fast),',
++                 '\t\t.o_ack_fast(o_ack_fast),\n\t\t.o_hit_ack_fast(o_hit_ack_fast),')
++    modules[slots['zap_dcache']] = cache
++
++    core = ports(modules[slots['arm9v2_core']], 'o_dbg_fetch',
++                 ['input wire i_data_hit_ack_fast'])
++    core = edit(core, "\tparameter [0:0] HIVECS = 1'd0;",
++                "\tparameter [0:0] HIVECS = 1'd0;\n    parameter TRUSTED_HIT_ACK = 1'b0;")
++    core = edit(core, '''    wire s_wait_w_hit = s_wait_w_nohit &&
++        !(load_trust && wb_valid && request_done && !retry && !resp_err);''', '''    wire s_wait_w_hit;
++    generate
++        if (TRUSTED_HIT_ACK && REG_DONE && TRUST_FF && COMPLETE_FLAT) begin : g_trusted_hit_ack
++            // Registered trust excludes UNC_DONE. The late response suppresses
++            // request and carries the precise error and retry independently.
++            wire load_success = (late_done && !late_err && !late_err2) ||
++                                (request && i_data_hit_ack_fast);
++            // Evaluate wb_valid for a successful response. Using wb_valid
++            // directly here would also bring the uncached ACK back in through
++            // writeback completion and data-abort qualification.
++            wire wb_complete_on_success = w[541] && !wb_flush &&
++                (w_exception ? !i_dc_lock_any :
++                 w_cp ? cp_finished :
++                 memory_state == 4'd6 ? !w_locked && !w_swp :
++                 (memory_state == 4'd0 || memory_state == 4'd1) &&
++                 (!w[535] || w_mem_immediate || fast_pc_hit));
++            wire wb_valid_on_success = wb_restore ||
++                (wb_complete_on_success && w[540] &&
++                 memory_state != 4'd10 && !w_cls_ref[5]);
++            assign s_wait_w_hit = s_wait_w_nohit &&
++                !(load_trust && load_success && wb_valid_on_success);
++`ifndef SYNTHESIS
++            always @(posedge i_clk)
++                if (!i_reset && load_trust &&
++                    {load_success, load_success && wb_valid_on_success} !==
++                    {request_done && !retry && !resp_err,
++                     request_done && !retry && !resp_err && wb_valid})
++                    $fatal(1, "Trusted W-load completion changed at %h", d_pc);
++`endif
++        end
++        else begin : g_full_ack
++            assign s_wait_w_hit = s_wait_w_nohit &&
++                !(load_trust && wb_valid && request_done && !retry && !resp_err);
++        end
++    endgenerate''')
++    modules[slots['arm9v2_core']] = core
++
++    top = edit(modules[slots['zap_top']], '\twire dc_ack_fast;',
++               '\twire dc_ack_fast;\n\twire dc_hit_ack_fast;')
++    top = edit(top, '\t\t\tngage2_arm9v2_core #(\n',
++               "\t\t\tngage2_arm9v2_core #(\n\t\t\t\t.TRUSTED_HIT_ACK(1'b1),\n")
++    top = edit(top, '\t\t\t\t.i_data_ack_fast(dc_ack_fast),',
++               '\t\t\t\t.i_data_ack_fast(dc_ack_fast),\n\t\t\t\t.i_data_hit_ack_fast(dc_hit_ack_fast),')
++    top = edit(top, '\t\t\t\t.o_ack_fast(dc_ack_fast),',
++               '\t\t\t\t.o_ack_fast(dc_ack_fast),\n\t\t\t\t.o_hit_ack_fast(dc_hit_ack_fast),')
++    modules[slots['zap_top']] = top
++    return ''.join(modules)
++
++
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
+@@ -1386,6 +1467,7 @@
+         generated = issue_hinted_ldm(generated, edit)
+     generated = keep_wishbone_request_boundary(generated)
+     generated = prepare_wishbone_write_data(generated)
++    generated = narrow_trusted_load_ack(generated)
+     if args.check:
+         if output.read_text() != generated:
+             raise ValueError('Phone netlist is out of date')
