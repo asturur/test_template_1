@@ -1,0 +1,309 @@
+{
+  "timer": {
+    "13": {
+      "run": 45824513460,
+      "corners": {
+        "7_slow_1100mv_100c": {
+          "file": "build/timing-audit-45824513460/output_files/timing/resident-store/104/corner-1/setup.csv",
+          "families": {
+            "o_lock_any": {
+              "count": 1,
+              "rank": 6,
+              "slack_ns": -1.98,
+              "data_ns": 10.762,
+              "cell_levels": 8,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[6]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+            }
+          }
+        },
+        "7_slow_1100mv_-40c": {
+          "file": "build/timing-audit-45824513460/output_files/timing/resident-store/104/corner-2/setup.csv",
+          "families": {
+            "o_lock_any": {
+              "count": 1,
+              "rank": 1,
+              "slack_ns": -2.214,
+              "data_ns": 10.994,
+              "cell_levels": 8,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[6]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+            }
+          }
+        },
+        "MIN_fast_1100mv_100c": {
+          "file": "build/timing-audit-45824513460/output_files/timing/resident-store/104/corner-3/setup.csv",
+          "families": {
+            "o_lock_any": {
+              "count": 1,
+              "rank": 324,
+              "slack_ns": 3.378,
+              "data_ns": 5.887,
+              "cell_levels": 8,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[21]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+            }
+          }
+        },
+        "MIN_fast_1100mv_-40c": {
+          "file": "build/timing-audit-45824513460/output_files/timing/resident-store/104/corner-4/setup.csv",
+          "families": {
+            "o_lock_any": {
+              "count": 1,
+              "rank": 880,
+              "slack_ns": 4.261,
+              "data_ns": 5.01,
+              "cell_levels": 8,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[21]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+            }
+          }
+        }
+      }
+    },
+    "43": {
+      "run": 45824520116,
+      "corners": {
+        "7_slow_1100mv_100c": {
+          "file": "build/timing-audit-45824520116/output_files/timing/resident-store/104/corner-1/setup.csv",
+          "families": {
+            "o_lock_any": {
+              "count": 1,
+              "rank": 26,
+              "slack_ns": -1.992,
+              "data_ns": 10.827,
+              "cell_levels": 9,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_zap_cp15_cb:u_zap_cp15_cb|o_mmu_en",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+            }
+          }
+        },
+        "7_slow_1100mv_-40c": {
+          "file": "build/timing-audit-45824520116/output_files/timing/resident-store/104/corner-2/setup.csv",
+          "families": {
+            "o_lock_any": {
+              "count": 1,
+              "rank": 10,
+              "slack_ns": -2.03,
+              "data_ns": 10.863,
+              "cell_levels": 9,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_zap_cp15_cb:u_zap_cp15_cb|o_mmu_en",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+            }
+          }
+        },
+        "MIN_fast_1100mv_100c": {
+          "file": "build/timing-audit-45824520116/output_files/timing/resident-store/104/corner-3/setup.csv",
+          "families": {
+            "o_lock_any": {
+              "count": 1,
+              "rank": 198,
+              "slack_ns": 3.213,
+              "data_ns": 5.897,
+              "cell_levels": 8,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[10]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+            }
+          }
+        },
+        "MIN_fast_1100mv_-40c": {
+          "file": "build/timing-audit-45824520116/output_files/timing/resident-store/104/corner-4/setup.csv",
+          "families": {
+            "o_lock_any": {
+              "count": 1,
+              "rank": 731,
+              "slack_ns": 4.173,
+              "data_ns": 4.944,
+              "cell_levels": 8,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[10]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+            }
+          }
+        }
+      }
+    },
+    "31337": {
+      "run": 45824525843,
+      "corners": {
+        "7_slow_1100mv_100c": {
+          "file": "build/timing-audit-45824525843/output_files/timing/resident-store/104/corner-1/setup.csv",
+          "families": {
+            "o_lock_any": {
+              "count": 1,
+              "rank": 173,
+              "slack_ns": -1.607,
+              "data_ns": 10.495,
+              "cell_levels": 8,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_fsm:u_zap_tlb_fsm|state_ff[0]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+            },
+            "o_lock_owner": {
+              "count": 1,
+              "rank": 468,
+              "slack_ns": -1.297,
+              "data_ns": 10.188,
+              "cell_levels": 7,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|state_ff[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_owner"
+            }
+          }
+        },
+        "7_slow_1100mv_-40c": {
+          "file": "build/timing-audit-45824525843/output_files/timing/resident-store/104/corner-2/setup.csv",
+          "families": {
+            "o_lock_any": {
+              "count": 1,
+              "rank": 99,
+              "slack_ns": -1.561,
+              "data_ns": 10.457,
+              "cell_levels": 8,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_fsm:u_zap_tlb_fsm|state_ff[0]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+            },
+            "o_lock_owner": {
+              "count": 1,
+              "rank": 727,
+              "slack_ns": -0.943,
+              "data_ns": 9.835,
+              "cell_levels": 7,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|state_ff[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_owner"
+            }
+          }
+        },
+        "MIN_fast_1100mv_100c": {
+          "file": "build/timing-audit-45824525843/output_files/timing/resident-store/104/corner-3/setup.csv",
+          "families": {}
+        },
+        "MIN_fast_1100mv_-40c": {
+          "file": "build/timing-audit-45824525843/output_files/timing/resident-store/104/corner-4/setup.csv",
+          "families": {}
+        }
+      }
+    }
+  },
+  "old_valid_only": {
+    "13": {
+      "run": 45720741046,
+      "corners": {
+        "7_slow_1100mv_100c": {
+          "file": "build/timing-audit-45720741046/output_files/timing/resident-store/104/corner-1/setup.csv",
+          "families": {
+            "o_lock_owner": {
+              "count": 1,
+              "rank": 248,
+              "slack_ns": -1.22,
+              "data_ns": 10.087,
+              "cell_levels": 6,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_fsm:u_zap_tlb_fsm|fault_match~6_OTERM7869",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_owner"
+            }
+          }
+        },
+        "7_slow_1100mv_-40c": {
+          "file": "build/timing-audit-45720741046/output_files/timing/resident-store/104/corner-2/setup.csv",
+          "families": {
+            "o_lock_owner": {
+              "count": 1,
+              "rank": 786,
+              "slack_ns": -0.809,
+              "data_ns": 9.671,
+              "cell_levels": 6,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_fsm:u_zap_tlb_fsm|fault_match~6_OTERM7869",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_owner"
+            }
+          }
+        },
+        "MIN_fast_1100mv_100c": {
+          "file": "build/timing-audit-45720741046/output_files/timing/resident-store/104/corner-3/setup.csv",
+          "families": {
+            "o_lock_owner": {
+              "count": 1,
+              "rank": 494,
+              "slack_ns": 3.518,
+              "data_ns": 5.6,
+              "cell_levels": 6,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_fsm:u_zap_tlb_fsm|fault_match~6_OTERM7869",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_owner"
+            },
+            "o_reg_idx[": {
+              "count": 14,
+              "rank": 742,
+              "slack_ns": 3.592,
+              "data_ns": 5.527,
+              "cell_levels": 4,
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_reg_idx[33]"
+            }
+          }
+        },
+        "MIN_fast_1100mv_-40c": {
+          "file": "build/timing-audit-45720741046/output_files/timing/resident-store/104/corner-4/setup.csv",
+          "families": {}
+        }
+      }
+    },
+    "43": {
+      "run": 45720741108,
+      "corners": {
+        "7_slow_1100mv_100c": {
+          "file": "build/timing-audit-45720741108/output_files/timing/resident-store/104/corner-1/setup.csv",
+          "families": {
+            "o_lock_owner": {
+              "count": 1,
+              "rank": 610,
+              "slack_ns": -1.473,
+              "data_ns": 10.281,
+              "cell_levels": 8,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|state_ff[0]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_owner"
+            }
+          }
+        },
+        "7_slow_1100mv_-40c": {
+          "file": "build/timing-audit-45720741108/output_files/timing/resident-store/104/corner-2/setup.csv",
+          "families": {}
+        },
+        "MIN_fast_1100mv_100c": {
+          "file": "build/timing-audit-45720741108/output_files/timing/resident-store/104/corner-3/setup.csv",
+          "families": {}
+        },
+        "MIN_fast_1100mv_-40c": {
+          "file": "build/timing-audit-45720741108/output_files/timing/resident-store/104/corner-4/setup.csv",
+          "families": {}
+        }
+      }
+    },
+    "31337": {
+      "run": 45720741271,
+      "corners": {
+        "7_slow_1100mv_100c": {
+          "file": "build/timing-audit-45720741271/output_files/timing/resident-store/104/corner-1/setup.csv",
+          "families": {}
+        },
+        "7_slow_1100mv_-40c": {
+          "file": "build/timing-audit-45720741271/output_files/timing/resident-store/104/corner-2/setup.csv",
+          "families": {}
+        },
+        "MIN_fast_1100mv_100c": {
+          "file": "build/timing-audit-45720741271/output_files/timing/resident-store/104/corner-3/setup.csv",
+          "families": {
+            "o_reg_idx[": {
+              "count": 52,
+              "rank": 449,
+              "slack_ns": 3.392,
+              "data_ns": 5.697,
+              "cell_levels": 4,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|state_ff",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_reg_idx[28]"
+            }
+          }
+        },
+        "MIN_fast_1100mv_-40c": {
+          "file": "build/timing-audit-45720741271/output_files/timing/resident-store/104/corner-4/setup.csv",
+          "families": {}
+        }
+      }
+    }
+  }
+}

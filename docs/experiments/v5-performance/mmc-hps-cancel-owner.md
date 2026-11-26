@@ -24,6 +24,10 @@ Across the ten retained fits, 85 named generation endpoint rows occur in five co
 
 [Qualification receipt](../../evidence/v5-104-mmc-hps-cancel-owner.json)
 
+The [qualification on the timer and footer branches](mmc-hps-owner-timer-combined.md)
+also matches the real three-slot HPS bench, both physical SDRAM traces,
+and all guest workload digest checks.
+
 ## Reproduction
 
 Run from the repository root with the archived design and fixture patches, prepared Wishbone write-data digest controls, pinned mixed pin-model replay and existing offline simulator image. The archived footer CRC replay documents the same frozen decks. Set `patches` to the directory containing both patches.

@@ -2518,5 +2518,162 @@
       "scratch/v5-fit-loop/mmc-hps-cancel-owner/replay.py": "ff88ec2a24a4675e75e8a95e288d3b0e4078afb243837e845e05893c7b12a37c",
       "scratch/v5-fit-loop/mmc-hps-cancel-owner/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
     }
+  },
+  {
+    "id": "owner-plus-timer",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare.patch",
+      "patches/mmc-hps-cancel-owner.patch"
+    ],
+    "sha256": [
+      "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a",
+      "05163a00fc8da36feef4505b51cc9968e4d797c3c0c28d54a37b6a432da08f12"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_hps.v",
+      "rtl/ngage_timers.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/timer_conformance/tb.v",
+      "tests/phone/timers/tb.sv"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+      "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+      "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+      "tests/phone/timer_conformance/tb.v": "2716e8f144611319d38079a4e4870432292eadd721970960f45ea47f23b08ed0",
+      "tests/phone/timers/tb.sv": "df48a45fbc9bdf41ba283b1bcd696f58f9c335698e265ad78fa4d93b4d958a44",
+      "rtl/ngage_mmc_hps.v": "1578f8fd6f8065dc9bd96e7d5cd32d426c9664f7986c17a78440cf7ac84fb13a"
+    }
+  },
+  {
+    "id": "owner-plus-footer-timer",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare.patch",
+      "patches/mmc-footer-crc-direct.patch",
+      "patches/mmc-hps-cancel-owner-on-footer.patch"
+    ],
+    "sha256": [
+      "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a",
+      "1f41e4feed53c1345dd3a114d0a99eaf8b0e4b21cf21c354999535377200d9f2",
+      "aac9499fe8c5bd616e8e71ca1b1c1bf27696922460d7851013321c9496c5af27"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_hps.v",
+      "rtl/ngage_timers.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/timer_conformance/tb.v",
+      "tests/phone/timers/tb.sv"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+      "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+      "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+      "tests/phone/timer_conformance/tb.v": "2716e8f144611319d38079a4e4870432292eadd721970960f45ea47f23b08ed0",
+      "tests/phone/timers/tb.sv": "df48a45fbc9bdf41ba283b1bcd696f58f9c335698e265ad78fa4d93b4d958a44",
+      "rtl/ngage_mmc_hps.v": "9c6ad985759d1d277cf01a7f88d6c222664a5ec8efde015ab3e6d7db387fd0c0"
+    }
+  },
+  {
+    "id": "mmc-hps-owner-timer-combined-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-hps-owner-timer-combined-replay.patch"
+    ],
+    "sha256": [
+      "78dbcb932825007601e9afdee7115fb4fea21a44663bcdf22bc1fb01b521b62e"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/architectural_trace.vh",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/coexistence.sh",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/mixed.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/owner-phase.vh",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-coexistence.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-directed.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-fit.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-owner-miter.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-verify.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/qualify.sh",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/record.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/replay.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/timer-directed.sv",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/wb-write-trace.vh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/architectural_trace.vh": "fd2af36acb4e5bd0e8e9caa95f4ad39404f06e4ce2f15bfb56cadd0d4c6ef151",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/coexistence.sh": "07a18ba8c7fe03aeb98b318708624c632384288b36863a0e2db194c17099ae4f",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/mixed.py": "659527fae543ce0120c9842053bb714e5c4e27d38c1044dfc23aa02c03b4df00",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/owner-phase.vh": "51cf048d24729c2fb65afe330280f2ca47abc2140cd41fd211f71f88f0c8ce5d",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-coexistence.py": "346481ad3fea8a3c2d95f81239c6164aa74a84140be2a7697274fa7911ab7d4e",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-directed.py": "251d8da57aac01f41d7512c816be5accc3e09f6069bcc6dc600f4049d5693486",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-fit.py": "4b3a01caa5c0c626d0f35caa5a0889aa13e6fef1f2bc24cf687cb342638d365e",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-owner-miter.py": "3f65aff340cb43ce791c19ef64f560d3f9b98f9b73875c09df56c17f49350170",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-verify.py": "c51308bf29c73923c77fdf2ff6c1b90ab3cbda44720fdc949aaee3015053e62a",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/qualify.sh": "03f86470e91e0a08da316a5961ac5a51b9c2be5b5bd83ad8def5d625e1015b34",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/record.py": "a673f21c2583838abefc4cd1cee0dc539b7de9dce45f7af3ae9c9092e7d2bd71",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/replay.py": "f4505a9fba1e93be9b74c1718e12b433e7b32ca7aaa3ffbb8a0e9d208d0c9351",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/timer-directed.sv": "585b3f88a3b66b0614a92f32b79969652b37dfc0284911e82ba767365ed342d0",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
+    }
+  },
+  {
+    "id": "dcache-compact-lock",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-compact-lock.patch"
+    ],
+    "sha256": [
+      "abab9bfe0e0a7bb369e52baa3f7d8654d48d2ef0199f9646658283403e61e530"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "6157eab5bae7a7bf3d4588424fab8f65f8b6032611cf22e8295e5737d3ed576b",
+      "tools/gen_arm9v2_phone.py": "547402049a1350c7cff102a673b4a8e25c547af978d55c93aadd8d44aef2e6b4"
+    }
+  },
+  {
+    "id": "dcache-compact-lock-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-compact-lock-replay.patch"
+    ],
+    "sha256": [
+      "8994066e751f7c100670a5e8323c2e1ea4caa0e08af6fc94be59cedd69080dd2"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/dcache-compact-lock/board.sh",
+      "scratch/v5-fit-loop/dcache-compact-lock/check-lock-update.v",
+      "scratch/v5-fit-loop/dcache-compact-lock/directed.sh",
+      "scratch/v5-fit-loop/dcache-compact-lock/mixed.py",
+      "scratch/v5-fit-loop/dcache-compact-lock/mixed.sh",
+      "scratch/v5-fit-loop/dcache-compact-lock/prepare-directed.py",
+      "scratch/v5-fit-loop/dcache-compact-lock/prepare-state-proof.py",
+      "scratch/v5-fit-loop/dcache-compact-lock/record.py",
+      "scratch/v5-fit-loop/dcache-compact-lock/replay.py",
+      "scratch/v5-fit-loop/dcache-compact-lock/routes.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/dcache-compact-lock/board.sh": "7b0d11c4f144accf2183f6911accc2c2fc392a52e13028b8da23f11d8a9cee25",
+      "scratch/v5-fit-loop/dcache-compact-lock/check-lock-update.v": "a4e27763cd22bbf99d5d2eb9e618166b019d31c6890878fbe904498f94b2410d",
+      "scratch/v5-fit-loop/dcache-compact-lock/directed.sh": "2393c27ae5a1324e3608a9310f5fa21b3f8f6d0a5bc86c88b9d647861541b7e4",
+      "scratch/v5-fit-loop/dcache-compact-lock/mixed.py": "878d3bb362520461a14d7368ef4924fc315fa289d7d2319a6ae65d3b3891381e",
+      "scratch/v5-fit-loop/dcache-compact-lock/mixed.sh": "190db6fe2ebb94b5e6c3e83a90b057b0350a23faee09caaca6c545be41dc0b55",
+      "scratch/v5-fit-loop/dcache-compact-lock/prepare-directed.py": "8709c6d490d3010c865c90dced1247993a5c646e19c5d146bdd6f4f04c4eac3f",
+      "scratch/v5-fit-loop/dcache-compact-lock/prepare-state-proof.py": "8c5122b98d52730949bd7df4e9c9c6027d09630a03ea81c883c3a2fa3ae393e0",
+      "scratch/v5-fit-loop/dcache-compact-lock/record.py": "f0269683c46b0bc6f58eb13ca567827cc2cfc9f10de37462b1cc89ac0e06fc6e",
+      "scratch/v5-fit-loop/dcache-compact-lock/replay.py": "9f53ef9cc9fea6b2d950f9a15b10ed0e41eb9a8e0276a3302770d45ce794e8fa",
+      "scratch/v5-fit-loop/dcache-compact-lock/routes.py": "9613870b136d39dd2aec44cbf5aa7905ba3a57e75553cc0d42861f0816fe6251"
+    }
   }
 ]

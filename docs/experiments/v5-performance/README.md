@@ -320,6 +320,11 @@ The [MMC HPS owner trial](mmc-hps-cancel-owner.md) removes two redundant
 The equivalence bench covers wrap and malformed events, and the actual
 HPS peer and full byte traces match. Routed timing and area are pending.
 
+The [compact D-cache lock](dcache-compact-lock.md) stores the sole load
+lock as a tag and a valid bit in the phone configuration. The existing
+tag/return edge is preserved, and the exact state and workload replays
+match the timer baseline. Routed timing is pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
