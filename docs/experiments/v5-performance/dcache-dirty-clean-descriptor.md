@@ -41,6 +41,26 @@ was dispatched on the exact timer restore `da03b02`. Its matched control
 is timer-only `9f16d1a`. The design uses the production 104 MHz clock
 with DDR debugging off. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45850041608) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45850046593) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45850051512)
 
+## Routed decision
+
+Park `dbad302`. All three fits pass the native hold, recovery, removal,
+minimum pulse and SDRAM pin checks, and all three miss 104 MHz setup.
+
+| Seed | Worst setup, timer → descriptor | Core TNS delta | Occupied ALM delta | Estimated ALMs needed delta |
+| ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.214 → −3.104 ns | −3,626.369 ns | +259 | −762 |
+| 43 | −2.403 → −2.583 ns | −1,947.139 ns | +302 | −740 |
+| 31337 | −2.452 → −2.648 ns | −2,290.485 ns | +211 | −658 |
+
+The former merger CYC launch to any dirty RAM destination leaves the
+four corner samples. On timer seed 13 there had been 65 hot and 64 cold
+matches to that wider endpoint filter. Core median setup falls by 0.245 ns
+and median TNS worsens by 2,290.485 ns. Actual median occupancy rises by
+259 paired ALMs, while the median paired estimate falls by 740. All builds
+retain 321 M10Ks. The new limiting paths end in the execute packet, the
+Wishbone merger address, and the D-cache lock-valid register.
+[Matched fits and path census](../../evidence/v5-104-dcache-dirty-descriptor-fits.json)
+
 ## Reproduction
 
 Run from the repository root using the prior private timer objects, pinned donor, prepared Wishbone workloads, and already-qualified timer pin and overlap decks. The ARM GNU tools and cached Jotego ARM64 image supply the directed tests. Set `patches` to the archive containing the design and fixture patches.

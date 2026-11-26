@@ -333,8 +333,8 @@ but whole-core setup and TNS worsen in all three fits. Park.
 The [dirty-clear descriptor trial](dcache-dirty-clean-descriptor.md)
 preselects the held maintenance address before Wishbone completion.
 The dirty write retains its original edge. The eight added CP15 profiles,
-all workload windows and both timer pin replays match. Routed timing is
-pending.
+all workload windows and both timer pin replays match. The targeted path
+leaves the reports and all three whole-core setups regress. Park.
 
 The [SDRAM block-payload trial](sdram-block-payload.md) stages the CPU's
 128-bit payload on the arbiter's free edge. The request retains its owner,

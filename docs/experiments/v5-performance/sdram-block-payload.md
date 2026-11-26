@@ -31,6 +31,13 @@ The [stack with the dirty-clear descriptor](sdram-payload-dirty-combined.md)
 also matches the workload and physical traces against the exact descriptor
 build. The same design patch applies to both lineages.
 
+## 104 MHz fit
+
+The dirty descriptor was parked. The standalone payload candidate
+`b7cf9fc` was dispatched above the exact timer restore `20fb1e5`, with
+physical 104 MHz and DDR debug off. The matched control is timer-only
+`9f16d1a`. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45856840289) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45856845012) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45856850190)
+
 ## Reproduction
 
 Restore the helpers from the [replay patch](patches/sdram-block-payload-replay.patch) at the repository root. Use the existing frozen timer and retained replay decks, pinned Verible, cached Jotego image and established ARM cross-toolchain.
