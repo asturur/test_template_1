@@ -1,6 +1,7 @@
 # Fit-only diagnostics. Does not change QSF, PLL HDL or the fitted database.
 package require ::quartus::project
 package require ::quartus::sta
+source [file join [file dirname [info script]] .. lltune_clock.tcl]
 project_open -revision Template Template
 set root output_files/timing/resident-store
 file mkdir $root
@@ -207,6 +208,9 @@ foreach scenario $scenarios {
             error "Fitted core clock changed at corner $index"
         }
         emit $od
+        if {$scenario == $native_mhz && $native_mhz == 104} {
+            ::lltune_clock::audit $od
+        }
     }
     if {$index != 4} {error "Expected four operating corners, found $index"}
     delete_timing_netlist

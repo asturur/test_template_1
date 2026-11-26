@@ -7,11 +7,16 @@ create_clock -period "100.0 MHz" [get_pins -compatibility_mode spi|sclk_out] -na
 create_clock -period "10.0 MHz"  [get_pins -compatibility_mode hdmi_i2c|out_clk] -name hdmi_sck
 
 derive_pll_clocks
+
+# lltune bit 6 is the scaler input clock, gated by cfg_done for the HDMI
+# tuner. Describe that exact derived clock before calculating uncertainty.
+source [file join [file dirname [info script]] .. tools lltune_clock.tcl]
+set lltune_generated [::lltune_clock::create]
 derive_clock_uncertainty
 
 # Decouple different clock groups (to simplify routing)
 set_clock_groups -exclusive \
-   -group [get_clocks { *|pll|pll_inst|altera_pll_i|*[*].*|divclk}] \
+   -group [get_clocks [concat { *|pll|pll_inst|altera_pll_i|*[*].*|divclk} $lltune_generated]] \
    -group [get_clocks { pll_hdmi|pll_hdmi_inst|altera_pll_i|*[0].*|divclk}] \
    -group [get_clocks { pll_audio|pll_audio_inst|altera_pll_i|*[0].*|divclk}] \
    -group [get_clocks { spi_sck}] \
