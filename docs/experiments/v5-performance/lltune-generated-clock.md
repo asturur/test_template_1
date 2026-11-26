@@ -7,7 +7,21 @@ pilot. The private candidate tree is
 exact retained `11c4a0c` tree and changes three timing and report files.
 The first 104 MHz TimeQuest run uses `5f764ef`, seed 13 and DDR
 debugging off. Its parent `6aba907` matches the retained tree.
-[Pilot run](https://github.com/asturur/test_template_1/actions/runs/45805636505)
+[Seed 13 pilot](https://github.com/asturur/test_template_1/actions/runs/45805636505) ·
+[Seed 43](https://github.com/asturur/test_template_1/actions/runs/45812194690) ·
+[Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45812190649)
+
+## Pilot result
+
+The seed 13 build resolved `comb~0|combout` to 47 fitted Delay sinks
+at all four corners, including duplicated registers. TimeQuest derived
+the expected three setup and hold margins below and confirmed that the
+core-to-tuner crossing stays timed. The native PLL, actual generated
+clock waveform, minimum pulse analysis, and SDRAM pin checks pass.
+Worst setup is −2.297 ns against −2.061 ns on the matched control.
+Core setup TNS improves from −4606.649 to −3553.560 ns. Area moves
+from 36,420 to 36,599 ALMs and 321 to 315 M10Ks. The overall fit
+misses setup. [Pilot reports and four clock audits](../../evidence/v5-104-lltune-generated-clock-pilot.json)
 
 ## Gate identity
 
