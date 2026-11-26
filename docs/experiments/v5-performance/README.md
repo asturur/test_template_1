@@ -369,6 +369,12 @@ three priority changes with 15, 16 or 27 extra D clocks. The timer route
 sample does not show the proposed D-only grant boundary as a current
 critical path. Save for a fit where that path emerges.
 
+The [UPP claim-presence trial](upp-claim-presence.md) drives response
+valid from a parallel claim reduction. The existing priority still selects
+the payload and error owner. Directed overlaps, reset and live HPS MMC
+checks match, along with all workload windows and native frames. Routed
+timing remains pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
