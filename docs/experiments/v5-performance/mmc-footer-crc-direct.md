@@ -26,6 +26,25 @@ timer-only `9f16d1a` as the matched control. Both run at physical
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45830594892) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45830599809)
 
+## Routed results
+
+| Seed | Timer setup | Footer setup | Timer / footer ALMs needed | Timer / footer occupied ALMs | Timer / footer HPS backing registers |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.214 ns | −2.624 ns | 37,039 / 36,365 | 38,645 / 38,913 | 857 / 675 |
+| 43 | −2.403 ns | −3.438 ns | 37,014 / 37,426 | 38,576 / 38,912 | 870 / 688 |
+| 31337 | −2.452 ns | −3.102 ns | 36,908 / 37,480 | 38,603 / 38,948 | 852 / 687 |
+| Median | −2.403 ns | −3.102 ns | 37,014 / 37,426 | 38,603 / 38,913 | 857 / 687 |
+
+Park `3e3dc32`. Each backing adapter uses fewer fitted registers
+and more combinational ALUTs. The fitted register reduction is 165–182,
+and ALUT use rises 65–158 with the byte selectors and placement changes.
+Whole-core setup and TNS worsen on all three seeds. Median core TNS
+moves from −3791.887 to −6791.290 ns. The limiting routes are in
+execute or Wishbone, outside the footer adapter. Every fit uses 321
+M10Ks, passes hold, recovery, removal, pulse width and SDRAM pin packing,
+and fails setup. Forward restore `409fb87` returns to the exact timer
+tree. [Matched timing and area evidence](../../evidence/v5-104-mmc-footer-crc-direct-fits.json)
+
 ## Reproduction
 
 Run from the repository root with the frozen fixed/native decks, the prepared Wishbone observers and receipts, the physical SDRAM replay input and the cached Jotego image. The [fixture patch](patches/mmc-footer-crc-direct-replay.patch) installs the scripts into the scratch directory.

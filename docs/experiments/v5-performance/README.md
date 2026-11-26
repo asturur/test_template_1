@@ -312,8 +312,10 @@ Keep as the next base.
 The [MMC footer CRC trial](mmc-footer-crc-direct.md) removes 240 bits
 of duplicate storage and reads the captured bytes during the existing
 CRC window. The expanded footer checks, all workload windows and the
-physical replay with the real backing adapter match. Routed timing
-and area are pending. [Matched ALM accounting](fitter-alm-accounting.md)
+physical replay with the real backing adapter match. It uses 165–182
+fewer fitted registers in the backing adapter. Whole-core timing and
+physical occupancy worsen on all three seeds. Park the trial.
+[Matched ALM accounting](fitter-alm-accounting.md)
 
 The [MMC HPS owner trial](mmc-hps-cancel-owner.md) removes two redundant
 32-bit generation registers and uses the existing cancellation state.

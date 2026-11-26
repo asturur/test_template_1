@@ -28,6 +28,13 @@ The [qualification on the timer and footer branches](mmc-hps-owner-timer-combine
 also matches the real three-slot HPS bench, both physical SDRAM traces,
 and all guest workload digest checks.
 
+The production candidate `efc761a` is a child of the exact timer-tree
+restore `409fb87`. The matched control is timer-only `9f16d1a` at
+physical 104 MHz with DDR debugging off.
+[Seed 13](https://github.com/asturur/test_template_1/actions/runs/45837478177) ·
+[Seed 43](https://github.com/asturur/test_template_1/actions/runs/45837483204) ·
+[Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45837488068)
+
 ## Reproduction
 
 Run from the repository root with the archived design and fixture patches, prepared Wishbone write-data digest controls, pinned mixed pin-model replay and existing offline simulator image. The archived footer CRC replay documents the same frozen decks. Set `patches` to the directory containing both patches.

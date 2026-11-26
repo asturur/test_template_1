@@ -104,3 +104,5 @@ fit while the estimated number needed rose. [ALM accounting audit](fitter-alm-ac
 | [Tuner clock model](lltune-generated-clock.md) | −2.297 ns | −2.733 ns | 36,599 | Park the fit and preserve the verified model |
 | [D-cache live trust](dcache-live-trust.md) | −2.632 ns | −2.703 ns | 37,157 | Park |
 | [Prepared timer writes](timer-write-prepare.md) | −2.214 ns | −2.403 ns | 37,014 | Keep as the next experiment base |
+| [MMC footer CRC on the timer base](mmc-footer-crc-direct.md) | −2.624 ns | −3.102 ns | 37,426 | Park |
+| [MMC HPS owner on the timer base](mmc-hps-cancel-owner.md) | | | | Fits active |
