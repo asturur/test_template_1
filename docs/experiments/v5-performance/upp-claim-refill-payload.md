@@ -32,6 +32,26 @@ The UPP candidate `96d108d` is its direct child, with 104 MHz production and
 DDR debug off. The corresponding three `ab75a62` fits are the controls.
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45883742970) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45883746480) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45883749964)
 
+## Routed decision
+
+Park `96d108d` and retain `ab75a62` as the experimental base. All three
+UPP fits pass hold, recovery, removal, pulse width and SDRAM pin checks.
+All three fail setup.
+
+| Seed | Worst setup, base → UPP | Core TNS delta | Occupied ALM delta | Estimated ALMs needed delta |
+| ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.006 → −2.749 ns | −1,864.816 ns | −128 | −25 |
+| 43 | −2.636 → −2.740 ns | −504.496 ns | +41 | +148 |
+| 31337 | −2.902 → −2.640 ns | +2,378.273 ns | +128 | +47 |
+
+Median setup regresses 0.104 ns. The median of the TNS values improves by
+581.934 ns and the paired median TNS delta is −504.496 ns. Paired median
+occupied ALMs rise by 41, and M10Ks remain at 321. The predecoded priority
+route was already absent from the combined base's hot sample and stays
+absent. New limiting routes are internal decode and reset into a DSP
+register enable. The base seed 13 remains the best measured fit.
+[Matched timing and area evidence](../../evidence/v5-104-upp-claim-presence-fits.json)
+
 ## Reproduce both lineages and the combined replay
 
 Use the standalone sealed patch and proof, the private two-cut object chain, and the exact archived two-cut replay under `build/sim/v5-104-refill-payload-combined`. The timer hold workload and the original pin guests come from that common pin lineage. The block eviction and timer-overlap program overlays live under `build/sim/v5-104-sdram-block-payload`.

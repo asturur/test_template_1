@@ -39,7 +39,8 @@ Reset and request withdrawal still clear valid on the original edge. Current req
 The [combination with refill readiness and SDRAM payload capture](upp-claim-refill-payload.md)
 matches all benchmark windows and four physical replays against that
 control. This includes the CPU's packed block eviction and a warm reset
-with an active HPS MMC transfer.
+with an active HPS MMC transfer. [Matched fits](upp-claim-refill-payload.md#routed-decision)
+park the combination after the best control seed and median setup regress.
 
 ## Reproduction
 

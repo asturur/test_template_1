@@ -39,6 +39,13 @@ The eligibility register samples every normal clock, including those where W hol
 
 The [combination with UPP claim preparation](w-completion-upp.md) also matches both workloads and all four pin replays.
 
+## 104 MHz fit
+
+The UPP candidate was parked. The standalone W completion candidate
+`e2249e4` builds above `8b09c95`, a forward restore of the exact combined
+refill and SDRAM `ab75a62` tree. All three use physical 104 MHz with DDR
+debug off. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45888184228) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45888187846) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45888191508)
+
 ## Reproduction
 
 Use the cached Jotego ARM64 simulator, pinned `build/arm9v2-assoc/stock-pinned.v`, the two-cut object chain and its archived build inputs. The frozen fixed/native workloads are under `build/sim/{payload-clocks,polycount}/v5-104-all-four-ram-candidate` with the compile deck `scratch/refill-issue-739d3bd/leg`. The two-cut builds under `build/sim/v5-104-refill-payload-combined` provide exact comparison rows and physical inputs. The timer overlap and block eviction guest overlays come from `build/sim/v5-104-sdram-block-payload`.

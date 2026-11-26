@@ -372,8 +372,9 @@ critical path. Save for a fit where that path emerges.
 The [UPP claim-presence trial](upp-claim-presence.md) drives response
 valid from a parallel claim reduction. The existing priority still selects
 the payload and error owner. Directed overlaps, reset and live HPS MMC
-checks match, along with all workload windows and native frames. Routed
-timing remains pending.
+checks match, along with all workload windows and native frames. On the
+combined refill and SDRAM base, seed 31337 improves while the best and
+median setup regress. Park.
 
 The [prepared W completion trial](w-completion-prepare.md) moves static
 completion eligibility beside the W packet. It preserves live response,

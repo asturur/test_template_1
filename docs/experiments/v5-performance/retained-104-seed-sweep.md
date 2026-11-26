@@ -113,3 +113,4 @@ fit while the estimated number needed rose. [ALM accounting audit](fitter-alm-ac
 | [TLB victim and MMC FIFO RAM on the timer base](tlb-victims-mmc-fifo.md) | −2.665 ns | −2.907 ns | 35,774 | Park for area |
 | [A-stage multiply on the timer base](arm9-a-only-product.md) | −2.662 ns | −3.014 ns | 35,914 | Park |
 | [Native refill and SDRAM block capture](refill-payload-combined.md) | −2.006 ns | −2.636 ns | 37,189 | Keep as the next experimental base |
+| [UPP claim on the refill and SDRAM base](upp-claim-refill-payload.md) | −2.640 ns | −2.740 ns | 37,236 | Park |
