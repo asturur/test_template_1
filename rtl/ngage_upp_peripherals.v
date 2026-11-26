@@ -914,27 +914,54 @@ module ngage_upp_peripherals #(
 
     // Decode priority once into a one-hot owner. Claims may depend on lanes,
     // direction and device state; an address-only owner cache is not valid.
+    wire [15:0] request_claims = {
+        mmc_claim,
+        lcd_hit && req,
+        (uart_claim || gpio_hit) && req,
+        clk_hit && req,
+        d_space_hit && req,
+        nos4k_hit && req,
+        cbus_claim,
+        nos_claim,
+        timer_claim,
+        icu_claim,
+        boot_claim,
+        trace_claim,
+        mdi_claim,
+        gpio_loop_claim,
+        extra_claim,
+        simif_claim
+    };
+    // Completion only needs a claimant. The priority chain selects which
+    // device supplies the record and stays out of completion qualification.
+    wire any_request_claim = |request_claims;
     reg [15:0] selected_owner;
     wire [15:0] result_owner, result_bad;
     always @* begin
         selected_owner = 0;
-        if (mmc_claim) selected_owner[15] = 1;
-        else if (simif_claim) selected_owner[0] = 1;
-        else if (extra_claim) selected_owner[1] = 1;
-        else if (gpio_loop_claim) selected_owner[2] = 1;
-        else if (mdi_claim) selected_owner[3] = 1;
-        else if (trace_claim) selected_owner[4] = 1;
-        else if (boot_claim) selected_owner[5] = 1;
-        else if (icu_claim) selected_owner[6] = 1;
-        else if (timer_claim) selected_owner[7] = 1;
-        else if (nos_claim) selected_owner[8] = 1;
-        else if (cbus_claim) selected_owner[9] = 1;
-        else if (nos4k_hit && req) selected_owner[10] = 1;
-        else if (d_space_hit && req) selected_owner[11] = 1;
-        else if (clk_hit && req) selected_owner[12] = 1;
-        else if ((uart_claim || gpio_hit) && req) selected_owner[13] = 1;
-        else if (lcd_hit && req) selected_owner[14] = 1;
-        claim = response_pending ? (|result_owner && req) : |selected_owner;
+        if (request_claims[15]) selected_owner[15] = 1;
+        else if (request_claims[0]) selected_owner[0] = 1;
+        else if (request_claims[1]) selected_owner[1] = 1;
+        else if (request_claims[2]) selected_owner[2] = 1;
+        else if (request_claims[3]) selected_owner[3] = 1;
+        else if (request_claims[4]) selected_owner[4] = 1;
+        else if (request_claims[5]) selected_owner[5] = 1;
+        else if (request_claims[6]) selected_owner[6] = 1;
+        else if (request_claims[7]) selected_owner[7] = 1;
+        else if (request_claims[8]) selected_owner[8] = 1;
+        else if (request_claims[9]) selected_owner[9] = 1;
+        else if (request_claims[10]) selected_owner[10] = 1;
+        else if (request_claims[11]) selected_owner[11] = 1;
+        else if (request_claims[12]) selected_owner[12] = 1;
+        else if (request_claims[13]) selected_owner[13] = 1;
+        else if (request_claims[14]) selected_owner[14] = 1;
+    end
+    // As in the priority tests, only a definite claim can present ownership.
+    reg live_claim;
+    always @* begin
+        live_claim = 0;
+        if (any_request_claim) live_claim = 1;
+        claim = response_pending ? (|result_owner && req) : live_claim;
     end
     wire [511:0] local_data = {
         (mmc_data & mmc_mask) | (extra_data & ~mmc_mask),
@@ -999,7 +1026,7 @@ module ngage_upp_peripherals #(
                 else if (!valid) begin
                     // Payload registers are local, never enabled by aggregate
                     // ready/error. Only the completion bit uses readiness.
-                    if (claim && local_ready && commit) valid <= 1;
+                    if (any_request_claim && local_ready && commit) valid <= 1;
                 end
             end
             assign response_pending = valid;
