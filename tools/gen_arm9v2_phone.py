@@ -1370,7 +1370,6 @@ def main():
     generated = expose_block_writeback(fold_section_index(expose(stock.decode())))
     generated = move_posted_store_payload_to_ram(generated)
     generated = schedule_ready_register_shift(generated)
-    generated = schedule_early_smull(generated)
     generated = restart_streamed_icache(direct_accumulate(generated))
     generated = resident_during_fill(generated)
     generated = bank_return_stack(xor_btb(generated))
