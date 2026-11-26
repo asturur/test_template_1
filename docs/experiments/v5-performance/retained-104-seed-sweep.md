@@ -115,3 +115,4 @@ fit while the estimated number needed rose. [ALM accounting audit](fitter-alm-ac
 | [Native refill and SDRAM block capture](refill-payload-combined.md) | −2.006 ns | −2.636 ns | 37,189 | Keep as the next experimental base |
 | [UPP claim on the refill and SDRAM base](upp-claim-refill-payload.md) | −2.640 ns | −2.740 ns | 37,236 | Park |
 | [Prepared W completion on the refill and SDRAM base](w-completion-prepare.md) | −3.021 ns | −3.038 ns | 36,437 | Park |
+| [D-cache beat preparation on the refill and SDRAM base](d-completion-merger.md) | −2.723 ns | −2.995 ns | 36,307 | Park |

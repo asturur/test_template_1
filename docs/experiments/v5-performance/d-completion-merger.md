@@ -46,6 +46,29 @@ The W candidate was parked. The D-cache-only preparation `0c64862` builds
 above exact restore `5a30e26` of the `ab75a62` combined tree, at physical
 104 MHz with DDR debug off. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45893161445) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45893165422) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45893169984)
 
+## Routed decision
+
+Park `0c64862`. The published `8da70c9` restores the exact `ab75a62` tree.
+No workflow ran on the restore. [Restore receipt](../../evidence/v5-104-pause-restore.json)
+Hold, recovery, removal, minimum pulse width and SDRAM
+pin register packing pass on all three seeds. All fail 104 MHz setup.
+
+| Seed | Worst setup, base → prepared beat | Core TNS, base → prepared beat | Occupied ALMs, base → prepared beat | Estimated ALMs needed, base → prepared beat |
+| ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.006 → −3.139 ns | −2,674.880 → −7,773.317 ns | 38,867 → 38,849 | 37,215 → 36,291 |
+| 43 | −2.636 → −2.995 ns | −5,121.630 → −7,429.893 ns | 38,725 → 38,866 | 37,134 → 36,307 |
+| 31337 | −2.902 → −2.723 ns | −6,815.895 → −8,579.607 ns | 38,716 → 38,961 | 37,189 → 36,350 |
+
+The sampled hot SDRAM ACK to D-cache to merger-address family drops
+from 19/0/3 to zero on seeds 13/43/31337. The new beat flags do not appear
+in the hot top-1,000 endpoints. Seed 31337 setup improves by 0.179 ns,
+while the best control seed regresses by 1.133 ns. Median setup falls
+0.359 ns and median TNS worsens by 2,651.687 ns. The paired median TNS
+delta is −2,308.263 ns. Estimated ALMs needed fall by 839 at the paired
+median while physical occupancy rises by 141. All builds keep 321 M10Ks.
+The revised limiting paths end in D-cache lock validity, Wishbone merger
+address and DMA error. [Matched fit reports](../../evidence/v5-104-d-completion-merger-fits.json)
+
 ## Reproduction
 
 Use the private retained object chain, pinned donor `build/arm9v2-assoc/stock-pinned.v` and the cached Jotego ARM64 image. The frozen workload decks are in `build/sim/{payload-clocks,polycount}/v5-104-all-four-ram-candidate`, with the original compile deck under `scratch/refill-issue-739d3bd/leg`. The standalone comparison and pin inputs come from `build/sim/v5-104-refill-payload-combined`. The stack uses the sealed W completion receipts in `build/sim/v5-104-w-completion-prepare` and the private W dispatch object chain. Guest overlays live under `build/sim/v5-104-sdram-block-payload`.

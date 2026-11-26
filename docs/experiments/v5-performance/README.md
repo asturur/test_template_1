@@ -384,8 +384,9 @@ but all three whole-core setup and TNS results regress. Park.
 
 The [D-cache pending-beat trial](d-completion-merger.md) prepares held and
 following beat availability beside the existing counter. Its active
-board, workload, pin, ACK and ERR checks match the two-cut control. The
-[A-space operand alternative](a-right-payload.md) is parked before fitting
+board, workload, pin, ACK and ERR checks match the two-cut control. Its
+named hot paths leave the samples while the best and median setup regress.
+Park. The [A-space operand alternative](a-right-payload.md) is parked before fitting
 because active production lookahead observes a vacant operand change.
 
 The [conservative W same-destination guard](waw-retire-two-cut.md) has
