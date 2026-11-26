@@ -286,6 +286,13 @@ on the audited tuner pilot. Directed alignment and uncached abort tests,
 the extracted equivalence checks and all workload replays matched.
 Routed timing is pending.
 
+The [conservative W-load ordering trial](conservative-w-load-order.md)
+lets an older same-destination load retire before the younger load
+issues. Native frames add 0.1011% clocks. Twelve fixed medians match,
+and triangle edges, JPEG and Asphalt table add 0.082%, 0.566% and
+1.186%. Ordered guest, memory and output checks match. Routed timing
+is pending.
+
 The [HDMI tuner clock model](lltune-generated-clock.md) declares a
 generated clock for the existing low-latency scaler feedback path.
 The retained global clock uses the gated branch's uncertainty. The

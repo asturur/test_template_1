@@ -2322,5 +2322,57 @@
       "scratch/v5-fit-loop/timer-live-trust-combined/timer-directed.sv": "585b3f88a3b66b0614a92f32b79969652b37dfc0284911e82ba767365ed342d0",
       "scratch/v5-fit-loop/timer-live-trust-combined/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
     }
+  },
+  {
+    "id": "conservative-w-load-order",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/conservative-w-load-order.patch"
+    ],
+    "sha256": [
+      "a4717b4af199e9e8bbc901a195e62a2bce1ef963ded46a89e2d68894becc27c1"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "a060b789a1eaec4977a7fd0d18021549654453181aeebd774dac0a76ed9f8221",
+      "tools/gen_arm9v2_phone.py": "819d1cd5634983b87633f771629888f9762c391a3938b762159026521a7207db"
+    }
+  },
+  {
+    "id": "conservative-w-load-order-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/conservative-w-load-order-replay.patch"
+    ],
+    "sha256": [
+      "a40dfa9d672257d439518990021034b3a9cd770a790ac1b3ab1e668663ddb54e"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/conservative-w-load-order/board-waw.vh",
+      "scratch/v5-fit-loop/conservative-w-load-order/board.sh",
+      "scratch/v5-fit-loop/conservative-w-load-order/directed.sh",
+      "scratch/v5-fit-loop/conservative-w-load-order/guard-proof.py",
+      "scratch/v5-fit-loop/conservative-w-load-order/mixed.py",
+      "scratch/v5-fit-loop/conservative-w-load-order/prepare-directed.py",
+      "scratch/v5-fit-loop/conservative-w-load-order/record-qualification.py",
+      "scratch/v5-fit-loop/conservative-w-load-order/replay.py",
+      "scratch/v5-fit-loop/conservative-w-load-order/waw-census.vh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/conservative-w-load-order/board-waw.vh": "90901cb67923066a77a885dba4830fbe8506ff4b8e247c7aeb43ac7120bc311e",
+      "scratch/v5-fit-loop/conservative-w-load-order/board.sh": "7c28bc8d8e6129fcb0cbf5452d7b21adde85c219efa65f65c6f23e0e07dbdff7",
+      "scratch/v5-fit-loop/conservative-w-load-order/directed.sh": "7713826e08a91af86c2798bc69b044b36b841336fbd8af417fef3d03d82832b1",
+      "scratch/v5-fit-loop/conservative-w-load-order/guard-proof.py": "d5a019e4ba9cab8df793f2518cdf81d78532edab8199613a9c9c37cb7e91a3d5",
+      "scratch/v5-fit-loop/conservative-w-load-order/mixed.py": "43286871416b7902487b81813ed98d3d4eb21377827852b61479b7d4c8bae1b1",
+      "scratch/v5-fit-loop/conservative-w-load-order/prepare-directed.py": "be6f0ef07f3b0ed247e6c4784d975051226574878031ee0e7025ab938ffc317d",
+      "scratch/v5-fit-loop/conservative-w-load-order/record-qualification.py": "5b415ee5575a7b93f33f6a681689d390d1cde37273b37dd1d1e0a50fc11a8217",
+      "scratch/v5-fit-loop/conservative-w-load-order/replay.py": "02f48dff6000a36812302dc9017885417b1bc2cc9cf99da2860cd0535603e65a",
+      "scratch/v5-fit-loop/conservative-w-load-order/waw-census.vh": "7a6f99a82f161d8908abeebfbdd49f333328d9093c55cd609e5c0d6fe8d27a05"
+    }
   }
 ]
