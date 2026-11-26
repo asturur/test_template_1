@@ -352,8 +352,9 @@ use fewer occupied ALMs. Median setup and every TNS result regress. Park.
 The [A-stage multiply trial](arm9-a-only-product.md) follows the donor's
 registered DSP operands and removes the early live SMULL bypass.
 Native PolyCount takes 1.253% more clocks, Matrix4 5.895% more and
-triangle edges 0.344% more. All game windows match. Hold behind the
-same-cycle trials. Routed timing is pending.
+triangle edges 0.344% more. All game windows match. Decode-to-multiplier
+routes leave the samples, while all three 104 MHz setups and TNS regress.
+Park.
 
 The [TLB victim and MMC FIFO RAM pair](tlb-victims-mmc-fifo.md) combines
 both physical ALM reductions on the exact timer base. The walker, MMC

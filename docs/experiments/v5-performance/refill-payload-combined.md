@@ -15,6 +15,13 @@ Candidate `8d72c2b` compiles the exact qualified refill wrapper alongside the pr
 
 All 105 fixed windows and four native frames match the payload control's cycles, architectural events, write digests and guest output. Both frozen guest fixtures enable native CPU refill and production arbiter capture. The independent four-mode refill differential also exercises wide, narrow, error, reject and reset paths. The wrapper and arbiter fingerprints match across fixed, native and mixed decks. [Qualification receipt](../../evidence/v5-104-refill-payload-combined.json)
 
+## 104 MHz fit of both changes
+
+Both isolated changes were parked. The combined trial `ab75a62` has the
+exact qualified tree of `8d72c2b`. It builds above an exact timer restore
+`6c7ccec`, at physical 104 MHz with DDR debug off. Compare the combination
+against timer-only `9f16d1a`. [Final Git and input preflight](../../evidence/v5-104-refill-payload-combined-launch-preflight.json) · [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45879015397) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45879019116) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45879022396)
+
 ## Reproduction
 
 Restore the helpers from the [replay patch](patches/refill-payload-combined-replay.patch). The preflight uses both sealed design patches and the public payload run receipt with its private object chain. Replays use the cached Jotego simulator and the existing payload benchmark, pin and targeted eviction inputs.

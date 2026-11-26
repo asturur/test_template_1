@@ -49,6 +49,26 @@ The joint RAM change was parked. Standalone A-stage candidate `9229940`
 builds above exact timer restore `b9d8609`, with physical 104 MHz and DDR
 debug off. The matched control is timer-only `9f16d1a`. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45874467913) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45874473714) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45874483394)
 
+## Routed decision
+
+Park `9229940`. All three builds pass hold, recovery, removal, minimum
+pulse width and SDRAM pin registers. All miss 104 MHz setup.
+
+| Seed | Worst setup, timer → A-only | Core TNS delta | Occupied ALM delta | Estimated ALMs needed delta |
+| ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.214 → −3.014 ns | −1,593.685 ns | −49 | −1,109 |
+| 43 | −2.403 → −2.662 ns | −2,719.570 ns | −126 | −1,100 |
+| 31337 | −2.452 → −3.204 ns | −4,190.249 ns | −157 | −1,026 |
+
+Decode-to-multiplier paths leave all sampled corners. On timer control,
+36, 34 and 64 hot paths in that family were below −1.5 ns on seeds 13,
+43 and 31337. Median setup falls by 0.611 ns and median TNS worsens by
+2,749.362 ns. The paired median saves 126 occupied ALMs and 1,100 estimated
+ALMs needed. M10Ks stay at 321. Reset drain to block payload and UPP reply,
+and CP15 MMU enable to D-cache address progression now limit the design.
+The routed result does not justify the measured throughput cost.
+[Matched fits and path samples](../../evidence/v5-104-arm9-a-only-product-fits.json)
+
 ## Reproduction
 
 Use the existing timer-base objects and receipts, frozen fixed and PolyCount decks, cached Jotego ARM64 image, and ARM GNU tools. The directed test reuses the multiply blocks from the archived early-shift fixture patch. Run from the repository root.

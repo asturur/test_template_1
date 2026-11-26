@@ -1,0 +1,79 @@
+{
+  "status": "PASS",
+  "active_a_only": "9229940ac0cd68e10613a624a8d03673bc6b6f9e",
+  "active_timer": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+  "timer_tree": "0ccd13d8cd502bc14d3b89c6431ff0ebe4745612",
+  "restore": "6c7cceccfd6577ebdc862e3cb1eebe26d56d8176",
+  "restore_parent": "9229940ac0cd68e10613a624a8d03673bc6b6f9e",
+  "qualified_commit": "8d72c2b5df2f1ea371ed23a234c930c5e5a1e6dc",
+  "qualified_tree": "57cc1a796acc9b15a61522ccf2397230f38e9799",
+  "qualified_receipt_sha256": "88de78b830323ac07edc06685b96875bca60f54b088726f509a81cf8b37be125",
+  "refill_patch_sha256": "4dd0b57dd50157fed4ed61be86f452d8b9cff28ce8ef0ddd077ae60fdc42214a",
+  "payload_patch_sha256": "9b600875593c1e6e26431fc5bc3146ba436cd370060497a2b2276a73c0f3d5f6",
+  "private_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/refill-payload-after-a-only/dispatch-20261126/objects",
+  "alternate_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/.git/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/a-only-product-ram-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/tlb-fifo-refill-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/refill-payload-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/sdram-block-payload/followup-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-dirty-compact-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-compact-owner-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-footer-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/timer-live-trust-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-live-trust/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lltune-clock/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lane13-mmc-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-count-prepare/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/wb-reply-class/dispatch-20261126/objects",
+  "variants": {
+    "two-cut-on-timer": {
+      "sha": "ab75a622a80a5aedae347f63ae195f3da965815a",
+      "parent": "6c7cceccfd6577ebdc862e3cb1eebe26d56d8176",
+      "tree": "57cc1a796acc9b15a61522ccf2397230f38e9799",
+      "paths_since_parent": [
+        "Template.sv",
+        "rtl/ngage_cpu.sv",
+        "rtl/ngage_sdram_arbiter.v"
+      ],
+      "source_sha256": {
+        "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6",
+        "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+        "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11"
+      },
+      "production": {
+        "13": {
+          "control_run": 45824513460,
+          "control_commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+            "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11",
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6"
+          },
+          "qsf_sha256": "4fc5f57d431d9d7a498413222ab65fc2d9e77a295529bca77964e343a50e37f5",
+          "manifest_sha256": "c7e4471fd8db9fd36fdb9b7a35010d1741a6abd2ef848128f0a7c529412040a0",
+          "qualified_preflight_manifest_sha256": "081d5514cb230ae5894ca2b6ded3adfb3d9eb2d4adb27f96e0855b63c98c10fa"
+        },
+        "43": {
+          "control_run": 45824520116,
+          "control_commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+            "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11",
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6"
+          },
+          "qsf_sha256": "d9b9a130e10322d51813c6ec1c104d39ad0aeb48d8735d411062794392b78e77",
+          "manifest_sha256": "654b4cbb921f45481db3c777e7d053359b7377a9ae2769d47412269cb5e855e6",
+          "qualified_preflight_manifest_sha256": "27896674b36bcd4750a54461b260f64e7ab24f3d585051aa8d7715dec83fffa6"
+        },
+        "31337": {
+          "control_run": 45824525843,
+          "control_commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+            "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11",
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6"
+          },
+          "qsf_sha256": "13c4e6e395338cb2a02ce8089d65b033dddf5543da393510a4b90481a703a917",
+          "manifest_sha256": "e4178389710b9957252905949405064cb21a69143f02fe5026b3125015cd843e",
+          "qualified_preflight_manifest_sha256": "00aec07111b3ac14f4be130307ea9f4d50cc553f459edd9afa68e48f65a85fe8"
+        }
+      }
+    }
+  }
+}
