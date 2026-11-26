@@ -39,6 +39,10 @@ The four directed board profiles cover signed and unsigned multiply, direct accu
 
 The trial is held behind the same-cycle candidates. [Measurement receipt](../../evidence/v5-104-arm9-a-only-product.json)
 
+The [combination with TLB victim and MMC FIFO RAM](arm9-a-only-product-ram-combined.md)
+reproduces the same benchmark cycle costs and matches the joint RAM
+control in both pin traces.
+
 ## Reproduction
 
 Use the existing timer-base objects and receipts, frozen fixed and PolyCount decks, cached Jotego ARM64 image, and ARM GNU tools. The directed test reuses the multiply blocks from the archived early-shift fixture patch. Run from the repository root.
