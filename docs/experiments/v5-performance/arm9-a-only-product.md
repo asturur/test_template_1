@@ -37,11 +37,17 @@ The total cost is +1.253%. The warm median goes from 14,346,201 to 14,526,176 cl
 
 The four directed board profiles cover signed and unsigned multiply, direct accumulate and carry, condition failure, flags, warm and cold forwarding, an LDM operand pair, and a precise abort before a dependent multiply. Both legs match the architectural write digest in the multiply windows. The timer control executes five private product clocks and ten early products, two with a W-forwarded operand. The candidate executes fifteen private product clocks. The complete guest adds six to eight clocks across the four profiles.
 
-The trial is held behind the same-cycle candidates. [Measurement receipt](../../evidence/v5-104-arm9-a-only-product.json)
+The candidate has known benchmark costs and requires a substantive gain in routed timing for retention. [Measurement receipt](../../evidence/v5-104-arm9-a-only-product.json)
 
 The [combination with TLB victim and MMC FIFO RAM](arm9-a-only-product-ram-combined.md)
 reproduces the same benchmark cycle costs and matches the joint RAM
 control in both pin traces.
+
+## 104 MHz fit
+
+The joint RAM change was parked. Standalone A-stage candidate `9229940`
+builds above exact timer restore `b9d8609`, with physical 104 MHz and DDR
+debug off. The matched control is timer-only `9f16d1a`. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45874467913) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45874473714) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45874483394)
 
 ## Reproduction
 

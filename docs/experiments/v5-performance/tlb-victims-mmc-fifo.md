@@ -38,6 +38,26 @@ The word-ready refill trial was parked. Standalone joint RAM candidate
 `ae3654c` builds above exact timer restore `6db50ed`, with physical 104 MHz
 and DDR debug off. The matched control is timer-only `9f16d1a`. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45869671440) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45869675764) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45869680539)
 
+## Routed decision
+
+Park `ae3654c` for area combinations. All three builds pass hold,
+recovery, removal, minimum pulse width and SDRAM pin registers. All three
+fail 104 MHz setup.
+
+| Seed | Worst setup, timer → RAM pair | Core TNS delta | Occupied ALM delta | Estimated ALMs needed delta |
+| ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.214 → −3.080 ns | −2,463.443 ns | −340 | −1,316 |
+| 43 | −2.403 → −2.907 ns | −2,918.024 ns | −322 | −1,240 |
+| 31337 | −2.452 → −2.665 ns | −1,777.952 ns | −234 | −1,102 |
+
+The paired median saves 322 physically occupied ALMs for six additional
+M10Ks. The paired ALMs-needed estimate falls by 1,240 because estimated
+recoverable packing rises by 921 at the paired median. Median setup falls
+by 0.504 ns and paired median TNS worsens by 2,463.443 ns. The difference of
+the control and candidate median TNS is −2,030.470 ns. Two limiting paths
+end in general DMA engines. The third is execute flag feedback.
+[Matched reports](../../evidence/v5-104-tlb-victims-mmc-fifo-fits.json)
+
 ## Reproduction
 
 Use the pinned ARM9 donor at `build/arm9v2-assoc/stock-pinned.v` and the existing cached `jotego/simulator:arm64` image. The workload fixture uses the fixed and native inputs under `build/sim/{payload-clocks,polycount}/v5-104-all-four-ram-candidate`, the original compile deck `scratch/refill-issue-739d3bd/leg`, and the prepared write-data receipt under `scratch/v5-fit-loop/prepared-wb-write-data/candidate`. The timer qualification supplies exact compare receipts and the normal/overlap physical decks in `build/sim/v5-104-timer-write-prepare`. Production controls 45824513460, 45824520116 and 45824525843 and the historical Fitter reports listed in the receipt are used by the final validator.

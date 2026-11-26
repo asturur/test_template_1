@@ -358,7 +358,8 @@ same-cycle trials. Routed timing is pending.
 The [TLB victim and MMC FIFO RAM pair](tlb-victims-mmc-fifo.md) combines
 both physical ALM reductions on the exact timer base. The walker, MMC
 bank tests, all fixed and native workloads and both physical traces match.
-The combined fit remains pending.
+The fit saves 322 occupied ALMs at the paired median for six M10Ks, with
+worse setup and TNS on every seed. Park for area.
 
 ## Passive opportunity studies
 
