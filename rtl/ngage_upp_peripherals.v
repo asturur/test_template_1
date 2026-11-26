@@ -967,7 +967,6 @@ module ngage_upp_peripherals #(
         (simif_bad || card_overflow || (uart_claim && uart_bad))
     };
     wire [511:0] result_data;
-    wire [15:0] result_data_owner;
     generate
         if (REGISTER_RESPONSES) begin : registered_response
             reg valid;
@@ -977,27 +976,10 @@ module ngage_upp_peripherals #(
                 reg owner, error;
                 always @(posedge clk) begin
                     if (!rst && req && !valid) begin
-                        if (local_lane == 13) data <= uart_data;
-                        else data <= local_data[local_lane*32+:32];
+                        data  <= local_data[local_lane*32+:32];
                         owner <= selected_owner[local_lane];
                         error <= local_bad[local_lane];
                     end
-                end
-                if (local_lane == 2 || local_lane == 13) begin : data_source
-                    reg data_owner;
-                    always @(posedge clk) begin
-                        if (!rst && req && !valid) begin
-                            // GPIO shares lane 2's captured keypad overlay.
-                            // Lane 13 captures EUART data independently.
-                            if (local_lane == 2)
-                                data_owner <= selected_owner[2] ||
-                                              (selected_owner[13] && !uart_claim);
-                            else data_owner <= selected_owner[13] && uart_claim;
-                        end
-                    end
-                    assign result_data_owner[local_lane] = data_owner;
-                end else begin : single_source
-                    assign result_data_owner[local_lane] = owner;
                 end
                 assign result_data[local_lane*32+:32] = data;
                 assign result_owner[local_lane]       = owner;
@@ -1017,12 +999,11 @@ module ngage_upp_peripherals #(
             assign response_pending = valid;
             assign ready            = valid && req;
         end else begin : immediate_response
-            assign response_pending  = 0;
-            assign ready             = local_ready;
-            assign result_owner      = selected_owner;
-            assign result_bad        = local_bad;
-            assign result_data       = local_data;
-            assign result_data_owner = selected_owner;
+            assign response_pending = 0;
+            assign ready            = local_ready;
+            assign result_owner     = selected_owner;
+            assign result_bad       = local_bad;
+            assign result_data      = local_data;
         end
     endgenerate
     // Constant slices and a balanced return tree keep each registered local
@@ -1034,7 +1015,7 @@ module ngage_upp_peripherals #(
             response_lane = 0; response_lane < 16; response_lane = response_lane + 1
         ) begin : response_leaves
             assign response_tree[15+response_lane] =
-                result_data[response_lane*32+:32] & {32{result_data_owner[response_lane]}};
+                result_data[response_lane*32+:32] & {32{result_owner[response_lane]}};
         end
         for (
             response_lane = 0; response_lane < 15; response_lane = response_lane + 1
