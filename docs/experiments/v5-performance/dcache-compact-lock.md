@@ -33,6 +33,13 @@ The [combined replay with MMC ownership](dcache-compact-owner-combined.md)
 also matches the directed HPS and lock tests, workloads, and both physical
 traces.
 
+The standalone compact-lock candidate `aaeef9e` builds at physical
+104 MHz with DDR debugging off. Its parent `2d69c26` is an exact
+timer-tree restore. The matched control is timer-only `9f16d1a`.
+[Seed 13](https://github.com/asturur/test_template_1/actions/runs/45844312990) ·
+[Seed 43](https://github.com/asturur/test_template_1/actions/runs/45844317854) ·
+[Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45844323297)
+
 ## Reproduction
 
 Use the frozen timer-only control decks, the pinned Jotego image and the established ARM cross-toolchain. Restore the helpers from the [replay patch](patches/dcache-compact-lock-replay.patch) in the repository root.

@@ -35,6 +35,28 @@ physical 104 MHz with DDR debugging off.
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45837483204) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45837488068)
 
+## Routed results
+
+| Seed | Timer setup | Owner setup | Timer / owner ALMs needed | Timer / owner occupied ALMs | Timer / owner HPS occupied ALMs |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.214 ns | −2.615 ns | 37,039 / 36,906 | 38,645 / 38,617 | 579.6 / 481.3 |
+| 43 | −2.403 ns | −2.766 ns | 37,014 / 37,019 | 38,576 / 38,570 | 581.3 / 489.4 |
+| 31337 | −2.452 ns | −2.079 ns | 36,908 / 36,918 | 38,603 / 38,680 | 599.3 / 493.8 |
+| Median | −2.403 ns | −2.615 ns | 37,014 / 36,918 | 38,603 / 38,617 | 581.3 / 489.4 |
+
+Park `efc761a` as a timing base. Seed 31337 gains 0.373 ns against
+its timer control and comes within 0.018 ns of the retained best fit.
+The other two seeds lose setup. Core TNS worsens on all three seeds,
+with the median moving from −3791.887 to −3874.340 ns. The backing
+adapter occupies 91.9–105.5 fewer ALMs across all three seeds and
+its fitted ALUT count falls to 546 each time. Whole-design median
+occupation grows by 14 ALMs. Every build uses 321 M10Ks, passes
+hold, recovery, removal, pulse width and SDRAM pin packing, and
+fails setup. The best experimental RBF is
+`build/fit/v5-104mhz-efc761a-seed31337/ngage1.rbf`.
+Forward restore `2d69c26` returns to the exact timer tree.
+[Matched timing and area evidence](../../evidence/v5-104-mmc-hps-cancel-owner-fits.json)
+
 ## Reproduction
 
 Run from the repository root with the archived design and fixture patches, prepared Wishbone write-data digest controls, pinned mixed pin-model replay and existing offline simulator image. The archived footer CRC replay documents the same frozen decks. Set `patches` to the directory containing both patches.

@@ -320,7 +320,9 @@ physical occupancy worsen on all three seeds. Park the trial.
 The [MMC HPS owner trial](mmc-hps-cancel-owner.md) removes two redundant
 32-bit generation registers and uses the existing cancellation state.
 The equivalence bench covers wrap and malformed events, and the actual
-HPS peer and full byte traces match. Routed timing and area are pending.
+HPS peer and full byte traces match. Its backing adapter saves about
+98 occupied ALMs at the paired median. Median setup and all three
+TNS results worsen. Park for area combinations.
 
 The [compact D-cache lock](dcache-compact-lock.md) stores the sole load
 lock as a tag and a valid bit in the phone configuration. The existing
