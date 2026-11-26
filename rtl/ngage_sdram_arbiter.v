@@ -1,8 +1,9 @@
 // Serialize complete 32-bit CPU and DMA requests. A CPU lock reserves memory
 // across the SWP read/write gap. The MiSTer top connects LCD DMA.
 module ngage_sdram_arbiter #(
-    parameter integer AW               = 25,
-    parameter integer CPU_BLOCK_WRITES = 0
+    parameter integer AW                    = 25,
+    parameter integer CPU_BLOCK_WRITES      = 0,
+    parameter integer PRECAPTURE_BLOCK_DATA = 0
 ) (
     input  wire          clk,
     input  wire          reset,
@@ -52,6 +53,16 @@ module ngage_sdram_arbiter #(
     assign dma_ack    = mem_req && owner && mem_ack && !reset;
     assign cpu_rdata  = mem_rdata;
     assign dma_rdata  = mem_rdata;
+
+    // A CPU block is the only consumer of this slot. The payload sampled
+    // on its grant edge stays held through ACTIVE. In production, sample
+    // tentative data on every FREE edge independently of owner selection.
+    wire capture_block_data = !reset && state == FREE &&
+                              (PRECAPTURE_BLOCK_DATA || (choose_cpu && cpu_we && cpu_write_block));
+    always @(posedge clk)
+        if (CPU_BLOCK_WRITES && capture_block_data)
+            mem_block_data <= cpu_block_data;
+
     always @(posedge clk) begin
         if (reset) begin
             state       <= FREE;
@@ -69,10 +80,8 @@ module ngage_sdram_arbiter #(
                     mem_addr        <= choose_dma ? dma_addr : cpu_addr;
                     mem_data        <= choose_dma ? dma_data : cpu_data;
                     mem_write_block <= CPU_BLOCK_WRITES && choose_cpu && cpu_we && cpu_write_block;
-                    if (CPU_BLOCK_WRITES && choose_cpu && cpu_we && cpu_write_block)
-                        mem_block_data <= cpu_block_data;
-                    mem_be <= choose_dma ? dma_be : cpu_be;
-                    state  <= ACTIVE;
+                    mem_be          <= choose_dma ? dma_be : cpu_be;
+                    state           <= ACTIVE;
                 end
                 ACTIVE:  if (mem_ack) state <= FREE;
                 default: state <= FREE;
