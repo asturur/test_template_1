@@ -335,6 +335,11 @@ The dirty write retains its original edge. The eight added CP15 profiles,
 all workload windows and both timer pin replays match. Routed timing is
 pending.
 
+The [SDRAM block-payload trial](sdram-block-payload.md) stages the CPU's
+128-bit payload on the arbiter's free edge. The request retains its owner,
+lock and block qualification. The full cold scrub, queued reset drain,
+real ARM dirty writeback and workload traces match. Routed timing is pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

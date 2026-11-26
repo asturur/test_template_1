@@ -1,0 +1,862 @@
+diff --git a/scratch/v5-fit-loop/sdram-block-payload/arbiter.sh b/scratch/v5-fit-loop/sdram-block-payload/arbiter.sh
+new file mode 100644
+index 0000000..e1eb04f
+--- /dev/null
++++ b/scratch/v5-fit-loop/sdram-block-payload/arbiter.sh
+@@ -0,0 +1,11 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/sdram-block-payload
++out=build/sim/v5-104-sdram-block-payload/arbiter
++python3 -B "$area/prepare-arbiter.py"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD/$area/source/rtl:/rtl:ro" -v "$PWD/$out:/work" -w /work \
++  --entrypoint sh jotego/simulator:arm64 -ec '
++  iverilog -g2001 -s tb -o miter /rtl/ngage_sdram_arbiter.v reference.v tb.v
++  vvp miter > miter.log
++  grep "^PASS " miter.log'
+diff --git a/scratch/v5-fit-loop/sdram-block-payload/block-guest.sh b/scratch/v5-fit-loop/sdram-block-payload/block-guest.sh
+new file mode 100644
+index 0000000..17e50a3
+--- /dev/null
++++ b/scratch/v5-fit-loop/sdram-block-payload/block-guest.sh
+@@ -0,0 +1,20 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/sdram-block-payload
++base=build/sim/v5-104-timer-write-prepare/mixed
++out=build/sim/v5-104-sdram-block-payload
++original=build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed
++python3 -B "$area/prepare-block-guest.py"
++for leg in reference source; do
++  if [ "$leg" = reference ]; then executable="$base/obj/Vtb"; else executable="$out/mixed/obj/Vtb"; fi
++  docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++    -v "$PWD/$out/block-guest/block-guest.hex:/work/$original/stress.hex:ro" -w /work \
++    --entrypoint "/work/$executable" jotego/simulator:arm64 \
++    +upp_stress "+compare_trace=$out/block-guest/$leg.trace" > "$out/block-guest/$leg.log"
++  grep '^PASS ' "$out/block-guest/$leg.log" > "$out/block-guest/$leg.pass"
++done
++cmp "$out/block-guest/reference.trace" "$out/block-guest/source.trace"
++cmp "$out/block-guest/reference.pass" "$out/block-guest/source.pass"
++wc -l "$out/block-guest/source.trace"
++awk '$1 == "Q" && $3 == "110" && ($4 == "001740" || $4 == "001744")' "$out/block-guest/source.trace"
++cat "$out/block-guest/source.pass"
+diff --git a/scratch/v5-fit-loop/sdram-block-payload/mixed.py b/scratch/v5-fit-loop/sdram-block-payload/mixed.py
+new file mode 100644
+index 0000000..de32a7f
+--- /dev/null
++++ b/scratch/v5-fit-loop/sdram-block-payload/mixed.py
+@@ -0,0 +1,33 @@
++"""Use the validated timer-only pin deck with production block payload capture."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-timer-write-prepare/mixed')
++trial = Path('build/sim/v5-104-sdram-block-payload/mixed')
++rtl = 'rtl/ngage_sdram_arbiter.v'
++bench = 'tests/phone/mmc_mister/tb.v'
++
++trial.mkdir(parents=True, exist_ok=True)
++shutil.copytree(base / 'source', trial / 'source', dirs_exist_ok=True)
++for name in ('stress.hex', 'image.hex', 'program.hex'):
++    shutil.copyfile(base / name, trial / name)
++shutil.copyfile(stage / 'source' / rtl, trial / 'source' / rtl)
++test = trial / 'source' / bench
++text = test.read_text()
++assert text.count('.CPU_BLOCK_WRITES(1)') == 1
++test.write_text(text.replace('.CPU_BLOCK_WRITES(1)', '.CPU_BLOCK_WRITES(1), .PRECAPTURE_BLOCK_DATA(1)'))
++
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert len(hashes) == 114 and {rtl, bench} <= hashes.keys()
++for name, reference in hashes.items():
++    if name.startswith('rtl/'):
++        assert sha256((stage / 'reference' / name).read_bytes()).hexdigest() == reference, name
++    actual = sha256((trial / 'source' / name).read_bytes()).hexdigest()
++    assert (actual != reference) == (name in (rtl, bench)), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++(trial / 'build.sh').write_text((base / 'build.sh').read_text().replace(str(base), str(trial)))
+diff --git a/scratch/v5-fit-loop/sdram-block-payload/mixed.sh b/scratch/v5-fit-loop/sdram-block-payload/mixed.sh
+new file mode 100644
+index 0000000..a14d2f1
+--- /dev/null
++++ b/scratch/v5-fit-loop/sdram-block-payload/mixed.sh
+@@ -0,0 +1,25 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/sdram-block-payload
++base=build/sim/v5-104-timer-write-prepare
++out=build/sim/v5-104-sdram-block-payload
++original=build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed
++mixed="$out/mixed"
++overlap="$out/coexistence"
++mkdir -p "$overlap"
++python3 -B "$area/mixed.py"
++cp "$base/coexistence/stress-timer.hex" "$overlap/stress-timer.hex"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 \
++  -ec "sh '$mixed/build.sh'
++'$mixed/obj/Vtb' +upp_stress '+compare_trace=$mixed/traffic.log' > '$mixed/replay.log'"
++cmp "$base/mixed/traffic.log" "$mixed/traffic.log"
++grep '^PASS ' "$mixed/replay.log"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -v "$PWD/$overlap/stress-timer.hex:/work/$original/stress.hex:ro" -w /work \
++  --entrypoint "/work/$mixed/obj/Vtb" jotego/simulator:arm64 \
++  +upp_stress "+compare_trace=$overlap/candidate.trace" > "$overlap/candidate.log"
++cmp "$base/coexistence/candidate.trace" "$overlap/candidate.trace"
++grep '^PASS ' "$overlap/candidate.log" > "$overlap/candidate.pass"
++cmp "$base/coexistence/candidate.pass" "$overlap/candidate.pass"
++cat "$overlap/candidate.pass"
+diff --git a/scratch/v5-fit-loop/sdram-block-payload/prepare-arbiter.py b/scratch/v5-fit-loop/sdram-block-payload/prepare-arbiter.py
+new file mode 100644
+index 0000000..f340dba
+--- /dev/null
++++ b/scratch/v5-fit-loop/sdram-block-payload/prepare-arbiter.py
+@@ -0,0 +1,160 @@
++"""Make a three-way payload/owner differential from the exact timer arbiter."""
++from pathlib import Path
++
++
++area = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-sdram-block-payload/arbiter')
++out.mkdir(parents=True, exist_ok=True)
++src = (area / 'reference/rtl/ngage_sdram_arbiter.v').read_text()
++assert src.count('module ngage_sdram_arbiter #(') == 1
++(out / 'reference.v').write_text(src.replace('module ngage_sdram_arbiter #(', 'module reference_arbiter #('))
++inputs = {
++    'clk': 1, 'reset': 1, 'cpu_lock': 1, 'cpu_req': 1, 'cpu_we': 1, 'cpu_addr': 25,
++    'cpu_data': 32, 'cpu_write_block': 1, 'cpu_block_data': 128, 'cpu_be': 4,
++    'dma_req': 1, 'dma_we': 1, 'dma_addr': 25, 'dma_data': 32, 'dma_be': 4,
++    'mem_ack': 1, 'mem_rdata': 32,
++}
++outputs = {
++    'cpu_ack': 1, 'cpu_rdata': 32, 'dma_ack': 1, 'dma_rdata': 32, 'mem_req': 1,
++    'mem_we': 1, 'mem_addr': 25, 'mem_data': 32, 'mem_write_block': 1,
++    'mem_block_data': 128, 'mem_be': 4, 'cpu_accept': 1, 'dma_accept': 1, 'mem_lock': 1,
++}
++def width(bits):
++    return '' if bits == 1 else f'[{bits - 1}:0] '
++
++tb = ["`timescale 1ns/1ps\nmodule tb;\n"]
++for name, bits in inputs.items():
++    tb.append(f'    reg {width(bits)}{name} = 0;\n')
++for leg in ('original', 'default_mode', 'production'):
++    for name, bits in outputs.items():
++        tb.append(f'    wire {width(bits)}{leg}_{name};\n')
++    name = 'reference_arbiter' if leg == 'original' else 'ngage_sdram_arbiter'
++    opt = ', .PRECAPTURE_BLOCK_DATA(1)' if leg == 'production' else ''
++    ports = [f'        .{name}({name})' for name in inputs]
++    ports.extend(f'        .{name}({leg}_{name})' for name in outputs)
++    tb.append(f'    {name} #(.CPU_BLOCK_WRITES(1){opt}) {leg} (\n')
++    tb.append(',\n'.join(ports) + '\n    );\n')
++signals = [name for name in outputs if name != 'mem_block_data']
++for leg in ('original', 'default_mode', 'production'):
++    nb = sum(outputs[k] for k in signals)
++    tb.append(f'    wire [{nb - 1}:0] {leg}_visible = {{\n')
++    tb.append(',\n'.join(f'        {leg}_{name}' for name in signals) + '\n    };\n')
++tb.append('''
++    reg [31:0] rng = 32'h99652a8f;
++    integer cycles = 0, blocks = 0, contention = 0, locked = 0, acked = 0;
++    integer stalled = 0, canceled = 0, speculative = 0, iteration;
++    reg had_blocks, new_block, hold_block;
++    reg [127:0] captured, offered;
++    function [31:0] next_random;
++        input [31:0] value;
++        reg [31:0] mixed;
++        begin
++            mixed = value ^ (value << 13);
++            mixed = mixed ^ (mixed >> 17);
++            next_random = mixed ^ (mixed << 5);
++        end
++    endfunction
++
++    task compare;
++        begin
++            if (original_visible !== default_mode_visible ||
++                original_visible !== production_visible ||
++                original_mem_block_data !== default_mode_mem_block_data)
++                $fatal(1, "Changed arbitration/output behavior in cycle %0d", cycles);
++            if (original_mem_req && original_mem_write_block) begin
++                if (original_mem_block_data !== production_mem_block_data)
++                    $fatal(1, "Changed valid CPU block payload");
++            end
++        end
++    endtask
++
++    task tick;
++        begin
++            #2;
++            compare;
++            had_blocks = original_mem_req && original_mem_write_block;
++            new_block = original_cpu_accept && cpu_we && cpu_write_block;
++            hold_block = had_blocks && !reset && !mem_ack;
++            captured = production_mem_block_data;
++            offered = cpu_block_data;
++            if (new_block) begin
++                blocks = blocks + 1;
++                if (dma_req) contention = contention + 1;
++                if (cpu_lock) locked = locked + 1;
++            end
++            if (had_blocks && !reset && mem_ack && original_cpu_ack) acked = acked + 1;
++            if (hold_block && offered != captured) stalled = stalled + 1;
++            if (had_blocks && reset && !original_cpu_ack) canceled = canceled + 1;
++            clk = 1;
++            #2;
++            compare;
++            if (new_block && (!production_mem_req || !production_mem_write_block ||
++                              production_mem_block_data !== offered))
++                $fatal(1, "Grant did not capture current payload");
++            if (hold_block && (production_mem_block_data !== captured || !production_mem_req))
++                $fatal(1, "Live CPU bus changed a held block");
++            if (!(production_mem_req && production_mem_write_block) &&
++                original_mem_block_data !== production_mem_block_data)
++                speculative = speculative + 1;
++            clk = 0;
++            cycles = cycles + 1;
++        end
++    endtask
++
++    initial begin
++        reset = 1;
++        tick;
++        // An unknown CPU payload after cold reset must stay unobservable.
++        reset = 0;
++        cpu_block_data = {128{1'bx}};
++        tick;
++        if (production_mem_req || production_mem_block_data !== {128{1'bx}})
++            $fatal(1, "Tentative cold data was consumed or was not captured");
++        cpu_req = 1;
++        cpu_write_block = 1;
++        tick;
++        if (!production_mem_req || production_mem_write_block)
++            $fatal(1, "A CPU read promoted background data to a valid block");
++        cpu_req = 0;
++        mem_ack = 1;
++        tick;
++
++        // A later block owns its current word, not the tentative X or the
++        // live CPU inputs while it is held and canceled.
++        cpu_req = 1;
++        cpu_we = 1;
++        cpu_block_data = 128'h51c310de_7a5bece0_dead91aa_89ecd123;
++        mem_ack = 0;
++        tick;
++        cpu_req = 0;
++        cpu_block_data = {128{1'bx}};
++        tick;
++        reset = 1;
++        mem_ack = 1;
++        tick;
++        if (production_mem_req || production_cpu_ack || production_dma_ack)
++            $fatal(1, "A canceled block was visible after reset");
++        $display("PASS cold tentative X, qualified capture and canceled block");
++        for (iteration = 0; iteration < 65536; iteration = iteration + 1) begin
++            rng = next_random(rng);
++            {cpu_req, dma_req, cpu_lock, cpu_we, dma_we, cpu_write_block, mem_ack} = rng[6:0];
++            reset = rng[15:11] == 0;
++            {cpu_be, dma_be} = rng[31:24];
++            cpu_addr = rng[24:0];
++            dma_addr = ~rng[24:0];
++            cpu_data = rng ^ 32'h9c8d4a00;
++            dma_data = rng ^ 32'h9960b112;
++            mem_rdata = rng ^ 32'hcdefde89;
++            cpu_block_data = {rng, ~rng, rng ^ 32'hf001ca4e, rng ^ 32'h028f0f75};
++            tick;
++        end
++        if (blocks < 100 || contention < 100 || locked < 100 || acked < 100 ||
++            stalled < 100 || canceled < 10 || speculative < 100)
++            $fatal(1, "Insufficient ownership, stall, ACK or reset exercises");
++        $display("PASS arbiter cycles=%0d blocks=%0d contention=%0d locked=%0d acknowledged=%0d held=%0d canceled=%0d speculative=%0d",
++                 cycles, blocks, contention, locked, acked, stalled, canceled, speculative);
++        $finish;
++    end
++endmodule
++''')
++(out / 'tb.v').write_text(''.join(tb))
+diff --git a/scratch/v5-fit-loop/sdram-block-payload/prepare-block-guest.py b/scratch/v5-fit-loop/sdram-block-payload/prepare-block-guest.py
+new file mode 100644
+index 0000000..1d256ff
+--- /dev/null
++++ b/scratch/v5-fit-loop/sdram-block-payload/prepare-block-guest.py
+@@ -0,0 +1,102 @@
++"""Append a real ARM write-back cache eviction to the frozen timer-overlap guest."""
++from pathlib import Path
++import subprocess
++
++
++area = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-timer-write-prepare/coexistence/stress-timer.S')
++out = Path('build/sim/v5-104-sdram-block-payload/block-guest')
++out.mkdir(parents=True, exist_ok=True)
++guest = base.read_text()
++marker = ' ldr r0,=0x0a000100\n put r0,0,0x50415353\n'
++assert guest.count(marker) == 1
++# Divert only the final success store. Keep every earlier instruction,
++# symbol and literal at its original address for the cycle-sensitive PCM phase.
++hook = ' ldr r0,=0x0a000100\n ldr r3,=0x50415353\n b block_guest\n'
++guest = guest.replace(marker, hook)
++guest += """
++.ltorg
++block_guest:
++ // Dirty and evict both 16-byte halves through the real D-cache.
++ mov r12,#91
++ ldr r4,=0x0a008000
++ ldr r5,=0x00000c02
++ str r5,[r4]
++ ldr r5,=0x0a000c0e
++ str r5,[r4,#0x280]
++ mcr p15,0,r4,c2,c0,0
++ mov r4,#1
++ mcr p15,0,r4,c3,c0,0
++ mcr p15,0,r4,c8,c7,0
++ mrc p15,0,r11,c1,c0,0
++ orr r4,r11,#0xd
++ mcr p15,0,r4,c1,c0,0
++ nop
++ nop
++ nop
++ ldr r8,=0x0a005d00
++ ldr r5,[r8]
++ ldr r5,=0x631204a0
++ ldr r6,=0x01020319
++ mov r7,#0
++block_fill:
++ str r5,[r8,r7]
++ add r5,r5,r6
++ add r7,r7,#4
++ cmp r7,#32
++ bne block_fill
++ // Source different lines in the same set so the real cache chooses
++ // the 32-byte dirty victim and the writeback path emits both blocks.
++ add r10,r8,#0x2000
++ mov r1,#8
++block_evict:
++ ldr r4,[r10]
++ add r10,r10,#0x2000
++ subs r1,r1,#1
++ bne block_evict
++ mcr p15,0,r8,c7,c6,1
++ ldr r5,=0x631204a0
++ mov r7,#0
++block_check:
++ ldr r4,[r8,r7]
++ cmp r4,r5
++ bne block_fail
++ add r5,r5,r6
++ add r7,r7,#4
++ cmp r7,#32
++ bne block_check
++ mcr p15,0,r11,c1,c0,0
++ nop
++ nop
++ nop
++ ldr r0,=0x0a000100
++ put r0,0,0x50415353
++ b park
++block_fail:
++ mcr p15,0,r11,c1,c0,0
++ nop
++ nop
++ nop
++ b fail
++"""
++src = out / 'block-guest.S'
++obj = src.with_suffix('.o')
++elf = src.with_suffix('.elf')
++binary = src.with_suffix('.bin')
++src.write_text(guest)
++for argv in (
++    ['arm-none-eabi-gcc', '-c', '-mcpu=arm920t', '-marm', src, '-o', obj],
++    ['arm-none-eabi-ld', '-T', area / 'reference/sim/programs/link.ld', obj, '-o', elf],
++    ['arm-none-eabi-objcopy', '-O', 'binary', elf, binary],
++):
++    subprocess.run(argv, check=True)
++raw = binary.read_bytes()
++original = base.with_suffix('.bin').read_bytes()
++changed = [offset for offset in range(0, len(original), 4)
++           if original[offset:offset + 4] != raw[offset:offset + 4]]
++assert len(changed) == 1, changed
++assert raw[changed[0] + 3] == 0xea  # Sole changed instruction is the hook.
++assert len(raw) % 4 == 0 and len(raw) <= 8192
++src.with_suffix('.hex').write_text(''.join(
++    f'{int.from_bytes(raw[i:i+4], "little"):08x}\n' for i in range(0, len(raw), 4)
++))
+diff --git a/scratch/v5-fit-loop/sdram-block-payload/prepare-stream.py b/scratch/v5-fit-loop/sdram-block-payload/prepare-stream.py
+new file mode 100644
+index 0000000..06873e4
+--- /dev/null
++++ b/scratch/v5-fit-loop/sdram-block-payload/prepare-stream.py
+@@ -0,0 +1,83 @@
++"""Exercise captured block copies under posted and locked physical drains."""
++from pathlib import Path
++
++
++area = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-sdram-block-payload/stream')
++out.mkdir(parents=True, exist_ok=True)
++fixture = (area / 'reference/tests/phone/sdram/stream_tb.sv').read_text()
++marker = '  wire [ 24:2] addr_mem;'
++assert fixture.count(marker) == 1
++fixture = fixture.replace(marker, '''  reg hold_commands = 0;
++  wire raw_cmd_ready;
++  assign cmd_ready_mem = raw_cmd_ready && !hold_commands;
++''' + marker)
++assert fixture.count('.cmd_ready(cmd_ready_mem)') == 1
++fixture = fixture.replace('.cmd_ready(cmd_ready_mem)', '.cmd_ready(raw_cmd_ready)')
++marker = '    while (busy_mem) @(negedge clk);\n    if (queued || accepted != issued'
++assert fixture.count(marker) == 1
++fixture = fixture.replace(marker, '''    // Deny the physical command slot and post a block into the stream
++    // pending queue. Reset the arbiter and change its live payload first.
++    wait (stream.drained);
++    @(negedge clk);
++    hold_commands = 1;
++    cpu_write_block = 1;
++    cpu_block_data = 128'ha0918283_74050405_26f71819_18293a4b;
++    cpu_transfer(1, BASE, cpu_block_data[31:0], 4'hf, 0);
++    if (!stream.pending || !stream.pending_block ||
++        stream.pending_block_data !== 128'ha0918283_74050405_26f71819_18293a4b)
++      $fatal(1, "Acknowledged block did not enter pending storage");
++    cpu_write_block = 0;
++    cpu_block_data = 128'hdeafbabe_feadfedc_003399cc_08070605;
++    phone_reset = 1;
++    repeat (3) @(negedge clk);
++    if (!stream.pending || !stream.pending_block ||
++        stream.pending_block_data !== 128'ha0918283_74050405_26f71819_18293a4b)
++      $fatal(1, "Reset/live input corrupted the accepted pending block");
++    hold_commands = 0;
++    wait (stream.drained);
++    @(negedge clk);
++    phone_reset = 0;
++    cpu_transfer(0, BASE, 0, 0, 32'h18293a4b);
++    cpu_transfer(0, BASE+4, 0, 0, 32'h26f71819);
++    cpu_transfer(0, BASE+8, 0, 0, 32'h74050405);
++    cpu_transfer(0, BASE+12, 0, 0, 32'ha0918283);
++    $display("PASS stream pending block survives cold-payload changes and logical reset drain");
++
++    // Verify a non-postable block uses the held arbiter payload and ACKs
++    // after all physical writes, even if SWP's live lock is withdrawn.
++    wait (stream.drained);
++    @(negedge clk);
++    lock = 1;
++    cpu_req = 1;
++    cpu_we = 1;
++    cpu_addr = BASE+16;
++    cpu_mask = 4'hf;
++    cpu_write_block = 1;
++    cpu_block_data = 128'h9c271827_8167a9c7_b931e74a_ffac0382;
++    do @(posedge clk); while (!cpu_grant);
++    @(negedge clk);
++    lock = 0;
++    cpu_write_block = 0;
++    cpu_block_data = 128'h99551a09_2476bf02_5a1c01a0_101295a2;
++    @(posedge clk);
++    if (!packet_lock || !stream.lock_write || cpu_ack ||
++        data_mem !== 128'h9c271827_8167a9c7_b931e74a_ffac0382)
++      $fatal(1, "A locked block lost its grant data or was posted");
++    do @(posedge clk); while (!cpu_ack);
++    if (busy_mem) $fatal(1, "Locked block acknowledged before pin completion");
++    @(negedge clk);
++    cpu_req = 0;
++    cpu_transfer(0, BASE+16, 0, 0, 32'hffac0382);
++    cpu_transfer(0, BASE+20, 0, 0, 32'hb931e74a);
++    cpu_transfer(0, BASE+24, 0, 0, 32'h8167a9c7);
++    cpu_transfer(0, BASE+28, 0, 0, 32'h9c271827);
++    $display("PASS stream locked block holds payload and ACKs after pin drain");
++''' + marker)
++for leg in ('reference', 'source'):
++    text = fixture
++    if leg == 'source':
++        marker = '.CPU_BLOCK_WRITES(1)'
++        assert text.count(marker) == 1
++        text = text.replace(marker, marker + ', .PRECAPTURE_BLOCK_DATA(1)')
++    (out / f'{leg}-stream.sv').write_text(text)
+diff --git a/scratch/v5-fit-loop/sdram-block-payload/record.py b/scratch/v5-fit-loop/sdram-block-payload/record.py
+new file mode 100644
+index 0000000..d0a2ddd
+--- /dev/null
++++ b/scratch/v5-fit-loop/sdram-block-payload/record.py
+@@ -0,0 +1,123 @@
++"""Seal SDRAM block-data production opt-in, scope and qualification evidence."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shlex
++
++
++stage = Path(__file__).resolve().parent
++root = stage.parents[2]
++out = root / 'build/sim/v5-104-sdram-block-payload'
++timer = root / 'build/sim/v5-104-timer-write-prepare'
++rtl = 'rtl/ngage_sdram_arbiter.v'
++top = 'Template.sv'
++bench = 'tests/phone/mmc_mister/tb.v'
++base = '9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e'
++tree = '0ccd13d8cd502bc14d3b89c6431ff0ebe4745612'
++
++
++def digest(path):
++    return sha256(path.read_bytes()).hexdigest()
++
++
++def read_json(path):
++    return json.loads(path.read_bytes())
++
++
++def marked(path, *prefixes):
++    return [row for row in path.read_text().splitlines() if row.startswith(prefixes)]
++
++
++def fingerprint(path, suffix):
++    matches = [shlex.split(line) for line in path.read_text().splitlines()
++               if line.startswith('S ') and line.endswith(f'{suffix}"')]
++    (match,) = matches
++    return match[-2]
++
++
++def validate_activation(path):
++    assert path.read_text().count('.PRECAPTURE_BLOCK_DATA(1)') == 1, path
++
++
++sources = {name: digest(stage / 'source' / name) for name in (rtl, top)}
++reference = {name: digest(stage / 'reference' / name) for name in (rtl, top)}
++assert all(reference[name] != sources[name] for name in (rtl, top))
++validate_activation(stage / 'source' / top)
++validate_activation(out / 'mixed/source' / bench)
++validate_activation(out / 'stream/source-stream.sv')
++assert digest(out / 'mixed/source' / rtl) == sources[rtl]
++
++miter = marked(out / 'arbiter/miter.log', 'PASS ')
++assert miter == [
++    'PASS cold tentative X, qualified capture and canceled block',
++    'PASS arbiter cycles=65543 blocks=3107 contention=1314 locked=1830 acknowledged=2924 held=2928 canceled=183 speculative=56305',
++]
++stream = marked(out / 'stream/source.log', 'SCRUB PASS', 'REFRESH PASS', 'PASS ')
++assert stream == marked(out / 'stream/reference.log', 'SCRUB PASS', 'REFRESH PASS', 'PASS ')
++assert 'bytes=16777216' in stream[0]
++assert len([row for row in stream if row.startswith('PASS stream pending block')]) == 1
++assert len([row for row in stream if row.startswith('PASS stream locked block')]) == 1
++
++mixed = out / 'mixed'
++fp = fingerprint(mixed / 'obj/Vtb__verFiles.dat', rtl)
++assert fp == fingerprint(out / 'stream/source/Vstream_tb__verFiles.dat', rtl)
++ref_fp = fingerprint(out / 'stream/reference/Vstream_tb__verFiles.dat', rtl)
++assert ref_fp != fp
++hashes = read_json(mixed / 'source-hashes.json')
++baseline_hashes = read_json(timer / 'mixed/source-hashes.json')
++assert len(hashes) == 114 and hashes.keys() == baseline_hashes.keys()
++assert {name for name in hashes if hashes[name] != baseline_hashes[name]} == {rtl, bench}
++assert hashes[rtl] == sources[rtl] and baseline_hashes[rtl] == reference[rtl]
++
++work = {}
++for kind, key, count in (('fixed', 'windows', 105), ('native', 'frames', 4)):
++    receipt = out / f'qualification/{kind}.json'
++    result = read_json(receipt)
++    baseline = read_json(timer / f'qualification/{kind}.json')
++    assert result['status'] == baseline['status'] == 'PASS'
++    assert result['rows'] == baseline['rows']
++    assert result['netlist_sha256'] == baseline['netlist_sha256']
++    assert sum(len(row['candidate'][key]) for row in result['rows']) == count
++    assert result['source_sha256'][Path(rtl).name] == sources[rtl]
++    validate_activation(out / f'qualification/{kind}.sv')
++    assert fingerprint(out / f'qualification/obj-{kind}/Vtb__verFiles.dat', rtl) == fp
++    work[kind] = {'count': count, 'receipt_sha256': digest(receipt)}
++native = result['rows'][0]['candidate']
++work['native']['cycles'] = [frame['clocks'] for frame in native['frames']]
++work['native']['guest_output_sha256'] = native['output_sha256']
++
++pins = {}
++for name, control, observed, log, count, cycles in (
++    ('normal', timer / 'mixed/traffic.log', 'mixed/traffic.log', 'mixed/replay.log', 171496, 1201547),
++    ('timer_overlap', timer / 'coexistence/candidate.trace', 'coexistence/candidate.trace',
++     'coexistence/candidate.log', 171497, 1201528),
++    ('cpu_block_eviction', out / 'block-guest/reference.trace', 'block-guest/source.trace',
++     'block-guest/source.log', 172060, 1204706),
++):
++    path = out / observed
++    assert digest(path) == digest(control)
++    traffic = path.read_text().splitlines()
++    assert len(traffic) == count
++    passes = marked(out / log, 'PASS ')
++    assert len(passes) == 4 and f'cycles={cycles} reads=4 writes=1' in passes[-1]
++    pins[name] = {'events': count, 'cycles': cycles, 'traffic_sha256': digest(path), 'passes': passes}
++    full_blocks = [row.split() for row in traffic if row.startswith('Q ') and row.split()[2] == '110']
++    assert len(full_blocks) == (4 if name == 'cpu_block_eviction' else 2)
++    if name == 'cpu_block_eviction':
++        assert full_blocks[2:] == [
++            ['Q', '1202872', '110', '001740', '66180deb65160ad2641407b9631204a0', 'ffff'],
++            ['Q', '1202874', '110', '001744', '6a201a4f691e1736681c141d671a1104', 'ffff'],
++        ]
++        pins[name]['cpu_block_commands'] = full_blocks[2:]
++
++pins['cpu_block_eviction']['guest_sha256'] = digest(out / 'block-guest/block-guest.hex')
++receipt = {'status': 'PASS', 'base': base, 'base_tree': tree, 'source_sha256': sources,
++           'reference_sha256': reference, 'compiled_arbiter_fingerprint': fp,
++           'reference_arbiter_fingerprint': ref_fp,
++           'design_patch_sha256': digest(stage / 'sdram-block-payload.patch'),
++           'fixture_patch_sha256': digest(stage / 'sdram-block-payload-replay.patch'),
++           'routes_sha256': digest(stage / 'routes.json'),
++           'simulator': (out / 'image.id').read_text().strip(), 'mixed_sources': len(hashes),
++           'directed_four_state_miter': miter, 'stream_pin_directed': stream,
++           'workload': work, 'physical_replays': pins}
++(stage / 'qualification.json').write_text(json.dumps(receipt, indent=2) + '\n')
+diff --git a/scratch/v5-fit-loop/sdram-block-payload/replay.py b/scratch/v5-fit-loop/sdram-block-payload/replay.py
+new file mode 100644
+index 0000000..3cf84ec
+--- /dev/null
++++ b/scratch/v5-fit-loop/sdram-block-payload/replay.py
+@@ -0,0 +1,184 @@
++"""Replay SDRAM block-data capture against the retained 104 MHz control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = repo / 'build/sim/v5-104-sdram-block-payload' / args.output
++work.mkdir(parents=True, exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(stage / 'source/tests/cpu/arm9v2_board'))
++import payload_clocks
++payload_clocks.OUT = repo / "build/sim"
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    assert bench.count('.CPU_BLOCK_WRITES(1)') == 1
++    bench = bench.replace('.CPU_BLOCK_WRITES(1)', '.CPU_BLOCK_WRITES(1), .PRECAPTURE_BLOCK_DATA(1)')
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_upp_peripherals.v', 'rtl/ngage_keypad.v', 'rtl/ngage_upp_euart.v', 'rtl/ngage_timers.v', 'rtl/ngage_sdram_arbiter.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/sdram-block-payload/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_upp_peripherals.v', 'ngage_keypad.v', 'ngage_upp_euart.v', 'ngage_timers.v', 'ngage_sdram_arbiter.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/sdram-block-payload/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((stage.parent/'prepared-wb-write-data'/'candidate'/f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                source_sha256={name:digest(stage / 'source/rtl' / name) for name in ('ngage_upp.v','ngage_upp_peripherals.v','ngage_upp_euart.v', 'ngage_timers.v','ngage_keypad.v','ngage_sdram_arbiter.v')}, rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/sdram-block-payload/routes.py b/scratch/v5-fit-loop/sdram-block-payload/routes.py
+new file mode 100644
+index 0000000..4aa5508
+--- /dev/null
++++ b/scratch/v5-fit-loop/sdram-block-payload/routes.py
+@@ -0,0 +1,32 @@
++"""Count the exact SDRAM arbiter block-payload setup endpoint family."""
++import csv
++import json
++from pathlib import Path
++import re
++
++
++stage = Path(__file__).resolve().parent
++root = stage.parents[2]
++runs = {13: 45824513460, 43: 45824520116, 31337: 45824525843}
++pattern = re.compile(r'\|ngage_sdram_arbiter:ram_arbiter\|mem_block_data\[\d+\](?:~\S+)?$')
++report = {}
++for seed, run in runs.items():
++    model = root / f'build/timing-audit-{run}/output_files/timing/resident-store/104'
++    corners = {}
++    report[seed] = {'run': run, 'corners': corners}
++    for here in sorted(model.glob('corner-*/setup.csv')):
++        name = (here.parent / 'operating-condition.txt').read_text().splitlines()[0].split()[1]
++        with here.open() as input_file:
++            rows = list(csv.DictReader(input_file))
++        assert len(rows) == 1000 and len(rows[0]) == 6
++        matches = [row for row in rows if pattern.search(row['to'])]
++        facts = {'source_file': str(here.relative_to(root)), 'paths': len(matches),
++                 'negative': sum(float(row['slack_ns']) < 0 for row in matches),
++                 'below_minus_1p5': sum(float(row['slack_ns']) < -1.5 for row in matches)}
++        if matches:
++            facts['worst'] = min(matches, key=lambda row: float(row['slack_ns']))
++        corners[name] = facts
++        worst = facts.get('worst', {}).get('slack_ns', 'none')
++        print(seed, name, facts['negative'], facts['below_minus_1p5'], worst)
++    assert len(corners) == 4
++(stage / 'routes.json').write_text(json.dumps(report, indent=2) + '\n')
+diff --git a/scratch/v5-fit-loop/sdram-block-payload/stream.sh b/scratch/v5-fit-loop/sdram-block-payload/stream.sh
+new file mode 100644
+index 0000000..108ecb1
+--- /dev/null
++++ b/scratch/v5-fit-loop/sdram-block-payload/stream.sh
+@@ -0,0 +1,23 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/sdram-block-payload
++out=build/sim/v5-104-sdram-block-payload/stream
++model=build/sim/unit-hardware-boot-real-sdram/mt48lc16m16a2-verilator.v
++mkdir -p "$out"
++python3 -B "$area/prepare-stream.py"
++for leg in reference source; do
++  base="$area/$leg"
++  test="$out/$leg-stream.sv"
++  # Reuse the pinned physical MT48LC16M16A2 pin model and the 104 MHz timer corner.
++  docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++    -w /work --entrypoint verilator jotego/simulator:arm64 --binary --timing --assert -j 2 \
++    -Wno-fatal -Wno-lint --top-module stream_tb -GSYS_HZ=104000000 --Mdir "$out/$leg" \
++    "$base/rtl/ngage_sdram_stream.v" "$base/rtl/sdram/ngage_sdram_scheduler.v" \
++    "$base/rtl/ngage_sdram_arbiter.v" "$base/rtl/ngage_sdram_clock.v" \
++    "$base/tests/phone/sdram/ddio_model.v" "$test" "$model" > "$out/$leg.build.log" 2>&1
++  docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++    -w /work --entrypoint "/work/$out/$leg/Vstream_tb" jotego/simulator:arm64 > "$out/$leg.log"
++  grep -E '^SCRUB PASS|^REFRESH PASS|^PASS stream' "$out/$leg.log" > "$out/$leg.pass"
++done
++cmp "$out/reference.pass" "$out/source.pass"
++cat "$out/source.pass"
