@@ -50,6 +50,7 @@ module ngage_upp_peripherals #(
               DDR_UPP_RAM        = 0,
               SYS_CLK_HZ         = 104000000,
               TIMER_CLK_DIV      = 1,
+              TIMER_PREDECODE    = 0,
               NOS_TICK_HZ        = 1000
 ) (
     input  wire        rst,
@@ -73,6 +74,8 @@ module ngage_upp_peripherals #(
     input  wire        we,
     input  wire [31:0] din,
     input  wire [ 3:0] sel,
+    input  wire [ 5:0] timer_count_write,
+    input  wire [ 5:0] timer_stop,
     input  wire        commit,                // authorize local access checks this cycle
     // configuration (from the harness command line)
     input  wire        cfg_lcd,               // lcd-probe option
@@ -418,8 +421,9 @@ module ngage_upp_peripherals #(
         .ready       (icu_ready)
     );
     ngage_timers #(
-        .CLOCK_DIV      (TIMER_CLK_DIV),
-        .PASSIVE_STORAGE(0)
+        .CLOCK_DIV       (TIMER_CLK_DIV),
+        .PASSIVE_STORAGE (0),
+        .PREDECODE_WRITES(TIMER_PREDECODE)
     ) timers (
         .clk            (clk),
         .reset          (rst),
@@ -429,6 +433,8 @@ module ngage_upp_peripherals #(
         .addr           (a),
         .din            (din),
         .sel            (sel),
+        .count_write_sel(timer_count_write),
+        .stop_sel       (timer_stop),
         // Masking the shared line must not acknowledge the timer producer.
         .clear_unit1    (1'b0),
         .claim          (timer_claim),

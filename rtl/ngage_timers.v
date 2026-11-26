@@ -3,8 +3,9 @@
 // Timer 0 supplies the OS tick; medint uses timer 3 with reload/count 390.
 // The board selects a 26 MHz enable (/3 at 78 MHz, /4 at 104 MHz).
 module ngage_timers #(
-    parameter integer CLOCK_DIV       = 1,
-                      PASSIVE_STORAGE = 1
+    parameter integer CLOCK_DIV        = 1,
+                      PASSIVE_STORAGE  = 1,
+                      PREDECODE_WRITES = 0
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -26,7 +27,9 @@ module ngage_timers #(
     input  wire        sysc74_seen,
     output wire [ 5:0] pending_sources,
     output wire        ready,
-    output wire [ 5:0] status_clear
+    output wire [ 5:0] status_clear,
+    input  wire [ 5:0] count_write_sel,
+    input  wire [ 5:0] stop_sel
 );
     wire [31:0] a = {addr[31:2], 2'b00};
     wire [ 2:0] unit_index = addr[7:5];
@@ -133,11 +136,16 @@ module ngage_timers #(
             reg [31:0] count, reload;
             reg status;
             reg running, pending;
-            reg  [31:0] data;
-            wire        hit = write_access && unit_index == t;
-            wire        count_write = hit && register_index == 4;
-            wire        stopping = hit && register_index == 1 && din[1:0] == 0;
-            wire        expiry = timer_ce && running && count == 1 && !count_write && !stopping;
+            reg [31:0] data;
+            wire hit = write_access && unit_index == t;
+            // The held decode is qualified by local access on the original
+            // edge, after live cancellation and before the response is held.
+            wire count_write = PREDECODE_WRITES ? commit && count_write_sel[t] :
+                hit && register_index == 4;
+            wire stopping = PREDECODE_WRITES ? commit && stop_sel[t] :
+                hit && register_index == 1 && din[1:0] == 0;
+            wire tick_count = timer_ce && running && !count_write && !stopping;
+            wire expiry = tick_count && count == 1;
             assign status_clear[t]    = count_write || expiry;
             assign pending_sources[t] = pending;
             assign periodic[t]        = running && control[1] && reload != 0;
@@ -165,7 +173,13 @@ module ngage_timers #(
                     running <= 0;
                     pending <= 0;
                 end else begin
-                    if (timer_ce && running && !count_write && !stopping) begin
+                    if (count_write) begin
+                        count  <= din;
+                        // Original 50323f4c programs and polls again without
+                        // ACK. A new deadline clears status and retains IRQ.
+                        status <= 0;
+                        if (control[1:0] != 0) running <= 1;
+                    end else if (tick_count) begin
                         // Zero wraps naturally: a zero load takes 2^32 enables.
                         if (count == 1) begin
                             count <= control[1] ? reload : 0;
@@ -183,15 +197,6 @@ module ngage_timers #(
                             2: begin
                                 status  <= din[0];
                                 pending <= 0;
-                            end
-                            4: begin
-                                count  <= din;
-                                // Original 50323f4c programs and polls again
-                                // without ACK: completion belongs to the new
-                                // deadline. This transaction-level inference
-                                // does not acknowledge an older IRQ event.
-                                status <= 0;
-                                if (control[1:0] != 0) running <= 1;
                             end
                             6: reload <= din;
                         endcase

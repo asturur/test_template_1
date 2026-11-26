@@ -200,6 +200,7 @@ module ngage_upp #(
     wire mmc_rx_ready, mmc_tx_ready, mmc_route_ready, mmc_read_waiting, mmc_write_waiting;
     wire [4:0] dma_packet_decode;
     wire [7:0] dma_packet_targets;
+    wire [5:0] timer_packet_count_write, timer_packet_stop;
     generate
         if (INTERNAL_CPU) begin : cpu_inside
             wire master_cyc, master_stb, master_we, master_code;
@@ -315,28 +316,31 @@ module ngage_upp #(
             // selection nor its wide address/lane mux crosses device command
             // decode in the same cycle. Fast SDRAM/LCD streams bypass this bus.
             ngage_upp_request_stage #(
-                .EXPLICIT_LIVE(1),
-                .DMA_PREDECODE(GENERAL_DMA)
+                .EXPLICIT_LIVE  (1),
+                .DMA_PREDECODE  (GENERAL_DMA),
+                .TIMER_PREDECODE(1)
             ) request_stage (
-                .clk        (clk),
-                .reset      (rst),
-                .in_cyc     (dma_bus_active || cpu_bus_cyc),
-                .in_stb     (dma_bus_active || cpu_bus_stb),
-                .in_live    (dma_bus_active || cpu_bus_live),
-                .in_we      (dma_bus_active ? dma_write : cpu_bus_we),
-                .in_code    (!dma_bus_active && cpu_bus_code),
-                .in_address (dma_bus_active ? dma_addr : cpu_bus_adr),
-                .in_data    (dma_bus_active ? dma_data : cpu_bus_din),
-                .in_sel     (dma_bus_active ? dma_be : cpu_bus_sel),
-                .out_cyc    (bus_cyc),
-                .out_stb    (bus_stb),
-                .out_we     (bus_we),
-                .out_code   (bus_code),
-                .out_address(bus_adr),
-                .out_data   (bus_din),
-                .out_sel    (bus_sel),
-                .out_dma_ctl(dma_packet_decode),
-                .out_dma_ch (dma_packet_targets)
+                .clk              (clk),
+                .reset            (rst),
+                .in_cyc           (dma_bus_active || cpu_bus_cyc),
+                .in_stb           (dma_bus_active || cpu_bus_stb),
+                .in_live          (dma_bus_active || cpu_bus_live),
+                .in_we            (dma_bus_active ? dma_write : cpu_bus_we),
+                .in_code          (!dma_bus_active && cpu_bus_code),
+                .in_address       (dma_bus_active ? dma_addr : cpu_bus_adr),
+                .in_data          (dma_bus_active ? dma_data : cpu_bus_din),
+                .in_sel           (dma_bus_active ? dma_be : cpu_bus_sel),
+                .out_cyc          (bus_cyc),
+                .out_stb          (bus_stb),
+                .out_we           (bus_we),
+                .out_code         (bus_code),
+                .out_address      (bus_adr),
+                .out_data         (bus_din),
+                .out_sel          (bus_sel),
+                .out_dma_ctl      (dma_packet_decode),
+                .out_dma_ch       (dma_packet_targets),
+                .timer_count_write(timer_packet_count_write),
+                .timer_stop       (timer_packet_stop)
             );
 
             always @(posedge clk) begin
@@ -472,6 +476,8 @@ module ngage_upp #(
             assign ram_response = 0;
             assign dma_packet_decode = 0;
             assign dma_packet_targets = 0;
+            assign timer_packet_count_write = 0;
+            assign timer_packet_stop = 0;
             assign bus_code = 1'b0;
             assign bus_cyc = ext_cyc;
             assign bus_stb = ext_stb;
@@ -631,6 +637,7 @@ module ngage_upp #(
         .TIMER_CLK_DIV     (TIMER_CLK_DIV),
         .NOS_TICK_HZ       (NOS_TICK_HZ),
         .REGISTER_RESPONSES(INTERNAL_CPU),
+        .TIMER_PREDECODE   (INTERNAL_CPU),
         .LCD_QUEUE_ENABLE  (LCD_QUEUE_ENABLE),
         .SIMIF_ENABLE      (SIMIF_ENABLE),
         .KEYPAD_ENABLE     (KEYPAD_ENABLE)
@@ -676,6 +683,8 @@ module ngage_upp #(
         .din                 (bus_din),
         .sel                 (bus_sel),
         .commit              (bus_access),
+        .timer_count_write   (timer_packet_count_write),
+        .timer_stop          (timer_packet_stop),
         .dma_shadow_claim    (lcd_dma_claim),
         .lcd_direct_collision(lcd_dma_valid && bus_we && bus_adr == 32'h0c121208),
         .response_pending    (peripheral_response_pending),
@@ -932,8 +941,9 @@ endmodule
 // DMA gap provide the request-low edge. Cancellation immediately suppresses
 // side effects, while an already captured downstream transaction may drain.
 module ngage_upp_request_stage #(
-    parameter EXPLICIT_LIVE = 0,
-              DMA_PREDECODE = 0
+    parameter EXPLICIT_LIVE   = 0,
+              DMA_PREDECODE   = 0,
+              TIMER_PREDECODE = 0
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -953,7 +963,9 @@ module ngage_upp_request_stage #(
     output reg  [31:0] out_data,
     output reg  [ 3:0] out_sel,
     output wire [ 4:0] out_dma_ctl,
-    output wire [ 7:0] out_dma_ch
+    output wire [ 7:0] out_dma_ch,
+    output wire [ 5:0] timer_count_write,
+    output wire [ 5:0] timer_stop
 );
     (* dont_retime *)reg  valid = 0;
     wire offered = in_cyc && in_stb;
@@ -994,6 +1006,33 @@ module ngage_upp_request_stage #(
         end else begin : no_dma_packet
             assign out_dma_ctl = 0;
             assign out_dma_ch  = 0;
+        end
+    endgenerate
+    generate
+        if (TIMER_PREDECODE) begin : timer_packet
+            // The peripheral fabric word-aligns addresses before timer decode.
+            wire timer_write = in_we && (&in_sel) && in_address[31:8] == 24'h0c120a;
+            wire count_write = timer_write && in_address[4:2] == 4;
+            wire stop = timer_write && in_address[4:2] == 1 && in_data[1:0] == 0;
+            genvar unit_index;
+            for (unit_index = 0; unit_index < 6; unit_index = unit_index + 1) begin : timer_unit
+                wire same_unit = in_address[7:5] == unit_index;
+                (* dont_retime *) reg held_count_write, held_stop;
+                always @(posedge clk) begin
+                    if (reset) begin
+                        held_count_write <= 0;
+                        held_stop        <= 0;
+                    end else if (!valid && offered) begin
+                        held_count_write <= count_write && same_unit;
+                        held_stop        <= stop && same_unit;
+                    end
+                end
+                assign timer_count_write[unit_index] = held_count_write;
+                assign timer_stop[unit_index]        = held_stop;
+            end
+        end else begin : no_timer_packet
+            assign timer_count_write = 0;
+            assign timer_stop        = 0;
         end
     endgenerate
     always @(posedge clk) begin
