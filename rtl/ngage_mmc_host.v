@@ -210,7 +210,6 @@ module ngage_mmc_host #(
     reg        nocrc;
     reg [12:0] blen;  // bytes in the block of the data phase
     reg [12:0] nfifo;  // bytes the bus has taken from / given to the FIFO
-    (* dont_retime *)reg [ 9:0] nfifo_group_ahead;
     reg [12:0] nrx;  // bytes received from the card into the FIFO
     reg [12:0] ntx;  // bytes taken from the FIFO for the card
 
@@ -250,10 +249,6 @@ module ngage_mmc_host #(
     // a FIFO read takes the bytes it asks for that are there (busy waits
     // while more are coming), the rest of the lanes read 0
     wire    [ 2:0] fifo_take = !rx_phase ? 3'd0 : (fcnt < need_f) ? fcnt[2:0] : need[2:0];
-    wire           cpu_fifo_read = rd && fifo_rd && rx_phase;
-    wire           cpu_fifo_write = wr && fifo_wr && tx_phase;
-    wire    [ 2:0] bus_bytes = tx_phase ? need : fifo_take;
-    wire    [ 3:0] next_group_low = {1'b0, nfifo[2:0]} + {1'b0, bus_bytes};
     reg     [ 2:0] fifo_lane;
     integer        fifo_index_lane;
     reg     [31:0] fifo_word;
@@ -348,21 +343,6 @@ module ngage_mmc_host #(
     wire [ 3:0] sty = wdata[5:2];
     wire        s_cmd = !(sty == 4'd6 || sty == 4'd9);
     wire [12:0] len_eff = (len_reg != 13'd0) ? len_reg : blocklen;
-
-    // An access moves up to four bytes. Prepare the next group of eight
-    // so the late bus grant only selects the new counter bits.
-    always @(posedge clk) begin
-        if (reset || start) begin
-            nfifo             <= 13'd0;
-            nfifo_group_ahead <= 10'd1;
-        end else if (cpu_fifo_read || cpu_fifo_write) begin
-            nfifo[2:0] <= next_group_low[2:0];
-            if (next_group_low[3]) begin
-                nfifo[12:3]       <= nfifo_group_ahead;
-                nfifo_group_ahead <= nfifo_group_ahead + 10'd1;
-            end
-        end
-    end
 
     always @* begin
         cmd_need = cstate != C_IDLE && cstate != C_AFTER;
@@ -638,10 +618,11 @@ module ngage_mmc_host #(
         // ---- the FIFO ----
         npush = 3'd0;
         npop  = 3'd0;
-        if (cpu_fifo_read) begin
+        if (rd && fifo_rd && rx_phase) begin
             npop = fifo_take;
+            nfifo <= nfifo + {10'd0, fifo_take};
         end
-        if (cpu_fifo_write) begin
+        if (wr && fifo_wr && tx_phase) begin
             k = 3'd0;
             for (write_lane = 0; write_lane < 4; write_lane = write_lane + 1) begin
                 if (be[write_lane] && {10'd0, k} < rem) begin
@@ -650,6 +631,7 @@ module ngage_mmc_host #(
                 end
             end
             npush = k;
+            nfifo <= nfifo + {10'd0, k};
         end
         if (push1) begin
             fmem[fwp] <= pbyte;
@@ -675,6 +657,7 @@ module ngage_mmc_host #(
             fwp        <= {FAW{1'b0}};
             frp        <= {FAW{1'b0}};
             fcnt       <= {(FAW + 1) {1'b0}};
+            nfifo      <= 13'd0;
             nrx        <= 13'd0;
             ntx        <= 13'd0;
             gap        <= 2'd0;
@@ -720,6 +703,7 @@ module ngage_mmc_host #(
             fwp        <= {FAW{1'b0}};
             frp        <= {FAW{1'b0}};
             fcnt       <= {(FAW + 1) {1'b0}};
+            nfifo      <= 13'd0;
             nrx        <= 13'd0;
             ntx        <= 13'd0;
             blen       <= 13'd0;
