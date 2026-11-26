@@ -36,6 +36,11 @@ Reset and request withdrawal still clear valid on the original edge. Current req
 
 [Qualification receipt](../../evidence/v5-104-upp-claim-presence.json)
 
+The [combination with refill readiness and SDRAM payload capture](upp-claim-refill-payload.md)
+matches all benchmark windows and four physical replays against that
+control. This includes the CPU's packed block eviction and a warm reset
+with an active HPS MMC transfer.
+
 ## Reproduction
 
 Use the cached Jotego ARM64 simulator, the frozen fixed/native inputs under `build/sim/{payload-clocks,polycount}/v5-104-all-four-ram-candidate`, the compile deck `scratch/refill-issue-739d3bd/leg`, the prepared Wishbone reference receipts and the exact timer replays under `build/sim/v5-104-timer-write-prepare`. The timer mixed deck provides the cached physical memory model and expected traffic. The modified bench for warm Hold uses the same guest images and a matched trial/reference build. The archived `peripheral-lane13.patch` supplies the common held UPP overlap test, with only its experimental interface predecode removed from the copied test.

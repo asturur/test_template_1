@@ -1,0 +1,101 @@
+{
+  "status": "PASS",
+  "base": "ab75a622a80a5aedae347f63ae195f3da965815a",
+  "candidate": "96d108d2e44b3e3b630820fe2fa43f9e13cce702",
+  "tree": "f39825ce22645805f4176bba4fd19d244ef046dc",
+  "source_sha256": {
+    "rtl/ngage_upp_peripherals.v": "9dac7a372428e6e422eaf8e57894febe415fc9d65a76fb0a17667621df0db80c",
+    "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6",
+    "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+    "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11"
+  },
+  "compiled_fingerprints": {
+    "rtl/ngage_upp_peripherals.v": "nax6NyQo5uQi6vjleJTAvkFfydZadvsKF2Z2Id8N",
+    "rtl/ngage_cpu.sv": "B9PsbojT92cemgwx79rvWm1tIExBUFlmourobfjv",
+    "rtl/ngage_sdram_arbiter.v": "LUUQQwsWcu5WwBk5zel0U20bijXme6A9AiI14P5J"
+  },
+  "physical": {
+    "normal": {
+      "count": 171496,
+      "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+      "passes": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+      ]
+    },
+    "timer_overlap": {
+      "count": 171497,
+      "trace_sha256": "0e9fb47c965bab211b315c129e08effab414ed1ccc9e579aee4d56d9d29ba824",
+      "passes": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201528 reads=4 writes=1"
+      ]
+    },
+    "cpu_block_eviction": {
+      "count": 172060,
+      "trace_sha256": "c179009830b72ecb8aa10278e73e878c3cd1b0c34d2f3bab7afacaf084766317",
+      "passes": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1204706 reads=4 writes=1"
+      ],
+      "writes": [
+        [
+          "Q",
+          "1202872",
+          "110",
+          "001740",
+          "66180deb65160ad2641407b9631204a0",
+          "ffff"
+        ],
+        [
+          "Q",
+          "1202874",
+          "110",
+          "001744",
+          "6a201a4f691e1736681c141d671a1104",
+          "ffff"
+        ]
+      ]
+    },
+    "warm_hold": {
+      "count": 171518,
+      "trace_sha256": "07177926dd5e174b19db23220b807531c2f7b8f0c6ca13316641d7b50e2d6a80",
+      "passes": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=015ec64f",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=726 PCM ticks=2 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1203504 reads=5 writes=1"
+      ]
+    }
+  },
+  "workload": {
+    "fixed": {
+      "matched": 105,
+      "receipt_sha256": "d827172bf000c44d79b7fa3dc80daf479282b72ebbf1fca84878cb0a4c12662c",
+      "repeated_cases": 15,
+      "rejected_negative_controls": 15
+    },
+    "native": {
+      "matched": 4,
+      "receipt_sha256": "db16ed74b1e719236d7bef211a29620caf4178386f710a24075136b53b9a31be",
+      "frame_clocks": [
+        14391395,
+        14467552,
+        14346201,
+        14303223
+      ],
+      "guest_output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77"
+    }
+  },
+  "preflight_sha256": "f58d47d2c27f3e16d2bbe95daad662bd7d45ae5a1025df8655c829ff8409547b",
+  "standalone_qualification_sha256": "7eab96a46ea307256ba05aeb25029b39ee3de73e426afc2ac1ff66e047f291e1",
+  "mixed_source_count": 114,
+  "image": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "helper_patch_sha256": "500744e556814cb637948e564a1a329b2f8b4ee2009f936e91bfd54054cdab21"
+}
