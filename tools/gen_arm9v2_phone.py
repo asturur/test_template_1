@@ -894,6 +894,121 @@ endmodule
     return ''.join(parts)
 
 
+def compact_background_load_lock(phone):
+    """Store only the one live load tag and its validity in the phone D-cache."""
+    parts = re.split(r'(?=^module )', phone, flags=re.M)
+    index = {part.split()[1]: i for i, part in enumerate(parts) if part.startswith('module ')}
+    fsm = index['ngage2_zap_dcache_fsm']
+    cache = index['ngage2_zap_dcache']
+    top = index['ngage2_zap_top']
+    wrapper = index['ngage2_arm925t']
+    for module, last_param in ((fsm, "\tparameter [31:0] WAYS = 32'd1;"),
+                               (cache, "\tparameter [31:0] CPSR_MODE = 32'd4;"),
+                               (top, "\tparameter [3:0] TERMINAL_EXCEPTION = 4'b0010;")):
+        parts[module] = edit(parts[module], last_param,
+                             last_param + "\n    parameter COMPACT_LOCK = 1'b0;")
+    parts[wrapper] = edit(parts[wrapper], '\t\t.CODE_SPAGE_TLB_WAYS(ITLB_SPAGE_WAYS)\n',
+                          "\t\t.CODE_SPAGE_TLB_WAYS(ITLB_SPAGE_WAYS),\n        .COMPACT_LOCK(1'b1)\n")
+    parts[top] = edit(parts[top], "\t\t\t\t.LOCK_SPLIT(1'b1),\n",
+                      "\t\t\t\t.LOCK_SPLIT(1'b1),\n                .COMPACT_LOCK(COMPACT_LOCK),\n")
+    parts[cache] = edit(parts[cache], '\t\t.LOCK_SPLIT(LOCK_SPLIT)\n',
+                        '\t\t.LOCK_SPLIT(LOCK_SPLIT),\n        .COMPACT_LOCK(COMPACT_LOCK)\n')
+
+    part = parts[fsm]
+    start = part.index('\treg [63:0] lock_nxt;\n')
+    end = part.index('\treg victim_valid;', start)
+    part = part[:start] + '''    reg lock_set_nxt;
+    wire held_set = lock_set_nxt && (i_reg_idx_bin == i_lock_owner_hold);
+    wire advance_set = lock_set_nxt && (i_reg_idx_bin == i_lock_owner_advance);
+    wire [63:0] lock_visible;
+    wire lock_any_nxt;
+    wire critical_take;
+    (* keep *) wire owner_held_locked;
+    (* keep *) wire owner_advance_locked;
+
+    generate
+        if (COMPACT_LOCK) begin : g_compact_lock
+            // Sample the same critical beat as the full CPU return mask.
+            (* dont_retime *) reg return_ff;
+            always @(posedge i_clk)
+                if (i_reset) return_ff <= 1'b0;
+                else         return_ff <= critical_take;
+
+            wire lock_remains = o_lock_any && !return_ff;
+            assign lock_any_nxt = lock_set_nxt || lock_remains;
+            assign owner_held_locked = (lock_remains && (o_lock_tag == i_lock_owner_hold)) || held_set;
+            assign owner_advance_locked = (lock_remains && (o_lock_tag == i_lock_owner_advance)) || advance_set;
+            assign lock_visible = o_lock_any ? (64'd1 << o_lock_tag) : 64'd0;
+
+            // synthesis translate_off
+            always @(posedge i_clk)
+                if (!i_reset) begin
+                    if (lock_set_nxt && i_reg_idx !== (64'd1 << i_reg_idx_bin))
+                        $fatal(1, "New D-cache lock return mask disagrees with its tag");
+                    if (o_lock_any && return_ff !== o_reg_idx[o_lock_tag])
+                        $fatal(1, "D-cache critical return disagrees with the owned tag");
+                    if (lock_set_nxt && lock_remains && i_reg_idx_bin != o_lock_tag)
+                        $fatal(1, "D-cache installed a second outstanding lock");
+                end
+            // synthesis translate_on
+        end else begin : g_bitmap_lock
+            reg [63:0] lock_ff;
+            reg [63:0] lock_nxt;
+
+            always @(*) begin
+                lock_nxt = lock_ff & ~o_reg_idx;
+                case (lock_set_nxt)
+                    1'b0: ;
+                    1'b1: lock_nxt[i_reg_idx_bin] = 1'b1;
+                    default: lock_nxt = 64'bx;
+                endcase
+            end
+
+            always @(posedge i_clk)
+                if (i_reset) lock_ff <= 64'd0;
+                else         lock_ff <= lock_nxt;
+
+            assign lock_any_nxt = |lock_nxt;
+            assign owner_held_locked = LOCK_SPLIT ?
+                (lock_ff[i_lock_owner_hold] && !o_reg_idx[i_lock_owner_hold]) || held_set :
+                lock_nxt[i_lock_owner_hold];
+            assign owner_advance_locked = LOCK_SPLIT ?
+                (lock_ff[i_lock_owner_advance] && !o_reg_idx[i_lock_owner_advance]) || advance_set :
+                lock_nxt[i_lock_owner_advance];
+            assign lock_visible = lock_ff;
+
+            // synthesis translate_off
+            always @(posedge i_clk)
+                if (!i_reset && lock_ff !== (o_lock_any ? (64'd1 << o_lock_tag) : 64'd0))
+                    $fatal(1, "Background load tag disagrees with D-cache lock bitmap");
+            // synthesis translate_on
+        end
+    endgenerate
+''' + part[end:]
+    part = edit(part, '\twire critical_take;\n', '')
+    part = edit(part, "\t\t\tlock_ff <= 64'd0;\n", '')
+    part = edit(part, '''\t\t\tlock_ff <= lock_nxt;
+\t\t\to_lock_any <= |lock_nxt;
+            // Only IDLE can install a new background read lock. The
+            // bitmap's registered nonempty bit qualifies the held tag.
+''', '\t\t\to_lock_any <= lock_any_nxt;\n')
+    part = edit(part, '\t\tlock_nxt = lock_ff & ~o_reg_idx;\n', '')
+    part = edit(part, '\t\to_lock = lock_ff;\n', '\t\to_lock = lock_visible;\n')
+    install = "\t\t\t\t\t\t\t\t\t\tlock_nxt[i_reg_idx_bin] = 1'd1;\n"
+    if part.count(install) != 2:
+        raise ValueError('Expected both read miss install branches')
+    part = part.replace(install, '')
+    part = edit(part, "\t\t\t\tlock_nxt = 1'sbx;\n", '')
+    part = edit(part, '''    // synthesis translate_off
+    always @(posedge i_clk)
+        if (!i_reset && lock_ff !== (o_lock_any ? (64'd1 << o_lock_tag) : 64'd0))
+            $fatal(1, "Background load tag disagrees with D-cache lock bitmap");
+    // synthesis translate_on
+''', '')
+    parts[fsm] = part
+    return ''.join(parts)
+
+
 def resolve_execute_forward_candidates(phone):
     """Resolve each possible A-entry/hold grant in parallel with W completion."""
     parts = re.split(r'(?=^module )', phone, flags=re.M)
@@ -1379,6 +1494,7 @@ def main():
     generated = predecode_refill_candidates(half_dirty_writeback(generated))
     generated = predecode_dcache_write_enable(generated)
     generated = register_background_load_tag(generated)
+    generated = compact_background_load_lock(generated)
     generated = resolve_execute_forward_candidates(generated)
     generated = split_execute_readiness(generated)
     generated = move_fetch_payload_to_ram(generated)

@@ -141,7 +141,8 @@ module ngage2_arm925t (
 		.DATA_SPAGE_TLB_ENTRIES(DTLB_SPAGE_SETS),
 		.DATA_SPAGE_TLB_WAYS(DTLB_SPAGE_WAYS),
 		.CODE_SPAGE_TLB_ENTRIES(ITLB_SPAGE_SETS),
-		.CODE_SPAGE_TLB_WAYS(ITLB_SPAGE_WAYS)
+		.CODE_SPAGE_TLB_WAYS(ITLB_SPAGE_WAYS),
+        .COMPACT_LOCK(1'b1)
 	) u_zap(
 		.i_block_enable(block_enable),
 		.o_write_block(bus_write_block),
@@ -9736,6 +9737,7 @@ module ngage2_zap_dcache_fsm (
 	parameter [3:0] EXT_ABORT_FS = 4'b0010;
 	parameter [0:0] HALF_WRITEBACK = 1'b0;
 	parameter [31:0] WAYS = 32'd1;
+    parameter COMPACT_LOCK = 1'b0;
 	input wire i_clk;
 	input wire i_reset;
 	input wire [31:0] i_address;
@@ -10349,13 +10351,73 @@ module ngage2_zap_dcache_fsm (
 	assign o_wb_bte_nxt = (state_ff[FETCH_SINGLE] && (CACHE_LINE == 16) ? 2'b01 : 2'b00);
 	reg [(WAYS > 1 ? $clog2(WAYS) : 1) - 1:0] way;
 	reg [63:0] reg_idx;
-	reg [63:0] lock_nxt;
-	reg [63:0] lock_ff;
-	reg lock_set_nxt;
-	wire held_set = lock_set_nxt && (i_reg_idx_bin == i_lock_owner_hold);
-	wire advance_set = lock_set_nxt && (i_reg_idx_bin == i_lock_owner_advance);
-	(* keep *) wire owner_held_locked = (LOCK_SPLIT ? (lock_ff[i_lock_owner_hold] && !o_reg_idx[i_lock_owner_hold]) || held_set : lock_nxt[i_lock_owner_hold]);
-	(* keep *) wire owner_advance_locked = (LOCK_SPLIT ? (lock_ff[i_lock_owner_advance] && !o_reg_idx[i_lock_owner_advance]) || advance_set : lock_nxt[i_lock_owner_advance]);
+    reg lock_set_nxt;
+    wire held_set = lock_set_nxt && (i_reg_idx_bin == i_lock_owner_hold);
+    wire advance_set = lock_set_nxt && (i_reg_idx_bin == i_lock_owner_advance);
+    wire [63:0] lock_visible;
+    wire lock_any_nxt;
+    wire critical_take;
+    (* keep *) wire owner_held_locked;
+    (* keep *) wire owner_advance_locked;
+
+    generate
+        if (COMPACT_LOCK) begin : g_compact_lock
+            // Sample the same critical beat as the full CPU return mask.
+            (* dont_retime *) reg return_ff;
+            always @(posedge i_clk)
+                if (i_reset) return_ff <= 1'b0;
+                else         return_ff <= critical_take;
+
+            wire lock_remains = o_lock_any && !return_ff;
+            assign lock_any_nxt = lock_set_nxt || lock_remains;
+            assign owner_held_locked = (lock_remains && (o_lock_tag == i_lock_owner_hold)) || held_set;
+            assign owner_advance_locked = (lock_remains && (o_lock_tag == i_lock_owner_advance)) || advance_set;
+            assign lock_visible = o_lock_any ? (64'd1 << o_lock_tag) : 64'd0;
+
+            // synthesis translate_off
+            always @(posedge i_clk)
+                if (!i_reset) begin
+                    if (lock_set_nxt && i_reg_idx !== (64'd1 << i_reg_idx_bin))
+                        $fatal(1, "New D-cache lock return mask disagrees with its tag");
+                    if (o_lock_any && return_ff !== o_reg_idx[o_lock_tag])
+                        $fatal(1, "D-cache critical return disagrees with the owned tag");
+                    if (lock_set_nxt && lock_remains && i_reg_idx_bin != o_lock_tag)
+                        $fatal(1, "D-cache installed a second outstanding lock");
+                end
+            // synthesis translate_on
+        end else begin : g_bitmap_lock
+            reg [63:0] lock_ff;
+            reg [63:0] lock_nxt;
+
+            always @(*) begin
+                lock_nxt = lock_ff & ~o_reg_idx;
+                case (lock_set_nxt)
+                    1'b0: ;
+                    1'b1: lock_nxt[i_reg_idx_bin] = 1'b1;
+                    default: lock_nxt = 64'bx;
+                endcase
+            end
+
+            always @(posedge i_clk)
+                if (i_reset) lock_ff <= 64'd0;
+                else         lock_ff <= lock_nxt;
+
+            assign lock_any_nxt = |lock_nxt;
+            assign owner_held_locked = LOCK_SPLIT ?
+                (lock_ff[i_lock_owner_hold] && !o_reg_idx[i_lock_owner_hold]) || held_set :
+                lock_nxt[i_lock_owner_hold];
+            assign owner_advance_locked = LOCK_SPLIT ?
+                (lock_ff[i_lock_owner_advance] && !o_reg_idx[i_lock_owner_advance]) || advance_set :
+                lock_nxt[i_lock_owner_advance];
+            assign lock_visible = lock_ff;
+
+            // synthesis translate_off
+            always @(posedge i_clk)
+                if (!i_reset && lock_ff !== (o_lock_any ? (64'd1 << o_lock_tag) : 64'd0))
+                    $fatal(1, "Background load tag disagrees with D-cache lock bitmap");
+            // synthesis translate_on
+        end
+    endgenerate
 	reg victim_valid;
 	reg [1:0] wt_halves;
 	reg wt_hit;
@@ -10363,7 +10425,6 @@ module ngage2_zap_dcache_fsm (
 	reg [5:0] ldfmt;
 	reg [31:0] unc_dat_ff;
 	(* dont_retime *) reg [31:0] reg_dat_ff;
-	wire critical_take;
 	reg unc_err_ff;
 	reg uncached_ff;
 	wire unused;
@@ -10480,7 +10541,6 @@ module ngage2_zap_dcache_fsm (
 			cache_inv_req_ff <= 0;
 			line_req_ff <= 0;
 			adr_ctr_ff <= 0;
-			lock_ff <= 64'd0;
 			o_lock_any <= 0;
 			o_lock_tag <= 0;
 			o_lock_owner <= 0;
@@ -10500,10 +10560,7 @@ module ngage2_zap_dcache_fsm (
 			cache_inv_req_ff <= cache_inv_req_nxt;
 			line_req_ff <= line_req_nxt;
 			adr_ctr_ff <= adr_ctr_nxt;
-			lock_ff <= lock_nxt;
-			o_lock_any <= |lock_nxt;
-            // Only IDLE can install a new background read lock. The
-            // bitmap's registered nonempty bit qualifies the held tag.
+			o_lock_any <= lock_any_nxt;
             if (lock_set_nxt) o_lock_tag <= i_reg_idx_bin;
 			o_lock_owner <= (i_lock_owner_move ? owner_advance_locked : owner_held_locked);
 			o_lock_return <= owner_held_locked;
@@ -10718,14 +10775,13 @@ module ngage2_zap_dcache_fsm (
 		o_wb_adr_nxt = o_wb_adr_ff;
 		o_wb_dat_nxt = o_wb_dat_ff;
 		o_wb_cti_nxt = o_wb_cti_ff;
-		lock_nxt = lock_ff & ~o_reg_idx;
 		lock_set_nxt = 1'd0;
 		o_wb_wen_nxt = o_wb_wen_ff;
 		o_wb_sel_nxt = o_wb_sel_ff;
 		cache_clean_req_nxt = cache_clean_req_ff;
 		cache_inv_req_nxt = cache_clean_req_ff;
 		line_req_nxt = line_req_ff;
-		o_lock = lock_ff;
+		o_lock = lock_visible;
 		o_fsr = 0;
 		o_far = 0;
 		o_cache_inv_done = 0;
@@ -10814,7 +10870,6 @@ module ngage2_zap_dcache_fsm (
 								2'b01: begin
 									idle_ack = 1'd1;
 									if (i_rd) begin
-										lock_nxt[i_reg_idx_bin] = 1'd1;
 										lock_set_nxt = 1'd1;
 									end
 									if (cache_dirty && victim_alias) begin
@@ -10834,7 +10889,6 @@ module ngage2_zap_dcache_fsm (
 									state_nxt[IDLE] = 1'd0;
 									state_nxt[FETCH_SINGLE] = 1'd1;
 									if (i_rd) begin
-										lock_nxt[i_reg_idx_bin] = 1'd1;
 										lock_set_nxt = 1'd1;
 									end
 								end
@@ -10991,7 +11045,6 @@ module ngage2_zap_dcache_fsm (
 				o_wb_adr_nxt = 1'sbx;
 				o_wb_dat_nxt = 1'sbx;
 				o_wb_cti_nxt = 1'sbx;
-				lock_nxt = 1'sbx;
 				lock_set_nxt = 1'sbx;
 				o_wb_wen_nxt = 1'sbx;
 				o_wb_sel_nxt = 1'sbx;
@@ -11011,11 +11064,6 @@ module ngage2_zap_dcache_fsm (
 		endcase
 	end
 	initial _sv2v_0 = 0;
-    // synthesis translate_off
-    always @(posedge i_clk)
-        if (!i_reset && lock_ff !== (o_lock_any ? (64'd1 << o_lock_tag) : 64'd0))
-            $fatal(1, "Background load tag disagrees with D-cache lock bitmap");
-    // synthesis translate_on
 endmodule
 module ngage2_zap_dcache (
 	i_clk,
@@ -11133,6 +11181,7 @@ module ngage2_zap_dcache (
 	parameter [3:0] EXT_ABORT_FS = 4'b0010;
 	parameter [31:0] WAYS = 32'd1;
 	parameter [31:0] CPSR_MODE = 32'd4;
+    parameter COMPACT_LOCK = 1'b0;
 	input wire i_clk;
 	input wire i_reset;
 	input wire i_stall;
@@ -11622,7 +11671,8 @@ module ngage2_zap_dcache (
 		.EXT_ABORT_FS(EXT_ABORT_FS),
 		.WAYS(WAYS),
 		.FLAT_ACK(FLAT_ACK),
-		.LOCK_SPLIT(LOCK_SPLIT)
+		.LOCK_SPLIT(LOCK_SPLIT),
+        .COMPACT_LOCK(COMPACT_LOCK)
 	) u_zap_cache_fsm(
 		.i_block_enable(i_block_enable),
 		.o_write_block(victim_write_block),
@@ -15392,6 +15442,7 @@ module ngage2_zap_top (
 	localparam [3:0] FSR_PAGE_PERMISSION_FAULT = 4'b1111;
 	localparam [3:0] FSR_L2_EXTERNAL_ABORT = 4'b1110;
 	parameter [3:0] TERMINAL_EXCEPTION = 4'b0010;
+    parameter COMPACT_LOCK = 1'b0;
 	localparam [3:0] AND = 4'd0;
 	localparam [3:0] EOR = 4'd1;
 	localparam [3:0] SUB = 4'd2;
@@ -16126,6 +16177,7 @@ module ngage2_zap_top (
 				.HIT_FF(1'b1),
 				.FLAT_ACK(1'b1),
 				.LOCK_SPLIT(1'b1),
+                .COMPACT_LOCK(COMPACT_LOCK),
 				.BE_32_ENABLE(BE_32_ENABLE),
 				.EXT_ABORT_FS(4'b1000)
 			) u_data_cache(
