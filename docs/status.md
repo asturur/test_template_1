@@ -1,6 +1,6 @@
-## 2026-11-26 — same-day placement comparison toward −1.5 ns
+## 2026-11-26 — same-day placement and refill fits parked
 
-The historical retained seed 13 has 297 hot and 107 cold setup paths below −1.5 ns at 104 MHz. Public `bffd426` tests automatic periphery placement. Public `81a1b45` restores the exact retained source tree for three same-day control fits so generated build-date changes are measured. [Patch and all six builds](experiments/v5-performance/periphery-auto.md)
+Public `11c4a0c` restores the exact retained tree. Three same-day controls reproduced the November 24 timing and `bffd426` automatic periphery placement produced identical RBFs. Refill M10K `5b29095` matched all simulations and saved 60 median ALMs. Its best setup was −2.431 ns compared with −2.061 ns for retained seed 13, still 0.561 ns short of the −1.5 ns target. [Patches and all nine fits](experiments/v5-performance/periphery-auto.md)
 
 ## 2026-11-26 — independent D-cache lock and ALU zero fits parked
 
