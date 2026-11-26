@@ -1348,6 +1348,56 @@ def prepare_wishbone_write_data(phone):
     return ''.join(modules)
 
 
+
+def separate_wishbone_write_ack(phone):
+    """Keep the SDRAM write-only ACK rail out of the I-cache completion."""
+    modules = re.split(r'(?=^module )', phone, flags=re.M)
+    slots = {part.split()[1]: i for i, part in enumerate(modules) if part.startswith('module ')}
+    arm_slot = slots['ngage2_arm925t']
+    arm = edit(modules[arm_slot], '\tbus_ack,', '\tbus_ack,\n\tbus_write_ack,')
+    arm = edit(arm, '\tinput wire bus_ack;', '\tinput wire bus_ack;\n\tinput wire bus_write_ack;')
+    arm = edit(arm, "\tlocalparam [0:0] ARM9_PREDICTOR = 1'b1;",
+               "\tparameter SPLIT_WB_ACK = 0;\n\tlocalparam [0:0] ARM9_PREDICTOR = 1'b1;")
+    arm = edit(arm, '\tngage2_zap_top #(\n', '\tngage2_zap_top #(\n\t\t.SPLIT_WB_ACK(SPLIT_WB_ACK),\n')
+    modules[arm_slot] = edit(arm, '\t\t.i_wb_ack(bus_ack),',
+                             '\t\t.i_wb_ack(bus_ack),\n\t\t.i_wb_write_ack(bus_write_ack),')
+
+    top_slot = slots['ngage2_zap_top']
+    top = edit(modules[top_slot], '\ti_wb_ack,', '\ti_wb_ack,\n\ti_wb_write_ack,')
+    top = edit(top, '\tinput wire i_wb_ack;', '\tinput wire i_wb_ack;\n\tinput wire i_wb_write_ack;')
+    top = edit(top, "\tparameter [0:0] ARM9_PREDICTOR = 1'b1;",
+               "\tparameter [0:0] ARM9_PREDICTOR = 1'b1;\n\tparameter SPLIT_WB_ACK = 0;")
+    top = edit(top, "ngage2_zap_wb_merger #(.D_DATA_PREPARED(1'b1)) u_zap_wb_merger(",
+               "ngage2_zap_wb_merger #(\n"
+               "\t\t\t\t.D_DATA_PREPARED(1'b1), .SPLIT_WB_ACK(SPLIT_WB_ACK)\n"
+               "\t\t\t) u_zap_wb_merger(")
+    modules[top_slot] = edit(top, '\t\t\t\t.i_wb_ack(wb_ack),',
+                             '\t\t\t\t.i_wb_ack(wb_ack),\n\t\t\t\t.i_wb_write_ack(i_wb_write_ack),')
+
+    merger_slot = slots['ngage2_zap_wb_merger']
+    merger = edit(modules[merger_slot], '\ti_wb_ack,', '\ti_wb_ack,\n\ti_wb_write_ack,')
+    merger = edit(merger, '\tinput wire i_wb_ack;',
+                  '\tinput wire i_wb_ack;\n\tinput wire i_wb_write_ack;')
+    merger = edit(merger, "    parameter D_DATA_PREPARED = 1'b0;",
+                  "    parameter D_DATA_PREPARED = 1'b0;\n    parameter SPLIT_WB_ACK = 0;")
+    merger = edit(merger, '\tassign switch = (i_wb_ack | i_wb_err) & (o_wb_cti == CTI_EOB);',
+                  """    // Only DATA owns the SDRAM write response. The common rail still
+    // carries native fills, scalar reads, slow replies, and ERR travels as before.
+    wire write_ack = SPLIT_WB_ACK ? i_wb_write_ack : 1'b0;
+    wire completion = i_wb_ack | write_ack | i_wb_err;
+    assign switch = completion & (o_wb_cti == CTI_EOB);
+`ifndef SYNTHESIS
+    always @(posedge i_clk)
+        if (!i_reset && write_ack &&
+            (state_ff != 1'd1 || !o_wb_stb || !o_wb_wen || i_wb_ack || i_wb_err))
+            $fatal(1, "SDRAM write completion without a matching DATA write");
+`endif""")
+    modules[merger_slot] = edit(
+        merger, "\tassign o_d_wb_ack = (state_ff == 1'd1) & (i_wb_err | i_wb_ack);",
+        "\tassign o_d_wb_ack = (state_ff == 1'd1) & completion;")
+    return ''.join(modules)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -1386,6 +1436,7 @@ def main():
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)
     generated = prepare_wishbone_write_data(generated)
+    generated = separate_wishbone_write_ack(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

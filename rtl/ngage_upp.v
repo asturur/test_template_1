@@ -19,62 +19,65 @@ module ngage_upp #(
               LCD_QUEUE_ENABLE = 0,
               SYS_CLK_HZ       = 104000000,
               TIMER_CLK_DIV    = 1,
-              NOS_TICK_HZ      = 1000
+              NOS_TICK_HZ      = 1000,
+              SPLIT_SDRAM_ACK  = 0
 ) (
 
-    output wire         mmc_prefetch_stop,
-    output wire         mmc_clk,
-    output wire         mmc_cmd_o,
-    output wire         mmc_cmd_oe,
-    output wire         mmc_dat_o,
-    output wire         mmc_dat_oe,
-    input  wire         mmc_cmd_i,
-    input  wire         mmc_dat_i,
-    output wire         line_req,
-    output wire [ 31:0] line_addr,
-    input  wire         line_ready,
-    input  wire         line_reject,
-    input  wire         line_valid,
-    input  wire [ 63:0] line_data,
-    input  wire         line_wide,
-    input  wire         line_last,
-    input  wire         line_error,
-    input  wire         line_no_late_error,
-    input  wire         clk,
-    input  wire         rst,
-    input  wire         init_rst,
-    output wire         upp_ddr_req,
-    output wire         upp_ddr_we,
-    output wire [ 16:2] upp_ddr_addr,
-    output wire [ 31:0] upp_ddr_wdata,
-    output wire [  3:0] upp_ddr_be,
-    input  wire         upp_ddr_ack,
-    input  wire [ 31:0] upp_ddr_rdata,
-    output wire         upp_ddr_clear,
-    input  wire         upp_ddr_clear_done,
-    output wire         upp_ddr_idle,
-    input  wire         ext_cyc,
-    input  wire         ext_stb,
-    input  wire         ext_we,
-    input  wire         ext_commit,
-    input  wire [ 31:0] ext_adr,
-    input  wire [ 31:0] ext_din,
-    input  wire [  3:0] ext_sel,
-    input  wire         cpu_ack,
-    input  wire         cpu_err,
-    input  wire [ 31:0] cpu_rdata,
-    output wire         cpu_lock,
-    output wire         bus_cyc,
-    output wire         bus_stb,
-    output wire         bus_we,
-    output wire         bus_access,
-    output wire         bus_code,
-    output wire [ 31:0] bus_adr,
-    output wire [ 31:0] bus_din,
-    output wire [  3:0] bus_sel,
+    output wire        mmc_prefetch_stop,
+    output wire        mmc_clk,
+    output wire        mmc_cmd_o,
+    output wire        mmc_cmd_oe,
+    output wire        mmc_dat_o,
+    output wire        mmc_dat_oe,
+    input  wire        mmc_cmd_i,
+    input  wire        mmc_dat_i,
+    output wire        line_req,
+    output wire [31:0] line_addr,
+    input  wire        line_ready,
+    input  wire        line_reject,
+    input  wire        line_valid,
+    input  wire [63:0] line_data,
+    input  wire        line_wide,
+    input  wire        line_last,
+    input  wire        line_error,
+    input  wire        line_no_late_error,
+    input  wire        clk,
+    input  wire        rst,
+    input  wire        init_rst,
+    output wire        upp_ddr_req,
+    output wire        upp_ddr_we,
+    output wire [16:2] upp_ddr_addr,
+    output wire [31:0] upp_ddr_wdata,
+    output wire [ 3:0] upp_ddr_be,
+    input  wire        upp_ddr_ack,
+    input  wire [31:0] upp_ddr_rdata,
+    output wire        upp_ddr_clear,
+    input  wire        upp_ddr_clear_done,
+    output wire        upp_ddr_idle,
+    input  wire        ext_cyc,
+    input  wire        ext_stb,
+    input  wire        ext_we,
+    input  wire        ext_commit,
+    input  wire [31:0] ext_adr,
+    input  wire [31:0] ext_din,
+    input  wire [ 3:0] ext_sel,
+    input  wire        cpu_ack,
+    input  wire        cpu_err,
+    input  wire [31:0] cpu_rdata,
+    output wire        cpu_lock,
+    output wire        bus_cyc,
+    output wire        bus_stb,
+    output wire        bus_we,
+    output wire        bus_access,
+    output wire        bus_code,
+    output wire [31:0] bus_adr,
+    output wire [31:0] bus_din,
+    output wire [ 3:0] bus_sel,
     // Dedicated transaction-level SDRAM interface, not physical pin timing.
-    input  wire         ram_accept,
-    input  wire         ram_ack,
+    input  wire        ram_accept,
+
+    input wire [SPLIT_SDRAM_ACK:0] ram_ack,
+
     input  wire [ 31:0] ram_rdata,
     output wire         ram_req,
     output wire         ram_we,
@@ -203,13 +206,15 @@ module ngage_upp #(
     generate
         if (INTERNAL_CPU) begin : cpu_inside
             wire master_cyc, master_stb, master_we, master_code;
-            wire master_ack, master_error;
+            wire [SPLIT_SDRAM_ACK:0] master_ack;
+            wire                     master_error;
             wire [31:0] master_address, master_data, master_read_data;
             wire [3:0] master_sel;
             wire       master_write_block;
             ngage_cpu #(
 `ifdef NGAGE_ARM9V2
                 .REGISTERED_SCALAR_PEER (1),
+                .SPLIT_WB_ACK           (SPLIT_SDRAM_ACK),
 `endif
                 .LINE_REFILL            (LINE_REFILL),
                 .EXPLICIT_LINE_GUARANTEE(1)
@@ -245,7 +250,11 @@ module ngage_upp #(
                 .wb_byte_enable   (master_sel),
                 .wb_cycle_type    (),
                 .wb_burst_type    (),
+`ifdef NGAGE_ARM9V2
                 .wb_ack           (master_ack),
+`else
+                .wb_ack           (|master_ack),
+`endif
                 .wb_read_data     (master_read_data),
                 .wb_error         (master_error)
             );
@@ -375,7 +384,8 @@ module ngage_upp #(
 `ifdef NGAGE_ARM9V2
                 .CPU_OWNS_SCALAR_REPLY(1),
 `endif
-                .DIRECT_SDRAM         (DIRECT_SDRAM)
+                .DIRECT_SDRAM         (DIRECT_SDRAM),
+                .SPLIT_SDRAM_ACK      (SPLIT_SDRAM_ACK)
             ) memory_route (
                 .clk           (clk),
                 .reset         (rst),
@@ -848,18 +858,21 @@ endmodule
 module ngage_cpu_memory_route #(
     parameter DIRECT_SDRAM          = 1,
     // The ARM9V2 refill adapter checks raw CYC and scalar reply ownership.
-    parameter CPU_OWNS_SCALAR_REPLY = 0
+    parameter CPU_OWNS_SCALAR_REPLY = 0,
+    parameter SPLIT_SDRAM_ACK       = 0
 ) (
-    input  wire        clk,
-    input  wire        reset,
-    input  wire        master_cyc,
-    input  wire        master_stb,
-    input  wire        master_we,
-    input  wire        master_code,
-    input  wire [31:0] master_address,
-    input  wire [31:0] master_data,
-    input  wire [ 3:0] master_sel,
-    output wire        master_ack,
+    input wire        clk,
+    input wire        reset,
+    input wire        master_cyc,
+    input wire        master_stb,
+    input wire        master_we,
+    input wire        master_code,
+    input wire [31:0] master_address,
+    input wire [31:0] master_data,
+    input wire [ 3:0] master_sel,
+
+    output wire [SPLIT_SDRAM_ACK:0] master_ack,
+
     output wire        master_error,
     output wire [31:0] master_rdata,
     output wire        slow_cyc,
@@ -875,7 +888,9 @@ module ngage_cpu_memory_route #(
     output wire [31:0] ram_wdata,
     output wire [ 3:0] ram_be,
     input  wire        ram_accept,
-    input  wire        ram_ack,
+
+    input wire [SPLIT_SDRAM_ACK:0] ram_ack,
+
     input  wire [31:0] ram_rdata,
     output reg         ram_pending = 0,
     output wire        ram_response
@@ -891,12 +906,18 @@ module ngage_cpu_memory_route #(
     assign ram_be = master_sel;
     assign slow_cyc = !reset && !ram_pending && !target_ram && master_cyc;
     assign slow_stb = slow_cyc && master_stb;
-    wire ram_completion = !reset && ram_pending && !cancelled && ram_ack;
-    assign ram_response = master_cyc && ram_completion;
-    // Keep scalar offer classification out of the response to the adapter.
-    // A cancellation sampled on an earlier edge still suppresses completion.
-    assign master_ack = (CPU_OWNS_SCALAR_REPLY ? ram_completion : ram_response) ||
+    wire ram_reply_allowed = !reset && ram_pending && !cancelled;
+    wire ram_reply_to_master = ram_reply_allowed && (CPU_OWNS_SCALAR_REPLY || master_cyc);
+    assign ram_response = master_cyc && ram_reply_allowed && (|ram_ack);
+    // Keep the original ownership and cancellation conditions on both rails.
+    // Slow replies remain on the common rail even when they acknowledge a write.
+    assign master_ack[0] = (ram_reply_to_master && ram_ack[0]) ||
                         (!reset && !ram_pending && slow_ack);
+    generate
+        if (SPLIT_SDRAM_ACK) begin : write_reply
+            assign master_ack[1] = ram_reply_to_master && ram_ack[1];
+        end
+    endgenerate
     assign master_error = !reset && !ram_pending && slow_error;
     // ram_ack/data already come from the registered SDRAM response and owner.
     // Keep the cache's completion register; do not forward controller pins.
@@ -911,7 +932,7 @@ module ngage_cpu_memory_route #(
                 cancelled   <= 0;
             end
             if (ram_pending && !master_cyc) cancelled <= 1;
-            if (ram_pending && ram_ack) begin
+            if (ram_pending && (|ram_ack)) begin
                 ram_pending <= 0;
                 cancelled   <= 0;
             end

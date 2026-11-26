@@ -26,7 +26,8 @@ module ngage_mister #(
                       SYS_CLK_HZ         = 104000000,
                       TIMER_CLK_DIV      = 1,
                       NOS_TICK_HZ        = 1000,
-                      RAM_LINE_EARLY     = 0
+                      RAM_LINE_EARLY     = 0,
+                      SPLIT_SDRAM_ACK    = 0
 ) (
     output wire         ddram_line,
     input  wire         ddram_beat_valid,
@@ -135,8 +136,10 @@ module ngage_mister #(
     output wire         sdram_req,
     output wire         sdram_write_block,
     output wire [127:0] sdram_block_data,
-    input  wire         sdram_ack,
-    input  wire         sdram_accept,
+
+    input wire [SPLIT_SDRAM_ACK:0] sdram_ack,
+
+    input wire sdram_accept,
 
     // DDR3 port (ROM + C: drive — mostly read, HPS-loaded)
     output wire [31:0] ddram_addr,
@@ -244,6 +247,7 @@ module ngage_mister #(
         .NOS_TICK_HZ       (NOS_TICK_HZ),
         .INTERNAL_CPU      (1),
         .DIRECT_SDRAM      (DIRECT_SDRAM),
+        .SPLIT_SDRAM_ACK   (SPLIT_SDRAM_ACK),
         .SIMIF_ENABLE      (1),
         .TEST_SIM_ENABLE   (TEST_SIM_ENABLE),
         .KEYPAD_ENABLE     (1),
@@ -707,7 +711,7 @@ module ngage_mister #(
     assign sdram_we = DIRECT_SDRAM ? fast_ram_we : memory_owner[0] && wb_we && memory_req;
     assign sdram_req = DIRECT_SDRAM ? fast_ram_req : memory_owner[0] && memory_req;
     wire flash_error = (code_rsp && code_err) || (user_rsp && user_err);
-    wire mem_ack = memory_owner[0] ? sdram_ack : (flash_response && !flash_error);
+    wire mem_ack = memory_owner[0] ? (|sdram_ack) : (flash_response && !flash_error);
     // Register board/decode faults so Wishbone STB suppression on ERR cannot
     // form a combinational loop. No invalid access is acknowledged as success.
     wire board_fault = pcm_bad || (!memory_owned && ((dma_claim && dma_bad) ||
