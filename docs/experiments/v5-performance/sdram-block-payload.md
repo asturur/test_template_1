@@ -27,6 +27,10 @@ The dominant late sources include UPP peripheral and CPU write-owner controls. T
 
 [Qualification receipt](../../evidence/v5-104-sdram-block-payload.json)
 
+The [stack with the dirty-clear descriptor](sdram-payload-dirty-combined.md)
+also matches the workload and physical traces against the exact descriptor
+build. The same design patch applies to both lineages.
+
 ## Reproduction
 
 Restore the helpers from the [replay patch](patches/sdram-block-payload-replay.patch) at the repository root. Use the existing frozen timer and retained replay decks, pinned Verible, cached Jotego image and established ARM cross-toolchain.
