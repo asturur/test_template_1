@@ -1348,26 +1348,6 @@ def prepare_wishbone_write_data(phone):
     return ''.join(modules)
 
 
-def preselect_dirty_clear_descriptor(phone):
-    """Select the pending store or held dirty-metadata descriptor before ACK."""
-    start = phone.index('module ngage2_zap_dcache_half_tag_ram (')
-    end = phone.index('\nendmodule', start)
-    tags = edit(phone[start:end],
-                '\t\tif (tag_ram_clean || line_clear) begin\n\t\t\tdirty_write_set =',
-                '''        // Leaving IDLE clears the pending store. A maintenance ACK
-        // enables the held descriptor without selecting its address or data.
-        if (!pend_en) begin
-\t\t\tdirty_write_set =''')
-    tags = edit(tags, '\tfunction automatic [WAY_W - 1:0] sv2v_cast_19C97;',
-                '''`ifndef SYNTHESIS
-    always @(posedge i_clk)
-        if (!i_reset && pend_en && state_ff != 13'b0000000000001)
-            $fatal(1, "Pending dirty store outside D-cache tag IDLE");
-`endif
-\tfunction automatic [WAY_W - 1:0] sv2v_cast_19C97;''')
-    return phone[:start] + tags + phone[end:]
-
-
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
@@ -1406,7 +1386,6 @@ def main():
         generated = issue_hinted_ldm(generated, edit)
     generated = keep_wishbone_request_boundary(generated)
     generated = prepare_wishbone_write_data(generated)
-    generated = preselect_dirty_clear_descriptor(generated)
     if args.check:
         if output.read_text() != generated:
             raise ValueError('Phone netlist is out of date')

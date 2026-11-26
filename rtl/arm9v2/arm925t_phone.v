@@ -18264,9 +18264,7 @@ module ngage2_zap_dcache_half_tag_ram (
 		dirty_write_way = pend_sel;
 		dirty_write_data = pend_dirty;
 		dirty_write_mask = pend_dirty_mask;
-        // Leaving IDLE clears the pending store. A maintenance ACK
-        // enables the held descriptor without selecting its address or data.
-        if (!pend_en) begin
+		if (tag_ram_clean || line_clear) begin
 			dirty_write_set = rd_flat_ff[SET_W - 1:0];
 			begin : sv2v_autoblock_11
 				reg signed [31:0] w;
@@ -18282,11 +18280,6 @@ module ngage2_zap_dcache_half_tag_ram (
 		else if ((!line_mode_ff && (state_ff != 13'b0000000000001)) && (state_ff != 13'b0000001000000))
 			dirty_read_group = (DIRTY_GROUPS > 1 ? sv2v_cast_3A332(blk_ctr_nxt) : {DIRTY_GROUP_W {1'sb0}});
 	end
-`ifndef SYNTHESIS
-    always @(posedge i_clk)
-        if (!i_reset && pend_en && state_ff != 13'b0000000000001)
-            $fatal(1, "Pending dirty store outside D-cache tag IDLE");
-`endif
 	function automatic [WAY_W - 1:0] sv2v_cast_19C97;
 		input reg [WAY_W - 1:0] inp;
 		sv2v_cast_19C97 = inp;
