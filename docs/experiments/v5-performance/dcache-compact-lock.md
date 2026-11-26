@@ -29,6 +29,10 @@ The phone branch removes 64 bits of RTL bitmap storage and adds one scalar regis
 
 [Qualification receipt](../../evidence/v5-104-dcache-compact-lock.json)
 
+The [combined replay with MMC ownership](dcache-compact-owner-combined.md)
+also matches the directed HPS and lock tests, workloads, and both physical
+traces.
+
 ## Reproduction
 
 Use the frozen timer-only control decks, the pinned Jotego image and the established ARM cross-toolchain. Restore the helpers from the [replay patch](patches/dcache-compact-lock-replay.patch) in the repository root.

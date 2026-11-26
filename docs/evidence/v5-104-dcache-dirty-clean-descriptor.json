@@ -1,0 +1,240 @@
+{
+  "status": "PASS",
+  "base": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+  "design_patch_sha256": "baaa34c9743a94c80d296ed1dd8c5dec08aa5c8a5f6572afc943977e33ff1ec6",
+  "fixture_patch_sha256": "738a04471de8e78719b09e9d0867723893f6e0b9412c81421986cda61f1889d1",
+  "reference_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "4aa8037c0051b43819de2dc9d9f96322ea2e2bb2d91c82df1383ad6840d5d37e",
+    "tools/gen_arm9v2_phone.py": "88613ebf9a8c15b63411992fd7e551bc31f953bb8cd3f9178f3c7ba13caf8b7f"
+  },
+  "source_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "af019841f3bad5168995bbc19987c55f6525e00b10b97de9dbf891e7d770fba9",
+    "tools/gen_arm9v2_phone.py": "b54d9c59a8c80d27a5c0f68c01131ec929b79a524ff456d22e1b569d497e358e"
+  },
+  "metadata_lane_cases": 163840,
+  "metadata_proof_log_sha256": "9bbff36ff12f59534f911ae124ec93eb6c40ee36e1ac798622a1f348ef934a1f",
+  "board_replays": {
+    "board": {
+      "burst-0-wait-0": {
+        "cycles": 33464,
+        "trace_sha256": "5eb36a2549bc68ac5e750b70d2e5ddb95e97900ce3d5a39ecfa59971bdc46c57"
+      },
+      "burst-0-wait-5": {
+        "cycles": 67865,
+        "trace_sha256": "6d7c90428c2072dcba11c44b696e1e2d19b8d6f46f38973b840f09f1ecfed809"
+      },
+      "burst-1-wait-0": {
+        "cycles": 28464,
+        "trace_sha256": "31cd1b51eb82c54931c436fcfa8b933f8fba7b6dcac00d9bb26f3df437b0f2ee"
+      },
+      "burst-1-wait-5": {
+        "cycles": 42543,
+        "trace_sha256": "12349a2fe3c61600eb64ba3f1214fbdc25324d5fb59e6f5a90e96511eb6d26f4"
+      }
+    },
+    "cp15-phase": {
+      "burst-0-wait-0-normal": {
+        "cycles": 33470,
+        "trace_sha256": "3368eb693ab5c882d25f59fb34713c16f0e82a84ef086352388a41dd51f88a77",
+        "last_beat": "CLEAN_END cycle=1357 address=0a00000c error=0",
+        "errors": 0,
+        "completions": 1,
+        "stalled_cycles": 2
+      },
+      "burst-0-wait-0-error": {
+        "cycles": 33470,
+        "trace_sha256": "9af0dccda536c57abe24c3f51146e3939aa7fb8de352ad364155aa4061e918f3",
+        "last_beat": "CLEAN_END cycle=1357 address=0a00000c error=1",
+        "errors": 1,
+        "completions": 1,
+        "stalled_cycles": 2
+      },
+      "burst-0-wait-5-normal": {
+        "cycles": 67871,
+        "trace_sha256": "b1117c5c3935a233d7d272ed1e0ccccdf068c2b607c866cd5e52d15514109db0",
+        "last_beat": "CLEAN_END cycle=2536 address=0a00000c error=0",
+        "errors": 0,
+        "completions": 1,
+        "stalled_cycles": 7
+      },
+      "burst-0-wait-5-error": {
+        "cycles": 67871,
+        "trace_sha256": "3668053ed60046f70a9db9369ccabe41a289d460640d92f29476c606ec57bf40",
+        "last_beat": "CLEAN_END cycle=2536 address=0a00000c error=1",
+        "errors": 1,
+        "completions": 1,
+        "stalled_cycles": 7
+      },
+      "burst-1-wait-0-normal": {
+        "cycles": 28485,
+        "trace_sha256": "9cb669618471c2f0945a3f11e80e19d2b175cbb59e829c311ffa41cbc10b2f65",
+        "last_beat": "CLEAN_END cycle=1177 address=0a00000c error=0",
+        "errors": 0,
+        "completions": 1,
+        "stalled_cycles": 2
+      },
+      "burst-1-wait-0-error": {
+        "cycles": 28485,
+        "trace_sha256": "b100e30c89af7a99f595435e5ed6e3394f10e6d87894329324ac48b0bcf3b476",
+        "last_beat": "CLEAN_END cycle=1177 address=0a00000c error=1",
+        "errors": 1,
+        "completions": 1,
+        "stalled_cycles": 2
+      },
+      "burst-1-wait-5-normal": {
+        "cycles": 42549,
+        "trace_sha256": "bf49e73092aa1d3b3b65478f654fbfe9eb90d6eb3e62e1d7e7248f5bc1dc23eb",
+        "last_beat": "CLEAN_END cycle=1930 address=0a00000c error=0",
+        "errors": 0,
+        "completions": 1,
+        "stalled_cycles": 7
+      },
+      "burst-1-wait-5-error": {
+        "cycles": 42549,
+        "trace_sha256": "40ffd05c5dc35f1476fe063f8a77699089e4f9957fa6f0ffffa082f169318738",
+        "last_beat": "CLEAN_END cycle=1930 address=0a00000c error=1",
+        "errors": 1,
+        "completions": 1,
+        "stalled_cycles": 7
+      }
+    }
+  },
+  "workload_digest_controls": {
+    "fixed": {
+      "count": 105,
+      "receipt_sha256": "a289adbded0855210f9fd4076133a0ef9c9ad0405b9c33beb6c9f234fc533c08",
+      "repeated_cases": 15,
+      "rejected_wrong_outputs": 15
+    },
+    "native": {
+      "count": 4,
+      "receipt_sha256": "2624e9fe4ea2d011a0d3d8007c6597a6c621df5735ab2d24838a17b4be7fdb6a",
+      "frame_cycles": [
+        14391395,
+        14467552,
+        14346201,
+        14303223
+      ],
+      "guest_output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77"
+    }
+  },
+  "physical_source_count": 114,
+  "compiled_cpu_fingerprint": "rwGYQfO61RaJlbvBmYfFX2Ul4AsQuX3p2BiR59dw",
+  "physical_replays": {
+    "normal": {
+      "cycles": 1201547,
+      "events": 171496,
+      "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26"
+    },
+    "timer_mmc_lcd": {
+      "cycles": 1201528,
+      "events": 171497,
+      "trace_sha256": "0e9fb47c965bab211b315c129e08effab414ed1ccc9e579aee4d56d9d29ba824"
+    }
+  },
+  "timer_timing_witness": {
+    "13": {
+      "run": 45824513460,
+      "corners": {
+        "corner-1": {
+          "dirty_ram_endpoints": 70,
+          "wb_cyc_paths": 56,
+          "worst_wb_cyc_path": {
+            "rank": "1",
+            "slack_ns": "-2.168",
+            "data_delay_ns": "11.003",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_half_tag_ram:u_zap_cache_tag_ram|ngage2_zap_dcache_half_metadata_lanes:g_metadata[1].g_dirty.g_dirty_lanes.dirty_rams|altsyncram:g_ram.u_ram|altsyncram_e852:auto_generated|ram_block1a64~porta_bytena_reg2"
+          }
+        },
+        "corner-2": {
+          "dirty_ram_endpoints": 61,
+          "wb_cyc_paths": 55,
+          "worst_wb_cyc_path": {
+            "rank": "6",
+            "slack_ns": "-1.889",
+            "data_delay_ns": "10.779",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_half_tag_ram:u_zap_cache_tag_ram|ngage2_zap_dcache_half_metadata_lanes:g_metadata[1].g_dirty.g_dirty_lanes.dirty_rams|altsyncram:g_ram.u_ram|altsyncram_e852:auto_generated|ram_block1a64~porta_bytena_reg2"
+          }
+        },
+        "corner-3": {
+          "dirty_ram_endpoints": 47,
+          "wb_cyc_paths": 32,
+          "worst_wb_cyc_path": {
+            "rank": "6",
+            "slack_ns": "2.817",
+            "data_delay_ns": "6.340",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_half_tag_ram:u_zap_cache_tag_ram|ngage2_zap_dcache_half_metadata_lanes:g_metadata[1].g_dirty.g_dirty_lanes.dirty_rams|altsyncram:g_ram.u_ram|altsyncram_e852:auto_generated|ram_block1a32~porta_bytena_reg2"
+          }
+        },
+        "corner-4": {
+          "dirty_ram_endpoints": 15,
+          "wb_cyc_paths": 15,
+          "worst_wb_cyc_path": {
+            "rank": "82",
+            "slack_ns": "3.929",
+            "data_delay_ns": "5.259",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_half_tag_ram:u_zap_cache_tag_ram|ngage2_zap_dcache_half_metadata_lanes:g_metadata[1].g_dirty.g_dirty_lanes.dirty_rams|altsyncram:g_ram.u_ram|altsyncram_e852:auto_generated|ram_block1a32~porta_bytena_reg2"
+          }
+        }
+      }
+    },
+    "43": {
+      "run": 45824520116,
+      "corners": {
+        "corner-1": {
+          "dirty_ram_endpoints": 2,
+          "wb_cyc_paths": 0,
+          "worst_wb_cyc_path": null
+        },
+        "corner-2": {
+          "dirty_ram_endpoints": 0,
+          "wb_cyc_paths": 0,
+          "worst_wb_cyc_path": null
+        },
+        "corner-3": {
+          "dirty_ram_endpoints": 5,
+          "wb_cyc_paths": 0,
+          "worst_wb_cyc_path": null
+        },
+        "corner-4": {
+          "dirty_ram_endpoints": 0,
+          "wb_cyc_paths": 0,
+          "worst_wb_cyc_path": null
+        }
+      }
+    },
+    "31337": {
+      "run": 45824525843,
+      "corners": {
+        "corner-1": {
+          "dirty_ram_endpoints": 16,
+          "wb_cyc_paths": 0,
+          "worst_wb_cyc_path": null
+        },
+        "corner-2": {
+          "dirty_ram_endpoints": 14,
+          "wb_cyc_paths": 0,
+          "worst_wb_cyc_path": null
+        },
+        "corner-3": {
+          "dirty_ram_endpoints": 9,
+          "wb_cyc_paths": 0,
+          "worst_wb_cyc_path": null
+        },
+        "corner-4": {
+          "dirty_ram_endpoints": 0,
+          "wb_cyc_paths": 0,
+          "worst_wb_cyc_path": null
+        }
+      }
+    }
+  }
+}

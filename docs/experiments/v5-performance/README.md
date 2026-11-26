@@ -327,6 +327,12 @@ lock as a tag and a valid bit in the phone configuration. The existing
 tag/return edge is preserved, and the exact state and workload replays
 match the timer baseline. Routed timing is pending.
 
+The [dirty-clear descriptor trial](dcache-dirty-clean-descriptor.md)
+preselects the held maintenance address before Wishbone completion.
+The dirty write retains its original edge. The eight added CP15 profiles,
+all workload windows and both timer pin replays match. Routed timing is
+pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep

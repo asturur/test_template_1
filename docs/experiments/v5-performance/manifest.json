@@ -2675,5 +2675,135 @@
       "scratch/v5-fit-loop/dcache-compact-lock/replay.py": "9f53ef9cc9fea6b2d950f9a15b10ed0e41eb9a8e0276a3302770d45ce794e8fa",
       "scratch/v5-fit-loop/dcache-compact-lock/routes.py": "9613870b136d39dd2aec44cbf5aa7905ba3a57e75553cc0d42861f0816fe6251"
     }
+  },
+  {
+    "id": "dcache-compact-owner-combined",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare.patch",
+      "patches/mmc-hps-cancel-owner.patch",
+      "patches/dcache-compact-lock.patch"
+    ],
+    "sha256": [
+      "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a",
+      "05163a00fc8da36feef4505b51cc9968e4d797c3c0c28d54a37b6a432da08f12",
+      "abab9bfe0e0a7bb369e52baa3f7d8654d48d2ef0199f9646658283403e61e530"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "rtl/ngage_mmc_hps.v",
+      "rtl/ngage_timers.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/timer_conformance/tb.v",
+      "tests/phone/timers/tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+      "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+      "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+      "tests/phone/timer_conformance/tb.v": "2716e8f144611319d38079a4e4870432292eadd721970960f45ea47f23b08ed0",
+      "tests/phone/timers/tb.sv": "df48a45fbc9bdf41ba283b1bcd696f58f9c335698e265ad78fa4d93b4d958a44",
+      "rtl/ngage_mmc_hps.v": "1578f8fd6f8065dc9bd96e7d5cd32d426c9664f7986c17a78440cf7ac84fb13a",
+      "rtl/arm9v2/arm925t_phone.v": "6157eab5bae7a7bf3d4588424fab8f65f8b6032611cf22e8295e5737d3ed576b",
+      "tools/gen_arm9v2_phone.py": "547402049a1350c7cff102a673b4a8e25c547af978d55c93aadd8d44aef2e6b4"
+    }
+  },
+  {
+    "id": "dcache-compact-owner-combined-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-compact-owner-combined-replay.patch"
+    ],
+    "sha256": [
+      "9a1165624b09d7ec8876996083285d73397512f5cf34e4665ca4547b5d100d4f"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/board.sh",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/directed.sh",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/hps.sh",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/mixed.py",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/mixed.sh",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/prepare-directed.py",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/prepare-fit.py",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/prepare-owner-miter.py",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/qualify.sh",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/record.py",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/replay.py",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/stage.sh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/board.sh": "b6c643c36363cfd33b7034808498f36905b7770957087d8aa9e898c862e0dfb4",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/directed.sh": "064f8e155135e02861dac75cf7d6fb0db7145839b062500913223b1fe210c899",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/hps.sh": "9660d7998081567b693662cc66792a9dd1ec48babec0df8f80e3965b33a5efc1",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/mixed.py": "8cda18857a997272abfed90772a1484e1d16a257eade45f2497d14894ed5f09a",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/mixed.sh": "66f97896073533317723eb2747c85fcadaf7d04800e639f4d083848d383e97c3",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/prepare-directed.py": "0480e4c4001911d82db2d973d48a0d90289dded6f5899bb70f0cd2b1963383ba",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/prepare-fit.py": "5062416b016faa854a0a4fd64722004a2bd8d9a9f883c56e35fd7737454017e0",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/prepare-owner-miter.py": "18b812d53ae84b3d33ba23705ba7c1aa9afe9c77ecf03c29aee5a05b7c220872",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/qualify.sh": "3d336af7abb218cbf47db3c397d9cd35edde2947d0e6e1336b3b961e22ee9191",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/record.py": "62b8bcfccff8e81c42f7e33fd616a87f311666543cee54c34727f1a2d230801c",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/replay.py": "fac21b5465bfef6004b71a7586524d2d734297708975839161b717a34eea9342",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/stage.sh": "782fb9f03c77016a18fa86f23845546ae8e03ab8dbee2941ab97af5adc8fcabb"
+    }
+  },
+  {
+    "id": "dcache-dirty-clean-descriptor",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-dirty-clean-descriptor.patch"
+    ],
+    "sha256": [
+      "baaa34c9743a94c80d296ed1dd8c5dec08aa5c8a5f6572afc943977e33ff1ec6"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "af019841f3bad5168995bbc19987c55f6525e00b10b97de9dbf891e7d770fba9",
+      "tools/gen_arm9v2_phone.py": "b54d9c59a8c80d27a5c0f68c01131ec929b79a524ff456d22e1b569d497e358e"
+    }
+  },
+  {
+    "id": "dcache-dirty-clean-descriptor-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-dirty-clean-descriptor-replay.patch"
+    ],
+    "sha256": [
+      "738a04471de8e78719b09e9d0867723893f6e0b9412c81421986cda61f1889d1"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/architectural_trace.vh",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/board.sh",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/coexistence.sh",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/cp15-phase.sh",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/mixed.py",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/prepare-coexistence.py",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/prepare-cp15-phase.py",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/prepare-metadata-proof.py",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/record.py",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/replay.py",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/wb-write-trace.vh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/architectural_trace.vh": "fd2af36acb4e5bd0e8e9caa95f4ad39404f06e4ce2f15bfb56cadd0d4c6ef151",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/board.sh": "e451d662ccf7a1c19c4d778538c5ddfe3540c112556ec66d2db362c01aea2f5f",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/coexistence.sh": "b1474cde69d0ba46d3f7ac59493f735614f0484fbc392dbd99388bccc15947ec",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/cp15-phase.sh": "f9408626e1ebda51256b78df6b9239b7ba9150be04701b956cd5c88261076533",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/mixed.py": "3b6572018374fe2a614df439c6d8aafaa71baf399bac063486aa6192fe434fa9",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/prepare-coexistence.py": "1b7bb8845d0ae0958ea6cb00155e2eff8b75c1405b290fb206c2cb74cc2c0a7c",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/prepare-cp15-phase.py": "5133e4ed78ffa7fc91b9813be6e71b263a6f53847b68576bec832add1319c0b9",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/prepare-metadata-proof.py": "8fe4aea98ef2ba38a747632bd074d3964478d3237166219fc969f3e94eb50edc",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/record.py": "0f68fe9252d9b8ad57c0ed07bbe32a3dbe1546063e660afbff9fc9a7b0f466eb",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/replay.py": "fabfd6be6e80a945e5df0b1afa535d4e0ee0a6dd62a28bfe904b30e67ea4bb2e",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
+    }
   }
 ]
