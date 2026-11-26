@@ -870,7 +870,34 @@ module ngage2_arm9v2_core (
     wire [1:0] advance_m_write = advance_uses_skid ?
         (skid[27-:2] | {1'b0, skid[527]}) : (input_record[27-:2] | {1'b0, input_record[527]});
     wire [3:0] advance_write = {mw_write[0+:2], advance_m_write};
+    // These selects follow the same owner and state edge as W.
+    localparam W_COMPLETE_NOW = 0, W_COMPLETE_EXCEPTION = 1, W_COMPLETE_CP = 2,
+               W_COMPLETE_SAVED = 3, W_COMPLETE_MEMORY = 4;
+    (* dont_retime *) reg [4:0] w_completion_eligible;
+    function automatic [4:0] w_completion_of;
+        input valid, exception_pending, copro, swp, memory;
+        input [3:0] state;
+        begin
+            w_completion_of = 0;
+            if (valid) begin
+                if (state == 4'd10)
+                    w_completion_of[W_COMPLETE_NOW] = 1'b1;
+                else if (exception_pending)
+                    w_completion_of[W_COMPLETE_EXCEPTION] = 1'b1;
+                else if (copro)
+                    w_completion_of[W_COMPLETE_CP] = 1'b1;
+                else if (state == 4'd6)
+                    w_completion_of[W_COMPLETE_SAVED] = !swp;
+                else if (state == 4'd0 || state == 4'd1) begin
+                    w_completion_of[W_COMPLETE_NOW] = !memory;
+                    w_completion_of[W_COMPLETE_MEMORY] = 1'b1;
+                end
+            end
+        end
+    endfunction
 	wire fast_pc_hit = (w_pc_load && i_data_short_hit) && !w_waited;
+    wire memory_can_complete = (request_done && !retry) &&
+        (COMPLETE_FLAT ? (resp_err || w_mem_immediate || fast_pc_hit) : !defer_load);
 	always @(*) begin : sv2v_autoblock_1
 		reg signed [31:0] consumer;
 		if (_sv2v_0)
@@ -878,7 +905,14 @@ module ngage2_arm9v2_core (
 		for (consumer = 0; consumer < 3; consumer = consumer + 1)
 			begin
 				complete_class[consumer] = 0;
-				if (w[541] && !wb_flush) begin
+                if (W_CLASS) begin
+                    if (!wb_flush)
+                        complete_class[consumer] = w_completion_eligible[W_COMPLETE_NOW] ||
+                            (w_completion_eligible[W_COMPLETE_EXCEPTION] && !i_dc_lock_any) ||
+                            (w_completion_eligible[W_COMPLETE_CP] && cp_finished) ||
+                            (w_completion_eligible[W_COMPLETE_SAVED] && !w_locked) ||
+                            (w_completion_eligible[W_COMPLETE_MEMORY] && memory_can_complete);
+                end else if (w[541] && !wb_flush) begin
 					if (memory_state == 4'd10)
 						complete_class[consumer] = 1;
 					else if (w_exception)
@@ -894,6 +928,29 @@ module ngage2_arm9v2_core (
 					complete_class[consumer] = 0;
 			end
 	end
+`ifndef SYNTHESIS
+    reg live_complete_ref;
+    always @(*) begin
+        live_complete_ref = 0;
+        if (w[541] && !wb_flush) begin
+            if (memory_state == 4'd10)
+                live_complete_ref = 1;
+            else if (w_exception)
+                live_complete_ref = !i_dc_lock_any;
+            else if (w_cp)
+                live_complete_ref = cp_finished;
+            else if (memory_state == 4'd6)
+                live_complete_ref = !w_locked && !w_swp;
+            else if ((memory_state == 4'd0) || (memory_state == 4'd1))
+                live_complete_ref = !w[535] || ((request_done && !retry) && (COMPLETE_FLAT ? (resp_err || w_mem_immediate) || fast_pc_hit : !defer_load));
+        end
+        if ((request_done && resp_err) && w_blkwb)
+            live_complete_ref = 0;
+    end
+    always @(posedge i_clk)
+        if (!i_reset && complete_class !== {3{live_complete_ref}})
+            $fatal(1, "Prepared W completion changed at %h", w[526-:32]);
+`endif
 	wire [23:0] advance_tag;
 	(* keep, maxfan = 32 *) wire forward_advance = (((memory_state == 4'd0) && done_forward) || (memory_state == 4'd3)) || quick_forward;
 	assign advance_tag = {m[103-:12], ((memory_state == 4'd3) || (memory_state == 4'd1) ? skid[103-:12] : input_record[103-:12])};
@@ -1316,6 +1373,7 @@ module ngage2_arm9v2_core (
 			saved_load <= 0;
 			swap_write <= 0;
 			w_cls <= 0;
+            w_completion_eligible <= 0;
 			w_load_select <= 1;
 			w_waited <= 0;
 			w_hit_candidate <= 0;
@@ -1382,6 +1440,8 @@ module ngage2_arm9v2_core (
 			skid <= skid_next;
 			memory_state <= memory_state_next;
 			w_cls <= w_cls_next;
+            w_completion_eligible <= w_completion_of(w_next[541], w_cls_next[5],
+                w_cls_next[4], w_cls_next[3], w_next[535], memory_state_next);
 			if (((memory_state == 4'd6) && !w_locked) && (w[8-:4] == SWP))
 				swap_write <= 1;
 			if (defer_load)
