@@ -1,0 +1,279 @@
+{
+  "rows": {
+    "all_four": {
+      "43": {
+        "run": 45206755388,
+        "sha": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+        "occupancy": 38815,
+        "estimated_recoverable": 2353,
+        "estimated_unavailable": 904,
+        "estimated_needed": 37366,
+        "worst_setup_ns": -2.851
+      },
+      "13": {
+        "run": 45206762467,
+        "sha": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+        "occupancy": 38799,
+        "estimated_recoverable": 2428,
+        "estimated_unavailable": 915,
+        "estimated_needed": 37286,
+        "worst_setup_ns": -2.803
+      },
+      "31337": {
+        "run": 45206768879,
+        "sha": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+        "occupancy": 38823,
+        "estimated_recoverable": 2349,
+        "estimated_unavailable": 890,
+        "estimated_needed": 37364,
+        "worst_setup_ns": -2.852
+      }
+    },
+    "refill": {
+      "43": {
+        "run": 45230489919,
+        "sha": "13a471b684c6730c37d9890c057c95e966a50ec0",
+        "occupancy": 38804,
+        "estimated_recoverable": 3470,
+        "estimated_unavailable": 842,
+        "estimated_needed": 36176,
+        "worst_setup_ns": -2.895
+      },
+      "13": {
+        "run": 45230488647,
+        "sha": "13a471b684c6730c37d9890c057c95e966a50ec0",
+        "occupancy": 38906,
+        "estimated_recoverable": 3545,
+        "estimated_unavailable": 787,
+        "estimated_needed": 36148,
+        "worst_setup_ns": -3.081
+      },
+      "31337": {
+        "run": 45230489549,
+        "sha": "13a471b684c6730c37d9890c057c95e966a50ec0",
+        "occupancy": 38826,
+        "estimated_recoverable": 3442,
+        "estimated_unavailable": 782,
+        "estimated_needed": 36166,
+        "worst_setup_ns": -2.779
+      }
+    },
+    "icu": {
+      "43": {
+        "run": 45231285727,
+        "sha": "fa1b2f1b62b1452343dc1a9258b7601cf1acb5af",
+        "occupancy": 38675,
+        "estimated_recoverable": 3304,
+        "estimated_unavailable": 780,
+        "estimated_needed": 36151,
+        "worst_setup_ns": -2.863
+      },
+      "13": {
+        "run": 45231286010,
+        "sha": "fa1b2f1b62b1452343dc1a9258b7601cf1acb5af",
+        "occupancy": 38726,
+        "estimated_recoverable": 3311,
+        "estimated_unavailable": 889,
+        "estimated_needed": 36304,
+        "worst_setup_ns": -3.278
+      },
+      "31337": {
+        "run": 45231285784,
+        "sha": "fa1b2f1b62b1452343dc1a9258b7601cf1acb5af",
+        "occupancy": 38825,
+        "estimated_recoverable": 3379,
+        "estimated_unavailable": 865,
+        "estimated_needed": 36311,
+        "worst_setup_ns": -2.932
+      }
+    },
+    "mmc": {
+      "43": {
+        "run": 45231987887,
+        "sha": "d790e966390a2fa2af10a836ec0d4543037c509a",
+        "occupancy": 38609,
+        "estimated_recoverable": 2346,
+        "estimated_unavailable": 789,
+        "estimated_needed": 37052,
+        "worst_setup_ns": -2.98
+      },
+      "13": {
+        "run": 45231987701,
+        "sha": "d790e966390a2fa2af10a836ec0d4543037c509a",
+        "occupancy": 38717,
+        "estimated_recoverable": 2454,
+        "estimated_unavailable": 877,
+        "estimated_needed": 37140,
+        "worst_setup_ns": -2.713
+      },
+      "31337": {
+        "run": 45231987009,
+        "sha": "d790e966390a2fa2af10a836ec0d4543037c509a",
+        "occupancy": 38611,
+        "estimated_recoverable": 2339,
+        "estimated_unavailable": 807,
+        "estimated_needed": 37079,
+        "worst_setup_ns": -2.993
+      }
+    },
+    "tlb": {
+      "43": {
+        "run": 45232753533,
+        "sha": "723e2b7eb3ce77a36550c32bd2230e8145813078",
+        "occupancy": 38186,
+        "estimated_recoverable": 3366,
+        "estimated_unavailable": 821,
+        "estimated_needed": 35641,
+        "worst_setup_ns": -3.088
+      },
+      "13": {
+        "run": 45232752956,
+        "sha": "723e2b7eb3ce77a36550c32bd2230e8145813078",
+        "occupancy": 38288,
+        "estimated_recoverable": 3481,
+        "estimated_unavailable": 838,
+        "estimated_needed": 35645,
+        "worst_setup_ns": -3.089
+      },
+      "31337": {
+        "run": 45232753430,
+        "sha": "723e2b7eb3ce77a36550c32bd2230e8145813078",
+        "occupancy": 38287,
+        "estimated_recoverable": 3450,
+        "estimated_unavailable": 843,
+        "estimated_needed": 35680,
+        "worst_setup_ns": -2.999
+      }
+    }
+  },
+  "comparisons": {
+    "refill": {
+      "paired_deltas": {
+        "43": {
+          "occupancy": -11,
+          "estimated_recoverable": 1117,
+          "estimated_unavailable": -62,
+          "estimated_needed": -1190,
+          "worst_setup_ns": -0.044
+        },
+        "13": {
+          "occupancy": 107,
+          "estimated_recoverable": 1117,
+          "estimated_unavailable": -128,
+          "estimated_needed": -1138,
+          "worst_setup_ns": -0.278
+        },
+        "31337": {
+          "occupancy": 3,
+          "estimated_recoverable": 1093,
+          "estimated_unavailable": -108,
+          "estimated_needed": -1198,
+          "worst_setup_ns": 0.073
+        }
+      },
+      "paired_medians": {
+        "occupancy": 3,
+        "estimated_recoverable": 1117,
+        "estimated_unavailable": -108,
+        "estimated_needed": -1190,
+        "worst_setup_ns": -0.044
+      }
+    },
+    "icu": {
+      "paired_deltas": {
+        "43": {
+          "occupancy": -140,
+          "estimated_recoverable": 951,
+          "estimated_unavailable": -124,
+          "estimated_needed": -1215,
+          "worst_setup_ns": -0.012
+        },
+        "13": {
+          "occupancy": -73,
+          "estimated_recoverable": 883,
+          "estimated_unavailable": -26,
+          "estimated_needed": -982,
+          "worst_setup_ns": -0.475
+        },
+        "31337": {
+          "occupancy": 2,
+          "estimated_recoverable": 1030,
+          "estimated_unavailable": -25,
+          "estimated_needed": -1053,
+          "worst_setup_ns": -0.08
+        }
+      },
+      "paired_medians": {
+        "occupancy": -73,
+        "estimated_recoverable": 951,
+        "estimated_unavailable": -26,
+        "estimated_needed": -1053,
+        "worst_setup_ns": -0.08
+      }
+    },
+    "mmc": {
+      "paired_deltas": {
+        "43": {
+          "occupancy": -206,
+          "estimated_recoverable": -7,
+          "estimated_unavailable": -115,
+          "estimated_needed": -314,
+          "worst_setup_ns": -0.129
+        },
+        "13": {
+          "occupancy": -82,
+          "estimated_recoverable": 26,
+          "estimated_unavailable": -38,
+          "estimated_needed": -146,
+          "worst_setup_ns": 0.09
+        },
+        "31337": {
+          "occupancy": -212,
+          "estimated_recoverable": -10,
+          "estimated_unavailable": -83,
+          "estimated_needed": -285,
+          "worst_setup_ns": -0.141
+        }
+      },
+      "paired_medians": {
+        "occupancy": -206,
+        "estimated_recoverable": -7,
+        "estimated_unavailable": -83,
+        "estimated_needed": -285,
+        "worst_setup_ns": -0.129
+      }
+    },
+    "tlb": {
+      "paired_deltas": {
+        "43": {
+          "occupancy": -629,
+          "estimated_recoverable": 1013,
+          "estimated_unavailable": -83,
+          "estimated_needed": -1725,
+          "worst_setup_ns": -0.237
+        },
+        "13": {
+          "occupancy": -511,
+          "estimated_recoverable": 1053,
+          "estimated_unavailable": -77,
+          "estimated_needed": -1641,
+          "worst_setup_ns": -0.286
+        },
+        "31337": {
+          "occupancy": -536,
+          "estimated_recoverable": 1101,
+          "estimated_unavailable": -47,
+          "estimated_needed": -1684,
+          "worst_setup_ns": -0.147
+        }
+      },
+      "paired_medians": {
+        "occupancy": -536,
+        "estimated_recoverable": 1053,
+        "estimated_unavailable": -77,
+        "estimated_needed": -1684,
+        "worst_setup_ns": -0.237
+      }
+    }
+  }
+}

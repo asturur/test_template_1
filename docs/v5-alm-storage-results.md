@@ -58,9 +58,29 @@ All candidates use the exact all-four production RTL as their parent for compari
 
 All four RAM experiments reproduced the 15 fixed workloads and their request traces, four native PolyCount frames and the mixed replay. All seeds produced RBFs and passed hold, recovery, removal and minimum pulse checks. Every seed missed 104 MHz setup. The whole-design ALM deltas include changes in fitting and packing outside each edited module. An actual combined fit is needed to measure their joint effect. [Run manifests and simulation checks](evidence/v5-104-bram-mix-qualification.json) · [Per-corner timing, routing and instance counts](evidence/v5-104-bram-mix-fits.json)
 
-For a timing-led combination, the CPU refill buffer offers the best area trade in this round. It saved 1,138–1,198 ALMs per matched seed for two M10Ks and a 0.044 ns lower median setup slack. The ICU probe bank saved 982–1,215 ALMs by reusing existing RAM rows, with no new M10Ks. Its setup slack worsened on all three seeds. The TLB victim table gave the largest area saving (1,641–1,725 ALMs for two M10Ks) and the largest median setup regression (0.237 ns). Keep all three as independent options. The MMC FIFO gave the best single new setup result at −2.713 ns on seed 13, an improvement of 0.090 ns at that seed, while the other two seeds regressed. Its four new M10Ks saved just 146–314 ALMs. None of these substitutions improved median worst setup over the all-four control.
+The CPU refill buffer reduced the ALMs-needed estimate by 1,138–1,198 per matched seed for two M10Ks and a 0.044 ns lower median setup slack. The ICU probe bank reduced that estimate by 982–1,215 by reusing existing RAM rows, with no new M10Ks. Its setup slack worsened on all three seeds. The TLB victim table gave the largest estimated reduction (1,641–1,725 ALMs for two M10Ks) and the largest median setup regression (0.237 ns). Keep all three as independent options. The MMC FIFO gave the best single new setup result at −2.713 ns on seed 13, an improvement of 0.090 ns at that seed, while the other two seeds regressed. Its four new M10Ks saved just 146–314 ALMs. None of these substitutions improved median worst setup over the all-four control.
 
 The best-setup RBF for each variant is archived under `build/fit/v5-104mhz-<commit>-seed<seed>/ngage1.rbf`. Copies are available for refill `13a471b` seed 31337, ICU `fa1b2f1` seed 43, MMC `d790e96` seed 13 and TLB `723e2b7` seed 31337. Hardware validation is pending. The RTL at the end of the series (`903efe1`) matches the original all-four control.
+
+### Physical occupancy of the four later BRAM trials
+
+The earlier tables use the Quartus ALMs-needed estimate. The raw Fitter
+reports give physical occupancy `A`, estimated recoverable packing `B`, and
+estimated unavailable ALMs `C`. Needed is `A − B + C`. The table below
+uses paired medians from the three existing fits per trial.
+
+| Trial | Occupied ALM delta | Recoverable ALM delta | Needed ALM delta | Worst setup delta |
+| --- | ---: | ---: | ---: | ---: |
+| CPU refill buffer | +3 | +1,117 | -1,190 | -0.044 ns |
+| ICU probe bank | -73 | +951 | -1,053 | -0.080 ns |
+| MMC host FIFO | -206 | -7 | -285 | -0.129 ns |
+| TLB victim table | -536 | +1,053 | -1,684 | -0.237 ns |
+
+The TLB victim table and the MMC host FIFO occupy fewer ALMs on every
+seed. The refill buffer occupies essentially the same number after fitting.
+These results prioritize the TLB and MMC pair for a future routing-density
+comparison. The combined effect requires a fresh measured fit.
+[Verified Fitter accounting](evidence/v5-104-bram-mix-occupied-alms.json)
 
 ## Parallel work and the cost of another pipeline stage
 
