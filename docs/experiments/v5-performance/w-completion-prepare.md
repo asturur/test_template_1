@@ -46,6 +46,26 @@ The UPP candidate was parked. The standalone W completion candidate
 refill and SDRAM `ab75a62` tree. All three use physical 104 MHz with DDR
 debug off. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45888184228) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45888187846) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45888191508)
 
+## Routed decision
+
+Park `e2249e4`. All three builds pass hold, recovery, removal, minimum
+pulse width and SDRAM pin registers. All three fail 104 MHz setup.
+
+| Seed | Worst setup, combined base → prepared W | Core TNS delta | Occupied ALM delta | Estimated ALMs needed delta |
+| ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.006 → −3.182 ns | −5,376.552 ns | +260 | −778 |
+| 43 | −2.636 → −3.038 ns | −1,435.497 ns | +272 | −687 |
+| 31337 | −2.902 → −3.021 ns | −2,055.177 ns | +279 | −782 |
+
+All 16 sampled hot routes from W-valid through `complete_class` on
+seed 13 disappear. The new eligibility endpoint appears in seed 43 at
+−1.672 ns hot and −1.349 ns cold. Whole-core median setup and TNS regress
+by 0.402 and 2,929.802 ns respectively. The paired median TNS delta is
+−2,055.177 ns. The estimated ALMs-needed reduction accompanies 272 more
+occupied ALMs at the paired median. Other paths now limit the chip,
+including UPP lane decode into Wishbone error and two SDRAM/DMA routes.
+[Matched fits and hot routes](../../evidence/v5-104-w-completion-prepare-fits.json)
+
 ## Reproduction
 
 Use the cached Jotego ARM64 simulator, pinned `build/arm9v2-assoc/stock-pinned.v`, the two-cut object chain and its archived build inputs. The frozen fixed/native workloads are under `build/sim/{payload-clocks,polycount}/v5-104-all-four-ram-candidate` with the compile deck `scratch/refill-issue-739d3bd/leg`. The two-cut builds under `build/sim/v5-104-refill-payload-combined` provide exact comparison rows and physical inputs. The timer overlap and block eviction guest overlays come from `build/sim/v5-104-sdram-block-payload`.

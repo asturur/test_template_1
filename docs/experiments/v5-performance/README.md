@@ -379,8 +379,14 @@ median setup regress. Park.
 The [prepared W completion trial](w-completion-prepare.md) moves static
 completion eligibility beside the W packet. It preserves live response,
 exception and flush timing, and matches the exact best combination in all
-workload and pin-model checks. The new return path to the eligibility
-register and whole-core timing await a fit.
+workload and pin-model checks. The W-valid family leaves the path sample,
+but all three whole-core setup and TNS results regress. Park.
+
+The [D-cache pending-beat trial](d-completion-merger.md) prepares held and
+following beat availability beside the existing counter. Its active
+board, workload, pin, ACK and ERR checks match the two-cut control. The
+[A-space operand alternative](a-right-payload.md) is parked before fitting
+because active production lookahead observes a vacant operand change.
 
 ## Passive opportunity studies
 

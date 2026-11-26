@@ -1,0 +1,110 @@
+{
+  "status": "PASS",
+  "production_qualified": "preflight",
+  "two_cut": "ab75a622a80a5aedae347f63ae195f3da965815a",
+  "public_parent": "e2249e46c0bd47ab85539cff9416a51214c1ea05",
+  "restore": "5a30e26583f81c4cd2415672f9f8bbfb6ed767d6",
+  "private_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/d-completion-merger/followup-20261126/objects",
+  "alternate_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/w-completion-upp/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/upp-claim-refill-payload/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/refill-payload-after-a-only/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/.git/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/a-only-product-ram-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/tlb-fifo-refill-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/refill-payload-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/sdram-block-payload/followup-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-dirty-compact-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-compact-owner-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-footer-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/timer-live-trust-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-live-trust/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lltune-clock/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lane13-mmc-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-count-prepare/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/wb-reply-class/dispatch-20261126/objects",
+  "staged_source_sha256": "83cd567368cc95fcc1d254a3ad8c5e0613d8ab4db343ff04d1f1a42de3dbfe64",
+  "design_patch_sha256": "bf7ee9913c27623ac618164729752fd7a1a3bfa807e128af3482c3cda09a8386",
+  "stack_patch_sha256": "5aa2cc066c1637272969c48e01cb6708772a9e994e10829ad97a4fcc596ae431",
+  "variants": {
+    "d-beat-on-two-cut": {
+      "sha": "0c64862ebd8c5c85830a931c7f68b6b429a32076",
+      "parent": "5a30e26583f81c4cd2415672f9f8bbfb6ed767d6",
+      "tree": "6dd7930e0036b06f2513d0e8ade7c994e55d2048",
+      "paths_since_parent": [
+        "rtl/arm9v2/arm925t_phone.v",
+        "tools/gen_arm9v2_phone.py"
+      ],
+      "sha256_from_two_cut": {
+        "rtl/arm9v2/arm925t_phone.v": "399706e26164f8d205c3a7c8114f2004536d54a91ebbf6f9e4f42b511104c692",
+        "tools/gen_arm9v2_phone.py": "65830f179f5874262681d4fb8a9d6d61e11b1765dcbc3b2aaa2dcdea52ca53d1"
+      },
+      "production": {
+        "13": {
+          "control_run": 45879015397,
+          "control_origin": "routed two-cut control",
+          "mhz": 104,
+          "debugger": false,
+          "source_count": 133,
+          "delta": {
+            "rtl/arm9v2/arm925t_phone.v": "399706e26164f8d205c3a7c8114f2004536d54a91ebbf6f9e4f42b511104c692"
+          },
+          "manifest_sha256": "f1aa5775fffa27be9e5eab757439bf288323d313a0e0d2cc2d8b1294676a2ba1"
+        },
+        "43": {
+          "control_run": 45879019116,
+          "control_origin": "routed two-cut control",
+          "mhz": 104,
+          "debugger": false,
+          "source_count": 133,
+          "delta": {
+            "rtl/arm9v2/arm925t_phone.v": "399706e26164f8d205c3a7c8114f2004536d54a91ebbf6f9e4f42b511104c692"
+          },
+          "manifest_sha256": "65537bb12a461961a4e3d5b7ba20d096fed27de2b5f53fa96d6cc18c398662b7"
+        },
+        "31337": {
+          "control_run": 45879022396,
+          "control_origin": "routed two-cut control",
+          "mhz": 104,
+          "debugger": false,
+          "source_count": 133,
+          "delta": {
+            "rtl/arm9v2/arm925t_phone.v": "399706e26164f8d205c3a7c8114f2004536d54a91ebbf6f9e4f42b511104c692"
+          },
+          "manifest_sha256": "39de1cb49facf689ed2a5027096f483dc3ae2386cd7ae6637cbc58fa1201c8b3"
+        }
+      }
+    },
+    "d-beat-on-w": {
+      "sha": "4a53b1f1e9786ad413712ddd80fb74feeb85d387",
+      "parent": "e2249e46c0bd47ab85539cff9416a51214c1ea05",
+      "tree": "904182b9d49bd676c09def999abafa45a188f057",
+      "paths_since_parent": [
+        "rtl/arm9v2/arm925t_phone.v",
+        "tools/gen_arm9v2_phone.py"
+      ],
+      "sha256_from_two_cut": {
+        "rtl/arm9v2/arm925t_phone.v": "f7ccac21f71424b3c15dd8287f6407eedb807b8832dfa5cb6545b4b440e822f9",
+        "tools/gen_arm9v2_phone.py": "e5ebbb31cdf33bf200b8b0b5ac6f49aaf91bcac3b4ba31aa2675e84152a538ec"
+      },
+      "production": {
+        "13": {
+          "control_run": 45888184228,
+          "control_origin": "sealed W control preflight",
+          "mhz": 104,
+          "debugger": false,
+          "source_count": 133,
+          "delta": {
+            "rtl/arm9v2/arm925t_phone.v": "f7ccac21f71424b3c15dd8287f6407eedb807b8832dfa5cb6545b4b440e822f9"
+          },
+          "manifest_sha256": "2a32147d83c7d9150b6c7578a6a7ba15041057bb7f31e4e97fb0ef926acf864f"
+        },
+        "43": {
+          "control_run": 45888187846,
+          "control_origin": "routed W control",
+          "mhz": 104,
+          "debugger": false,
+          "source_count": 133,
+          "delta": {
+            "rtl/arm9v2/arm925t_phone.v": "f7ccac21f71424b3c15dd8287f6407eedb807b8832dfa5cb6545b4b440e822f9"
+          },
+          "manifest_sha256": "9f6038a229c449ce6c1df7fa527238ca6e578ecabbb631d16d96ba57f5b6189e"
+        },
+        "31337": {
+          "control_run": 45888191508,
+          "control_origin": "sealed W control preflight",
+          "mhz": 104,
+          "debugger": false,
+          "source_count": 133,
+          "delta": {
+            "rtl/arm9v2/arm925t_phone.v": "f7ccac21f71424b3c15dd8287f6407eedb807b8832dfa5cb6545b4b440e822f9"
+          },
+          "manifest_sha256": "ece9dcc6d55ad2da13e0e5014b62678b4c8d4883c22d0f654942f75bc226a4b6"
+        }
+      }
+    }
+  }
+}
