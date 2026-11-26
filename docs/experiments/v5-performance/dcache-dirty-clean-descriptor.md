@@ -34,6 +34,13 @@ The [standalone descriptor](patches/dcache-dirty-descriptor-on-timer.patch) and 
 - [Exact candidates and all three seeds' preflight checks](../../evidence/v5-104-dcache-dirty-compact-preflight.json)
 - [Combined replay fixture](patches/dcache-dirty-compact-combined-replay.patch)
 
+## 104 MHz fit
+
+The compact lock fits were parked. The standalone descriptor `dbad302`
+was dispatched on the exact timer restore `da03b02`. Its matched control
+is timer-only `9f16d1a`. The design uses the production 104 MHz clock
+with DDR debugging off. [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45850041608) · [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45850046593) · [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45850051512)
+
 ## Reproduction
 
 Run from the repository root using the prior private timer objects, pinned donor, prepared Wishbone workloads, and already-qualified timer pin and overlap decks. The ARM GNU tools and cached Jotego ARM64 image supply the directed tests. Set `patches` to the archive containing the design and fixture patches.

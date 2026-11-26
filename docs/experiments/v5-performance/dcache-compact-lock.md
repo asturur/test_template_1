@@ -40,6 +40,18 @@ timer-tree restore. The matched control is timer-only `9f16d1a`.
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45844317854) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45844323297)
 
+## Routed results
+
+Park `aaeef9e` and retain the design patch for future combinations. All three fits pass hold, recovery, removal, minimum pulse width and SDRAM pin register checks. All three fail 104 MHz setup.
+
+| Seed | Worst setup, timer → compact | Core TNS delta | Occupied ALM delta | Estimated ALMs needed delta |
+| ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.214 → −2.513 ns | −1,369.352 ns | +410 | −593 |
+| 43 | −2.403 → −2.717 ns | −1,720.472 ns | −221 | −321 |
+| 31337 | −2.452 → −2.712 ns | −1,579.230 ns | +533 | −286 |
+
+Median setup and TNS both regress, by 0.309 and 1,579.230 ns respectively. The paired median physical occupancy rises by 410 ALMs while the estimated needed number falls by 321. All fits keep 321 M10Ks. The targeted `o_lock_any` destination drops out of all sampled corners. The remaining owner destination appears in seed 31337 hot at −1.355 ns. Other routes now limit the core, including the UPP request to RAM write data, LCD demand into DMA, and NOR state into the DDR write issue stage. [Matched seed fits and route evidence](../../evidence/v5-104-dcache-compact-lock-fits.json)
+
 ## Reproduction
 
 Use the frozen timer-only control decks, the pinned Jotego image and the established ARM cross-toolchain. Restore the helpers from the [replay patch](patches/dcache-compact-lock-replay.patch) in the repository root.

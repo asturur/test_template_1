@@ -106,3 +106,4 @@ fit while the estimated number needed rose. [ALM accounting audit](fitter-alm-ac
 | [Prepared timer writes](timer-write-prepare.md) | −2.214 ns | −2.403 ns | 37,014 | Keep as the next experiment base |
 | [MMC footer CRC on the timer base](mmc-footer-crc-direct.md) | −2.624 ns | −3.102 ns | 37,426 | Park |
 | [MMC HPS owner on the timer base](mmc-hps-cancel-owner.md) | −2.079 ns | −2.615 ns | 36,918 | Park for area |
+| [Compact D-cache lock on the timer base](dcache-compact-lock.md) | −2.513 ns | −2.712 ns | 36,622 | Park |

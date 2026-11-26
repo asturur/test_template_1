@@ -327,7 +327,8 @@ TNS results worsen. Park for area combinations.
 The [compact D-cache lock](dcache-compact-lock.md) stores the sole load
 lock as a tag and a valid bit in the phone configuration. The existing
 tag/return edge is preserved, and the exact state and workload replays
-match the timer baseline. Routed timing is pending.
+match the timer baseline. The old valid destination leaves the path sample,
+but whole-core setup and TNS worsen in all three fits. Park.
 
 The [dirty-clear descriptor trial](dcache-dirty-clean-descriptor.md)
 preselects the held maintenance address before Wishbone completion.
