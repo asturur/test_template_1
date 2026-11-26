@@ -2374,5 +2374,45 @@
       "scratch/v5-fit-loop/conservative-w-load-order/replay.py": "02f48dff6000a36812302dc9017885417b1bc2cc9cf99da2860cd0535603e65a",
       "scratch/v5-fit-loop/conservative-w-load-order/waw-census.vh": "7a6f99a82f161d8908abeebfbdd49f333328d9093c55cd609e5c0d6fe8d27a05"
     }
+  },
+  {
+    "id": "mmc-footer-crc-direct",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-footer-crc-direct.patch"
+    ],
+    "sha256": [
+      "1f41e4feed53c1345dd3a114d0a99eaf8b0e4b21cf21c354999535377200d9f2"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_hps.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_mmc_hps.v": "0df16bfd82217bd5fb600ad37d472d668b98aca4fbae759c2b101651a376d342"
+    }
+  },
+  {
+    "id": "mmc-footer-crc-direct-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-footer-crc-direct-replay.patch"
+    ],
+    "sha256": [
+      "f6dc4a55a139d5f0f39824791667619a5adfa9b950c88370db9377a6f730b851"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/mixed.py",
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/prepare-verify.py",
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/record-qualification.py",
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/replay.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/mixed.py": "c29de18341cc38c54741c0cf561a30ae6adaf993674a73a22948513f65f3c520",
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/prepare-verify.py": "3e1d64219f1ba4abc1f4c74593aa020556682f3e913582765b30473e692d50ba",
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/record-qualification.py": "6f4327dbea24d71a513f19c7c1cbd71f966afc73bdc20f737d4df730375fd953",
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/replay.py": "2004665ee7e267ff0fe0bb70786ca07ce6ead33bf249a78d14a6084d85979323"
+    }
   }
 ]

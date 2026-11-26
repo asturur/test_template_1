@@ -90,8 +90,12 @@ reload, count writes, stop, invalid lanes and reset before fitting.
 ## Matched follow-up fits
 
 Each row uses seeds 13, 43 and 31337 at physical 104 MHz.
+Quartus computes the ALMs-needed estimate from final occupied ALMs,
+recoverable dense packing, and unavailable ALMs. The Wishbone, lane
+13 and live-trust builds occupied fewer physical ALMs in every matched
+fit while the estimated number needed rose. [ALM accounting audit](fitter-alm-accounting.md)
 
-| Trial | Best setup | Median setup | Median ALMs | Decision |
+| Trial | Best setup | Median setup | Median ALMs needed | Decision |
 | --- | ---: | ---: | ---: | --- |
 | Retained `e9552bd` tree | −2.061 ns | −2.471 ns | 36,446 | Keep |
 | [Wishbone reply split](wb-reply-class.md) | −2.450 ns | −2.566 ns | 37,131 | Park |

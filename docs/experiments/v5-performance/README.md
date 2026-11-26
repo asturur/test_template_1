@@ -306,6 +306,12 @@ count-write and stop predicates with the held UPP packet. Directed tests
 and the full workload suites match, including a timer-expiry trace
 with MMC and LCD DMA busy. Routed timing is pending.
 
+The [MMC footer CRC trial](mmc-footer-crc-direct.md) removes 240 bits
+of duplicate storage and reads the captured bytes during the existing
+CRC window. The expanded footer checks, all workload windows and the
+physical replay with the real backing adapter match. Routed timing
+and area are pending. [Matched ALM accounting](fitter-alm-accounting.md)
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
