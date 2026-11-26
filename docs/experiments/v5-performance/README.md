@@ -264,7 +264,8 @@ I-cache fall to zero in the hot exports, while median setup moves from
 
 The [prepared MMC counter](mmc-count-prepare.md) removes the wide
 byte-count carry after late FIFO acceptance. The 4 KiB directed tests,
-mixed replay, fixed and native workloads match. Routed timing is pending.
+mixed replay, fixed and native workloads match. Median area drops 429 ALMs
+and median setup moves from −2.471 to −2.811 ns. Park for area combinations.
 
 The [separate lane 13 result captures](lane13-register-sources.md) reuse
 the existing keypad sample and let the UART word register independently.

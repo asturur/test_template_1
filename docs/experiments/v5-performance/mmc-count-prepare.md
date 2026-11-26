@@ -30,6 +30,27 @@ The fitter uses the same-day `81a1b45` controls with DDR debugging off.
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45793453000) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45793455943)
 
+## Routed results
+
+| Seed | Retained setup | Prepared setup | Change | Retained ALMs | Prepared ALMs |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.061 ns | −3.316 ns | −1.255 ns | 36,420 | 36,055 |
+| 43 | −2.508 ns | −2.811 ns | −0.303 ns | 36,446 | 36,014 |
+| 31337 | −2.471 ns | −2.765 ns | −0.294 ns | 36,461 | 36,017 |
+| Median | −2.471 ns | −2.811 ns | −0.340 ns | 36,446 | 36,017 |
+
+Park `9a02faf` as an area-saving option. Median area fell by 429 ALMs
+and all fits used 321 M10Ks. The named `nfifo` hot paths fell from
+15/16/19 to 2/4/11 for seeds 13/43/31337. The worst remaining named
+path at that destination lost 0.153–0.180 ns. Median core setup TNS
+fell from −5143.651 to −7282.192 ns. The limiting paths move through
+SDRAM request handling or reset to I-cache readiness/Wishbone address.
+All three passed hold, recovery, removal, pulse width and SDRAM pin
+packing, and failed setup. The best candidate RBF is
+`build/fit/v5-104mhz-9a02faf-seed31337/ngage1.rbf`.
+Forward restore `88796f65` returns to the exact retained tree.
+[Matched fit and route evidence](../../evidence/v5-104-mmc-count-prepare-fits.json)
+
 ## Qualification
 
 The arithmetic checks cover every byte mask and remaining count,

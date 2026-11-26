@@ -20,6 +20,13 @@ edge. The immediate fabric uses the original data mux and owner. The keypad
 overlay and EUART address decoding are the retained versions. Routed area
 and timing remain open.
 
+The lane-only production build is `5e91495`, a child of the exact
+retained-tree forward restore `88796f65`. It uses the same-day retained
+controls at 104 MHz with DDR debugging off.
+[Seed 13](https://github.com/asturur/test_template_1/actions/runs/45800010061) ·
+[Seed 43](https://github.com/asturur/test_template_1/actions/runs/45800009911) ·
+[Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45800009711)
+
 ## Qualification
 
 The archived directed bench matched 614 responses and 4,070 trace records
