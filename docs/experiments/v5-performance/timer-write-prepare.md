@@ -32,6 +32,12 @@ from other launches. The other retained hot exports and all retained
 cold exports contain zero count endpoints below that threshold. Twelve
 packet bits are added. Fitted area and changed route slack remain open.
 
+The production timer-only candidate is `9f16d1a` at physical 104 MHz
+with DDR debugging off. Its parent `d211fe8` matches the retained tree.
+[Seed 13](https://github.com/asturur/test_template_1/actions/runs/45824513460) ·
+[Seed 43](https://github.com/asturur/test_template_1/actions/runs/45824520116) ·
+[Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45824525843)
+
 ## Qualification
 
 The directed differential uses the production request stage and

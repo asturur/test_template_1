@@ -48,7 +48,7 @@ state and the hit-under-miss logic before the final trust cell. That
 hit-under-miss path still exists. The RTL removes the alternate full
 next-fill decode from the destination cone. A fitter can potentially
 absorb the final condition into one LUT in both versions. Routed path
-length, slack and area remain unmeasured for the candidate.
+length, slack and area are measured below.
 
 The production triplet uses `f6ae7f6`, a child of forward restore
 `5abddb8`, at physical 104 MHz with DDR debugging off. The restore's
@@ -56,6 +56,23 @@ tree is identical to the retained control.
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45818144877) ·
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45818145038) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45818144548)
+
+## Routed results
+
+| Seed | Retained setup | Live-trust setup | Change | Retained ALMs | Live-trust ALMs |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.061 ns | −2.703 ns | −0.642 ns | 36,420 | 37,231 |
+| 43 | −2.508 ns | −2.775 ns | −0.267 ns | 36,446 | 37,142 |
+| 31337 | −2.471 ns | −2.632 ns | −0.161 ns | 36,461 | 37,157 |
+| Median | −2.471 ns | −2.703 ns | −0.232 ns | 36,446 | 37,157 |
+
+Park `f6ae7f6`. Seed 43's hot trust endpoint moves from −2.389 to
+−2.325 ns. The endpoint drops out of the hot exports on seeds 13 and
+31337. Median core TNS falls from −5143.651 to −6478.446 ns. The
+limiting paths reach register-file write data and Wishbone address.
+All three use 321 M10Ks, pass hold, recovery, removal, pulse width and
+SDRAM pin packing, and fail setup. Forward restore `d211fe8` returns to
+the exact retained tree. [Matched timing and ALM evidence](../../evidence/v5-104-dcache-live-trust-fits.json)
 
 ## Workload qualification
 

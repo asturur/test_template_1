@@ -278,7 +278,8 @@ The [D-cache live-trust trial](dcache-live-trust.md) removes the wide
 next-fill decode from the trust register's update. The exact transition
 differential and all board and workload regressions match. The sampled
 retained trust endpoint misses by more than 1.5 ns at all ten hot corners.
-Routed timing is pending.
+Median setup moves from −2.471 to −2.703 ns and median area grows by
+711 ALMs. Park the trial.
 
 The [trusted D-cache hit ACK trial](dcache-trusted-hit-ack.md) removes
 uncached completion from the W-load ordering fast path, the worst path

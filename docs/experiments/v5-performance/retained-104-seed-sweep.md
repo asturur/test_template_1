@@ -86,3 +86,17 @@ incoming request alongside the held UPP packet. Qualify each prepared
 operation with the existing live commit, so cancellation and write or
 expiry priority stay on the original edge. Check coincident expiry,
 reload, count writes, stop, invalid lanes and reset before fitting.
+
+## Matched follow-up fits
+
+Each row uses seeds 13, 43 and 31337 at physical 104 MHz.
+
+| Trial | Best setup | Median setup | Median ALMs | Decision |
+| --- | ---: | ---: | ---: | --- |
+| Retained `e9552bd` tree | −2.061 ns | −2.471 ns | 36,446 | Keep |
+| [Wishbone reply split](wb-reply-class.md) | −2.450 ns | −2.566 ns | 37,131 | Park |
+| [MMC counter](mmc-count-prepare.md) | −2.765 ns | −2.811 ns | 36,017 | Park for area |
+| [Lane 13](lane13-register-sources.md) | −2.895 ns | −3.029 ns | 37,247 | Park |
+| [Tuner clock model](lltune-generated-clock.md) | −2.297 ns | −2.733 ns | 36,599 | Park the fit and preserve the verified model |
+| [D-cache live trust](dcache-live-trust.md) | −2.632 ns | −2.703 ns | 37,157 | Park |
+| [Prepared timer writes](timer-write-prepare.md) | | | | Fits active |
