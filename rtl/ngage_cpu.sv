@@ -223,8 +223,8 @@ module ngage_arm9v2_refill #(
     reg [4:0] received;
     reg [2:0] consumed;
     reg failed, guaranteed;
-    reg  [15:0] low_half;
-    wire [31:0] refill_words[0:1];
+    reg [15:0] low_half;
+    reg [31:0] words    [0:7];
 
     wire burst = cpu_cti == BURST;
     assign line_req  = ENABLE && !reset && state == IDLE && cpu_cyc && !cpu_lock &&
@@ -247,7 +247,7 @@ module ngage_arm9v2_refill #(
     // A scalar fallback never grants the promise, including a line rejected
     // before its first beat. The cache samples this alongside the first ACK.
     assign cpu_no_late_error = state == LINE && guaranteed && cpu_ack;
-    assign cpu_data = state == LINE ? refill_words[consumed[0]] : wb_data;
+    assign cpu_data = state == LINE ? words[consumed] : wb_data;
 
     always @(posedge clk) begin
         if (reset) begin
@@ -288,34 +288,17 @@ module ngage_arm9v2_refill #(
         if (state == LINE && line_valid && !line_wide && !received[0])
             low_half <= line_data[15:0];
 
-    // Before each edge read both the head and its successor. Either can
-    // become the head after the edge, independently of the ACK path.
-    wire [1:0] odd_row = state == LINE ? consumed[2:1] : 2'd0;
-    wire [1:0] even_row = odd_row + {1'b0, state == LINE && consumed[0]};
-    wire       receive_word = state == LINE && line_valid && received < 16;
-    wire [1:0] write_row = received[3:2];
-    genvar parity;
+    genvar slot;
     generate
-        for (parity = 0; parity < 2; parity = parity + 1) begin : g_refill_bank
-            wire [1:0] read_row = parity == 0 ? even_row : odd_row;
-            wire write_word = receive_word && (line_wide || (received[0] && received[1] == parity));
-            wire [31:0] write_data = line_wide ? line_data[parity*32+:32] :
-                                               {line_data[15:0], low_half};
-            (* ramstyle = "M10K, no_rw_check" *) reg [31:0] words[0:3];
-            reg [31:0] ram_word, forwarded_word;
-            reg forward_word;
-
-            // The first ready word can arrive on the same edge as its
-            // read. Forward that write instead of relying on RAM RDW.
+        for (slot = 0; slot < 8; slot = slot + 1) begin : line_word
             always @(posedge clk) begin
-                if (write_word) begin
-                    words[write_row] <= write_data;
-                    forwarded_word   <= write_data;
+                if (state == LINE && line_valid && received < 16) begin
+                    if (line_wide && received[3:2] == slot >> 1)
+                        words[slot] <= line_data[(slot%2)*32+:32];
+                    else if (!line_wide && received[0] && received[3:1] == slot)
+                        words[slot] <= {line_data[15:0], low_half};
                 end
-                ram_word     <= words[read_row];
-                forward_word <= write_word && write_row == read_row;
             end
-            assign refill_words[parity] = forward_word ? forwarded_word : ram_word;
         end
     endgenerate
 
