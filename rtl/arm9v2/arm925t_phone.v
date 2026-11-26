@@ -10619,8 +10619,7 @@ module ngage2_zap_dcache_fsm (
 			repair_ff <= repair_nxt;
 			hum_slot_ff <= hum_slot_nxt;
 			o_live_lookup <= state_nxt[IDLE] || hum_slot_nxt;
-			// The fill slot implies next fill busy. One-hot IDLE excludes it.
-			o_live_trust <= hum_slot_nxt || (state_nxt[IDLE] && !o_fill_busy);
+			o_live_trust <= (state_nxt[IDLE] || hum_slot_nxt) && !(o_fill_busy && !fill_busy_nxt);
 			o_relookup <= ((state_nxt[RELOOKUP0] || state_nxt[RELOOKUP1]) || state_nxt[RELOOKUP2] ? {state_nxt[RELOOKUP2], state_nxt[RELOOKUP1], state_nxt[RELOOKUP0]} : repair_nxt | {2'b00, cpu_wait && fill_busy_nxt});
 		end
 	assign hum_slot_nxt = (((state_nxt[CLEAN_SINGLE] || state_nxt[FETCH_SINGLE]) || state_nxt[UNLOCK_WR]) && lookup_ready_nxt) && (line_safe_nxt || ((state_nxt[CLEAN_SINGLE] && fill_visible_ff) && victim_safe_nxt));
