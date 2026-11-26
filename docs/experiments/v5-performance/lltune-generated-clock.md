@@ -23,6 +23,24 @@ Core setup TNS improves from −4606.649 to −3553.560 ns. Area moves
 from 36,420 to 36,599 ALMs and 321 to 315 M10Ks. The overall fit
 misses setup. [Pilot reports and four clock audits](../../evidence/v5-104-lltune-generated-clock-pilot.json)
 
+## Three matched routes
+
+| Seed | Retained setup | Tuner setup | Change | Retained ALMs | Tuner ALMs | Fitted Delay sinks |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.061 ns | −2.297 ns | −0.236 ns | 36,420 | 36,599 | 47 |
+| 43 | −2.508 ns | −2.945 ns | −0.437 ns | 36,446 | 36,659 | 43 |
+| 31337 | −2.471 ns | −2.733 ns | −0.262 ns | 36,461 | 36,589 | 46 |
+| Median | −2.471 ns | −2.733 ns | −0.262 ns | 36,446 | 36,599 | |
+
+All twelve corner audits confirm the expected clock ownership and
+derived margins. All three RBFs pass hold, recovery, removal, pulse
+width and SDRAM pin packing. All three miss setup. Median core TNS
+moves from −5143.651 to −5323.883 ns, and every route uses 315 M10Ks
+versus 321 on the retained control. Park `5f764ef` for the production
+timing loop and preserve the validated clock model for later routing
+or analysis of the same fitted database. Forward restore `5abddb8`
+returns to the exact retained tree. [Matched fits and all twelve audits](../../evidence/v5-104-lltune-generated-clock-fits.json)
+
 ## Gate identity
 
 `Template.sv` uses the 104 MHz PLL output for `clk_sys` and

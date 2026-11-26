@@ -50,6 +50,13 @@ next-fill decode from the destination cone. A fitter can potentially
 absorb the final condition into one LUT in both versions. Routed path
 length, slack and area remain unmeasured for the candidate.
 
+The production triplet uses `f6ae7f6`, a child of forward restore
+`5abddb8`, at physical 104 MHz with DDR debugging off. The restore's
+tree is identical to the retained control.
+[Seed 13](https://github.com/asturur/test_template_1/actions/runs/45818144877) ·
+[Seed 43](https://github.com/asturur/test_template_1/actions/runs/45818145038) ·
+[Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45818144548)
+
 ## Workload qualification
 
 The four ARM9v2 board contract profiles match with the retained

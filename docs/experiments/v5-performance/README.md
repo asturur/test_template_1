@@ -289,8 +289,9 @@ Routed timing is pending.
 The [HDMI tuner clock model](lltune-generated-clock.md) declares a
 generated clock for the existing low-latency scaler feedback path.
 The retained global clock uses the gated branch's uncertainty. The
-candidate checks clock ownership and all-corner uncertainty before
-accepting any timing result. The first 104 MHz pilot is running.
+separate clock and uncertainty passed all twelve native corner audits.
+Median setup fell to −2.733 ns from −2.471 ns and median ALMs rose by
+153. Park the fit and retain the verified constraint patch.
 
 The [prepared timer writes](timer-write-prepare.md) capture the
 count-write and stop predicates with the held UPP packet. Directed tests

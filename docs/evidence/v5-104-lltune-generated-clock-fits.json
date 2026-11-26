@@ -1,0 +1,3708 @@
+{
+  "control": [
+    {
+      "run": 45771268571,
+      "sha": "81a1b455cea6daa40203275315c0cd240503a194",
+      "seed": 13,
+      "alms": 36420,
+      "m10ks": 321,
+      "registers": 40529,
+      "average_routing_pct": 45.0,
+      "peak_routing_pct": 73.7,
+      "core_setup_tns_sta_summary_ns": -4606.649,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.061,
+          "hold-summary": 0.218,
+          "recovery-summary": 2.47,
+          "removal-summary": 1.116,
+          "min-pulse": 0.961,
+          "fmax_mhz": 85.65
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -1.95,
+          "hold-summary": 0.144,
+          "recovery-summary": 2.766,
+          "removal-summary": 1.046,
+          "min-pulse": 0.961,
+          "fmax_mhz": 86.47
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.623,
+          "hold-summary": 0.098,
+          "recovery-summary": 4.758,
+          "removal-summary": 0.569,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.02
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.702,
+          "hold-summary": 0.052,
+          "recovery-summary": 5.12,
+          "removal-summary": 0.49,
+          "min-pulse": 0.961,
+          "fmax_mhz": 171.61
+        }
+      ],
+      "worst_setup_ns": -2.061,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 67,
+        "ngage_icu_extra:extra_regs|": 52,
+        "ngage_mmc_host:": 17,
+        "ngage2_zap_tlb:": 36,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 35
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.7,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.8,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.9,
+          "direct_registers": 292,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 191.8,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 825.3,
+          "direct_registers": 912,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.214,
+          "paths_below_target": 297,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_timers": 50,
+            "ngage_sdram_arbiter": 45,
+            "ngage2_zap_wb_merger": 32,
+            "ngage_icu": 17,
+            "ngage_mmc_host": 15,
+            "ngage2_zap_dcache": 11,
+            "ngage_ddr_flash_cache": 11,
+            "ngage_dma_engine": 10,
+            "ngage2_arm9v2_execute": 10,
+            "ngage_keypad": 10,
+            "ngage_upp_peripherals": 8,
+            "ngage2_zap_tlb_check": 8,
+            "ngage_sdram_scheduler": 8,
+            "ngage2_arm9v2_core": 6,
+            "ngage_cbus_uem": 6,
+            "altsyncram_6js2": 6,
+            "ngage2_arm9v2_decode": 5,
+            "ngage_adsp": 4,
+            "ngage2_zap_dcache_half_tag_ram": 4,
+            "ngage_sparse_regs": 4,
+            "ngage_icu_extra": 4,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage2_zap_cache_fsm": 2,
+            "ngage2_zap_ram_simple": 2,
+            "ngage_mister": 2,
+            "altsyncram_j6v2": 2,
+            "ngage_nos_io": 2,
+            "ngage_lcd_stream": 2,
+            "ngage_upp_request_stage": 2,
+            "ngage_am29n643_state": 1,
+            "ngage_upp_mdi": 1,
+            "ngage2_zap_tlb_fsm": 1,
+            "altsyncram_5gs2": 1,
+            "ngage_boot_regs": 1,
+            "ngage2_zap_register_file": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.962,
+          "paths_below_target": 107,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_sdram_arbiter": 22,
+            "ngage2_zap_wb_merger": 15,
+            "ngage_mmc_host": 15,
+            "ngage2_zap_dcache": 8,
+            "ngage_sdram_scheduler": 8,
+            "ngage2_zap_tlb_check": 7,
+            "ngage_dma_engine": 5,
+            "ngage_upp_peripherals": 4,
+            "ngage2_arm9v2_decode": 3,
+            "ngage2_arm9v2_core": 3,
+            "ngage_cbus_uem": 3,
+            "ngage_adsp": 2,
+            "ngage_mister": 2,
+            "ngage_ddr_flash_cache": 2,
+            "ngage_icu": 2,
+            "ngage2_arm9v2_execute": 1,
+            "ngage2_zap_ram_simple": 1,
+            "ngage_lcd_stream": 1,
+            "ngage_ddr_stream": 1,
+            "ngage2_arm9v2_predict": 1,
+            "ngage2_zap_tlb_fsm": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.485,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.226,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 8.739,
+        "cells_ns": 2.186
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-81a1b45-seed13/ngage1.rbf",
+        "sha256": "46e6e28a4ec926271331ebe0a6d747186b428beedab38773181fa0a5951dfb6a"
+      },
+      "native_signoff_minima_ns": {
+        "setup": -2.061,
+        "hold": 0.052,
+        "recovery": 2.47,
+        "removal": 0.49,
+        "min-pulse": 0.961
+      },
+      "quartus_global_timing": "Quartus reports Timing requirements not met",
+      "timing_pass": false,
+      "named_hot_paths": {
+        "posted_via_instruction_cache_to_merger": {
+          "count": 26,
+          "worst": {
+            "rank": 2,
+            "slack_ns": -2.055,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q~DUPLICATE",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q~DUPLICATE",
+              "sdram_ctrl|ready_q~DUPLICATE|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux106~0|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~98|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~7|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]"
+            ]
+          }
+        },
+        "posted_via_data_cache_to_merger": {
+          "count": 8,
+          "worst": {
+            "rank": 34,
+            "slack_ns": -1.892,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q~DUPLICATE",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[30]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q~DUPLICATE",
+              "sdram_ctrl|ready_q~DUPLICATE|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|o_wb_cyc_nxt~2_RESYN13334|combout",
+              "u_zap_cache_fsm|o_wb_cyc_nxt~2|combout",
+              "u_zap_cache_fsm|o_wb_cyc_nxt~3|combout",
+              "l_generate_with_cache_mmu.u_data_cache|o_wb_stb_nxt~1|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~0|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~83|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~86|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~13|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[30]"
+            ]
+          }
+        },
+        "posted_to_merger": {
+          "count": 34,
+          "worst": {
+            "rank": 2,
+            "slack_ns": -2.055,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q~DUPLICATE",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q~DUPLICATE",
+              "sdram_ctrl|ready_q~DUPLICATE|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux106~0|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~98|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~7|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]"
+            ]
+          }
+        },
+        "refill_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "all_merger": {
+          "count": 56,
+          "worst": {
+            "rank": 2,
+            "slack_ns": -2.055,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q~DUPLICATE",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q~DUPLICATE",
+              "sdram_ctrl|ready_q~DUPLICATE|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux106~0|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~98|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~7|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]"
+            ]
+          }
+        },
+        "mmc_fifo_byte_counter": {
+          "count": 15,
+          "worst": {
+            "rank": 95,
+            "slack_ns": -1.784,
+            "source": "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[15]",
+            "destination": "ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[10]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[15]",
+              "cpu_inside.request_stage|out_address[15]|q",
+              "peripherals|Equal40~0|combout",
+              "extra_regs|LessThan1~1|combout",
+              "extra_regs|low~2|combout",
+              "extra_regs|bad~14|combout",
+              "peripherals|mmc_accept~3|combout",
+              "mmc_enabled.host|always4~14|combout",
+              "mmc_enabled.host|always4~0|combout",
+              "mmc_enabled.host|nfifo[1]~0|combout",
+              "mmc_enabled.host|nfifo[10]_NEW9202|combout",
+              "ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[10]"
+            ]
+          }
+        },
+        "uart_gpio_response": {
+          "count": 7,
+          "worst": {
+            "rank": 1,
+            "slack_ns": -2.061,
+            "source": "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+            "destination": "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "cpu_inside.request_stage|out_address[5]~DUPLICATE|q",
+              "peripherals|Equal37~1|combout",
+              "euart1|Equal27~1|combout",
+              "euart1|Equal27~2|combout",
+              "euart1|Selector13~1|combout",
+              "euart1|Selector13~2|combout",
+              "euart1|Selector13~3|combout",
+              "euart1|dout[22]~22|combout",
+              "euart1|dout[22]~24|combout",
+              "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+            ]
+          }
+        },
+        "timers_from_reset_drain": {
+          "count": 154,
+          "worst": {
+            "rank": 12,
+            "slack_ns": -1.931,
+            "source": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+            "destination": "ngage_upp_peripherals:peripherals|ngage_timers:timers|g_timer[4].count[2]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "core|reset_drain~SynDup_58DUPLICATE|q",
+              "cpu_inside.request_stage|out_cyc~0|combout",
+              "cpu_inside.request_stage|out_cyc~1|combout",
+              "timers|claim~0|combout",
+              "timers|write_access|combout",
+              "timers|count~42|combout",
+              "timers|g_timer[4].count[20]~0|combout",
+              "ngage_upp_peripherals:peripherals|ngage_timers:timers|g_timer[4].count[2]"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "run": 45771267820,
+      "sha": "81a1b455cea6daa40203275315c0cd240503a194",
+      "seed": 43,
+      "alms": 36446,
+      "m10ks": 321,
+      "registers": 40425,
+      "average_routing_pct": 44.4,
+      "peak_routing_pct": 77.3,
+      "core_setup_tns_sta_summary_ns": -5288.569,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.508,
+          "hold-summary": 0.216,
+          "recovery-summary": 1.738,
+          "removal-summary": 0.946,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.49
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.428,
+          "hold-summary": 0.102,
+          "recovery-summary": 1.829,
+          "removal-summary": 0.914,
+          "min-pulse": 0.961,
+          "fmax_mhz": 83.04
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.468,
+          "hold-summary": 0.101,
+          "recovery-summary": 4.595,
+          "removal-summary": 0.448,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.92
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.63,
+          "hold-summary": 0.08,
+          "recovery-summary": 4.946,
+          "removal-summary": 0.377,
+          "min-pulse": 0.961,
+          "fmax_mhz": 169.35
+        }
+      ],
+      "worst_setup_ns": -2.508,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 85,
+        "ngage2_zap_tlb:": 28,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 153
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.2,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 259.6,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.2,
+          "direct_registers": 290,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 195.9,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 851.2,
+          "direct_registers": 916,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.174,
+          "paths_below_target": 441,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_execute": 87,
+            "ngage_sdram_arbiter": 63,
+            "ngage2_zap_wb_merger": 30,
+            "ngage2_arm9v2_decode": 26,
+            "ngage_mmc_host": 26,
+            "ngage_lcd_stream": 24,
+            "ngage_dma_engine": 23,
+            "ngage_keypad": 22,
+            "ngage_sdram_scheduler": 21,
+            "ngage_upp_peripherals": 16,
+            "ngage_adsp": 16,
+            "ngage2_zap_dcache": 9,
+            "ngage2_zap_cache_fsm": 9,
+            "ngage2_arm9v2_core": 8,
+            "ngage_codeflash": 8,
+            "ngage_cbus_uem": 6,
+            "ngage_dma_route": 6,
+            "ngage_icu": 4,
+            "ngage_am29n643_state": 4,
+            "ngage_upp_request_stage": 4,
+            "ngage_upp": 4,
+            "ngage_dma_ram_mux": 4,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage2_zap_dcache_half_tag_ram": 3,
+            "altsyncram_n0q1": 3,
+            "ngage2_zap_register_file": 2,
+            "ngage_cflash": 2,
+            "altsyncram_6js2": 2,
+            "ngage_sdram_stream": 2,
+            "altsyncram_p352": 1,
+            "altsyncram_j6v2": 1,
+            "ngage_nos_io": 1,
+            "altsyncram_e852": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.99,
+          "paths_below_target": 191,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_execute": 52,
+            "ngage2_zap_wb_merger": 25,
+            "ngage_sdram_scheduler": 19,
+            "ngage_sdram_arbiter": 15,
+            "ngage2_arm9v2_decode": 10,
+            "ngage2_zap_dcache": 10,
+            "ngage_upp_peripherals": 9,
+            "ngage2_arm9v2_core": 6,
+            "ngage_mmc_host": 6,
+            "ngage_dma_engine": 6,
+            "ngage_service_loader": 4,
+            "ngage_lcd_stream": 4,
+            "ngage_upp_request_stage": 4,
+            "ngage2_zap_cache_fsm": 4,
+            "ngage2_zap_dcache_half_tag_ram": 3,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage_cbus_uem": 3,
+            "ngage_codeflash": 3,
+            "ngage_mister": 2,
+            "ngage2_arm9v2_predict": 1,
+            "ngage_icu": 1,
+            "ngage_ddr_stream": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.523,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.273,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 8.514,
+        "cells_ns": 2.881
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-81a1b45-seed43/ngage1.rbf",
+        "sha256": "e26deb6d408a8fb53155f4f3b6a8a6e2f3c66007a3915bd10ff9114d3c7bb332"
+      },
+      "native_signoff_minima_ns": {
+        "setup": -2.508,
+        "hold": 0.08,
+        "recovery": 1.738,
+        "removal": 0.377,
+        "min-pulse": 0.961
+      },
+      "quartus_global_timing": "Quartus reports Timing requirements not met",
+      "timing_pass": false,
+      "named_hot_paths": {
+        "posted_via_instruction_cache_to_merger": {
+          "count": 17,
+          "worst": {
+            "rank": 136,
+            "slack_ns": -1.793,
+            "source": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_we",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|l_genblk1.code_data_ff[18]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_we",
+              "ram_arbiter|mem_we|q",
+              "phone_sdram|comb~0|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux158~0|combout",
+              "u_zap_cache_fsm|Mux158~5|combout",
+              "u_zap_cache_fsm|Mux153~2_RESYN13359|combout",
+              "u_zap_cache_fsm|Mux153~2|combout",
+              "u_zap_cache_fsm|Mux153~3|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|l_genblk1.code_data_ff[18]"
+            ]
+          }
+        },
+        "posted_via_data_cache_to_merger": {
+          "count": 9,
+          "worst": {
+            "rank": 3,
+            "slack_ns": -2.421,
+            "source": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_we",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[6]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_we",
+              "ram_arbiter|mem_we|q",
+              "phone_sdram|comb~0|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take|combout",
+              "u_zap_cache_fsm|LessThan2~1_RESYN13119|combout",
+              "u_zap_cache_fsm|LessThan2~1|combout",
+              "l_generate_with_cache_mmu.u_data_cache|o_wb_stb_nxt~1|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~0|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~42_RESYN13295|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~42|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~43|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[6]"
+            ]
+          }
+        },
+        "posted_to_merger": {
+          "count": 26,
+          "worst": {
+            "rank": 3,
+            "slack_ns": -2.421,
+            "source": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_we",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[6]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_we",
+              "ram_arbiter|mem_we|q",
+              "phone_sdram|comb~0|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take|combout",
+              "u_zap_cache_fsm|LessThan2~1_RESYN13119|combout",
+              "u_zap_cache_fsm|LessThan2~1|combout",
+              "l_generate_with_cache_mmu.u_data_cache|o_wb_stb_nxt~1|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~0|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~42_RESYN13295|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~42|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~43|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[6]"
+            ]
+          }
+        },
+        "refill_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "all_merger": {
+          "count": 58,
+          "worst": {
+            "rank": 2,
+            "slack_ns": -2.495,
+            "source": "ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_zap_cp15_cb:u_zap_cp15_cb|o_mmu_en~DUPLICATE",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[22]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_zap_cp15_cb:u_zap_cp15_cb|o_mmu_en~DUPLICATE",
+              "u_zap_cp15_cb|o_mmu_en~DUPLICATE|q",
+              "u_zap_tlb_fsm|o_busy~0|combout",
+              "u_zap_cache_fsm|Mux113~0|combout",
+              "u_zap_cache_fsm|Mux113~1|combout",
+              "u_zap_cache_fsm|Mux107~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~3|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~4|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~101|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~21|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[22]"
+            ]
+          }
+        },
+        "mmc_fifo_byte_counter": {
+          "count": 16,
+          "worst": {
+            "rank": 80,
+            "slack_ns": -1.833,
+            "source": "ngage_board:board|ngage_upp:upp|cpu_inside.lcd_reserved~DUPLICATE",
+            "destination": "ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[12]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage_board:board|ngage_upp:upp|cpu_inside.lcd_reserved~DUPLICATE",
+              "upp|cpu_inside.lcd_reserved~DUPLICATE|q",
+              "upp|comb~0|combout",
+              "cpu_inside.bridge|bus_live~2|combout",
+              "cpu_inside.request_stage|out_cyc~1|combout",
+              "peripherals|mmc_claim|combout",
+              "peripherals|mmc_accept~0|combout",
+              "mmc_enabled.host|always4~1|combout",
+              "mmc_enabled.host|Add23~45|cout",
+              "mmc_enabled.host|Add23~49|cout",
+              "mmc_enabled.host|Add23~41|cout",
+              "mmc_enabled.host|Add23~21|cout",
+              "mmc_enabled.host|Add23~17|cout",
+              "mmc_enabled.host|Add23~29|cout",
+              "mmc_enabled.host|Add23~13|cout",
+              "mmc_enabled.host|Add23~25|cout",
+              "mmc_enabled.host|Add23~9|cout",
+              "mmc_enabled.host|Add23~5|cout",
+              "mmc_enabled.host|Add23~1|cout",
+              "mmc_enabled.host|Add23~37|cout",
+              "mmc_enabled.host|Add23~33|sumout",
+              "mmc_enabled.host|nfifo[12]_NEW9051|combout",
+              "ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[12]"
+            ]
+          }
+        },
+        "uart_gpio_response": {
+          "count": 15,
+          "worst": {
+            "rank": 1,
+            "slack_ns": -2.508,
+            "source": "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+            "destination": "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "cpu_inside.request_stage|out_address[4]~DUPLICATE|q",
+              "nos_timer|Equal11~0|combout",
+              "nos_timer|Equal11~1|combout",
+              "nos_timer|Equal12~1|combout",
+              "peripherals|always5~9_RESYN12905|combout",
+              "peripherals|always5~9|combout",
+              "peripherals|dout_unkeyed[15]~30|combout",
+              "peripherals|dout_unkeyed[14]~55|combout",
+              "peripherals|registered_response.local_results[13].data[14]~feeder|combout",
+              "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            ]
+          }
+        },
+        "timers_from_reset_drain": {
+          "count": 0,
+          "worst": null
+        }
+      }
+    },
+    {
+      "run": 45771266151,
+      "sha": "81a1b455cea6daa40203275315c0cd240503a194",
+      "seed": 31337,
+      "alms": 36461,
+      "m10ks": 321,
+      "registers": 40532,
+      "average_routing_pct": 46.5,
+      "peak_routing_pct": 78.4,
+      "core_setup_tns_sta_summary_ns": -5143.651,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.278,
+          "hold-summary": 0.219,
+          "recovery-summary": 2.077,
+          "removal-summary": 0.934,
+          "min-pulse": 0.961,
+          "fmax_mhz": 84.08
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.471,
+          "hold-summary": 0.082,
+          "recovery-summary": 2.26,
+          "removal-summary": 0.909,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.74
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.622,
+          "hold-summary": 0.13,
+          "recovery-summary": 4.9,
+          "removal-summary": 0.427,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.88
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.339,
+          "hold-summary": 0.074,
+          "recovery-summary": 5.19,
+          "removal-summary": 0.363,
+          "min-pulse": 0.961,
+          "fmax_mhz": 173.55
+        }
+      ],
+      "worst_setup_ns": -2.471,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 27,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 40,
+        "ngage2_zap_tlb:": 100,
+        "ngage2_zap_wb_merger:": 72,
+        "ngage2_arm9v2_execute:": 156
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.5,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 261.3,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 239.6,
+          "direct_registers": 293,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 197.6,
+          "direct_registers": 208,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 834.5,
+          "direct_registers": 908,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.168,
+          "paths_below_target": 231,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_decode": 53,
+            "ngage2_zap_wb_merger": 40,
+            "ngage2_arm9v2_core": 22,
+            "ngage2_arm9v2_execute": 18,
+            "ngage_mmc_host": 12,
+            "ngage2_zap_dcache_half_tag_ram": 11,
+            "ngage2_arm9v2_fetch": 11,
+            "altsyncram_e852": 9,
+            "ngage2_zap_cache_fsm": 9,
+            "ngage2_zap_tlb_check": 7,
+            "ngage_lcd_stream": 7,
+            "ngage_upp_peripherals": 5,
+            "ngage2_zap_dcache": 4,
+            "ngage2_zap_cache": 4,
+            "ngage_sdram_arbiter": 3,
+            "altsyncram_n0q1": 3,
+            "ngage2_zap_dcache_fsm": 2,
+            "altsyncram_04q1": 2,
+            "ngage_sdram_scheduler": 2,
+            "altsyncram_p352": 1,
+            "ngage_sparse_regs": 1,
+            "altsyncram_1qr1": 1,
+            "altsyncram_e0q1": 1,
+            "ngage2_zap_register_file": 1,
+            "ngage_cflash": 1,
+            "ngage_adsp": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.918,
+          "paths_below_target": 105,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_zap_wb_merger": 37,
+            "ngage_mmc_host": 14,
+            "ngage2_arm9v2_decode": 12,
+            "ngage2_arm9v2_execute": 10,
+            "ngage2_zap_tlb_check": 7,
+            "ngage2_zap_cache_fsm": 6,
+            "ngage2_zap_dcache": 4,
+            "ngage_sdram_arbiter": 3,
+            "altsyncram_e852": 2,
+            "altsyncram_n0q1": 2,
+            "ngage_sdram_scheduler": 2,
+            "ngage_cbus_uem": 2,
+            "ngage2_zap_dcache_half_tag_ram": 1,
+            "ngage_upp_peripherals": 1,
+            "altsyncram_p352": 1,
+            "ngage_upp_request_stage": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.457,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.281,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 5.56,
+        "cells_ns": 5.593
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-81a1b45-seed31337/ngage1.rbf",
+        "sha256": "4796db38d667d0938b7dccb6a46232f07240c7f5f75ec5a6785adc1f918b5a9d"
+      },
+      "native_signoff_minima_ns": {
+        "setup": -2.471,
+        "hold": 0.074,
+        "recovery": 2.077,
+        "removal": 0.363,
+        "min-pulse": 0.961
+      },
+      "quartus_global_timing": "Quartus reports Timing requirements not met",
+      "timing_pass": false,
+      "named_hot_paths": {
+        "posted_via_instruction_cache_to_merger": {
+          "count": 46,
+          "worst": {
+            "rank": 1,
+            "slack_ns": -2.278,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+              "sdram_ctrl|ready_q|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux107~0|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~90|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~14|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]"
+            ]
+          }
+        },
+        "posted_via_data_cache_to_merger": {
+          "count": 8,
+          "worst": {
+            "rank": 6,
+            "slack_ns": -2.116,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[15]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+              "sdram_ctrl|ready_q|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_tag_ram|always62~2|combout",
+              "u_zap_cache_tag_ram|Selector32~0|combout",
+              "u_zap_cache_tag_ram|Selector19~0|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~60|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~61|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[15]"
+            ]
+          }
+        },
+        "posted_to_merger": {
+          "count": 54,
+          "worst": {
+            "rank": 1,
+            "slack_ns": -2.278,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+              "sdram_ctrl|ready_q|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux107~0|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~90|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~14|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]"
+            ]
+          }
+        },
+        "refill_to_merger": {
+          "count": 1,
+          "worst": {
+            "rank": 14,
+            "slack_ns": -1.986,
+            "source": "ngage_cpu:cpu_inside.cpu|ngage_arm9v2_refill:refill|consumed[2]",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[30]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage_cpu:cpu_inside.cpu|ngage_arm9v2_refill:refill|consumed[2]",
+              "refill|consumed[2]|q",
+              "refill|cpu_ack~4|combout",
+              "refill|cpu_ack~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_c_wb_ack~0_RESYN13077|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_c_wb_ack~0|combout",
+              "u_zap_tlb_fsm|Selector1~2|combout",
+              "l_generate_with_cache_mmu.u_data_cache|o_wb_stb_nxt~0|combout",
+              "l_generate_with_cache_mmu.u_data_cache|o_wb_stb_nxt~1|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~0|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~83|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~86|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~13|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[30]"
+            ]
+          }
+        },
+        "all_merger": {
+          "count": 69,
+          "worst": {
+            "rank": 1,
+            "slack_ns": -2.278,
+            "source": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+              "sdram_ctrl|ready_q|q",
+              "sdram_ctrl|cmd_ready|combout",
+              "phone_sdram|post~0|combout",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take~0|combout",
+              "u_zap_cache_fsm|Mux107~0|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~1|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~4|combout",
+              "l_generate_with_cache_mmu.u_code_cache|o_wb_stb_nxt~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[26]~5|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~90|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~14|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]"
+            ]
+          }
+        },
+        "mmc_fifo_byte_counter": {
+          "count": 19,
+          "worst": {
+            "rank": 12,
+            "slack_ns": -2.002,
+            "source": "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[3]~DUPLICATE",
+            "destination": "ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[4]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[3]~DUPLICATE",
+              "cpu_inside.request_stage|out_address[3]~DUPLICATE|q",
+              "code_flash|Equal17~7|combout",
+              "extra_regs|low~2_RESYN12007|combout",
+              "extra_regs|low~2|combout",
+              "extra_regs|bad~14|combout",
+              "peripherals|mmc_accept~3|combout",
+              "mmc_enabled.host|always4~1|combout",
+              "mmc_enabled.host|Add23~45|cout",
+              "mmc_enabled.host|Add23~49|cout",
+              "mmc_enabled.host|Add23~41|cout",
+              "mmc_enabled.host|Add23~21|cout",
+              "mmc_enabled.host|Add23~17|sumout",
+              "mmc_enabled.host|nfifo[4]_NEW9039|combout",
+              "ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[4]"
+            ]
+          }
+        },
+        "uart_gpio_response": {
+          "count": 0,
+          "worst": null
+        },
+        "timers_from_reset_drain": {
+          "count": 0,
+          "worst": null
+        }
+      }
+    }
+  ],
+  "candidate": [
+    {
+      "run": 45805636505,
+      "sha": "5f764ef5dce1234d4633b5d5bca8cfb44e1f79a0",
+      "seed": 13,
+      "alms": 36599,
+      "m10ks": 315,
+      "registers": 40754,
+      "average_routing_pct": 47.4,
+      "peak_routing_pct": 80.8,
+      "core_setup_tns_sta_summary_ns": -3553.56,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.297,
+          "hold-summary": 0.243,
+          "recovery-summary": 1.914,
+          "removal-summary": 1.046,
+          "min-pulse": 0.961,
+          "fmax_mhz": 83.95
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.11,
+          "hold-summary": 0.089,
+          "recovery-summary": 2.134,
+          "removal-summary": 0.967,
+          "min-pulse": 0.961,
+          "fmax_mhz": 85.29
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.856,
+          "hold-summary": 0.103,
+          "recovery-summary": 4.429,
+          "removal-summary": 0.488,
+          "min-pulse": 0.961,
+          "fmax_mhz": 149.03
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.492,
+          "hold-summary": 0.082,
+          "recovery-summary": 4.861,
+          "removal-summary": 0.407,
+          "min-pulse": 0.961,
+          "fmax_mhz": 176.49
+        }
+      ],
+      "worst_setup_ns": -2.297,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 3,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 131,
+        "ngage2_zap_tlb:": 51,
+        "ngage2_zap_wb_merger:": 234,
+        "ngage2_arm9v2_execute:": 183
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|state_ff[9]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[224]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 250.3,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 257.9,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.5,
+          "direct_registers": 301,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 207.7,
+          "direct_registers": 202,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 790.2,
+          "direct_registers": 978,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -0.985,
+          "paths_below_target": 156,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_zap_wb_merger": 47,
+            "ngage_mmc_host": 20,
+            "ngage2_arm9v2_execute": 17,
+            "ngage2_zap_dcache_fsm": 15,
+            "ngage2_arm9v2_decode": 13,
+            "ngage_sdram_scheduler": 9,
+            "ngage2_zap_dcache": 9,
+            "ngage_sdram_arbiter": 7,
+            "ngage2_zap_ram_simple": 4,
+            "ngage2_zap_mem_inv_block": 2,
+            "ngage2_zap_dcache_half_tag_ram": 2,
+            "ngage_ddr_stream": 2,
+            "ngage2_arm9v2_core": 2,
+            "ngage_upp_peripherals": 2,
+            "altsyncram_e0q1": 1,
+            "altsyncram_1qr1": 1,
+            "ngage_dma_engine": 1,
+            "ngage2_zap_cache_fsm": 1,
+            "ngage2_zap_register_file": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.798,
+          "paths_below_target": 74,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_zap_wb_merger": 22,
+            "ngage_mmc_host": 18,
+            "ngage_sdram_scheduler": 7,
+            "ngage2_arm9v2_execute": 5,
+            "ngage2_zap_dcache_fsm": 5,
+            "ngage2_zap_ram_simple": 4,
+            "ngage2_arm9v2_decode": 2,
+            "ngage2_zap_mem_inv_block": 2,
+            "ngage_ddr_stream": 2,
+            "ngage2_zap_dcache_half_tag_ram": 2,
+            "ngage2_arm9v2_core": 1,
+            "ngage2_arm9v2_predict": 1,
+            "ngage2_zap_dcache": 1,
+            "altsyncram_1qr1": 1,
+            "ngage2_zap_cache_fsm": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.668,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.381,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 8.071,
+        "cells_ns": 3.21
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-5f764ef-seed13/ngage1.rbf",
+        "sha256": "bd25f44d0614a3c7d282c4ffae9d83daf84680fbc287217815644f4d2d1881a7"
+      },
+      "native_signoff_minima_ns": {
+        "setup": -2.297,
+        "hold": 0.082,
+        "recovery": 1.914,
+        "removal": 0.407,
+        "min-pulse": 0.961
+      },
+      "quartus_global_timing": "Quartus reports Timing requirements not met",
+      "timing_pass": false,
+      "named_hot_paths": {
+        "posted_via_instruction_cache_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "posted_via_data_cache_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "posted_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "refill_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "all_merger": {
+          "count": 71,
+          "worst": {
+            "rank": 6,
+            "slack_ns": -2.028,
+            "source": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_wen",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc|q",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take_RESYN12963|combout",
+              "u_zap_cache_fsm|take|combout",
+              "u_zap_cache_fsm|LessThan2~1_RESYN11345|combout",
+              "u_zap_cache_fsm|LessThan2~1|combout",
+              "l_generate_with_cache_mmu.u_data_cache|o_wb_stb_nxt~0_RESYN15057|combout",
+              "l_generate_with_cache_mmu.u_data_cache|o_wb_stb_nxt~0|combout",
+              "l_generate_with_cache_mmu.u_data_cache|o_wb_stb_nxt~3|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|state_nxt~0|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_wen~2|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_wen"
+            ]
+          }
+        },
+        "mmc_fifo_byte_counter": {
+          "count": 17,
+          "worst": {
+            "rank": 294,
+            "slack_ns": -1.354,
+            "source": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate",
+            "destination": "ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[12]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate|q",
+              "cpu_inside.bridge|bus_live~1_RESYN14967|combout",
+              "cpu_inside.bridge|bus_live~1|combout",
+              "cpu_inside.request_stage|out_cyc~1|combout",
+              "extra_regs|claim~2|combout",
+              "peripherals|mmc_accept~2|combout",
+              "mmc_enabled.host|always4~1|combout",
+              "mmc_enabled.host|Add23~45|cout",
+              "mmc_enabled.host|Add23~49|cout",
+              "mmc_enabled.host|Add23~41|cout",
+              "mmc_enabled.host|Add23~21|cout",
+              "mmc_enabled.host|Add23~17|cout",
+              "mmc_enabled.host|Add23~29|cout",
+              "mmc_enabled.host|Add23~13|cout",
+              "mmc_enabled.host|Add23~25|cout",
+              "mmc_enabled.host|Add23~9|cout",
+              "mmc_enabled.host|Add23~5|cout",
+              "mmc_enabled.host|Add23~1|cout",
+              "mmc_enabled.host|Add23~37|cout",
+              "mmc_enabled.host|Add23~33|sumout",
+              "ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[12]"
+            ]
+          }
+        },
+        "uart_gpio_response": {
+          "count": 3,
+          "worst": {
+            "rank": 586,
+            "slack_ns": -1.174,
+            "source": "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[8]~DUPLICATE",
+            "destination": "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[0]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[8]~DUPLICATE",
+              "cpu_inside.request_stage|out_address[8]~DUPLICATE|q",
+              "nos_timer|Equal11~0|combout",
+              "nos_timer|Equal11~1|combout",
+              "nos_timer|claim~0|combout",
+              "nos_timer|claim|combout",
+              "peripherals|dout_unkeyed[0]~4|combout",
+              "peripherals|dout_unkeyed[0]~5|combout",
+              "keypad_enabled.keypad|value[0]~6|combout",
+              "peripherals|registered_response.local_results[13].data[0]~feeder|combout",
+              "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[0]"
+            ]
+          }
+        },
+        "timers_from_reset_drain": {
+          "count": 0,
+          "worst": null
+        }
+      },
+      "verified_changed_sources": {
+        "sys/sys_top.sdc": "cb8789f1db7b90fb598451d52261a69396ff4e2506b33cb7da840c22f24c2825"
+      },
+      "native_clock_audit": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "sha256": "699f543fd31894e1cbabbfd04e3271f6a6f337b6bfa9ce5f4fb1d2255e1b79ab",
+          "gate": "comb~0|combout",
+          "sink_count": 47,
+          "uncertainty_ns": {
+            "setup": {
+              "core": 0.14,
+              "tuner": 0.3,
+              "inbound": 0.22
+            },
+            "hold": {
+              "core": 0.08,
+              "tuner": 0.28,
+              "inbound": 0.18
+            }
+          },
+          "transfers_sha256": "6967f20c16fac1415c705487a32cf41b2c6faa7b27e5979221ccbb84937cf2c5",
+          "trace": [
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.14",
+              "-2.297",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|state_ff[9]",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[224]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "lltune_clk",
+              "0.3",
+              "4.496",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[7]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[1]"
+            ],
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.22",
+              "2.753",
+              "ascal:ascal|i_pce",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[1]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.0",
+              "0.243",
+              "emu:emu|ngage_raw_save_manager:saves|ngage_ordered_dirty_queue:ordered.queue|remaining[2]",
+              "emu:emu|ngage_raw_save_manager:saves|ngage_ordered_dirty_queue:ordered.queue|remaining[2]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "lltune_clk",
+              "0.0",
+              "0.347",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.18",
+              "1.124",
+              "cfg_done",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss2"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "absent",
+              "spi_sck"
+            ],
+            [
+              "exclusive",
+              "hdmi_sck"
+            ],
+            [
+              "exclusive",
+              "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK1_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK2_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK3_50"
+            ],
+            [
+              "exclusive",
+              "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk"
+            ],
+            [
+              "exclusive",
+              "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk"
+            ],
+            [
+              "min-pulse",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "3.373"
+            ],
+            [
+              "min-pulse",
+              "lltune_clk",
+              "3.945"
+            ]
+          ]
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "sha256": "2e15f8109c8667ebce5594c7e84c3de8375dd46da018675574d380e996f06191",
+          "gate": "comb~0|combout",
+          "sink_count": 47,
+          "uncertainty_ns": {
+            "setup": {
+              "core": 0.14,
+              "tuner": 0.3,
+              "inbound": 0.22
+            },
+            "hold": {
+              "core": 0.08,
+              "tuner": 0.28,
+              "inbound": 0.18
+            }
+          },
+          "transfers_sha256": "6967f20c16fac1415c705487a32cf41b2c6faa7b27e5979221ccbb84937cf2c5",
+          "trace": [
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.14",
+              "-2.110",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|m[541]",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|o_load_wait"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "lltune_clk",
+              "0.3",
+              "4.401",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[7]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay"
+            ],
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.22",
+              "3.143",
+              "ascal:ascal|i_pce",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[1]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.0",
+              "0.235",
+              "emu:emu|ngage_raw_save_manager:saves|ngage_ordered_dirty_queue:ordered.queue|remaining[2]",
+              "emu:emu|ngage_raw_save_manager:saves|ngage_ordered_dirty_queue:ordered.queue|remaining[2]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "lltune_clk",
+              "0.0",
+              "0.374",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.18",
+              "1.228",
+              "cfg_done",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss2"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "absent",
+              "spi_sck"
+            ],
+            [
+              "exclusive",
+              "hdmi_sck"
+            ],
+            [
+              "exclusive",
+              "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK1_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK2_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK3_50"
+            ],
+            [
+              "exclusive",
+              "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk"
+            ],
+            [
+              "exclusive",
+              "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk"
+            ],
+            [
+              "min-pulse",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "3.349"
+            ],
+            [
+              "min-pulse",
+              "lltune_clk",
+              "3.917"
+            ]
+          ]
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "sha256": "b2bb2b0e4007dbfec0b07fe47d5c57448f948c7a8881a4c70fd4e60de27e416d",
+          "gate": "comb~0|combout",
+          "sink_count": 47,
+          "uncertainty_ns": {
+            "setup": {
+              "core": 0.14,
+              "tuner": 0.3,
+              "inbound": 0.22
+            },
+            "hold": {
+              "core": 0.08,
+              "tuner": 0.28,
+              "inbound": 0.18
+            }
+          },
+          "transfers_sha256": "6967f20c16fac1415c705487a32cf41b2c6faa7b27e5979221ccbb84937cf2c5",
+          "trace": [
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.14",
+              "2.905",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[4]",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_mem_inv_block:l_spage_way[1].u_spage_tlb|g_short.fwd"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "lltune_clk",
+              "0.3",
+              "6.845",
+              "pll_hdmi_adj:pll_hdmi_adj|i_line[8]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay"
+            ],
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.22",
+              "5.217",
+              "ascal:ascal|i_pce",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[1]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.0",
+              "0.130",
+              "emu:emu|ngage_raw_save_manager:saves|ngage_ordered_dirty_queue:ordered.queue|remaining[2]",
+              "emu:emu|ngage_raw_save_manager:saves|ngage_ordered_dirty_queue:ordered.queue|remaining[2]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "lltune_clk",
+              "0.0",
+              "0.103",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.18",
+              "0.495",
+              "cfg_done",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss2"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "absent",
+              "spi_sck"
+            ],
+            [
+              "exclusive",
+              "hdmi_sck"
+            ],
+            [
+              "exclusive",
+              "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK1_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK2_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK3_50"
+            ],
+            [
+              "exclusive",
+              "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk"
+            ],
+            [
+              "exclusive",
+              "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk"
+            ],
+            [
+              "min-pulse",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "3.684"
+            ],
+            [
+              "min-pulse",
+              "lltune_clk",
+              "4.358"
+            ]
+          ]
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "sha256": "f46b95224e6f99eff41e8ba212c1bc6a6d7e772d011b64da90d5e8ba6d150c4d",
+          "gate": "comb~0|combout",
+          "sink_count": 47,
+          "uncertainty_ns": {
+            "setup": {
+              "core": 0.14,
+              "tuner": 0.3,
+              "inbound": 0.22
+            },
+            "hold": {
+              "core": 0.08,
+              "tuner": 0.28,
+              "inbound": 0.18
+            }
+          },
+          "transfers_sha256": "6967f20c16fac1415c705487a32cf41b2c6faa7b27e5979221ccbb84937cf2c5",
+          "trace": [
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.14",
+              "3.949",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[4]",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_mem_inv_block:l_spage_way[1].u_spage_tlb|g_short.fwd"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "lltune_clk",
+              "0.3",
+              "7.177",
+              "pll_hdmi_adj:pll_hdmi_adj|i_line[8]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay"
+            ],
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.22",
+              "6.032",
+              "ascal:ascal|i_pce",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[1]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.0",
+              "0.114",
+              "emu:emu|ngage_raw_save_manager:saves|ngage_ordered_dirty_queue:ordered.queue|remaining[2]",
+              "emu:emu|ngage_raw_save_manager:saves|ngage_ordered_dirty_queue:ordered.queue|remaining[2]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "lltune_clk",
+              "0.0",
+              "0.082",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.18",
+              "0.417",
+              "cfg_done",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss2"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "absent",
+              "spi_sck"
+            ],
+            [
+              "exclusive",
+              "hdmi_sck"
+            ],
+            [
+              "exclusive",
+              "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK1_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK2_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK3_50"
+            ],
+            [
+              "exclusive",
+              "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk"
+            ],
+            [
+              "exclusive",
+              "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk"
+            ],
+            [
+              "min-pulse",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "3.693"
+            ],
+            [
+              "min-pulse",
+              "lltune_clk",
+              "4.359"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "run": 45812194690,
+      "sha": "5f764ef5dce1234d4633b5d5bca8cfb44e1f79a0",
+      "seed": 43,
+      "alms": 36659,
+      "m10ks": 315,
+      "registers": 40584,
+      "average_routing_pct": 45.8,
+      "peak_routing_pct": 76.2,
+      "core_setup_tns_sta_summary_ns": -5323.883,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.945,
+          "hold-summary": 0.198,
+          "recovery-summary": 2.055,
+          "removal-summary": 1.167,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.62
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.925,
+          "hold-summary": 0.083,
+          "recovery-summary": 2.405,
+          "removal-summary": 1.095,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.74
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.706,
+          "hold-summary": 0.1,
+          "recovery-summary": 4.827,
+          "removal-summary": 0.54,
+          "min-pulse": 0.961,
+          "fmax_mhz": 144.74
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.611,
+          "hold-summary": 0.031,
+          "recovery-summary": 5.136,
+          "removal-summary": 0.467,
+          "min-pulse": 0.961,
+          "fmax_mhz": 171.56
+        }
+      ],
+      "worst_setup_ns": -2.945,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 4,
+        "ngage_icu_extra:extra_regs|": 38,
+        "ngage_mmc_host:": 128,
+        "ngage2_zap_tlb:": 90,
+        "ngage2_zap_wb_merger:": 90,
+        "ngage2_arm9v2_execute:": 92
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[17]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|m[429]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 250.2,
+          "direct_registers": 302,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.8,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 234.9,
+          "direct_registers": 296,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 200.6,
+          "direct_registers": 201,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 804.7,
+          "direct_registers": 947,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.212,
+          "paths_below_target": 565,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_sdram_arbiter": 176,
+            "ngage2_arm9v2_execute": 59,
+            "ngage2_zap_wb_merger": 48,
+            "ngage_upp_mdi": 26,
+            "ngage_sdram_stream": 25,
+            "ngage_sdram_scheduler": 24,
+            "ngage_upp_peripherals": 22,
+            "ngage2_zap_cache_fsm": 20,
+            "ngage_dma_engine": 18,
+            "altsyncram_e852": 18,
+            "ngage_upp": 14,
+            "ngage2_zap_dcache": 12,
+            "ngage_upp_request_stage": 10,
+            "ngage_mmc_host": 9,
+            "ngage_ddr_flash_cache": 9,
+            "ngage2_arm9v2_decode": 8,
+            "ngage_dma_route": 8,
+            "ngage_lcd_stream": 7,
+            "ngage2_zap_dcache_fsm": 7,
+            "ngage2_arm9v2_core": 6,
+            "ngage2_zap_mem_inv_block": 5,
+            "altsyncram_cpu2": 5,
+            "altsyncram_6js2": 4,
+            "ngage2_zap_dcache_half_tag_ram": 3,
+            "ngage_cbus_uem": 3,
+            "ngage_mister": 3,
+            "altsyncram_p352": 2,
+            "altsyncram_j6v2": 2,
+            "ngage2_arm9v2_predict": 2,
+            "ngage_dma_ram_mux": 2,
+            "ngage_sdram_line_mux": 2,
+            "ngage_icu": 2,
+            "altsyncram_q3q1": 2,
+            "ngage2_zap_register_file": 1,
+            "ngage_ddr_stream": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -1.041,
+          "paths_below_target": 451,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_sdram_arbiter": 170,
+            "ngage2_arm9v2_execute": 51,
+            "ngage2_zap_wb_merger": 48,
+            "ngage_sdram_scheduler": 24,
+            "ngage_sdram_stream": 21,
+            "ngage_dma_engine": 18,
+            "ngage2_zap_cache_fsm": 16,
+            "ngage_lcd_stream": 15,
+            "ngage_upp_peripherals": 14,
+            "altsyncram_e852": 12,
+            "ngage2_zap_dcache": 9,
+            "ngage2_arm9v2_decode": 8,
+            "ngage_mmc_host": 8,
+            "ngage_dma_route": 6,
+            "ngage2_arm9v2_core": 4,
+            "ngage2_zap_mem_inv_block": 4,
+            "ngage2_zap_dcache_half_tag_ram": 3,
+            "ngage2_zap_tlb_check": 3,
+            "altsyncram_p352": 2,
+            "ngage2_arm9v2_predict": 2,
+            "altsyncram_j6v2": 2,
+            "ngage_dma_ram_mux": 2,
+            "ngage_sdram_line_mux": 2,
+            "ngage2_zap_dcache_fsm": 1,
+            "ngage_upp_request_stage": 1,
+            "ngage_ddr_stream": 1,
+            "ngage2_zap_register_file": 1,
+            "altsyncram_q3q1": 1,
+            "altsyncram_rvs2": 1,
+            "altsyncram_n0q1": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.619,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.299,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 7.614,
+        "cells_ns": 4.22
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-5f764ef-seed43/ngage1.rbf",
+        "sha256": "f9a108a753ce15082e74ae3ba7a5bd79bdc539323dbdf9bfe0370c34fe606cf9"
+      },
+      "native_signoff_minima_ns": {
+        "setup": -2.945,
+        "hold": 0.031,
+        "recovery": 2.055,
+        "removal": 0.467,
+        "min-pulse": 0.961
+      },
+      "quartus_global_timing": "Quartus reports Timing requirements not met",
+      "timing_pass": false,
+      "named_hot_paths": {
+        "posted_via_instruction_cache_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "posted_via_data_cache_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "posted_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "refill_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "all_merger": {
+          "count": 64,
+          "worst": {
+            "rank": 41,
+            "slack_ns": -2.63,
+            "source": "ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[15]_OTERM885",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[15]_OTERM885",
+              "u_zap_tlb_check|o_phy_addr[15]_NEW_REG884|q",
+              "u_zap_tlb_check|phy_addr_nxt[10]~85|combout",
+              "u_zap_cache_fsm|Equal7~10|combout",
+              "u_zap_cache_fsm|comb~1_RESYN13043|combout",
+              "u_zap_cache_fsm|comb~1|combout",
+              "l_generate_with_cache_mmu.u_data_cache|o_wb_stb_nxt~2_RESYN15097|combout",
+              "l_generate_with_cache_mmu.u_data_cache|o_wb_stb_nxt~2|combout",
+              "l_generate_with_cache_mmu.u_data_cache|o_wb_stb_nxt~3|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|state_nxt~0|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate~4|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate"
+            ]
+          }
+        },
+        "mmc_fifo_byte_counter": {
+          "count": 3,
+          "worst": {
+            "rank": 759,
+            "slack_ns": -1.342,
+            "source": "ngage_board:board|ngage_upp:upp|cpu_inside.lcd_reserved~DUPLICATE",
+            "destination": "ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[12]~DUPLICATE",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage_board:board|ngage_upp:upp|cpu_inside.lcd_reserved~DUPLICATE",
+              "upp|cpu_inside.lcd_reserved~DUPLICATE|q",
+              "upp|comb~0|combout",
+              "cpu_inside.bridge|bus_live~2|combout",
+              "upp|bus_access~3|combout",
+              "peripherals|mmc_accept~1|combout",
+              "peripherals|mmc_accept~2|combout",
+              "mmc_enabled.host|always4~1|combout",
+              "mmc_enabled.host|Add23~45|cout",
+              "mmc_enabled.host|Add23~49|cout",
+              "mmc_enabled.host|Add23~41|cout",
+              "mmc_enabled.host|Add23~21|cout",
+              "mmc_enabled.host|Add23~17|cout",
+              "mmc_enabled.host|Add23~29|cout",
+              "mmc_enabled.host|Add23~13|cout",
+              "mmc_enabled.host|Add23~25|cout",
+              "mmc_enabled.host|Add23~9|cout",
+              "mmc_enabled.host|Add23~5|cout",
+              "mmc_enabled.host|Add23~1|cout",
+              "mmc_enabled.host|Add23~37|cout",
+              "mmc_enabled.host|Add23~33|sumout",
+              "ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[12]~DUPLICATE"
+            ]
+          }
+        },
+        "uart_gpio_response": {
+          "count": 9,
+          "worst": {
+            "rank": 282,
+            "slack_ns": -1.817,
+            "source": "ngage_board:board|ngage_upp:upp|cpu_inside.lcd_reserved~DUPLICATE",
+            "destination": "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[27]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage_board:board|ngage_upp:upp|cpu_inside.lcd_reserved~DUPLICATE",
+              "upp|cpu_inside.lcd_reserved~DUPLICATE|q",
+              "upp|comb~0|combout",
+              "cpu_inside.bridge|bus_live~2|combout",
+              "cpu_inside.request_stage|out_cyc~1|combout",
+              "extra_regs|read_valid~0|combout",
+              "keypad_enabled.keypad|value[21]~9|combout",
+              "keypad_enabled.keypad|value[18]~10|combout",
+              "keypad_enabled.keypad|value[26]~11|combout",
+              "keypad_enabled.keypad|value[27]~14|combout",
+              "peripherals|registered_response.local_results[13].data[27]~feeder|combout",
+              "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[27]"
+            ]
+          }
+        },
+        "timers_from_reset_drain": {
+          "count": 0,
+          "worst": null
+        }
+      },
+      "verified_changed_sources": {
+        "sys/sys_top.sdc": "cb8789f1db7b90fb598451d52261a69396ff4e2506b33cb7da840c22f24c2825"
+      },
+      "native_clock_audit": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "sha256": "8fc2e52036657e8afcaff6759b6aaf76183a2f97ac559c9baa40932cf8c29b45",
+          "gate": "comb~0|combout",
+          "sink_count": 43,
+          "uncertainty_ns": {
+            "setup": {
+              "core": 0.14,
+              "tuner": 0.3,
+              "inbound": 0.22
+            },
+            "hold": {
+              "core": 0.08,
+              "tuner": 0.28,
+              "inbound": 0.18
+            }
+          },
+          "transfers_sha256": "95a28a797faaca899d741cd13f84076afaeeef1e77d10e39b0ad660197740c64",
+          "trace": [
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.14",
+              "-2.945",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[17]",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|m[429]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "lltune_clk",
+              "0.3",
+              "4.354",
+              "pll_hdmi_adj:pll_hdmi_adj|i_line[0]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay"
+            ],
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.22",
+              "3.020",
+              "ascal:ascal|i_pde",
+              "pll_hdmi_adj:pll_hdmi_adj|i_line[5]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.0",
+              "0.232",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_zap_writeback:u_zap_writeback|ngage2_zap_register_file:u_zap_register_file|g_write_ff.held_index_c[0]",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_zap_writeback:u_zap_writeback|ngage2_zap_register_file:u_zap_register_file|altdpram:g_write_ff.g_read[3].ram_c|dpram_9o22:auto_generated|lutrama4~OBSERVABLEPORTAADDRESSREGOUT0"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "lltune_clk",
+              "0.0",
+              "0.341",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.18",
+              "1.032",
+              "cfg_done",
+              "pll_hdmi_adj:pll_hdmi_adj|i_de2"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "absent",
+              "spi_sck"
+            ],
+            [
+              "exclusive",
+              "hdmi_sck"
+            ],
+            [
+              "exclusive",
+              "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK1_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK2_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK3_50"
+            ],
+            [
+              "exclusive",
+              "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk"
+            ],
+            [
+              "exclusive",
+              "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk"
+            ],
+            [
+              "min-pulse",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "3.374"
+            ],
+            [
+              "min-pulse",
+              "lltune_clk",
+              "3.930"
+            ]
+          ]
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "sha256": "7389c112fc7b2ca54640b6c65167649ba133eef1ee437520b4ff48fb1b5d32e0",
+          "gate": "comb~0|combout",
+          "sink_count": 43,
+          "uncertainty_ns": {
+            "setup": {
+              "core": 0.14,
+              "tuner": 0.3,
+              "inbound": 0.22
+            },
+            "hold": {
+              "core": 0.08,
+              "tuner": 0.28,
+              "inbound": 0.18
+            }
+          },
+          "transfers_sha256": "95a28a797faaca899d741cd13f84076afaeeef1e77d10e39b0ad660197740c64",
+          "trace": [
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.14",
+              "-2.925",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[17]",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|m[429]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "lltune_clk",
+              "0.3",
+              "4.244",
+              "pll_hdmi_adj:pll_hdmi_adj|i_line[0]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay"
+            ],
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.22",
+              "3.244",
+              "ascal:ascal|i_pde",
+              "pll_hdmi_adj:pll_hdmi_adj|i_linecpt[10]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.0",
+              "0.094",
+              "d[21]",
+              "hdmi_out_d[21]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "lltune_clk",
+              "0.0",
+              "0.369",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.18",
+              "1.072",
+              "cfg_done",
+              "pll_hdmi_adj:pll_hdmi_adj|i_de2"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "absent",
+              "spi_sck"
+            ],
+            [
+              "exclusive",
+              "hdmi_sck"
+            ],
+            [
+              "exclusive",
+              "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK1_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK2_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK3_50"
+            ],
+            [
+              "exclusive",
+              "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk"
+            ],
+            [
+              "exclusive",
+              "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk"
+            ],
+            [
+              "min-pulse",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "3.347"
+            ],
+            [
+              "min-pulse",
+              "lltune_clk",
+              "3.896"
+            ]
+          ]
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "sha256": "6f987cfdf2f5142d4a062b4b0c1af471e697c83567b3c90cd6c2a390a58805d1",
+          "gate": "comb~0|combout",
+          "sink_count": 43,
+          "uncertainty_ns": {
+            "setup": {
+              "core": 0.14,
+              "tuner": 0.3,
+              "inbound": 0.22
+            },
+            "hold": {
+              "core": 0.08,
+              "tuner": 0.28,
+              "inbound": 0.18
+            }
+          },
+          "transfers_sha256": "95a28a797faaca899d741cd13f84076afaeeef1e77d10e39b0ad660197740c64",
+          "trace": [
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.14",
+              "2.706",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[232]",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|m[429]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "lltune_clk",
+              "0.3",
+              "6.883",
+              "pll_hdmi_adj:pll_hdmi_adj|i_line[0]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay"
+            ],
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.22",
+              "5.545",
+              "ascal:ascal|i_pde",
+              "pll_hdmi_adj:pll_hdmi_adj|i_line[10]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.0",
+              "0.130",
+              "emu:emu|ngage_raw_save_manager:saves|ngage_ordered_dirty_queue:ordered.queue|remaining[2]",
+              "emu:emu|ngage_raw_save_manager:saves|ngage_ordered_dirty_queue:ordered.queue|remaining[2]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "lltune_clk",
+              "0.0",
+              "0.100",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.18",
+              "0.389",
+              "cfg_done",
+              "pll_hdmi_adj:pll_hdmi_adj|i_linecpt[0]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "absent",
+              "spi_sck"
+            ],
+            [
+              "exclusive",
+              "hdmi_sck"
+            ],
+            [
+              "exclusive",
+              "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK1_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK2_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK3_50"
+            ],
+            [
+              "exclusive",
+              "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk"
+            ],
+            [
+              "exclusive",
+              "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk"
+            ],
+            [
+              "min-pulse",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "3.684"
+            ],
+            [
+              "min-pulse",
+              "lltune_clk",
+              "4.350"
+            ]
+          ]
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "sha256": "1041b832aa79d7f21ade409538506b81b5d7d529f5dc405c55959d2525863ea9",
+          "gate": "comb~0|combout",
+          "sink_count": 43,
+          "uncertainty_ns": {
+            "setup": {
+              "core": 0.14,
+              "tuner": 0.3,
+              "inbound": 0.22
+            },
+            "hold": {
+              "core": 0.08,
+              "tuner": 0.28,
+              "inbound": 0.18
+            }
+          },
+          "transfers_sha256": "95a28a797faaca899d741cd13f84076afaeeef1e77d10e39b0ad660197740c64",
+          "trace": [
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.14",
+              "3.786",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_half_tag_ram:u_zap_cache_tag_ram|ngage2_zap_ram_bytes:g_short_ram.g_way[1].g_packed_data.u_data|altsyncram:u_ram|altsyncram_9h52:auto_generated|ram_block1a16~PORT_B_WRITE_ENABLE_REG",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[3]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "lltune_clk",
+              "0.3",
+              "7.150",
+              "pll_hdmi_adj:pll_hdmi_adj|i_line[0]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay"
+            ],
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.22",
+              "6.215",
+              "ascal:ascal|i_pde",
+              "pll_hdmi_adj:pll_hdmi_adj|i_linecpt[1]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.0",
+              "0.031",
+              "d[21]",
+              "hdmi_out_d[21]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "lltune_clk",
+              "0.0",
+              "0.080",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.18",
+              "0.321",
+              "cfg_done",
+              "pll_hdmi_adj:pll_hdmi_adj|i_linecpt[0]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "absent",
+              "spi_sck"
+            ],
+            [
+              "exclusive",
+              "hdmi_sck"
+            ],
+            [
+              "exclusive",
+              "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK1_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK2_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK3_50"
+            ],
+            [
+              "exclusive",
+              "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk"
+            ],
+            [
+              "exclusive",
+              "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk"
+            ],
+            [
+              "min-pulse",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "3.692"
+            ],
+            [
+              "min-pulse",
+              "lltune_clk",
+              "4.348"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "run": 45812190649,
+      "sha": "5f764ef5dce1234d4633b5d5bca8cfb44e1f79a0",
+      "seed": 31337,
+      "alms": 36589,
+      "m10ks": 315,
+      "registers": 40621,
+      "average_routing_pct": 46.7,
+      "peak_routing_pct": 79.3,
+      "core_setup_tns_sta_summary_ns": -6261.99,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.733,
+          "hold-summary": 0.242,
+          "recovery-summary": 2.146,
+          "removal-summary": 0.688,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.98
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.658,
+          "hold-summary": 0.109,
+          "recovery-summary": 2.446,
+          "removal-summary": 0.635,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.48
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.674,
+          "hold-summary": 0.098,
+          "recovery-summary": 4.972,
+          "removal-summary": 0.299,
+          "min-pulse": 0.961,
+          "fmax_mhz": 144.07
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.689,
+          "hold-summary": 0.078,
+          "recovery-summary": 5.269,
+          "removal-summary": 0.256,
+          "min-pulse": 0.961,
+          "fmax_mhz": 171.85
+        }
+      ],
+      "worst_setup_ns": -2.733,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 54,
+        "ngage_mmc_host:": 5,
+        "ngage2_zap_tlb:": 79,
+        "ngage2_zap_wb_merger:": 33,
+        "ngage2_arm9v2_execute:": 147
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[28]_OTERM651",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_live_lookup"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 249.6,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 261.1,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 235.1,
+          "direct_registers": 294,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 195.6,
+          "direct_registers": 203,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 787.7,
+          "direct_registers": 960,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.375,
+          "paths_below_target": 759,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_sdram_arbiter": 143,
+            "ngage2_arm9v2_execute": 134,
+            "ngage_icu_extra": 43,
+            "ngage_dma_route": 33,
+            "ngage_timers": 32,
+            "ngage2_zap_wb_merger": 30,
+            "ngage2_zap_dcache_fsm": 27,
+            "ngage2_arm9v2_predict": 23,
+            "ngage_sdram_scheduler": 23,
+            "ngage_upp_bus_bridge": 21,
+            "ngage_gpio_loopback": 19,
+            "ngage_upp_peripherals": 18,
+            "altsyncram_6js2": 17,
+            "ngage2_arm9v2_core": 16,
+            "ngage_dma_engine": 11,
+            "ngage2_arm9v2_decode": 11,
+            "ngage_ddr_flash_cache": 11,
+            "ngage_sparse_regs": 10,
+            "ngage_adsp": 10,
+            "altsyncram_e852": 9,
+            "ngage2_zap_dcache_half_tag_ram": 8,
+            "ngage_upp_request_stage": 8,
+            "ngage2_zap_ram_simple": 8,
+            "ngage2_zap_cache_fsm": 7,
+            "altsyncram_q3n1": 7,
+            "ngage2_zap_mem_inv_block": 6,
+            "ngage_mister": 6,
+            "ngage_sdram_stream": 6,
+            "altsyncram_cpu2": 5,
+            "ngage_adsp_bootstrap_tx": 5,
+            "ngage_ddr_stream": 4,
+            "ngage_simif": 4,
+            "altsyncram_rvs2": 4,
+            "altsyncram_5gs2": 3,
+            "ngage2_zap_dcache": 3,
+            "altsyncram_gou2": 3,
+            "ngage_am29n643_state": 3,
+            "altsyncram_n0q1": 3,
+            "altsyncram_s3q1": 2,
+            "ngage_lcd_stream": 2,
+            "altsyncram_1qr1": 2,
+            "altsyncram_04q1": 2,
+            "ngage2_zap_tlb_check": 2,
+            "altsyncram_m0q1": 2,
+            "ngage2_arm9v2_fetch": 2,
+            "ngage_cbus_uem": 2,
+            "ngage_mmc_host": 2,
+            "altsyncram_q3q1": 1,
+            "altsyncram_bgk1": 1,
+            "altsyncram_ovp1": 1,
+            "altsyncram_e0q1": 1,
+            "ngage_nos_io": 1,
+            "altsyncram_a0q1": 1,
+            "altsyncram_e3n1": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -1.145,
+          "paths_below_target": 485,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_execute": 126,
+            "ngage_sdram_arbiter": 111,
+            "ngage2_zap_wb_merger": 27,
+            "ngage2_arm9v2_predict": 23,
+            "ngage_sdram_scheduler": 23,
+            "ngage2_zap_dcache_fsm": 18,
+            "altsyncram_6js2": 16,
+            "ngage_dma_route": 15,
+            "ngage_upp_peripherals": 14,
+            "ngage2_arm9v2_core": 13,
+            "ngage_dma_engine": 12,
+            "ngage2_zap_dcache_half_tag_ram": 9,
+            "ngage_upp_request_stage": 8,
+            "ngage2_zap_ram_simple": 7,
+            "ngage2_arm9v2_decode": 7,
+            "altsyncram_e852": 7,
+            "ngage2_zap_cache_fsm": 6,
+            "ngage_mister": 6,
+            "ngage2_zap_mem_inv_block": 5,
+            "altsyncram_rvs2": 5,
+            "ngage_sdram_stream": 4,
+            "ngage2_zap_dcache": 3,
+            "altsyncram_q3n1": 3,
+            "ngage2_zap_tlb_check": 2,
+            "ngage_lcd_stream": 2,
+            "altsyncram_5gs2": 2,
+            "ngage_ddr_stream": 2,
+            "ngage_mmc_host": 2,
+            "altsyncram_1qr1": 1,
+            "ngage_upp_bus_bridge": 1,
+            "ngage_am29n643_state": 1,
+            "ngage_game_pcm": 1,
+            "altsyncram_s3q1": 1,
+            "ngage_nos_io": 1,
+            "altsyncram_gou2": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.494,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.306,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 8.052,
+        "cells_ns": 4.06
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-5f764ef-seed31337/ngage1.rbf",
+        "sha256": "a7fa9897408eebe06e934ca7ad56f8bcd948378c76bb6535c3c0dc34f2836f3b"
+      },
+      "native_signoff_minima_ns": {
+        "setup": -2.733,
+        "hold": 0.078,
+        "recovery": 2.146,
+        "removal": 0.256,
+        "min-pulse": 0.961
+      },
+      "quartus_global_timing": "Quartus reports Timing requirements not met",
+      "timing_pass": false,
+      "named_hot_paths": {
+        "posted_via_instruction_cache_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "posted_via_data_cache_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "posted_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "refill_to_merger": {
+          "count": 0,
+          "worst": null
+        },
+        "all_merger": {
+          "count": 33,
+          "worst": {
+            "rank": 3,
+            "slack_ns": -2.646,
+            "source": "emu:emu|ngage_mister:core|reset_drain",
+            "destination": "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[23]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "emu:emu|ngage_mister:core|reset_drain",
+              "core|reset_drain|q",
+              "refill|cpu_ack~2|combout",
+              "u_zap_cache_fsm|take_RESYN12987|combout",
+              "u_zap_cache_fsm|take|combout",
+              "u_zap_cache_fsm|Selector100~0|combout",
+              "u_zap_cache_fsm|Selector80~2_RESYN13221|combout",
+              "u_zap_cache_fsm|Selector80~2|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~44_RESYN15231|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~44_RESYN15235|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~44|combout",
+              "l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~45|combout",
+              "ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[23]"
+            ]
+          }
+        },
+        "mmc_fifo_byte_counter": {
+          "count": 0,
+          "worst": null
+        },
+        "uart_gpio_response": {
+          "count": 7,
+          "worst": {
+            "rank": 34,
+            "slack_ns": -2.398,
+            "source": "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[10]",
+            "destination": "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[4]",
+            "cells": [
+              "FPGA_CLK2_50~input|o",
+              "altera_pll_i|general[0].gpll~PLL_REFCLK_SELECT|clkout",
+              "altera_pll_i|general[0].gpll~FRACTIONAL_PLL|vcoph[0]",
+              "altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "altera_pll_i|outclk_wire[0]~CLKENA0|outclk",
+              "ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[10]",
+              "cpu_inside.request_stage|out_address[10]|q",
+              "cbus|Equal5~2|combout",
+              "keypad_enabled.keypad|Equal18~1|combout",
+              "keypad_enabled.keypad|value[26]~3|combout",
+              "keypad_enabled.keypad|value[26]~4|combout",
+              "keypad_enabled.keypad|WideOr11~1|combout",
+              "keypad_enabled.keypad|value[0]~5|combout",
+              "keypad_enabled.keypad|value[4]~89|combout",
+              "keypad_enabled.keypad|value[4]~97|combout",
+              "peripherals|registered_response.local_results[13].data[4]~feeder|combout",
+              "ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[4]"
+            ]
+          }
+        },
+        "timers_from_reset_drain": {
+          "count": 0,
+          "worst": null
+        }
+      },
+      "verified_changed_sources": {
+        "sys/sys_top.sdc": "cb8789f1db7b90fb598451d52261a69396ff4e2506b33cb7da840c22f24c2825"
+      },
+      "native_clock_audit": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "sha256": "00c567d82b11c2a43f41b3299e9b90f71009d67c4f2dad320c655a0794d0e510",
+          "gate": "comb~0|combout",
+          "sink_count": 46,
+          "uncertainty_ns": {
+            "setup": {
+              "core": 0.14,
+              "tuner": 0.3,
+              "inbound": 0.22
+            },
+            "hold": {
+              "core": 0.08,
+              "tuner": 0.28,
+              "inbound": 0.18
+            }
+          },
+          "transfers_sha256": "c4a2abe69b13f2b52bec888acb9ee1a4d3fbbfe9095a17e87c24db1d6078252b",
+          "trace": [
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.14",
+              "-2.733",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[28]_OTERM651",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_live_lookup"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "lltune_clk",
+              "0.3",
+              "4.488",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[5]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay~DUPLICATE"
+            ],
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.22",
+              "3.198",
+              "ascal:ascal|i_vss",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay~DUPLICATE"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.0",
+              "0.242",
+              "emu:emu|hps_io:hps_io|video_calc:video_calc|vid_fclks[4]",
+              "emu:emu|hps_io:hps_io|video_calc:video_calc|vid_fclks[4]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "lltune_clk",
+              "0.0",
+              "0.336",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.18",
+              "1.215",
+              "cfg_done",
+              "pll_hdmi_adj:pll_hdmi_adj|i_de2"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "absent",
+              "spi_sck"
+            ],
+            [
+              "exclusive",
+              "hdmi_sck"
+            ],
+            [
+              "exclusive",
+              "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK1_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK2_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK3_50"
+            ],
+            [
+              "exclusive",
+              "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk"
+            ],
+            [
+              "exclusive",
+              "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk"
+            ],
+            [
+              "min-pulse",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "3.366"
+            ],
+            [
+              "min-pulse",
+              "lltune_clk",
+              "3.948"
+            ]
+          ]
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "sha256": "2bfa64de4b16954ea9fdf6db14ec8f651f5486e4745bda90cd9ad0b5990028f0",
+          "gate": "comb~0|combout",
+          "sink_count": 46,
+          "uncertainty_ns": {
+            "setup": {
+              "core": 0.14,
+              "tuner": 0.3,
+              "inbound": 0.22
+            },
+            "hold": {
+              "core": 0.08,
+              "tuner": 0.28,
+              "inbound": 0.18
+            }
+          },
+          "transfers_sha256": "c4a2abe69b13f2b52bec888acb9ee1a4d3fbbfe9095a17e87c24db1d6078252b",
+          "trace": [
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.14",
+              "-2.658",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|ngage2_arm9v2_predict:g_predictor.u_predict|ngage2_zap_ram_simple_nopipe:u_entries|g_registered_collision.rd_addr_ff[6]",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_fetch:u_fetch|ngage2_arm9v2_predict:g_predictor.u_predict|read_valid_bit"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "lltune_clk",
+              "0.3",
+              "4.274",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[5]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay~DUPLICATE"
+            ],
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.22",
+              "3.055",
+              "ascal:ascal|i_vss",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay~DUPLICATE"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.0",
+              "0.161",
+              "ascal:ascal|i_hpix1.b[3]",
+              "ascal:ascal|i_hpix2.b[3]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "lltune_clk",
+              "0.0",
+              "0.363",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.18",
+              "1.281",
+              "cfg_done",
+              "pll_hdmi_adj:pll_hdmi_adj|i_de2"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "absent",
+              "spi_sck"
+            ],
+            [
+              "exclusive",
+              "hdmi_sck"
+            ],
+            [
+              "exclusive",
+              "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK1_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK2_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK3_50"
+            ],
+            [
+              "exclusive",
+              "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk"
+            ],
+            [
+              "exclusive",
+              "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk"
+            ],
+            [
+              "min-pulse",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "3.350"
+            ],
+            [
+              "min-pulse",
+              "lltune_clk",
+              "3.929"
+            ]
+          ]
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "sha256": "6b8ac00efd6c917136d0ed84621cd374f2d6fa412879548f911f58d7fb53d3b4",
+          "gate": "comb~0|combout",
+          "sink_count": 46,
+          "uncertainty_ns": {
+            "setup": {
+              "core": 0.14,
+              "tuner": 0.3,
+              "inbound": 0.22
+            },
+            "hold": {
+              "core": 0.08,
+              "tuner": 0.28,
+              "inbound": 0.18
+            }
+          },
+          "transfers_sha256": "c4a2abe69b13f2b52bec888acb9ee1a4d3fbbfe9095a17e87c24db1d6078252b",
+          "trace": [
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.14",
+              "2.674",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu_memory_route:cpu_inside.memory_route|ram_pending~DUPLICATE",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_cache_fsm:u_zap_cache_fsm|fill_ready_ff"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "lltune_clk",
+              "0.3",
+              "6.863",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[3]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay~DUPLICATE"
+            ],
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.22",
+              "5.950",
+              "ascal:ascal|i_vss",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay~DUPLICATE"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.0",
+              "0.131",
+              "emu:emu|hps_io:hps_io|video_calc:video_calc|vid_fclks[4]",
+              "emu:emu|hps_io:hps_io|video_calc:video_calc|vid_fclks[4]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "lltune_clk",
+              "0.0",
+              "0.098",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.18",
+              "0.467",
+              "cfg_done",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[8]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "absent",
+              "spi_sck"
+            ],
+            [
+              "exclusive",
+              "hdmi_sck"
+            ],
+            [
+              "exclusive",
+              "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK1_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK2_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK3_50"
+            ],
+            [
+              "exclusive",
+              "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk"
+            ],
+            [
+              "exclusive",
+              "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk"
+            ],
+            [
+              "min-pulse",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "3.682"
+            ],
+            [
+              "min-pulse",
+              "lltune_clk",
+              "4.364"
+            ]
+          ]
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "sha256": "2e7c211c581b543ec35f17df555c9581495aa936f9dd0e35410e786ab9d50187",
+          "gate": "comb~0|combout",
+          "sink_count": 46,
+          "uncertainty_ns": {
+            "setup": {
+              "core": 0.14,
+              "tuner": 0.3,
+              "inbound": 0.22
+            },
+            "hold": {
+              "core": 0.08,
+              "tuner": 0.28,
+              "inbound": 0.18
+            }
+          },
+          "transfers_sha256": "c4a2abe69b13f2b52bec888acb9ee1a4d3fbbfe9095a17e87c24db1d6078252b",
+          "trace": [
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.14",
+              "3.796",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[15].data[9]"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "lltune_clk",
+              "0.3",
+              "7.202",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[5]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay~DUPLICATE"
+            ],
+            [
+              "setup",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.22",
+              "6.414",
+              "ascal:ascal|i_vss",
+              "pll_hdmi_adj:pll_hdmi_adj|i_vss_delay~DUPLICATE"
+            ],
+            [
+              "setup",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "0.0",
+              "0.115",
+              "emu:emu|hps_io:hps_io|video_calc:video_calc|vid_fclks[4]",
+              "emu:emu|hps_io:hps_io|video_calc:video_calc|vid_fclks[4]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "lltune_clk",
+              "0.0",
+              "0.078",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[13]"
+            ],
+            [
+              "hold",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "lltune_clk",
+              "0.18",
+              "0.383",
+              "cfg_done",
+              "pll_hdmi_adj:pll_hdmi_adj|i_delay[8]"
+            ],
+            [
+              "hold",
+              "lltune_clk",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "no active paths"
+            ],
+            [
+              "absent",
+              "spi_sck"
+            ],
+            [
+              "exclusive",
+              "hdmi_sck"
+            ],
+            [
+              "exclusive",
+              "sysmem|fpga_interfaces|clocks_resets|h2f_user0_clk"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK1_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK2_50"
+            ],
+            [
+              "exclusive",
+              "FPGA_CLK3_50"
+            ],
+            [
+              "exclusive",
+              "pll_hdmi|pll_hdmi_inst|altera_pll_i|cyclonev_pll|counter[0].output_counter|divclk"
+            ],
+            [
+              "exclusive",
+              "pll_audio|pll_audio_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk"
+            ],
+            [
+              "min-pulse",
+              "emu|pll|pll_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk",
+              "3.692"
+            ],
+            [
+              "min-pulse",
+              "lltune_clk",
+              "4.363"
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "deltas": [
+    {
+      "seed": 13,
+      "worst_setup_ns": -0.236,
+      "core_setup_tns_sta_summary_ns": 1053.089,
+      "alms": 179,
+      "m10ks": -6
+    },
+    {
+      "seed": 43,
+      "worst_setup_ns": -0.437,
+      "core_setup_tns_sta_summary_ns": -35.314,
+      "alms": 213,
+      "m10ks": -6
+    },
+    {
+      "seed": 31337,
+      "worst_setup_ns": -0.262,
+      "core_setup_tns_sta_summary_ns": -1118.339,
+      "alms": 128,
+      "m10ks": -6
+    }
+  ],
+  "medians": {
+    "control": {
+      "worst_setup_ns": -2.471,
+      "core_setup_tns_sta_summary_ns": -5143.651,
+      "alms": 36446,
+      "m10ks": 321
+    },
+    "candidate": {
+      "worst_setup_ns": -2.733,
+      "core_setup_tns_sta_summary_ns": -5323.883,
+      "alms": 36599,
+      "m10ks": 315
+    },
+    "deltas": {
+      "worst_setup_ns": -0.262,
+      "core_setup_tns_sta_summary_ns": -35.314,
+      "alms": 179,
+      "m10ks": -6
+    }
+  },
+  "verified_build_date": "261126"
+}
