@@ -1,3 +1,7 @@
+## 2026-11-26 — retained ten-seed sweep and closure investigation
+
+The retained `11c4a0c` and `81a1b45` sources are the exact `e9552bd` tree. Seven new seeds join the three same-day controls at physical 104 MHz. The −1.5 ns mark is a milestone on the way to setup closure across all corners. The local MMC byte-counter change matches all directed, fixed, native and mixed replays. The separate Wishbone check traces early SDRAM response class through arbitration and the cache. [Runs and investigation](experiments/v5-performance/retained-104-seed-sweep.md)
+
 ## 2026-11-26 — same-day placement and refill fits parked
 
 Public `11c4a0c` restores the exact retained tree. Three same-day controls reproduced the November 24 timing and `bffd426` automatic periphery placement produced identical RBFs. Refill M10K `5b29095` matched all simulations and saved 60 median ALMs. Its best setup was −2.431 ns compared with −2.061 ns for retained seed 13, still 0.561 ns short of the −1.5 ns target. [Patches and all nine fits](experiments/v5-performance/periphery-auto.md)

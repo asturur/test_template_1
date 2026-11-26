@@ -1,0 +1,34 @@
+{
+  "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+  "mmc_host_sha256": "b13acfef39ede0231b563198b221bf5ec8d428bf2c12e339f6a27bec2b751c73",
+  "arithmetic": "PASS 131,072 write-length cases and 40,960 counter transitions",
+  "host_suite": [
+    "PASS CMD16 accepted-length cache: 33 pin-observed probes, R1 error bits, CRC/framing/type rejection, status-only success and reset in 126430 clocks",
+    "PASS MMC integer /3 clock: CMD0=12, rises=696, falls=696",
+    "PASS MMC host data peer DIV=4 FIFO=16 cases=28 clocks=82004: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering",
+    "PASS MMC host data peer DIV=3 FIFO=16 cases=28 clocks=61578: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering",
+    "PASS MMC host data peer DIV=12 FIFO=8 cases=28 clocks=244751: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering"
+  ],
+  "long": [
+    "PASS MMC host data peer DIV=3 FIFO=16 cases=30 clocks=258366: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering",
+    "COUNT checked reads=1307 writes=1309 group_crossings=1278"
+  ],
+  "mixed": {
+    "digest": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+    "records": 171496
+  },
+  "fixed": {
+    "cases": 15,
+    "windows": 105,
+    "exact_match": true,
+    "receipt_sha256": "d0673ea9e1d5f36eeca6efcf6e0ede43f253b2de5959d3e728698700d9e08559",
+    "clocks": 18750743
+  },
+  "native": {
+    "cases": 1,
+    "windows": 4,
+    "exact_match": true,
+    "receipt_sha256": "3b39213e7adf6424c49a67b5aee3244cae61acb46bcde0da14e15c5d0a800a68",
+    "clocks": 57508371
+  }
+}

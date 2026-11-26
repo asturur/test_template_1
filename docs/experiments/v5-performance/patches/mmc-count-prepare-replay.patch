@@ -1,0 +1,327 @@
+diff --git a/scratch/v5-fit-loop/mmc-count-prepare/check-arithmetic.py b/scratch/v5-fit-loop/mmc-count-prepare/check-arithmetic.py
+new file mode 100644
+index 0000000..1951ed9
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-count-prepare/check-arithmetic.py
+@@ -0,0 +1,21 @@
++"""Check the transfer-byte calculation and counter representation."""
++
++for mask in range(16):
++    for remaining in range(8192):
++        legacy = 0
++        for lane in range(4):
++            if (mask >> lane) & 1 and legacy < remaining:
++                legacy += 1
++        assert legacy == min(remaining, mask.bit_count())
++
++for value in range(8192):
++    for moved in range(5):
++        low = (value & 7) + moved
++        group = value >> 3
++        successor = (group + 1) & 1023
++        next_value = ((successor if low & 8 else group) << 3) | (low & 7)
++        next_successor = (successor + bool(low & 8)) & 1023
++        assert next_value == (value + moved) & 8191
++        assert next_successor == ((next_value >> 3) + 1) & 1023
++
++print('PASS 131,072 write-length cases and 40,960 counter transitions')
+diff --git a/scratch/v5-fit-loop/mmc-count-prepare/count-observer.vh b/scratch/v5-fit-loop/mmc-count-prepare/count-observer.vh
+new file mode 100644
+index 0000000..f219e8e
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-count-prepare/count-observer.vh
+@@ -0,0 +1,35 @@
++    reg [12:0] legacy_bus_count;
++    reg count_valid = 0;
++    reg [2:0] legacy_write_bytes;
++    integer count_lanes;
++    integer count_reads = 0;
++    integer count_writes = 0;
++    integer count_crossings = 0;
++
++    always @(posedge clk) begin
++        if (count_valid && (dut.nfifo !== legacy_bus_count ||
++            dut.nfifo_group_ahead !== (legacy_bus_count[12:3] + 10'd1)))
++            $fatal(1, "MMC bus byte count or prepared group differs at clock %0d", cycles);
++
++        if (reset || dut.start) begin
++            count_valid = 1;
++            legacy_bus_count = 0;
++        end else if (count_valid) begin
++            if (rd && dut.fifo_rd && dut.rx_phase) begin
++                count_reads = count_reads + 1;
++                if ({1'b0,legacy_bus_count[2:0]} + {1'b0,dut.fifo_take} >= 4'd8)
++                    count_crossings = count_crossings + 1;
++                legacy_bus_count = legacy_bus_count + {10'd0,dut.fifo_take};
++            end
++            if (wr && dut.fifo_wr && dut.tx_phase) begin
++                legacy_write_bytes = 0;
++                for (count_lanes = 0; count_lanes < 4; count_lanes = count_lanes + 1)
++                    if (be[count_lanes] && {10'd0,legacy_write_bytes} < dut.rem)
++                        legacy_write_bytes = legacy_write_bytes + 3'd1;
++                count_writes = count_writes + 1;
++                if ({1'b0,legacy_bus_count[2:0]} + {1'b0,legacy_write_bytes} >= 4'd8)
++                    count_crossings = count_crossings + 1;
++                legacy_bus_count = legacy_bus_count + {10'd0,legacy_write_bytes};
++            end
++        end
++    end
+diff --git a/scratch/v5-fit-loop/mmc-count-prepare/mixed.py b/scratch/v5-fit-loop/mmc-count-prepare/mixed.py
+new file mode 100644
+index 0000000..4f2cca9
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-count-prepare/mixed.py
+@@ -0,0 +1,30 @@
++"""Stage the retained mixed board replay with only the candidate MMC host replaced."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed')
++trial = Path('build/sim/v5-104-mmc-count-prepare-pin-mixed/mixed')
++trial.mkdir(parents=True)
++for name in ('source', 'build.sh', 'stress.hex', 'image.hex', 'program.hex'):
++    original = base / name
++    if original.is_dir():
++        shutil.copytree(original, trial / name)
++    else:
++        shutil.copyfile(original, trial / name)
++
++netlist = 'rtl/ngage_mmc_host.v'
++shutil.copyfile(stage / 'source' / netlist, trial / 'source' / netlist)
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert netlist in hashes
++for name, reference in hashes.items():
++    file = trial / 'source' / name
++    actual = sha256((file if file.is_file() else Path(name)).read_bytes()).hexdigest()
++    assert (actual != reference) == (name == netlist), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++build = trial / 'build.sh'
++build.write_text(build.read_text().replace(str(base), str(trial)))
+diff --git a/scratch/v5-fit-loop/mmc-count-prepare/prepare-host-tests.py b/scratch/v5-fit-loop/mmc-count-prepare/prepare-host-tests.py
+new file mode 100644
+index 0000000..a2d86e0
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-count-prepare/prepare-host-tests.py
+@@ -0,0 +1,25 @@
++"""Attach the legacy-count observer and prepare long MMC transfer cases."""
++from pathlib import Path
++
++
++stage = Path(__file__).resolve().parent
++fixture = 'tests/phone/mmc_host/data_tb.v'
++reference = (stage/'reference'/fixture).read_text()
++observer = (stage/'count-observer.vh').read_text()
++entry = '    always @(posedge clk)begin cycles'
++assert reference.count(entry) == reference.count('$finish;') == 1
++candidate = reference.replace(entry, observer+entry, 1).replace('$finish;',
++    '$display("COUNT checked reads=%0d writes=%0d group_crossings=%0d", '
++    'count_reads, count_writes, count_crossings); $finish;')
++(stage/'source'/fixture).write_text(candidate)
++
++for name, bench in [('source', candidate), ('reference', reference)]:
++    marker = '        $display("PASS MMC host data peer'
++    assert bench.count(marker) == 1
++    long_test = bench.replace(marker, '        tx_case(4096,21,0,0,0,6);\n'
++                              '        rx_case(4096,22,0,0,9);\n'+marker)
++    long_test = long_test.replace('[8191:0]', '[32799:0]').replace('[8190:0]', '[32798:0]')
++    long_test = long_test.replace("8192'h11021", "32800'h11021")
++    out = stage/name/'build/sim/unit-mmc-host'
++    out.mkdir(parents=True, exist_ok=True)
++    (out/'long_tb.v').write_text(long_test)
+diff --git a/scratch/v5-fit-loop/mmc-count-prepare/replay.py b/scratch/v5-fit-loop/mmc-count-prepare/replay.py
+new file mode 100644
+index 0000000..0d66bcf
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-count-prepare/replay.py
+@@ -0,0 +1,186 @@
++"""Replay Prepared Wishbone write data against the frozen 104 MHz execute control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++parser.add_argument('--control', action='store_true')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = stage / args.output
++work.mkdir(exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / ('reference.v' if args.control else 'source/rtl/arm9v2/arm925t_phone.v')
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(repo / 'tests/cpu/arm9v2_board'))
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_mmc_host.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/mmc-count-prepare/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_mmc_host.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/mmc-count-prepare/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((stage.parent/'dma-command-predecode'/'final-replay'/f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert {k:v for k,v in trial.items() if k!='wb_writes'} == expected, (name, trial, expected)
++        exact = next(r['candidate'] for r in json.loads(
++            (stage.parent/'prepared-wb-write-data'/'candidate'/f'{kind}.json').read_text())['rows']
++            if r['candidate']['case']==name)
++        assert trial == {**exact,'profile':(0,0)}, (name, trial, exact)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                mmc_host_sha256=digest(stage / 'source/rtl/ngage_mmc_host.v'),
++                                                upp_sha256=digest(stage / 'source/rtl/ngage_upp.v'), rows=rows),indent=2)+'\n')

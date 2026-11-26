@@ -1836,5 +1836,33 @@
     "measured_sha256": {
       "Template.qsf": "fc90b1d9ad145bee2a6081e328f1a34e7c77b3484e6749cf08bbabc951f30890"
     }
+  },
+  {
+    "id": "mmc-count-prepare",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-count-prepare.patch"
+    ],
+    "sha256": [
+      "96f4747b20c7b6557fc26587dabfc5a759adabb0ee5f6431abbb19474623eeb4"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_host.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_mmc_host.v": "b13acfef39ede0231b563198b221bf5ec8d428bf2c12e339f6a27bec2b751c73"
+    }
+  },
+  {
+    "id": "mmc-count-prepare-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-count-prepare-replay.patch"
+    ],
+    "sha256": [
+      "07d3bc4a658ed8528423fba512309efa67e98444ffc07b7ba0f7c552d76210b7"
+    ]
   }
 ]
