@@ -1,6 +1,6 @@
-## 2026-11-26 — independent D-cache lock and ALU zero fits
+## 2026-11-26 — independent D-cache lock and ALU zero fits parked
 
-The scalar D-cache pending-load valid bit and ALU zero-operation predecode each match all 105 fixed windows, four native PolyCount frames, four directed board profiles and the 171,496-event mixed replay. The production 104 MHz fits pin `8c5726f` for the lock and `3d57ba3` for the independent ALU change, with seeds 43, 13 and 31337. Both use the `e9552bd` tree as the control. [Lock patch and runs](experiments/v5-performance/dcache-lock-valid.md) · [ALU patch and runs](experiments/v5-performance/alu-zero-predecode.md)
+Public `bbed9e4` restores the exact `e9552bd` tree. D-cache lock `8c5726f` and ALU zero predecode `3d57ba3` each matched all fixed windows, native frames, directed board profiles and the mixed replay. Both lost worst setup on all three matched 104 MHz seeds. Median setup was −2.471 ns retained, −2.552 ns lock and −2.983 ns ALU. Median ALM changes were +762 and −363. All six runs produced an RBF and missed setup. [Lock patch and fits](experiments/v5-performance/dcache-lock-valid.md) · [ALU patch and fits](experiments/v5-performance/alu-zero-predecode.md)
 
 ## 2026-11-25 — SDRAM posted acceptance parked
 

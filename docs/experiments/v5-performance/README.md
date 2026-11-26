@@ -180,14 +180,16 @@ The [scalar D-cache lock trial](dcache-lock-valid.md) updates the pending
 load's valid bit directly from miss admission and the tagged return.
 All 105 fixed windows, four native PolyCount frames, four directed board
 profiles and the 171,496-event mixed trace match the retained design.
-This targets the TLB-to-lock path without adding a clock. Routed timing
-remains open.
+The lock-valid endpoint drops out of the sampled top-1,000 paths at all
+four corners. Median worst setup moves from −2.471 to −2.552 ns and
+median area rises 762 ALMs. The trial is parked.
 
 The [ALU zero predecode trial](alu-zero-predecode.md) captures the zero
 operation with the existing execute packet and selects between single-bit
 predicates. The directed test and all workload, native frame and mixed
-replays match. The three routed fits compare it independently against
-the same retained production tree.
+replays match. Median worst setup moves from −2.471 to −2.983 ns and
+median area saves 363 ALMs. The trial is parked. Public `bbed9e4`
+restores the exact retained tree after both fits.
 
 The [prepared Wishbone write-data trial](prepared-wb-write-data.md)
 captures both tag-maintenance words and registers the existing advance

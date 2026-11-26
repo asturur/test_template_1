@@ -38,11 +38,27 @@ Wishbone write traces also match.
 
 Commit `8c5726f` changes only the design and generator in the lock patch.
 The production fits use the same 104 MHz clock and DDR debug setting as
-`e9552bd`. Compare the TLB-to-lock path, whole-core worst setup, total
-negative setup slack, hold and ALMs against the seed-matched control.
+`e9552bd`. The per-seed QSFs match exactly. The generated CPU netlist
+is the only changed compiled input.
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45720741108) ·
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45720741046) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45720741271)
+
+| Seed | Retained setup slack (ns) | Candidate setup slack (ns) | Candidate ALMs |
+| ---: | ---: | ---: | ---: |
+| 43 | −2.508 | −2.552 | 37,218 |
+| 13 | −2.061 | −2.569 | 37,135 |
+| 31337 | −2.471 | −2.533 | 37,208 |
+
+The named `o_lock_any` endpoint drops out of all twelve top-1,000
+corner exports. The retained fits show it in ten of those exports,
+including every slow corner. Whole-core median worst setup moves from
+−2.471 to −2.552 ns. Median core setup TNS improves 955.519 ns and
+median area rises 762 ALMs. All three use 321 M10Ks, meet hold, recovery,
+removal and minimum pulse width, and miss setup. Keep the patch in the
+archive. The best candidate RBF is seed 31337 at −2.533 ns. Public
+`bbed9e4` restores the exact `e9552bd` tree after the independent fits.
+[Matched timing evidence](../../evidence/v5-104-dcache-lock-valid-fits.json)
 
 ## Another CPU path to try
 

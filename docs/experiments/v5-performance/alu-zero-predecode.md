@@ -38,6 +38,25 @@ seeds. The D-cache lock fits remain pinned to their own commit.
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45721884840) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45721887917)
 
+| Seed | Retained setup slack (ns) | Candidate setup slack (ns) | Candidate ALMs |
+| ---: | ---: | ---: | ---: |
+| 43 | −2.508 | −3.019 | 36,089 |
+| 13 | −2.061 | −2.812 | 36,082 |
+| 31337 | −2.471 | −2.983 | 36,083 |
+
+The per-seed QSFs match exactly and the generated CPU netlist is the
+only changed compiled input. Named load-to-Z paths fall from three to
+zero in seed 43's hot top 1,000 and rise from zero to one and three on
+seeds 13 and 31337. The worst path on seeds 43 and 13 ends at D-cache
+`o_lock_any`. The seed 31337 limit ends at the Wishbone address.
+Median worst setup moves from −2.471 to −2.983 ns, median core setup
+TNS worsens 1,169.896 ns, and median area saves 363 ALMs. All three
+use 321 M10Ks, meet hold, recovery, removal and minimum pulse width,
+and miss setup. Keep the patch for later area comparisons. The best
+candidate RBF is seed 13 at −2.812 ns. Public `bbed9e4` restores the
+exact retained tree.
+[Matched timing evidence](../../evidence/v5-104-alu-zero-predecode-fits.json)
+
 ## Replay
 
 Apply the [fixture patch](patches/alu-zero-predecode-replay.patch).
