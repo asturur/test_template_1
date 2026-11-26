@@ -2250,5 +2250,77 @@
       "scratch/v5-fit-loop/dcache-trusted-hit-ack/replay.py": "27ce108884d8910e16c125a8fd9ed60c09c5349e77f61629a51e9010dcbffcca",
       "scratch/v5-fit-loop/dcache-trusted-hit-ack/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
     }
+  },
+  {
+    "id": "timer-live-trust-combined",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare.patch",
+      "patches/dcache-live-trust.patch"
+    ],
+    "sha256": [
+      "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a",
+      "3c6470af90f5c7c08bdde8c4ac5cd9323c95fc70faeac46b413aa94284316192"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "rtl/ngage_timers.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/timer_conformance/tb.v",
+      "tests/phone/timers/tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+      "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+      "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+      "tests/phone/timer_conformance/tb.v": "2716e8f144611319d38079a4e4870432292eadd721970960f45ea47f23b08ed0",
+      "tests/phone/timers/tb.sv": "df48a45fbc9bdf41ba283b1bcd696f58f9c335698e265ad78fa4d93b4d958a44",
+      "rtl/arm9v2/arm925t_phone.v": "65e6870bebab65f66b507cdd4a63c5e5bd33ad24ec6ccadc3ecff128f205a491",
+      "tools/gen_arm9v2_phone.py": "888046b6e913b6631fae497fdc72f0b6554ed66eca0a8a08a4f45e58ae5c7dd2"
+    }
+  },
+  {
+    "id": "timer-live-trust-combined-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-live-trust-combined-replay.patch"
+    ],
+    "sha256": [
+      "db6a5b8051fe7621682c1d5865b74364fc19857d34edcac0d12cf10fd6136333"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/timer-live-trust-combined/architectural_trace.vh",
+      "scratch/v5-fit-loop/timer-live-trust-combined/board.sh",
+      "scratch/v5-fit-loop/timer-live-trust-combined/coexistence.sh",
+      "scratch/v5-fit-loop/timer-live-trust-combined/mixed.py",
+      "scratch/v5-fit-loop/timer-live-trust-combined/original.sh",
+      "scratch/v5-fit-loop/timer-live-trust-combined/prepare-coexistence.py",
+      "scratch/v5-fit-loop/timer-live-trust-combined/prepare-directed.py",
+      "scratch/v5-fit-loop/timer-live-trust-combined/prepare-fit.py",
+      "scratch/v5-fit-loop/timer-live-trust-combined/qualify.sh",
+      "scratch/v5-fit-loop/timer-live-trust-combined/record.py",
+      "scratch/v5-fit-loop/timer-live-trust-combined/replay.py",
+      "scratch/v5-fit-loop/timer-live-trust-combined/timer-directed.sv",
+      "scratch/v5-fit-loop/timer-live-trust-combined/wb-write-trace.vh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/timer-live-trust-combined/architectural_trace.vh": "fd2af36acb4e5bd0e8e9caa95f4ad39404f06e4ce2f15bfb56cadd0d4c6ef151",
+      "scratch/v5-fit-loop/timer-live-trust-combined/board.sh": "85201218736409447bd4cebf1e30d1dc4603dcbd535e24acf7bc6b010e6f543a",
+      "scratch/v5-fit-loop/timer-live-trust-combined/coexistence.sh": "61edb4e1f6cd3ae62bb1ca4c5f6134b08e9ea68f032ab3e65ad54799b90f0df3",
+      "scratch/v5-fit-loop/timer-live-trust-combined/mixed.py": "c383428433d5a4c411a16aafa7783b63b0bf188bedc42ea45b69ef5c0ef23b26",
+      "scratch/v5-fit-loop/timer-live-trust-combined/original.sh": "199245f2cdf645ec8444473719937c0289f7833f6974e17212e1cb46f9d35045",
+      "scratch/v5-fit-loop/timer-live-trust-combined/prepare-coexistence.py": "a75900e52b87e4d3ea151f2ff41fe7d8d86747705f7aa9364dfd8af11af667e7",
+      "scratch/v5-fit-loop/timer-live-trust-combined/prepare-directed.py": "274e8df1b062f9dbc171d3427ee6bfe7af5813c8b32eed79322b8be729452bf0",
+      "scratch/v5-fit-loop/timer-live-trust-combined/prepare-fit.py": "45400476d616a24c3dfad97c58b77275cfadfda4dc93c6577c3b61b195423df6",
+      "scratch/v5-fit-loop/timer-live-trust-combined/qualify.sh": "cc6910b4e19e01d94bb64a74708fbfa9551061052200f33c641008d93ab4a89e",
+      "scratch/v5-fit-loop/timer-live-trust-combined/record.py": "3a5ec907fcb9935183655a118e3ae0ad08dbca1ce83f2c7cce867d862b654d6c",
+      "scratch/v5-fit-loop/timer-live-trust-combined/replay.py": "766d978ee9d408d7861f608f1a478eb6692648351b2c4c52ddd900ed4c1f4418",
+      "scratch/v5-fit-loop/timer-live-trust-combined/timer-directed.sv": "585b3f88a3b66b0614a92f32b79969652b37dfc0284911e82ba767365ed342d0",
+      "scratch/v5-fit-loop/timer-live-trust-combined/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
+    }
   }
 ]

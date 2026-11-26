@@ -59,6 +59,9 @@ matches 171,497 records over 1,201,528 clocks. All three full replay
 builds identify the three expected patched RTL files with the same
 source hashes. [Qualification receipt](../../evidence/v5-104-timer-write-prepare.json)
 
+The [combined replay with D-cache live trust](timer-live-trust-combined.md)
+also matches both physical traces, the directed tests and the workloads.
+
 ## Reproduction
 
 Use the existing offline Jotego image, prepared Wishbone write-data decks
