@@ -1,0 +1,1075 @@
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/replay.py b/scratch/v5-fit-loop/w-completion-prepare/replay.py
+new file mode 100644
+index 0000000..b14763e
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/replay.py
+@@ -0,0 +1,184 @@
++"""Replay native refill occupancy and SDRAM block capture against the retained 104 MHz control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = repo / 'build/sim/v5-104-w-completion-prepare' / args.output
++work.mkdir(parents=True, exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(stage / 'source/tests/cpu/arm9v2_board'))
++import payload_clocks
++payload_clocks.OUT = repo / "build/sim"
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    assert bench.count('.CPU_BLOCK_WRITES(1)') == 1
++    bench = bench.replace('.CPU_BLOCK_WRITES(1)', '.CPU_BLOCK_WRITES(1), .PRECAPTURE_BLOCK_DATA(1)')
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_upp_peripherals.v', 'rtl/ngage_keypad.v', 'rtl/ngage_upp_euart.v', 'rtl/ngage_timers.v', 'rtl/ngage_sdram_arbiter.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/w-completion-prepare/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_upp_peripherals.v', 'ngage_keypad.v', 'ngage_upp_euart.v', 'ngage_timers.v', 'ngage_sdram_arbiter.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/w-completion-prepare/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((repo / 'build/sim/v5-104-refill-payload-combined/qualification' / f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                source_sha256={name:digest(stage / 'source/rtl' / name) for name in ('ngage_upp.v','ngage_upp_peripherals.v','ngage_upp_euart.v', 'ngage_timers.v','ngage_keypad.v','ngage_sdram_arbiter.v')}, rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/mixed.py b/scratch/v5-fit-loop/w-completion-prepare/mixed.py
+new file mode 100644
+index 0000000..5ef40a8
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/mixed.py
+@@ -0,0 +1,34 @@
++"""Stage the frozen physical-SDRAM replay with parallel UPP claim presence."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-refill-payload-combined/mixed')
++trial = Path('build/sim/v5-104-w-completion-prepare/mixed')
++changed = {'rtl/arm9v2/arm925t_phone.v'}
++peer = 'tests/phone/upp_ddr_ram/peer.v'
++
++trial.mkdir(parents=True, exist_ok=True)
++shutil.copytree(base / 'source', trial / 'source', dirs_exist_ok=True)
++for name in ('stress.hex', 'image.hex', 'program.hex'):
++    shutil.copyfile(base / name, trial / name)
++(trial / 'source' / peer).parent.mkdir(parents=True, exist_ok=True)
++shutil.copyfile(stage / 'source' / peer, trial / 'source' / peer)
++for name in changed:
++    shutil.copyfile(stage / 'source' / name, trial / 'source' / name)
++
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert changed <= hashes.keys() and peer in hashes
++for name, reference in hashes.items():
++    if name.startswith('rtl/'):
++        assert sha256((stage / 'reference' / name).read_bytes()).hexdigest() == reference, name
++    actual = sha256((trial / 'source' / name).read_bytes()).hexdigest()
++    assert (actual != reference) == (name in changed), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++
++build = (base / 'build.sh').read_text().replace(str(base), str(trial))
++(trial / 'build.sh').write_text(build)
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/pins.sh b/scratch/v5-fit-loop/w-completion-prepare/pins.sh
+new file mode 100644
+index 0000000..338ce02
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/pins.sh
+@@ -0,0 +1,33 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/w-completion-prepare
++out=build/sim/v5-104-w-completion-prepare
++base=build/sim/v5-104-refill-payload-combined
++guest_source=build/sim/v5-104-sdram-block-payload
++guest_path=build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed/stress.hex
++mixed="$out/mixed"
++image=jotego/simulator:arm64
++mkdir -p "$out/coexistence" "$out/block-guest"
++python3 -B "$area/mixed.py"
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -w /work --entrypoint sh "$image" -ec "sh '$mixed/build.sh'
++'$mixed/obj/Vtb' +upp_stress '+compare_trace=$mixed/traffic.log' > '$mixed/replay.log'"
++cmp "$base/mixed/traffic.log" "$mixed/traffic.log"
++grep '^PASS ' "$mixed/replay.log"
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -v "$PWD/$guest_source/coexistence/stress-timer.hex:/work/$guest_path:ro" \
++  -w /work --entrypoint "/work/$mixed/obj/Vtb" "$image" \
++  +upp_stress "+compare_trace=$out/coexistence/candidate.trace" > "$out/coexistence/candidate.log"
++cmp "$base/coexistence/candidate.trace" "$out/coexistence/candidate.trace"
++grep '^PASS ' "$out/coexistence/candidate.log"
++
++docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++  -v "$PWD/$guest_source/block-guest/block-guest.hex:/work/$guest_path:ro" -w /work \
++  --entrypoint "/work/$mixed/obj/Vtb" "$image" +upp_stress \
++  "+compare_trace=$out/block-guest/source.trace" > "$out/block-guest/source.log"
++cmp "$base/block-guest/source.trace" "$out/block-guest/source.trace"
++awk '$1 == "Q" && $3 == "110" && ($4 == "001740" || $4 == "001744")' "$out/block-guest/source.trace"
++wc -l "$out/block-guest/source.trace"
++grep '^PASS ' "$out/block-guest/source.log"
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/prepare-hold.py b/scratch/v5-fit-loop/w-completion-prepare/prepare-hold.py
+new file mode 100644
+index 0000000..a7c59b1
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/prepare-hold.py
+@@ -0,0 +1,29 @@
++"""Match both exact legs against the timer's measured PCM phase after CPU Hold."""
++from pathlib import Path
++
++
++build = Path('build/sim')
++base = build / 'v5-104-refill-payload-combined/mixed'
++candidate = build / 'v5-104-w-completion-prepare/mixed'
++out = candidate.parent / 'hold'
++out.mkdir(parents=True, exist_ok=True)
++bench = 'source/tests/phone/mmc_mister/tb.v'
++source = (base / bench).read_text()
++assert source == (candidate / bench).read_text()
++needle = "sample_hash !== 32'h175ee178"
++assert source.count(needle) == 1
++# The original no-hold pin fixture expects independently fixed PCM phase.
++# A verified compare of a warm hold uses the same baseline PCM witness.
++source = source.replace(needle, "sample_hash !== ($test$plusargs(\"hold\") ? 32'h015ec64f : 32'h175ee178)")
++patched = out / 'tb.v'
++patched.write_text(source)
++for label, leg in (('reference', base), ('trial', candidate)):
++    command = (leg / 'build.sh').read_text()
++    old_bench = str(leg / bench)
++    old_object = str(leg / 'obj')
++    old_log = str(leg / 'build.log')
++    assert all(command.count(text) == 1 for text in (old_bench, old_object, old_log))
++    command = command.replace(old_bench, str(patched))
++    command = command.replace(old_object, str(out / f'{label}-obj'))
++    command = command.replace(old_log, str(out / f'{label}-build.log'))
++    (out / f'{label}-build.sh').write_text(command)
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/hold.sh b/scratch/v5-fit-loop/w-completion-prepare/hold.sh
+new file mode 100644
+index 0000000..a0899be
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/hold.sh
+@@ -0,0 +1,16 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/w-completion-prepare
++out=build/sim/v5-104-w-completion-prepare/hold
++python3 -B "$area/prepare-hold.py"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -ec "
++    for leg in reference trial; do
++        sh '$out/'\$leg-build.sh
++        '$out/'\$leg-obj/Vtb +upp_stress +hold '+compare_trace=$out/'\$leg.trace > '$out/'\$leg.log
++        grep '^PASS ' '$out/'\$leg.log > '$out/'\$leg.pass
++    done"
++cmp "$out/reference.trace" "$out/trial.trace"
++cmp "$out/reference.pass" "$out/trial.pass"
++cat "$out/trial.pass"
++wc -l "$out/trial.trace"
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/architectural_trace.vh b/scratch/v5-fit-loop/w-completion-prepare/architectural_trace.vh
+new file mode 100644
+index 0000000..88b6546
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/architectural_trace.vh
+@@ -0,0 +1,69 @@
++`define RESUPP dut.board.upp.cpu_inside
++`define RESZAP `RESUPP.cpu.u_arm925t.u_zap
++`define RESCORE `RESZAP.g_arm9.u_arm9_core
++`define RESFETCH `RESCORE.u_front_decode.u_fetch
++
++reg [31:0] res_begin, res_end;
++integer res_window = 0;
++integer res_retired, res_data, res_mmio, res_recover;
++reg res_active = 0;
++reg [63:0] res_retire_hash, res_data_hash, res_mmio_hash;
++localparam [63:0] RES_INITIAL = 64'hcbf29ce484222325;
++initial begin
++    if (!$value$plusargs("begin_pc=%h", res_begin) || !$value$plusargs("end_pc=%h", res_end))
++        $fatal(1, "Missing architectural digest window");
++end
++
++function automatic [63:0] res_mix(input [63:0] digest, input [63:0] data);
++    res_mix = (digest ^ data) * 64'h00000100000001b3;
++endfunction
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        res_active = 1;
++        res_retired = 0;
++        res_data = 0;
++        res_mmio = 0;
++        res_recover = 0;
++        res_retire_hash = RES_INITIAL;
++        res_data_hash = RES_INITIAL;
++        res_mmio_hash = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && res_active) begin
++        $display("RES_ARCH window=%0d retired=%0d data=%0d mmio=%0d recover=%0d retire_hash=%016x data_hash=%016x mmio_hash=%016x",
++                 res_window, res_retired, res_data, res_mmio, res_recover,
++                 res_retire_hash, res_data_hash, res_mmio_hash);
++        res_window++;
++        res_active = 0;
++    end else if (res_active) begin
++        if (`RESCORE.wb_complete) begin
++            res_retired++;
++            res_retire_hash = res_mix(res_retire_hash, {`RESCORE.w[526:495], `RESCORE.w[494:463]});
++            res_retire_hash = res_mix(res_retire_hash, {25'b0, exceptions, `RESCORE.cpsr_next});
++            if (`RESCORE.wb_valid) begin
++                if (`RESCORE.wb_tag0 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {26'b0, `RESCORE.wb_tag0, `RESCORE.wb_data0});
++                if (`RESCORE.wb_pair && `RESCORE.wb_tag1 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {25'b0, 1'b1, `RESCORE.wb_tag1, `RESCORE.wb_data1});
++            end
++        end
++        if (`RESZAP.o_dbg_d_done) begin
++            res_data++;
++            res_data_hash = res_mix(res_data_hash, {26'b0, `RESZAP.data_err, `RESZAP.o_dbg_d_we,
++                                                   `RESZAP.o_dbg_d_sel, `RESZAP.o_dbg_d_va});
++            res_data_hash = res_mix(res_data_hash, {32'b0, `RESZAP.o_dbg_d_we ?
++                                                   `RESZAP.o_dbg_d_wdata : `RESZAP.o_dbg_d_rdata});
++        end
++        if (`RESUPP.master_cyc && `RESUPP.master_stb && !`RESUPP.master_code &&
++            (`RESUPP.slow_ack || `RESUPP.slow_error)) begin
++            res_mmio++;
++            res_mmio_hash = res_mix(res_mmio_hash, {26'b0, `RESUPP.slow_error, `RESUPP.master_we,
++                                                   `RESUPP.master_sel, `RESUPP.master_address});
++            res_mmio_hash = res_mix(res_mmio_hash, {32'b0, `RESUPP.master_we ?
++                                                   `RESUPP.master_data : `RESUPP.slow_read_data});
++        end
++    end
++end
++`undef RESFETCH
++`undef RESCORE
++`undef RESZAP
++`undef RESUPP
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/wb-write-trace.vh b/scratch/v5-fit-loop/w-completion-prepare/wb-write-trace.vh
+new file mode 100644
+index 0000000..e4ee4c7
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/wb-write-trace.vh
+@@ -0,0 +1,98 @@
++`define WC dut.board.upp.cpu_inside.cpu
++`define WZ `WC.u_arm925t.u_zap
++`define WD `WZ.l_generate_with_cache_mmu.u_data_cache
++`define WM `WZ.l_merger_for_core_with_cache_mmu.u_zap_wb_merger
++wire obs_bus_on = `WM.o_wb_cyc && `WM.o_wb_stb;
++wire obs_write = obs_bus_on && `WM.o_wb_wen;
++wire obs_ack = obs_bus_on && `WM.i_wb_ack && !`WM.i_wb_err;
++wire obs_err = obs_bus_on && `WM.i_wb_err;
++wire obs_native = obs_write && `WC.wb_write_block;
++wire [3:0] obs_owner = `WM.o_dbg_data_owner ? `WD.state_ff : 4'b0;
++wire [7:0] obs_ctl = {`WM.o_wb_cti, `WM.o_wb_sel, obs_native};
++wire [31:0] obs_adr = `WM.o_wb_adr;
++wire [31:0] obs_data = `WM.o_wb_dat;
++wire [127:0] obs_block = obs_native ? `WC.wb_block_data : 128'b0;
++wire [199:0] obs_payload = {obs_adr, obs_ctl, obs_data, obs_block};
++wire [2:0] obs_source = {obs_native, `WD.u_zap_cache_fsm.state_ff[`WD.u_zap_cache_fsm.CLEAN_SINGLE], `WM.o_dbg_data_owner};
++
++integer wbt_window = 0;
++integer wbt_clock, wbt_writes, wbt_stalls, wbt_read_acks, wbt_write_acks, wbt_errors;
++integer wbt_read_to_write, wbt_write_next_changed, wbt_owner_changes;
++integer wbt_tag_changed, wbt_cch_changed, wbt_native_changed, wbt_post_changed, wbt_unc_changed;
++integer wbt_tag, wbt_cch, wbt_native, wbt_post, wbt_unc;
++reg wbt_active = 0;
++reg wbt_prev_read_ack, wbt_prev_write_ack, wbt_prev_stalled;
++reg [3:0] wbt_prev_owner;
++reg [199:0] wbt_prev_payload;
++reg [63:0] wbt_digest;
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        wbt_active = 1;
++        wbt_clock = 0;
++        wbt_writes = 0; wbt_stalls = 0; wbt_read_acks = 0; wbt_write_acks = 0; wbt_errors = 0;
++        wbt_read_to_write = 0; wbt_write_next_changed = 0; wbt_owner_changes = 0;
++        wbt_tag_changed = 0; wbt_cch_changed = 0; wbt_native_changed = 0;
++        wbt_post_changed = 0; wbt_unc_changed = 0;
++        wbt_tag = 0; wbt_cch = 0; wbt_native = 0; wbt_post = 0; wbt_unc = 0;
++        wbt_prev_read_ack = 0; wbt_prev_write_ack = 0; wbt_prev_stalled = 0;
++        wbt_prev_owner = 0; wbt_prev_payload = 0;
++        wbt_digest = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && wbt_active) begin
++        $display("RES_WB window=%0d offer=%0d stall=%0d read_ack=%0d write_ack=%0d write_error=%0d read_to_write=%0d changed_after_write_ack=%0d owner_changes=%0d tag=%0d evict_scalar=%0d evict_native=%0d post=%0d unc=%0d tag_changed=%0d evict_scalar_changed=%0d evict_native_changed=%0d post_changed=%0d unc_changed=%0d write_hash=%016x",
++                 wbt_window,wbt_writes,wbt_stalls,wbt_read_acks,wbt_write_acks,wbt_errors,
++                 wbt_read_to_write,wbt_write_next_changed,wbt_owner_changes,
++                 wbt_tag,wbt_cch,wbt_native,wbt_post,wbt_unc,wbt_tag_changed,
++                 wbt_cch_changed,wbt_native_changed,wbt_post_changed,wbt_unc_changed,wbt_digest);
++        wbt_window++;
++        wbt_active = 0;
++    end else if (wbt_active) begin
++        wbt_clock++;
++        if (obs_ack && !obs_write) wbt_read_acks++;
++        if (wbt_prev_stalled && !obs_write) $fatal(1, "write withdrawn while stalled");
++        if (obs_write) begin
++            wbt_writes++;
++            if (wbt_prev_stalled && obs_payload !== wbt_prev_payload)
++                $fatal(1, "stalled write changed payload");
++            if (obs_ack) begin
++                wbt_write_acks++;
++                case (obs_owner)
++                    4'b0010: wbt_tag++;
++                    4'b1000: wbt_post++;
++                    4'b0001: if (obs_native) wbt_native++; else if (obs_source[1]) wbt_cch++; else wbt_unc++;
++                    default: $fatal(1, "unexpected write owner %b", obs_owner);
++                endcase
++            end else if (obs_err) wbt_errors++;
++            else wbt_stalls++;
++            if (wbt_prev_read_ack) wbt_read_to_write++;
++            if (wbt_prev_write_ack) begin
++                if (wbt_prev_owner != obs_owner) wbt_owner_changes++;
++                if (obs_payload[159:0] != wbt_prev_payload[159:0]) begin
++                    wbt_write_next_changed++;
++                    if (wbt_prev_owner == obs_owner)
++                        case (obs_owner)
++                            4'b0010: wbt_tag_changed++;
++                            4'b1000: wbt_post_changed++;
++                            4'b0001: if (obs_native) wbt_native_changed++; else if (obs_source[1]) wbt_cch_changed++; else wbt_unc_changed++;
++                            default: ;
++                        endcase
++                end
++            end
++            wbt_digest = res_mix(wbt_digest, {obs_adr, wbt_clock[21:0], obs_ctl, obs_ack, obs_err});
++            wbt_digest = res_mix(wbt_digest, {31'b0, `WC.wb_lock, obs_data});
++            if (obs_native) begin
++                wbt_digest = res_mix(wbt_digest, obs_block[63:0]);
++                wbt_digest = res_mix(wbt_digest, obs_block[127:64]);
++            end
++        end
++        wbt_prev_read_ack = obs_ack && !obs_write;
++        wbt_prev_write_ack = obs_ack && obs_write;
++        wbt_prev_stalled = obs_write && !obs_ack && !obs_err;
++        wbt_prev_owner = obs_owner;
++        wbt_prev_payload = obs_payload;
++    end
++end
++`undef WM
++`undef WD
++`undef WZ
++`undef WC
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/board.sh b/scratch/v5-fit-loop/w-completion-prepare/board.sh
+new file mode 100644
+index 0000000..44c4a2f
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/board.sh
+@@ -0,0 +1,47 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/w-completion-prepare
++out=build/sim/v5-104-w-completion-prepare/board
++fixture=tests/cpu/arm9v2_board
++mkdir -p "$out"
++arm-none-eabi-gcc -c -mcpu=arm920t -marm -DEXPECTED_CTYPE=0x0514a14a -DASSOC_WAYS=2 \
++    -DSECTION_INDEX_TEST "$area/reference/$fixture/contract.S" -o "$out/guest.o"
++arm-none-eabi-ld -T "$area/reference/sim/programs/link.ld" "$out/guest.o" -o "$out/guest.elf"
++arm-none-eabi-objcopy -O binary "$out/guest.elf" "$out/guest.bin"
++python3 -B - "$out" <<'PY'
++from pathlib import Path
++import struct
++import sys
++
++out = Path(sys.argv[1])
++words = struct.iter_unpack('<I', (out / 'guest.bin').read_bytes())
++(out / 'guest.hex').write_text(''.join(f'{word:08x}\n' for (word,) in words))
++PY
++
++for leg in reference source; do
++    mkdir -p "$out/$leg"
++    docker run --rm --pull=never --network none --platform linux/arm64 \
++        -v "$PWD/$area/$leg:/work:ro" -v "$PWD/$out:/results" -w /work \
++        --entrypoint sh jotego/simulator:arm64 -ec '
++        out=/results/$1
++        verilator --binary --timing --assert -j 2 \
++            -Wno-fatal -Wno-lint -DNGAGE_ARM9V2 --top-module contract --Mdir "$out/obj" \
++            rtl/ngage_cpu.sv rtl/ngage_upp.v rtl/arm9v2/arm925t_phone.v \
++            rtl/arm9v2/upstream/sim/stubs/*.sv tests/cpu/arm9v2_board/contract.v > "$out/build.log" 2>&1
++        for burst in 0 1; do
++            for wait in 0 5; do
++                log="$out/burst-$burst-wait-$wait.log"
++                "$out/obj/Vcontract" +program=/results/guest.hex "+wait=$wait" "+burst=$burst" \
++                    +half-writeback +section-reads=2 > "$log" 2>&1
++                grep -E "^(PASS|LINES|ASSOC|SECTION|DATA_FAULT|REFILL_FAULT) " "$log" > "${log%.log}.trace"
++                grep -q "^PASS " "$log"
++            done
++        done' board "$leg"
++done
++for burst in 0 1; do
++    for wait in 0 5; do
++        name=burst-$burst-wait-$wait.trace
++        cmp "$out/reference/$name" "$out/source/$name"
++        grep '^PASS ' "$out/source/$name"
++    done
++done
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/board-phase.sh b/scratch/v5-fit-loop/w-completion-prepare/board-phase.sh
+new file mode 100644
+index 0000000..120d588
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/board-phase.sh
+@@ -0,0 +1,90 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/w-completion-prepare
++board=build/sim/v5-104-w-completion-prepare/board
++out=$board/trusted-waw
++fixture=$area/reference/tests/cpu/arm9v2_board
++mkdir -p "$out"
++python3 -B - "$fixture/contract.S" "$out/guest.S" <<'PY'
++from pathlib import Path
++import sys
++
++original, guest = map(Path, sys.argv[1:])
++source = original.read_text()
++marker = "    mov r6,#0\n    ldr r4,[r7,#32]\n"
++assert source.count(marker) == 1
++aligned = """    // An alignment abort must leave the older destination intact.
++    mrc p15,0,r3,c1,c0,0
++    orr r2,r3,#2
++    mcr p15,0,r2,c1,c0,0
++    mov r6,#0
++    mov r4,#0x51
++    add r2,r8,#1
++    ldr r4,[r2]
++    cmp r4,#0x51
++    bne fail
++    cmp r6,#1
++    bne fail
++    mrc p15,0,r4,c5,c0,0
++    and r4,r4,#15
++    cmp r4,#1
++    bne fail
++    mcr p15,0,r3,c1,c0,0
++
++"""
++waw = """    mov r6,#0
++    mov r4,#0x55
++    ldr r4,[r7,#32]
++trusted_waw_follower:
++    ldr r4,[r7,#40]
++    cmp r4,#0
++    bne fail
++"""
++handler_marker = "data_abort:\n"
++assert source.count(handler_marker) == 1
++handler_check = """    ldr r6,=trusted_waw_follower+4
++    cmp lr,r6
++    bne 1f
++    cmp r4,#0x55
++    bne fail
++1:
++"""
++guest.write_text(source.replace(marker, aligned + waw).replace(
++    handler_marker, handler_marker + handler_check))
++PY
++arm-none-eabi-gcc -c -mcpu=arm920t -marm -DEXPECTED_CTYPE=0x0514a14a -DASSOC_WAYS=2 \
++    -DSECTION_INDEX_TEST -I "$fixture" "$out/guest.S" -o "$out/guest.o"
++arm-none-eabi-ld -T "$area/reference/sim/programs/link.ld" "$out/guest.o" -o "$out/guest.elf"
++arm-none-eabi-objcopy -O binary "$out/guest.elf" "$out/guest.bin"
++python3 -B - "$out" <<'PY'
++from pathlib import Path
++import struct
++import sys
++
++out = Path(sys.argv[1])
++(out / 'guest.hex').write_text(''.join(f'{word:08x}\n'
++    for (word,) in struct.iter_unpack('<I', (out / 'guest.bin').read_bytes())))
++PY
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD/$board:/results" -w /results --entrypoint sh jotego/simulator:arm64 -ec '
++    for leg in reference source; do
++        for burst in 0 1; do
++            for wait in 0 5; do
++                log="trusted-waw/$leg-burst-$burst-wait-$wait.log"
++                "$leg/obj/Vcontract" +program=/results/trusted-waw/guest.hex \
++                    "+wait=$wait" "+burst=$burst" +half-writeback +section-reads=2 > "$log" 2>&1
++                grep -q "^PASS " "$log"
++            done
++        done
++    done'
++for burst in 0 1; do
++    for wait in 0 5; do
++        name=burst-$burst-wait-$wait.log
++        for leg in reference source; do
++            grep -E '^(PASS|LINES|ASSOC|SECTION|DATA_FAULT|REFILL_FAULT) ' \
++                "$out/$leg-$name" > "$out/$leg-${name%.log}.trace"
++        done
++        cmp "$out/reference-${name%.log}.trace" "$out/source-${name%.log}.trace"
++        grep '^PASS ' "$out/source-${name%.log}.trace"
++    done
++done
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/proof.sh b/scratch/v5-fit-loop/w-completion-prepare/proof.sh
+new file mode 100644
+index 0000000..1179c29
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/proof.sh
+@@ -0,0 +1,11 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/w-completion-prepare
++out=build/sim/v5-104-w-completion-prepare/proof
++python3 -B "$area/prepare-proof.py"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD/$area:/trial:ro" -v "$PWD/$out:/results" -w /results \
++    --entrypoint sh jotego/simulator:arm64 -ec '
++    iverilog -g2012 -DSYNTHESIS -s tb -o miter reference.v trial.v /trial/complete-miter.sv
++    vvp miter > proof.log
++    grep "^PASS " proof.log'
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/complete-miter.sv b/scratch/v5-fit-loop/w-completion-prepare/complete-miter.sv
+new file mode 100644
+index 0000000..e38dc41
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/complete-miter.sv
+@@ -0,0 +1,64 @@
++`timescale 1ns/1ps
++module tb;
++    reg clk = 0, reset = 1;
++    reg [8:0] next_packet = 0;
++    reg [10:0] live_flags = 0;
++    wire [3:0] old_result[0:3], new_result[0:3];
++
++    for (genvar variant = 0; variant < 4; variant++) begin : modes
++        reference_completion #(.W_CLASS(variant >> 1), .COMPLETE_FLAT(variant & 1)) old_dut (
++            clk, reset, next_packet, live_flags, old_result[variant][2:0], old_result[variant][3]
++        );
++        trial_completion #(.W_CLASS(variant >> 1), .COMPLETE_FLAT(variant & 1)) new_dut (
++            clk, reset, next_packet, live_flags, new_result[variant][2:0], new_result[variant][3]
++        );
++    end
++
++    integer comparisons = 0;
++    reg [31:0] random_bits = 32'h31891fa3;
++
++    task compare;
++        #1;
++        for (integer mode = 0; mode < 4; mode++) begin
++            if (old_result[mode] !== new_result[mode])
++                $fatal(1, "W completion mode=%0d next=%b live=%b old=%b new=%b",
++                       mode, next_packet, live_flags, old_result[mode], new_result[mode]);
++            comparisons++;
++        end
++    endtask
++
++    task clock_edge;
++        compare;
++        clk = 1;
++        compare;
++        clk = 0;
++    endtask
++
++    initial begin
++        clk = 1;
++        compare;
++        clk = 0;
++        reset = 0;
++        for (integer packet = 0; packet < 512; packet++) begin
++            next_packet = packet[8:0];
++            clock_edge;
++            for (integer flags = 0; flags < 2048; flags++) begin
++                live_flags = flags[10:0];
++                compare;
++            end
++        end
++        for (integer index = 0; index < 4096; index++) begin
++            random_bits ^= random_bits << 13;
++            random_bits ^= random_bits >> 17;
++            random_bits ^= random_bits << 5;
++            next_packet = random_bits[8:0];
++            live_flags = random_bits[23:13];
++            if (index % 4 == 0) next_packet[index % 9] = 1'bx;
++            if (index % 3 == 0) live_flags[index % 11] = 1'bx;
++            reset = index % 63 == 0;
++            clock_edge;
++        end
++        $display("PASS exact W completion comparisons=%0d static_packets=512 live_patterns=2048 four_state=4096", comparisons);
++        $finish;
++    end
++endmodule
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/prepare-proof.py b/scratch/v5-fit-loop/w-completion-prepare/prepare-proof.py
+new file mode 100644
+index 0000000..c2f2e25
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/prepare-proof.py
+@@ -0,0 +1,89 @@
++"""Extract the exact original/prepared classification logic and W sampling statements."""
++from pathlib import Path
++import re
++
++
++area = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-w-completion-prepare/proof')
++out.mkdir(parents=True, exist_ok=True)
++rtl = 'rtl/arm9v2/arm925t_phone.v'
++
++
++def interval(source, start, stop):
++    begin = source.index(start)
++    return source[begin:source.index(stop, begin)]
++
++
++def core(leg):
++    source = (area / leg / rtl).read_text()
++    return re.search(r'^module ngage2_arm9v2_core \(.*?^endmodule$', source, re.M | re.S)[0]
++
++
++reference, trial = map(core, ('reference', 'source'))
++for name, start, stop in (
++    ('packed W class', '\tfunction automatic [5:0] w_cls_of;', '\t(* dont_retime *) reg [541:0] m;'),
++    ('W owner and memory state selection', '\t\tm_next = m;', '\t\tnext_check_record ='),
++    ('live reply and retry', '\tassign w_exception =', '\t(* dont_retime *) reg [5:1] rf_static_class;'),
++    ('writeback exceptions and valid', '\t\twb_complete = complete_class[0];', '\t\twb_flags = w[430-:32];'),
++    ('architectural flush', '\t\twb_redirect =', '\t\t\tm <= 1\'sb0;'),
++    ('decode-to-execute ordering', '    wire d_advanced_load_writer;', '    wire s_may_write_flags ='),
++):
++    assert interval(trial, start, stop) == interval(reference, start, stop), name
++
++start = '\twire fast_pc_hit ='
++finish = '\twire [23:0] advance_tag;'
++old_condition = interval(reference, start, finish)
++new_condition = interval(trial, '    // These selects follow the same owner', finish)
++stamp = re.search(r'            w_completion_eligible <= w_completion_of\([^;]+\);', trial)[0]
++assert 'w_next[541]' in stamp and 'memory_state_next' in stamp and 'w_cls_next[3]' in stamp
++assert '            w_completion_eligible <= 0;' in trial
++assert new_condition.count('if ((request_done && resp_err) && w_blkwb)') == 2
++
++for label, condition, update in (
++    ('reference', old_condition, ''),
++    ('trial', new_condition, stamp),
++):
++    reset_selects = 'w_completion_eligible <= 0;' if update else ''
++    wrapper = f"""
++module {label}_completion #(parameter W_CLASS = 1, COMPLETE_FLAT = 1) (
++    input clk, i_reset,
++    input [8:0] next_packet,
++    input [10:0] live,
++    output reg [2:0] complete_class,
++    output wire done
++);
++    reg _sv2v_0 = 0;
++    reg [541:0] w, w_next;
++    reg [5:0] w_cls;
++    wire [5:0] w_cls_next = {{next_packet[7:5], 3'b0}};
++    reg [3:0] memory_state;
++    wire [3:0] memory_state_next = next_packet[3:0];
++    wire w_exception = w_cls[5], w_cp = w_cls[4], w_swp = w_cls[3];
++    wire w_pc_load = 1, w_waited = 0;
++    wire wb_flush, i_dc_lock_any, cp_finished, w_locked, request_done, retry;
++    wire resp_err, w_mem_immediate, i_data_short_hit, defer_load, w_blkwb;
++    assign {{wb_flush, i_dc_lock_any, cp_finished, w_locked, request_done, retry,
++             resp_err, w_mem_immediate, i_data_short_hit, defer_load, w_blkwb}} = live;
++    assign done = !w[541] || complete_class[1];
++{condition}
++    always @* begin
++        w_next = 0;
++        w_next[541] = next_packet[8];
++        w_next[535] = next_packet[4];
++    end
++    always @(posedge clk) begin
++        if (i_reset) begin
++            w <= 0;
++            w_cls <= 0;
++            memory_state <= 0;
++            {reset_selects}
++        end else begin
++            w <= w_next;
++            w_cls <= w_cls_next;
++            memory_state <= memory_state_next;
++            {update}
++        end
++    end
++endmodule
++"""
++    (out / f'{label}.v').write_text(wrapper)
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/check-generator.sh b/scratch/v5-fit-loop/w-completion-prepare/check-generator.sh
+new file mode 100644
+index 0000000..a71cf73
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/check-generator.sh
+@@ -0,0 +1,13 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/w-completion-prepare
++stock="$PWD/build/arm9v2-assoc/stock-pinned.v"
++for leg in reference source; do
++    python3 -B "$area/$leg/tools/gen_arm9v2_phone.py" --stock "$stock" --check
++    alt="$area/hinted/$leg"
++    mkdir -p "$alt/tools" "$alt/rtl/arm9v2"
++    cp -R "$area/$leg/tools/." "$alt/tools"
++    python3 -B "$alt/tools/gen_arm9v2_phone.py" --stock "$stock" --hinted-ldm
++    python3 -B "$alt/tools/gen_arm9v2_phone.py" --stock "$stock" --hinted-ldm --check
++done
++cmp "$area/hinted/reference/rtl/arm9v2/arm925t_phone.v" "$area/hinted/source/rtl/arm9v2/arm925t_phone.v"
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/routes.py b/scratch/v5-fit-loop/w-completion-prepare/routes.py
+new file mode 100644
+index 0000000..d6a7caa
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/routes.py
+@@ -0,0 +1,70 @@
++"""Capture the sampled W completion, destination wait, and right operand routes."""
++import csv
++import json
++from pathlib import Path
++import re
++
++
++stage = Path(__file__).resolve().parent
++base = 'ab75a622a80a5aedae347f63ae195f3da965815a'
++runs = {13: 45879015397, 43: 45879019116, 31337: 45879022396}
++
++
++def logic_nodes(path):
++    return [line.split(';')[-2].strip().removesuffix('|combout')
++            for line in path.splitlines() if '|combout' in line and 'CELL' in line]
++
++
++witnesses = {}
++for seed, run in runs.items():
++    directory = Path(f'build/timing-audit-{run}/output_files')
++    manifest = json.loads((directory / 'resident-fit-manifest.json').read_bytes())
++    assert manifest['actual_commit'] == base and manifest['seed'] == seed
++    assert manifest['physical_cpu_mhz'] == 104 and manifest['debugger'] is False
++    corners = {}
++    for corner in sorted((directory / 'timing/resident-store/104').glob('corner-*')):
++        with (corner / 'setup.csv').open() as handle:
++            rows = list(csv.DictReader(handle))
++        assert len(rows) == 1000
++        chunks = re.split(r'(?m)^Path #(\d+): Setup slack is ', (corner / 'setup.rpt').read_text(errors='replace'))
++        nodes = {int(rank): logic_nodes(detail) for rank, detail in zip(chunks[1::2], chunks[2::2], strict=True)}
++        assert len(nodes) == 100
++        detailed = [{**row, 'cells': nodes[int(row['rank'])]} for row in rows if int(row['rank']) in nodes]
++        completion = [row for row in detailed if any('|complete_class' in cell for cell in row['cells'])]
++        w_valid = [row for row in completion if row['from'].endswith('|w[541]')]
++        right_operand = [row for row in detailed
++                         if (end := re.search(r'\|ngage2_arm9v2_execute:[^|]+\|a\[(\d+)\]', row['to']))
++                         and 218 <= int(end[1]) <= 249]
++        w_tag_wait = [row for row in detailed
++                      if any('|s_wait_w_nohit' in cell for cell in row['cells'])]
++        corners[corner.name] = {
++            'sampled_paths': len(rows), 'detailed_paths': len(detailed),
++            'leading_paths': detailed[:3], 'complete_class': completion,
++            'w_valid_through_complete_class': w_valid,
++            'execute_right_operand': right_operand, 'same_destination_wait': w_tag_wait,
++        }
++    assert len(corners) == 4
++    witnesses[seed] = {'run': run, 'corners': corners}
++
++for corner, slack in (('corner-1', '-2.006'), ('corner-2', '-1.994')):
++    path = witnesses[13]['corners'][corner]['leading_paths'][0]
++    assert path['from'].endswith('|w[541]') and path['to'].endswith('|a[241]') and path['slack_ns'] == slack
++    assert any('|complete_class[0]' in cell for cell in path['cells'])
++    assert any('|ready_if_hit' in cell for cell in path['cells'])
++for corner, slack in (('corner-1', '-2.636'), ('corner-2', '-2.570')):
++    path = witnesses[43]['corners'][corner]['leading_paths'][0]
++    assert path['from'].endswith('|w[93]') and path['to'].endswith('|a[239]') and path['slack_ns'] == slack
++    assert any('|s_wait_w_nohit' in cell for cell in path['cells'])
++    assert any('|ready_if_nohit' in cell for cell in path['cells'])
++hot_third = witnesses[13]['corners']['corner-1']['leading_paths'][2]
++assert hot_third['from'].endswith('|o_forward_grant[25]') and hot_third['to'].endswith('|a[233]')
++assert any('|operand1_nw' in cell for cell in hot_third['cells'])
++cold_third = witnesses[13]['corners']['corner-2']['leading_paths'][2]
++assert cold_third['from'].endswith('|w[527]') and cold_third['to'].endswith('|a[233]')
++assert any('|direct_reg_shift' in cell for cell in cold_third['cells'])
++
++summary = (Path(f'build/timing-audit-{runs[13]}/output_files/Template.sta.summary').read_text()
++           .split('Type  : Setup', 2)[1])
++assert 'Slack : -2.006' in summary and 'TNS   : -2674.880' in summary
++(stage / 'routes.json').write_text(json.dumps({'base': base, 'seeds': witnesses}, indent=2) + '\n')
++print('PASS four-corner sampled W completion, right operand, and same-destination routes')
+diff --git a/scratch/v5-fit-loop/w-completion-prepare/record.py b/scratch/v5-fit-loop/w-completion-prepare/record.py
+new file mode 100644
+index 0000000..c7e0cc7
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-prepare/record.py
+@@ -0,0 +1,138 @@
++"""Seal W completion and exact workload/board replays on the two-cut control."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import subprocess
++
++
++area = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-w-completion-prepare')
++base_run = Path('build/sim/v5-104-refill-payload-combined')
++base = 'ab75a622a80a5aedae347f63ae195f3da965815a'
++base_tree = '57cc1a796acc9b15a61522ccf2397230f38e9799'
++rtl = 'rtl/arm9v2/arm925t_phone.v'
++generator = 'tools/gen_arm9v2_phone.py'
++paths = [rtl, generator]
++
++
++def digest(path):
++    return sha256(path.read_bytes()).hexdigest()
++
++
++def load(path):
++    return json.loads(path.read_bytes())
++
++
++def match(trial, original):
++    assert trial.read_bytes() == original.read_bytes(), (trial, original)
++    return digest(trial)
++
++
++def modules(source):
++    return {m[1]: m[0] for m in re.finditer(rb'^module (\w+) .*?^endmodule', source, re.M | re.S)}
++
++
++def fingerprint(manifest, path):
++    [row] = [shlex.split(line) for line in manifest.read_text().splitlines()
++             if line.startswith('S ') and shlex.split(line)[-1].endswith(path)]
++    return row[-2]
++
++
++patch = area / 'w-completion-prepare.patch'
++fixtures = area / 'w-completion-prepare-replay.patch'
++stat = subprocess.check_output(['git', 'apply', '--numstat', str(patch)], text=True)
++assert [line.split('\t')[-1] for line in stat.splitlines()] == paths
++candidate_tree = (area / 'design-tree.sha').read_text().strip()
++assert re.fullmatch(r'[a-f0-9]{40}', candidate_tree)
++before, after = [{path: digest(area / leg / path) for path in paths} for leg in ('reference', 'source')]
++reference, trial = [modules((area / leg / rtl).read_bytes()) for leg in ('reference', 'source')]
++assert reference.keys() == trial.keys()
++assert [name for name in reference if reference[name] != trial[name]] == [b'ngage2_arm9v2_core']
++hinted = match(area / 'hinted/source' / rtl, area / 'hinted/reference' / rtl)
++assert b'w_completion_eligible' not in (area / 'hinted/source' / rtl).read_bytes()
++
++proof = out / 'proof/proof.log'
++assert 'PASS exact W completion comparisons=4231172 static_packets=512 live_patterns=2048 four_state=4096' in proof.read_text()
++boards = {}
++for suite in ('normal', 'abort_alignment'):
++    rows = {}
++    for burst in (0, 1):
++        for wait in (0, 5):
++            profile = f'burst-{burst}-wait-{wait}.trace'
++            if suite == 'normal':
++                ref = out / 'board/reference' / profile
++                new = out / 'board/source' / profile
++            else:
++                ref = out / 'board/trusted-waw' / f'reference-{profile}'
++                new = out / 'board/trusted-waw' / f'source-{profile}'
++            data = new.read_text()
++            cycles = int(re.search(r'^PASS cycles=(\d+)', data, re.M)[1])
++            assert 'swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1' in data
++            rows[profile] = {'cycles': cycles, 'trace_sha256': match(new, ref)}
++    boards[suite] = rows
++
++mixed = out / 'mixed'
++reference_mixed = base_run / 'mixed'
++manifest = load(mixed / 'source-hashes.json')
++original = load(reference_mixed / 'source-hashes.json')
++assert manifest.keys() == original.keys() and len(manifest) == 114
++assert {name: value for name, value in manifest.items() if value != original[name]} == {rtl: after[rtl]}
++assert all(digest(mixed / 'source' / name) == sha for name, sha in manifest.items())
++compiled = fingerprint(mixed / 'obj/Vtb__verFiles.dat', f'{mixed}/source/{rtl}')
++assert fingerprint(out / 'board/source/obj/Vcontract__verFiles.dat', rtl) == compiled
++assert fingerprint(out / 'board/reference/obj/Vcontract__verFiles.dat', rtl) != compiled
++assert fingerprint(out / 'hold/trial-obj/Vtb__verFiles.dat', rtl) == compiled
++
++physical = {}
++for label, name, prior, count, cycles in (
++    ('normal', 'mixed/traffic.log', base_run / 'mixed/traffic.log', 171496, 1201547),
++    ('timer_mmc_lcd', 'coexistence/candidate.trace', base_run / 'coexistence/candidate.trace', 171497, 1201528),
++    ('cpu_block_eviction', 'block-guest/source.trace', base_run / 'block-guest/source.trace', 172060, 1204706),
++    ('warm_hold', 'hold/trial.trace', out / 'hold/reference.trace', 171518, 1203504),
++):
++    trace = out / name
++    log = (mixed / 'replay.log' if label == 'normal' else trace.with_suffix('.log')).read_text()
++    assert len(trace.read_bytes().splitlines()) == count
++    assert f'persisted512bytes+PIOreadback cycles={cycles}' in log
++    physical[label] = {'events': count, 'clocks': cycles, 'sha256': match(trace, prior)}
++assert match(out / 'hold/reference.pass', out / 'hold/trial.pass')
++assert physical['warm_hold']['sha256'] == load(area.parent / 'upp-claim-refill-payload/qualification.json')['physical']['warm_hold']['trace_sha256']
++
++workloads = {}
++for kind, field, count in (('fixed', 'windows', 105), ('native', 'frames', 4)):
++    receipt = out / f'qualification/{kind}.json'
++    result, old = [load(path) for path in (receipt, base_run / f'qualification/{kind}.json')]
++    assert result['status'] == old['status'] == 'PASS'
++    assert result['rows'] == old['rows']
++    assert result['netlist_sha256'] == after[rtl] and old['netlist_sha256'] == before[rtl]
++    assert result['wrapper_sha256'] == old['wrapper_sha256'] and result['source_sha256'] == old['source_sha256']
++    copied = out / f'qualification/{kind}-candidate-cpu.v'
++    assert digest(copied) == after[rtl]
++    assert fingerprint(out / f'qualification/obj-{kind}/Vtb__verFiles.dat', f'/work/{copied.name}') == compiled
++    assert sum(len(row['candidate'][field]) for row in result['rows']) == count
++    workloads[kind] = {'count': count, 'receipt_sha256': digest(receipt)}
++    if kind == 'fixed':
++        cases = [row['candidate']['case'] for row in result['rows']]
++        assert len(set(cases)) == 15
++        for case in cases:
++            assert (out / f'qualification/{case}-00-1.log').is_file()
++            assert 'Guest output check rejected payload' in (out / f'qualification/{case}-00-0-wrong.log').read_text()
++        workloads[kind].update(repeated=15, wrong_output_checks=15)
++    else:
++        native = result['rows'][0]['candidate']
++        frame_cycles = [x['clocks'] for x in native['frames']]
++        assert frame_cycles == [14391395, 14467552, 14346201, 14303223]
++        workloads[kind].update(frame_cycles=frame_cycles, output_sha256=native['output_sha256'])
++
++summary = {'status': 'PASS', 'base': base, 'base_tree': base_tree, 'candidate_tree': candidate_tree,
++           'design_patch_sha256': digest(patch), 'replay_patch_sha256': digest(fixtures),
++           'reference_sha256': before, 'source_sha256': after, 'unchanged_hinted_ldm_sha256': hinted,
++           'proof': {'comparisons': 4231172, 'sha256': digest(proof)},
++           'boards': boards, 'workloads': workloads, 'physical': physical,
++           'mixed_source_count': len(manifest), 'compiled_cpu_fingerprint': compiled,
++           'simulator_image': (out / 'image.id').read_text().strip(), 'routes_sha256': digest(area / 'routes.json'),
++           'candidate_routed': False}
++(area / 'qualification.json').write_text(json.dumps(summary, indent=2) + '\n')
++print('PASS W completion proof, exact alternate generator, eight board profiles, fixed/native and four pin modes')

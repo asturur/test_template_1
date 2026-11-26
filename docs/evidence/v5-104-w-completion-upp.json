@@ -1,0 +1,66 @@
+{
+  "status": "PASS",
+  "base": "96d108d2e44b3e3b630820fe2fa43f9e13cce702",
+  "candidate": "df86f6bda63566eb953577e1569e2b10853b6b74",
+  "tree": "19c308ff842c33340b101f57bff3e07176c2b8fd",
+  "source_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "ee00c54b1bece117477a7f7ac39769567fa32a8f6b5c78edea00418f3b4cfa5f",
+    "tools/gen_arm9v2_phone.py": "0a598b5876781ef5fb31a2dd3e62cf1665ba612bb57f761536f1d24647f7cd01",
+    "rtl/ngage_upp_peripherals.v": "9dac7a372428e6e422eaf8e57894febe415fc9d65a76fb0a17667621df0db80c",
+    "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6",
+    "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+    "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11"
+  },
+  "compiled_fingerprints": {
+    "rtl/arm9v2/arm925t_phone.v": "7gDFSxvs4RdHen96w5dpVnAjKo9rXHjt6gBBjztM",
+    "rtl/ngage_upp_peripherals.v": "nax6NyQo5uQi6vjleJTAvkFfydZadvsKF2Z2Id8N",
+    "rtl/ngage_cpu.sv": "B9PsbojT92cemgwx79rvWm1tIExBUFlmourobfjv",
+    "rtl/ngage_sdram_arbiter.v": "LUUQQwsWcu5WwBk5zel0U20bijXme6A9AiI14P5J"
+  },
+  "mixed_source_count": 114,
+  "workloads": {
+    "fixed": {
+      "count": 105,
+      "sha256": "413dd7871e8a877efede3de7758778a6d79301dd8657c31f3ded897dc785b32b",
+      "repeated": 15,
+      "wrong_output_checks": 15
+    },
+    "native": {
+      "count": 4,
+      "sha256": "bd4d4110bb7cf897e64419bda731234808f295ca2da5e71b865030891380dd3d",
+      "frame_cycles": [
+        14391395,
+        14467552,
+        14346201,
+        14303223
+      ],
+      "guest_output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77"
+    }
+  },
+  "physical": {
+    "normal": {
+      "events": 171496,
+      "clocks": 1201547,
+      "sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26"
+    },
+    "timer_mmc_lcd": {
+      "events": 171497,
+      "clocks": 1201528,
+      "sha256": "0e9fb47c965bab211b315c129e08effab414ed1ccc9e579aee4d56d9d29ba824"
+    },
+    "cpu_block_eviction": {
+      "events": 172060,
+      "clocks": 1204706,
+      "sha256": "c179009830b72ecb8aa10278e73e878c3cd1b0c34d2f3bab7afacaf084766317"
+    },
+    "warm_hold": {
+      "events": 171518,
+      "clocks": 1203504,
+      "sha256": "07177926dd5e174b19db23220b807531c2f7b8f0c6ca13316641d7b50e2d6a80"
+    }
+  },
+  "simulator": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "preflight_sha256": "a8309770e80169a99ede5bd90aa1f1bb28ec9d882f30028b4d89d82ecdd3a4c1",
+  "standalone_sha256": "e6e5a2ec6b9c2256c41a55c3dde07cbdce14b75b700efd583d3f8a5617ab5f7c",
+  "helper_patch_sha256": "96d1d1ee2eeb92f72bdb97c75e840189000a1d3c5508c6cb565292c6ce91346d"
+}

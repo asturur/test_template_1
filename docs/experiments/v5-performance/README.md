@@ -375,6 +375,12 @@ the payload and error owner. Directed overlaps, reset and live HPS MMC
 checks match, along with all workload windows and native frames. Routed
 timing remains pending.
 
+The [prepared W completion trial](w-completion-prepare.md) moves static
+completion eligibility beside the W packet. It preserves live response,
+exception and flush timing, and matches the exact best combination in all
+workload and pin-model checks. The new return path to the eligibility
+register and whole-core timing await a fit.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
