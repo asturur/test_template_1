@@ -30,13 +30,32 @@ live commit path and cuts its late timer-local decode leg. Seed 13 has
 reset-drain launches. Seed 6 has 12 hot count endpoints below −1.5 ns
 from other launches. The other retained hot exports and all retained
 cold exports contain zero count endpoints below that threshold. Twelve
-packet bits are added. Fitted area and changed route slack remain open.
+packet bits are added. The routed results below measure the effect.
 
 The production timer-only candidate is `9f16d1a` at physical 104 MHz
 with DDR debugging off. Its parent `d211fe8` matches the retained tree.
 [Seed 13](https://github.com/asturur/test_template_1/actions/runs/45824513460) ·
 [Seed 43](https://github.com/asturur/test_template_1/actions/runs/45824520116) ·
 [Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45824525843)
+
+## Routed results
+
+| Seed | Retained setup | Timer setup | Retained / timer ALMs needed | Retained / timer occupied ALMs | Core TNS gain |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 13 | −2.061 ns | −2.214 ns | 36,420 / 37,039 | 38,963 / 38,645 | +1247.735 ns |
+| 43 | −2.508 ns | −2.403 ns | 36,446 / 37,014 | 39,015 / 38,576 | +1466.890 ns |
+| 31337 | −2.471 ns | −2.452 ns | 36,461 / 36,908 | 39,039 / 38,603 | +1351.764 ns |
+| Median | −2.471 ns | −2.403 ns | 36,446 / 37,014 | 39,015 / 38,603 | +1351.764 ns |
+
+Keep `9f16d1a` as the next experiment base. Timer count paths launched
+by reset drain drop from 154 named hot rows to zero on seed 13. Its
+worst exported timer count slack improves from −1.931 to −0.985 ns.
+Core TNS improves on every seed, and the fitter occupies fewer ALMs
+on every seed. Estimated ALMs needed rise, primarily because fewer
+are estimated recoverable through dense packing. Seed 13 of the old
+retained tree still leads by 0.153 ns on worst setup. All three timer
+fits pass hold, recovery, removal, pulse width and SDRAM pin packing,
+use 321 M10Ks, and fail setup. [Matched timing and fitted-area evidence](../../evidence/v5-104-timer-write-prepare-fits.json) · [ALM accounting](fitter-alm-accounting.md)
 
 ## Qualification
 

@@ -103,4 +103,4 @@ fit while the estimated number needed rose. [ALM accounting audit](fitter-alm-ac
 | [Lane 13](lane13-register-sources.md) | −2.895 ns | −3.029 ns | 37,247 | Park |
 | [Tuner clock model](lltune-generated-clock.md) | −2.297 ns | −2.733 ns | 36,599 | Park the fit and preserve the verified model |
 | [D-cache live trust](dcache-live-trust.md) | −2.632 ns | −2.703 ns | 37,157 | Park |
-| [Prepared timer writes](timer-write-prepare.md) | | | | Fits active |
+| [Prepared timer writes](timer-write-prepare.md) | −2.214 ns | −2.403 ns | 37,014 | Keep as the next experiment base |

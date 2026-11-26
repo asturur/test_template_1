@@ -304,7 +304,10 @@ Median setup fell to −2.733 ns from −2.471 ns and median ALMs rose by
 The [prepared timer writes](timer-write-prepare.md) capture the
 count-write and stop predicates with the held UPP packet. Directed tests
 and the full workload suites match, including a timer-expiry trace
-with MMC and LCD DMA busy. Routed timing is pending.
+with MMC and LCD DMA busy. The reset-to-count route drops out of the
+hot exports. Median setup improves from −2.471 to −2.403 ns and median
+physical ALMs occupied fall by 412. Estimated ALMs needed rise by 568.
+Keep as the next base.
 
 The [MMC footer CRC trial](mmc-footer-crc-direct.md) removes 240 bits
 of duplicate storage and reads the captured bytes during the existing

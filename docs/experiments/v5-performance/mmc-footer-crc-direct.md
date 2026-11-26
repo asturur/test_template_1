@@ -19,6 +19,13 @@ The [combined timer and footer replay](mmc-footer-timer-combined.md)
 also matches the actual card and HPS test, both physical traces, and
 the workload digests.
 
+The production triplet uses the combined candidate `3e3dc32` with
+timer-only `9f16d1a` as the matched control. Both run at physical
+104 MHz with DDR debugging off.
+[Seed 13](https://github.com/asturur/test_template_1/actions/runs/45830589134) ·
+[Seed 43](https://github.com/asturur/test_template_1/actions/runs/45830594892) ·
+[Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45830599809)
+
 ## Reproduction
 
 Run from the repository root with the frozen fixed/native decks, the prepared Wishbone observers and receipts, the physical SDRAM replay input and the cached Jotego image. The [fixture patch](patches/mmc-footer-crc-direct-replay.patch) installs the scripts into the scratch directory.
