@@ -2,6 +2,8 @@
 
 Ten same-day fits of the exact `e9552bd` tree at physical 104 MHz miss setup. Seed 13 leads at −2.061 ns, the median is −2.598 ns, and none reaches the −1.5 ns milestone. All ten pass hold, recovery, removal, pulse width and SDRAM pin packing. The posted SDRAM ACK into I-cache request selection limits seeds 31337 and 7 and lands 0.006 ns behind seed 13's worst path. Fit the separate SDRAM write-completion candidate first. It and the prepared MMC count patch independently match the directed, fixed, native and mixed regressions. Both await routed timing. [Ranked fits and investigation](experiments/v5-performance/retained-104-seed-sweep.md)
 
+Three production fits now run on the Wishbone split `91ee5c4`. The MMC counter also passes the same replay with the Wishbone split present. A separate lane 13 response trial samples the UART and existing keypad data on the original edge and passed the directed and workload qualification. [Wishbone fits](experiments/v5-performance/wb-reply-class.md) · [MMC and combined evidence](experiments/v5-performance/mmc-count-prepare.md) · [Lane 13 patch](experiments/v5-performance/lane13-register-sources.md)
+
 ## 2026-11-26 — same-day placement and refill fits parked
 
 Public `11c4a0c` restores the exact retained tree. Three same-day controls reproduced the November 24 timing and `bffd426` automatic periphery placement produced identical RBFs. Refill M10K `5b29095` matched all simulations and saved 60 median ALMs. Its best setup was −2.431 ns compared with −2.061 ns for retained seed 13, still 0.561 ns short of the −1.5 ns target. [Patches and all nine fits](experiments/v5-performance/periphery-auto.md)

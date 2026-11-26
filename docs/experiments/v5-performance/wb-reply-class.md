@@ -27,6 +27,13 @@ and MMU/TLB paths remain relevant. Use three matched production seeds
 to compare these routes, worst setup, core TNS and ALMs. Timing and
 the RBF are unmeasured for this trial.
 
+The production fits run `91ee5c456144cdba8cdf7a9112dca64d1ab6ffe5`
+at physical 104 MHz with DDR debugging off. Their control is the
+same-day retained `81a1b45` tree.
+[Seed 13](https://github.com/asturur/test_template_1/actions/runs/45786912492) ·
+[Seed 43](https://github.com/asturur/test_template_1/actions/runs/45786908403) ·
+[Seed 31337](https://github.com/asturur/test_template_1/actions/runs/45786907340)
+
 ## Qualification
 
 - Directed shared-versus-split checks passed burst continuation,

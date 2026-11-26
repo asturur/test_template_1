@@ -1935,5 +1935,80 @@
       "scratch/v5-fit-loop/wb-reply-class/source/build/reply-class/qualify_bench.py": "8e5d97dd3f22d5a3dc5cf92fadd88dcd903843840f585738b71c56fd2cda9916",
       "scratch/v5-fit-loop/wb-reply-class/source/build/reply-class/replay.py": "207bf85e7877c941ece57faade6336d87b3faf47b337456e7cbbce1ac1df4a05"
     }
+  },
+  {
+    "id": "wb-mmc-combined",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/wb-reply-class.patch",
+      "patches/mmc-count-prepare.patch"
+    ],
+    "sha256": [
+      "bc335d91a05acb392989c6c7d981efe16f2ad9f0974d4084258719946623e897",
+      "96f4747b20c7b6557fc26587dabfc5a759adabb0ee5f6431abbb19474623eeb4"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/arm9v2/arm925t_phone.v",
+      "rtl/ngage_board.v",
+      "rtl/ngage_cpu.sv",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_mmc_host.v",
+      "rtl/ngage_sdram_arbiter.v",
+      "rtl/ngage_sdram_stream.v",
+      "rtl/ngage_upp.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_mmc_host.v": "b13acfef39ede0231b563198b221bf5ec8d428bf2c12e339f6a27bec2b751c73",
+      "Template.sv": "aa327e9a3506154b7b6792430d1adeac75939ca352339ae87a7e28718e048183",
+      "rtl/arm9v2/arm925t_phone.v": "7e01d505577d92de2bdd7f5d4346375108895e3e8d6a1a2148d5b8438c00efc3",
+      "rtl/ngage_board.v": "2c6f76c8a654ffe038bfd15dc5cd8bcfe777315e2b9e3fa31c0811c8cd9e606b",
+      "rtl/ngage_cpu.sv": "c6d1b5da0af706f942e3be06510ffa645039607e92e7625ac470c86515d57785",
+      "rtl/ngage_mister.v": "ba5d40c2a767b0e35dff7af20fdc9a04309e6e1276395e7c60bbe0a3e641236c",
+      "rtl/ngage_sdram_arbiter.v": "1258879d1aefd74357e4a3887fcbf4ea1e1ed964127cd936c9b2a948a04b90e3",
+      "rtl/ngage_sdram_stream.v": "bbb8f5aab32a8bd70ebd9afd06cb2a035ffa4d817ddb5723e395baaa435fc36f",
+      "rtl/ngage_upp.v": "80f5e5f8682297f291a121061eec765acd3b450bd30ea6c9804c7dce1bde36f8",
+      "tools/gen_arm9v2_phone.py": "95b65014f4fe4e3e9e1493301f6d8f39e5bac117311eb23834cd060f73326bc5"
+    }
+  },
+  {
+    "id": "lane13-register-sources",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/lane13-register-sources.patch"
+    ],
+    "sha256": [
+      "314eb584bdfd3b42cd7d21dde32232f068c39c8694dff25b024cd062730005bc"
+    ],
+    "affected_paths": [
+      "rtl/ngage_upp_peripherals.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_upp_peripherals.v": "5189d7da1cd75052e0075af9a7966dc39399939446163529a86f89ca325f986f"
+    }
+  },
+  {
+    "id": "lane13-register-sources-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/lane13-register-sources-replay.patch"
+    ],
+    "sha256": [
+      "c46a72d3d0c2bb1716d8a8ab5548678295b06994280314b5a611230e9c08d0ff"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/lane13-register-sources/board.sh",
+      "scratch/v5-fit-loop/lane13-register-sources/mixed.py",
+      "scratch/v5-fit-loop/lane13-register-sources/replay.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/lane13-register-sources/board.sh": "1cb36b2189d99dbc2fe37e20158b1ed410a81429b6d516e4a09b21f4f291b0e2",
+      "scratch/v5-fit-loop/lane13-register-sources/mixed.py": "e90b226e366369964a70cc73ffa513c1861d21c412388bf15325c5b378ccd92e",
+      "scratch/v5-fit-loop/lane13-register-sources/replay.py": "b2d579b433cf96c09c8ae0fc01c9a5403edd89025f898a0da8b7cef49d9c9181"
+    }
   }
 ]

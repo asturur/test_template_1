@@ -264,6 +264,11 @@ The [prepared MMC counter](mmc-count-prepare.md) removes the wide
 byte-count carry after late FIFO acceptance. The 4 KiB directed tests,
 mixed replay, fixed and native workloads match. Routed timing is pending.
 
+The [separate lane 13 result captures](lane13-register-sources.md) reuse
+the existing keypad sample and let the UART word register independently.
+The directed responses, 105 fixed windows, four native frames and mixed
+pin trace match the retained design. Routed timing is pending.
+
 ## Passive opportunity studies
 
 The census patches add simulation observers and source fixtures. They keep
