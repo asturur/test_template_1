@@ -1,0 +1,477 @@
+--- a/rtl/cpu/arm9v2/arm9v2_core.sv
++++ b/rtl/cpu/arm9v2/arm9v2_core.sv
+@@ -208,7 +208,7 @@
+ output logic [1:0]                       o_dcache_line_op,
+ output logic                             o_dcache_line_va,
+ output logic [31:0]                      o_dcache_line_addr,
+-output logic                             o_dcache_line_way,   // ARM925T
++output logic [(DATA_CACHE_WAYS > 1 ? $clog2(DATA_CACHE_WAYS) : 1)-1:0] o_dcache_line_way,   // ARM925T
+ input  logic                             i_dcache_line_done,
+ input  logic                             i_dcache_writeback_busy,
+ 
+--- a/rtl/cpu/zap/zap_cache.sv
++++ b/rtl/cpu/zap/zap_cache.sv
+@@ -125,7 +125,7 @@
+ logic                            tlb_busy;
+ logic [CACHE_LINE*8-1:0]         tr_cache_line;
+ logic [WAYS-1:0][31:0]           tr_cache_words;   // ARM925T
+-logic                            tr_cache_word_sel; // ARM925T
++logic [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] tr_cache_word_sel; // ARM925T
+ logic [CACHE_LINE*8-1:0]         cf_cache_line;
+ logic [CACHE_LINE-1:0]           cf_cache_line_ben;
+ logic                            cf_cache_tag_wr_en;
+@@ -137,7 +137,8 @@
+ 
+ logic [CACHE_LINE*8-1:0] raw_cache_line;
+ logic [WAYS-1:0][31:0] raw_cache_words;
+-logic raw_cache_word_sel, raw_cache_tag_valid, raw_cache_hit, raw_cache_tag_dirty;
++logic [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] raw_cache_word_sel;
++logic raw_cache_tag_valid, raw_cache_hit, raw_cache_tag_dirty;
+ logic [`ZAP_CACHE_TAG_WDT-1:0] raw_cache_tag;
+ logic [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] raw_cache_way;
+ logic                            cf_cache_clean_req, cf_cache_inv_req;
+@@ -312,7 +313,7 @@
+ // ARM9 reads in parallel with the TLB. Tag/way/word selection is captured
+ // on the permission-check edge, without changing the shared compare logic.
+ // Misses and uncached responses continue through the FSM's normal response.
+-assign o_data_early = raw_cache_word_sel ? raw_cache_words[(WAYS > 1) ? 1 : 0] : raw_cache_words[0];
++assign o_data_early = raw_cache_words[raw_cache_word_sel];
+ assign o_hit = idle && i_cache_en && tlb_cacheable &&
+                tr_cache_hit && !tlb_busy && !tlb_fault;
+ generate if (1) begin : g_short_response
+--- a/rtl/cpu/zap/zap_cache_fsm.sv
++++ b/rtl/cpu/zap/zap_cache_fsm.sv
+@@ -74,7 +74,7 @@
+ // From/to cache.
+ input   logic    [CACHE_LINE*8-1:0]     i_cache_line,       // the victim's line
+ input   logic    [WAYS-1:0][31:0]       i_cache_words,      // ARM925T: each way's word at i_address
+-input   logic                           i_cache_word_sel,   // ARM925T: the hit way's is [1]
++input   logic [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] i_cache_word_sel, // Hit way
+ 
+ input   logic                           i_cache_tag_dirty,
+ input   logic  [`ZAP_CACHE_TAG_WDT-1:0] i_cache_tag,
+@@ -377,7 +377,7 @@
+ // the tag RAM by the address before the hit; only the hit chooses here).
+ assign o_dat = (state_ff == UNC_DONE || state_ff == FETCH_SINGLE || state_ff == FILL_COMPLETE) ?
+                response_dat_ff :
+-               i_cache_word_sel ? i_cache_words[(WAYS > 1) ? 1 : 0] : i_cache_words[0];
++               i_cache_words[i_cache_word_sel];
+ 
+ // ==========================================================
+ // STATE MACHINE (Next State Logic)
+--- a/rtl/cpu/zap/zap_cache_tag_ram.sv
++++ b/rtl/cpu/zap/zap_cache_tag_ram.sv
+@@ -23,7 +23,7 @@
+ // because it can perform global clean and flush by itself without
+ // depending on the cache controller.
+ //
+-// ARM925T: WAYS ways (1 or 2). Each way is a tag RAM and a data RAM of
++// ARM925T: power-of-two cache ways. Each way is a tag RAM and a data RAM of
+ // CACHE_SIZE/WAYS bytes, all read together at the set index of
+ // i_address_nxt. The hit (o_cache_hit) and the way of interest
+ // (o_cache_way: the way holding i_lookup_address, else the way a fill
+@@ -68,7 +68,7 @@
+ parameter logic TRACK_DIRTY = 1'b1, // The instruction cache is read-only.
+ parameter logic [31:0] CACHE_SIZE = 32'd1024, // Bytes, all ways together.
+ parameter logic [31:0] CACHE_LINE = 32'd8,
+-parameter logic [31:0] WAYS       = 32'd1,    // ARM925T: 1 or 2.
++parameter logic [31:0] WAYS       = 32'd1,
+ // ARM925T: capacity visible to software's by-index maintenance loops.
+ // Larger physical caches visit every set colour for each reported index.
+ parameter logic [31:0] INDEX_SIZE = CACHE_SIZE,
+@@ -94,7 +94,7 @@
+ input   logic    [CACHE_LINE-1:0]        i_cache_line_ben,
+ output  logic    [CACHE_LINE*8-1:0]      o_cache_line,
+ output  logic    [WAYS-1:0][31:0]        o_cache_words,     // ARM925T: each way's word at the lookup address
+-output  logic                             o_cache_word_sel,  // ARM925T: the hit way's word is o_cache_words[1]
++output  logic [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] o_cache_word_sel, // Hit way
+ // Each way's line and tag as the RAMs give them, and the way that
+ // o_cache_line, o_cache_tag and the victim's flags are of: for a user that
+ // registers both ways and chooses afterwards (the D-cache's victim line).
+@@ -182,6 +182,10 @@
+ localparam [31:0] WAY_W     = WAYS > 1 ? $clog2(WAYS) : 32'd1;
+ localparam [31:0] FLAT_W    = $clog2(LINES_ALL);      // A line of any way: {way, set}.
+ 
++localparam [31:0] DIRTY_LANES = LINES < 16 ? LINES : 16;
++localparam [31:0] DIRTY_GROUPS = LINES / DIRTY_LANES;
++localparam [31:0] DIRTY_GROUP_W = DIRTY_GROUPS > 1 ? $clog2(DIRTY_GROUPS) : 1;
++localparam [31:0] DIRTY_BIT_W = $clog2(DIRTY_LANES);
+ localparam [31:0] NUMBER_OF_DIRTY_BLOCKS = LINES_ALL/16; // Keep cache size > 16 bytes.
+ 
+ // States.
+@@ -220,8 +224,8 @@
+ logic dirty_write_en, dirty_write_data;
+ logic [SET_W-1:0] dirty_write_set;
+ logic [WAYS-1:0] dirty_write_way;
+-logic [SET_W-5:0] dirty_read_group;
+-logic [3:0] dirty_read_bit_ff;
++logic [DIRTY_GROUP_W-1:0] dirty_read_group;
++logic [DIRTY_BIT_W-1:0] dirty_read_bit_ff;
+ logic [WAYS-1:0] dirty_s1_raw, valid_s1_raw;
+ logic [SET_W-1:0] hit_upd_set;
+ logic [WAY_W-1:0] hit_upd_way;
+@@ -275,8 +279,8 @@
+ 
+ initial
+ begin
+-        assert ( WAYS == 1 || WAYS == 2 ) else
+-        $fatal(2, "zap_cache_tag_ram: WAYS must be 1 or 2.");
++        assert ( WAYS > 0 && WAYS <= 64 && (WAYS & (WAYS-1)) == 0 && LINES >= 8 ) else
++        $fatal(2, "zap_cache_tag_ram: Unsupported cache geometry.");
+ end
+ 
+ assign cache_unused0 = |{i_address[31: $clog2(CACHE_LINE)+SET_W], i_address[$clog2(CACHE_LINE)-1:0],
+@@ -426,7 +430,7 @@
+         assign walk_tag          = tag_q[0];
+         assign walk_line         = line_q[0];
+ end
+-else
++else if (WAYS == 2)
+ begin : g_lru
+         //
+         // The LRU bit of a set names the way to fill next: after a hit or a
+@@ -541,6 +545,87 @@
+         end : g_short
+ 
+ end
++else begin : g_tree_plru
++        // Each node points to the less recently used subtree. A fill and
++        // an accepted hit can update independent sets on the same edge.
++        logic [WAYS-2:0] tree [LINES-1:0];
++        logic [WAYS-2:0] lookup_tree;
++        logic [WAY_W-1:0] hit_way, invalid_way;
++        logic invalid_present;
++        wire fill_update = tag_ram_wr_en && !i_idle && (|wr_sel);
++        wire hit_update = ACCEPTED_HIT_UPDATE ? i_accepted_hit : i_access && (|hit) && !i_hold;
++        wire [SET_W-1:0] update_set = ACCEPTED_HIT_UPDATE ?
++                i_accepted_address[`ZAP_VA__CACHE_INDEX] : lk_set;
++        wire [WAY_W-1:0] update_way = ACCEPTED_HIT_UPDATE ? i_accepted_way : hit_way;
++
++        function automatic [WAYS-2:0] touch(input [WAYS-2:0] state,
++                                             input [WAY_W-1:0] touched_way);
++                int node;
++                touch = state;
++                node = 0;
++                for (int level = WAY_W-1; level >= 0; level--) begin
++                        touch[node] = !touched_way[level];
++                        node = 2*node + 1 + int'(touched_way[level]);
++                end
++        endfunction
++
++        function automatic [WAY_W-1:0] least_recent(input [WAYS-2:0] state);
++                int node;
++                node = 0;
++                for (int level = WAY_W-1; level >= 0; level--) begin
++                        least_recent[level] = state[node];
++                        node = 2*node + 1 + int'(state[node]);
++                end
++        endfunction
++
++        always_ff @(posedge i_clk) begin
++                if (i_reset) begin
++                        for (int s = 0; s < LINES; s++) tree[s] <= '0;
++                end else begin
++                        if (fill_update) tree[tag_ram_wr_addr] <= touch(tree[tag_ram_wr_addr], i_cache_way);
++                        if (hit_update) tree[update_set] <= touch(
++                                fill_update && update_set == tag_ram_wr_addr ?
++                                touch(tree[update_set], i_cache_way) : tree[update_set], update_way);
++                end
++        end
++
++        always_comb begin
++                hit_way = '0;
++                invalid_way = '0;
++                invalid_present = !(&valid_q);
++                for (int w = WAYS-1; w >= 0; w--) begin
++                        if (!valid_q[w]) invalid_way = WAY_W'(w);
++                        if (hit[w]) hit_way = WAY_W'(w);
++                end
++        end
++        assign lookup_tree = ACCEPTED_HIT_UPDATE && hit_update && update_set == lk_set ?
++                touch(tree[lk_set], update_way) : tree[lk_set];
++        assign victim = invalid_present ? invalid_way : least_recent(lookup_tree);
++        assign sel = (|hit) ? hit_way : victim;
++        assign o_cache_word_sel = hit_way;
++        assign o_cache_tag_valid = valid_q[victim];
++        assign o_cache_tag_dirty = dirty_q[victim];
++        assign o_cache_hit_dirty = |(dirty_q & hit);
++
++        // Compare and OR each lane to avoid a non-power-of-two tag-width
++        // multiply in the generated victim and maintenance selectors.
++        always_comb begin
++                o_cache_tag = '0;
++                o_cache_line = '0;
++                walk_tag = '0;
++                walk_line = '0;
++                for (int w = 0; w < WAYS; w++) begin
++                        if (victim == WAY_W'(w)) begin
++                                o_cache_tag |= tag_q[w];
++                                o_cache_line |= line_q[w];
++                        end
++                        if (rd_way == WAY_W'(w)) begin
++                                walk_tag |= tag_q[w];
++                                walk_line |= line_q[w];
++                        end
++                end
++        end
++end
+ 
+ assign o_cache_hit       = |hit;
+ assign o_cache_way       = sel;
+@@ -611,20 +696,26 @@
+                 for (int w=0; w<WAYS; w++) dirty_write_way[w] = rd_way == WAY_W'(w);
+                 dirty_write_data = 1'b0;
+         end
+-        dirty_read_group = rd_set[SET_W-1:4];
++        dirty_read_group = DIRTY_GROUP_W'(rd_set >> DIRTY_BIT_W);
+         if (state_ff == IDLE && i_cache_clean_req) dirty_read_group = '0;
+         else if (!line_mode_ff && state_ff != IDLE && state_ff != CACHE_INV)
+-                dirty_read_group = blk_ctr_nxt[SET_W-5:0];
++                dirty_read_group = DIRTY_GROUPS > 1 ? DIRTY_GROUP_W'(blk_ctr_nxt) : '0;
+ end
+-assign dirty_scan = dirty_group_q[WAY_W'(blk_ctr_ff >> (SET_W-4))];
+-always_ff @(posedge i_clk) if (!i_hold || tag_ram_clean || line_clear) dirty_read_bit_ff <= rd_set[3:0];
++if (DIRTY_LANES == 16) begin : g_dirty_scan_way
++        assign dirty_scan = dirty_group_q[WAY_W'(blk_ctr_ff >> $clog2(DIRTY_GROUPS))];
++end else begin : g_dirty_scan_pair
++        // Eight sets per way: each sixteen-slot scan group spans two ways.
++        wire [WAY_W-1:0] even_way = WAY_W'(blk_ctr_ff << 1);
++        assign dirty_scan = {dirty_group_q[even_way + 1'b1][7:0], dirty_group_q[even_way][7:0]};
++end
++always_ff @(posedge i_clk) if (!i_hold || tag_ram_clean || line_clear) dirty_read_bit_ff <= rd_set[DIRTY_BIT_W-1:0];
+ 
+ // ARM9V2: metadata uses RAM banks; the short port compares captured
+ // descriptors after their RAM-read edge, as the tag/byte data port does.
+ // Valid and dirty maintenance enables are deliberately independent.
+ logic [SET_W-1:0] meta_v_read, meta_v_write, meta_v_pending;
+ logic [SET_W-1:0] meta_d_write;
+-logic [SET_W-5:0] meta_d_read;
++logic [DIRTY_GROUP_W-1:0] meta_d_read;
+ logic [SET_W-1:0] meta_now_v_read, meta_now_v_write, meta_now_d_read, meta_now_d_write;
+ logic [WAYS-1:0] meta_now_v_en,meta_now_d_en,meta_pending_en;
+ logic meta_now_dirty;
+@@ -693,32 +784,35 @@
+         // No serial walk is introduced for clean/test-and-clean. Each bank
+         // has a synchronous read and one update port; no array read mux.
+         if (TRACK_DIRTY) begin : g_dirty
+-        logic [LINES/16-1:0] dirty_initialized;
++        logic [DIRTY_GROUPS-1:0] dirty_initialized;
++        wire [DIRTY_GROUP_W-1:0] update_group = DIRTY_GROUP_W'(dirty_write_set >> DIRTY_BIT_W);
++        wire [DIRTY_GROUP_W-1:0] captured_group = DIRTY_GROUP_W'(meta_d_write >> DIRTY_BIT_W);
+         logic dirty_initialized_q, dirty_update_q;
+         always_ff @(posedge i_clk) begin
+                 if (i_reset) dirty_initialized <= '0;
+                 else if (dirty_write_en && dirty_write_way[w])
+-                        dirty_initialized[dirty_write_set[SET_W-1:4]] <= 1'b1;
++                        dirty_initialized[update_group] <= 1'b1;
+                 if (!i_hold || tag_ram_clean || line_clear)
+                         dirty_initialized_q <= dirty_initialized[dirty_read_group];
+                 if (!i_hold || tag_ram_clean || line_clear) dirty_update_q<=dirty_write_en&&dirty_write_way[w];
+                 if (i_reset) dirty_update_q<=0;
+                 if (i_reset) dirty_initialized_q <= 1'b0;
+         end
+-        logic [15:0] dirty_lane_we, dirty_lane_wd, dirty_lane_q;
++        logic [DIRTY_LANES-1:0] dirty_lane_we, dirty_lane_wd, dirty_lane_q;
+         if (1) begin : g_dirty_lanes
+-                zap_cache_metadata_lanes #(.DEPTH(LINES/16), .LANES(16)) dirty_rams (
++                zap_cache_metadata_lanes #(.DEPTH(DIRTY_GROUPS), .LANES(DIRTY_LANES)) dirty_rams (
+                         .i_clk(i_clk), .i_read_en(!i_hold || tag_ram_clean || line_clear),
+                         .i_write_en(dirty_lane_we), .i_write_data(dirty_lane_wd),
+                         .i_read_address(dirty_read_group),
+-                        .i_write_address(dirty_write_set[SET_W-1:4]), .o_data(dirty_lane_q)
++                        .i_write_address(update_group), .o_data(dirty_lane_q)
+                 );
+         end : g_dirty_lanes
+-        for (genvar b=0; b<16; b++) begin : g_bank
++        if (DIRTY_LANES < 16) assign dirty_group_q[w][15:DIRTY_LANES] = 0;
++        for (genvar b=0; b<DIRTY_LANES; b++) begin : g_bank
+                 logic read_bit, collision, forward_bit;
+                 wire write_bank = dirty_write_en && dirty_write_way[w] &&
+-                    (!dirty_initialized[dirty_write_set[SET_W-1:4]] || dirty_write_set[3:0] == b[3:0]);
+-                wire write_bit = dirty_write_set[3:0] == b[3:0] && dirty_write_data;
++                    (!dirty_initialized[update_group] || dirty_write_set[DIRTY_BIT_W-1:0] == b[DIRTY_BIT_W-1:0]);
++                wire write_bit = dirty_write_set[DIRTY_BIT_W-1:0] == b[DIRTY_BIT_W-1:0] && dirty_write_data;
+                 if (1) begin : g_packed
+                         assign dirty_lane_we[b] = write_bank; assign dirty_lane_wd[b] = write_bit;
+                         assign read_bit = dirty_lane_q[b];
+@@ -729,8 +823,8 @@
+                                 forward_bit <= write_bit;
+                         end
+                 end
+-                assign dirty_group_q[w][b] = (dirty_initialized_q || (dirty_update_q && meta_d_write[SET_W-1:4]==meta_d_read)) &&
+-                    (collision && meta_d_write[SET_W-1:4]==meta_d_read ? forward_bit : read_bit);
++                assign dirty_group_q[w][b] = (dirty_initialized_q || (dirty_update_q && captured_group==meta_d_read)) &&
++                    (collision && captured_group==meta_d_read ? forward_bit : read_bit);
+         end
+         end else begin : g_read_only
+                 assign dirty_group_q[w] = 16'b0;
+@@ -1120,10 +1214,18 @@
+         input logic i_read_en,
+         input logic [LANES-1:0] i_write_en,
+         input logic [LANES-1:0] i_write_data,
+-        input logic [$clog2(DEPTH)-1:0] i_read_address,
+-        input logic [$clog2(DEPTH)-1:0] i_write_address,
++        input logic [(DEPTH > 1 ? $clog2(DEPTH) : 1)-1:0] i_read_address,
++        input logic [(DEPTH > 1 ? $clog2(DEPTH) : 1)-1:0] i_write_address,
+         output logic [LANES-1:0] o_data
+ );
++        if (DEPTH == 1) begin : g_one_group
++                logic [LANES-1:0] state;
++                always_ff @(posedge i_clk) begin
++                        for (int l = 0; l < LANES; l++)
++                                if (i_write_en[l]) state[l] <= i_write_data[l];
++                        if (i_read_en) o_data <= state;
++                end
++        end else begin : g_ram
+         logic [LANES-1:0][7:0] wdata, q;
+         always_comb for (int l = 0; l < LANES; l++) wdata[l] = {7'd0, i_write_data[l]};
+         always_comb for (int l = 0; l < LANES; l++) o_data[l] = q[l][0];
+@@ -1154,4 +1256,5 @@
+                 if (i_read_en) q <= mem[i_read_address];
+         end
+ `endif
++        end
+ endmodule
+--- a/rtl/cpu/zap/zap_cp15_cb.sv
++++ b/rtl/cpu/zap/zap_cp15_cb.sv
+@@ -169,7 +169,7 @@
+         output  logic     [1:0]                  o_dcache_line_op,
+         output  logic                            o_dcache_line_va,
+         output  logic     [31:0]                 o_dcache_line_addr,
+-        output  logic                            o_dcache_line_way,
++        output logic [(DATA_CACHE_WAYS > 1 ? $clog2(DATA_CACHE_WAYS) : 1)-1:0] o_dcache_line_way,
+         input   logic                            i_dcache_writeback_busy, // ARM925T: saved victim drain
+         input   logic                            i_dcache_line_done
+ );
+@@ -232,11 +232,11 @@
+ localparam [3:0] LINE_D               = 13; // ARM925T: single-line D-cache operation.
+ localparam [3:0] LINE_GAP             = 14; // ARM925T: between the two ways' lines.
+ 
+-// ARM925T: index operands (TI format: way in bit 31, set from bit
+-// log2(line) up, the part's 256 sets of two ways). With two ways the way
++// ARM925T: index operands (TI format: high way bits, set above the line offset). The way
+ // goes out as o_dcache_line_way; with one, into the line index.
+ localparam [31:0] DLINE_LO = $clog2(DATA_CACHE_LINE);
+-localparam [31:0] DSET_W   = $clog2(DATA_CACHE_SIZE / 2 / DATA_CACHE_LINE);
++localparam [31:0] DSET_W   = $clog2(DATA_CACHE_SIZE / (DATA_CACHE_WAYS > 1 ? DATA_CACHE_WAYS : 2) / DATA_CACHE_LINE);
++localparam [31:0] DWAY_W = DATA_CACHE_WAYS > 1 ? $clog2(DATA_CACHE_WAYS) : 32'd1;
+ 
+ // Register numbers.
+ localparam [3:0] FSR_REG              = 5;
+@@ -661,7 +661,7 @@
+                                 // the line is touched only if it holds that VA)
+                                 // and by index (op2 2: TI operand; with TI
+                                 // config C = 0 both "ways" of the set, i.e. both
+-                                // lines here, with C = 1 the way in bit 31).
++                                // ways here, with C = 1 the way in the top operand bits).
+                                 //
+                                 7'b001_0110, 7'b010_0110, // c7,c6,1/2: flush (discard)
+                                 7'b001_1010, 7'b010_1010, // c7,c10,1/2: clean
+@@ -674,7 +674,7 @@
+                                                               index_line ( i_reg_rd_data,
+                                                                            ti_config[2] ? i_reg_rd_data[31] : 1'd0 );
+                                         o_dcache_line_way  <= DATA_CACHE_WAYS == 1 ? 1'd0 :
+-                                                              ti_config[2] ? i_reg_rd_data[31] : 1'd0;
++                                                              ti_config[2] ? i_reg_rd_data[31 -: DWAY_W] : '0;
+                                         line_both          <= !i_cp_word.ZAP_OPCODE_2[0] && !ti_config[2];
+                                         o_dcache_line_req  <= 1'd1;
+                                         state              <= LINE_D;
+@@ -834,17 +834,17 @@
+                         begin
+                                 o_dcache_line_req <= 1'd0;
+ 
+-                                if ( line_both )
+-                                begin
+-                                        // and the other way's line
+-                                        line_both <= 1'd0;
++                                if ( line_both && (DATA_CACHE_WAYS == 1 || o_dcache_line_way != DWAY_W'(DATA_CACHE_WAYS-1)) )
++                                begin
++                                        // Visit the next way of this set.
++                                        line_both <= DATA_CACHE_WAYS > 1;
+                                         if ( DATA_CACHE_WAYS == 1 )
+                                         begin
+                                                 o_dcache_line_addr[DLINE_LO + DSET_W] <= 1'd1;
+                                         end
+                                         else
+                                         begin
+-                                                o_dcache_line_way <= 1'd1;
++                                                o_dcache_line_way <= o_dcache_line_way + 1'd1;
+                                         end
+                                         state     <= LINE_GAP;
+                                 end
+--- a/rtl/cpu/zap/zap_dcache.sv
++++ b/rtl/cpu/zap/zap_dcache.sv
+@@ -126,7 +126,7 @@
+ input   logic [1:0]      i_line_op,
+ input   logic            i_line_va,
+ input   logic [31:0]     i_line_addr,
+-input   logic            i_line_way,     // ARM925T: of an operation by index
++input   logic [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] i_line_way,     // ARM925T: of an operation by index
+ output  logic            o_line_done,
+ 
+ input   logic [CPSR_MODE:0]    i_cpsr,
+@@ -194,7 +194,8 @@
+ logic [WAYS-1:0][`ZAP_CACHE_TAG_WDT-1:0] raw_way_tag;
+ logic [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] raw_victim, victim_ff;
+ logic [WAYS-1:0][31:0] raw_cache_words;
+-logic raw_cache_word_sel, raw_cache_tag_valid, raw_cache_hit, raw_cache_tag_dirty, raw_cache_hit_dirty;
++logic [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] raw_cache_word_sel;
++logic raw_cache_tag_valid, raw_cache_hit, raw_cache_tag_dirty, raw_cache_hit_dirty;
+ logic [`ZAP_CACHE_TAG_WDT-1:0] raw_cache_tag;
+ logic [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] raw_cache_way;
+ logic [(WAYS > 1 ? $clog2(WAYS) : 1)-1:0] cache_write_way;
+@@ -496,10 +497,10 @@
+     fwd_way[w] = forward_store &&
+         raw_way_tag[w][`ZAP_CACHE_TAG__TAG] == cf_cache_tag[`ZAP_CACHE_TAG__TAG];
+ always_comb begin
+-    victim_line = (WAYS > 1 && victim_ff[0]) ? way_line_ff[WAYS-1] : way_line_ff[0];
++    victim_line = way_line_ff[victim_ff];
+     tr_cache_line = victim_line;
+     for (int b=0; b<CACHE_LINE; b++)
+-        if (((WAYS > 1 && victim_ff[0]) ? fwd_way_ff[WAYS-1] : fwd_way_ff[0]) && fwd_ben_ff[b])
++        if (fwd_way_ff[victim_ff] && fwd_ben_ff[b])
+             tr_cache_line[8*b +: 8] = fwd_dat_ff[8*(b%4) +: 8];
+ end
+ `ifndef SYNTHESIS
+@@ -519,7 +520,7 @@
+     // Build the possible word result independently of the FSM's full-line
+     // write enables. Permission/acceptance selects the finished result;
+     // it no longer traverses byte merge and load formatting in series.
+-    assign hit_word = raw_cache_words[raw_cache_word_sel ? ((WAYS > 1) ? 1 : 0) : 0];
++    assign hit_word = raw_cache_words[raw_cache_word_sel];
+     always_comb begin
+         store_word = hit_word;
+         for (int b=0; b<4; b++)
+@@ -527,7 +528,7 @@
+     end
+     assign store_collision = forward_store &&
+         compare_address[LINE_W-1:2] == i_address[LINE_W-1:2] &&
+-        cache_write_way == ((WAYS > 1) ? raw_cache_word_sel : 1'b0);
++        cache_write_way == raw_cache_word_sel;
+     // WAY_FORMAT: each way's candidate is finished (merge and format)
+     // before the hit chooses; the hit, the last-arriving term, drives only
+     // the final 2:1 select. Equal to the serial form for every way.
+@@ -539,10 +540,10 @@
+             if (i_ben[b]) way_store[8*b +: 8] = i_dat[8*b +: 8];
+         way_formatted[w] = forward_store &&
+             compare_address[LINE_W-1:2] == i_address[LINE_W-1:2] &&
+-            cache_write_way == ((WAYS > 1) ? w[0] : 1'b0) ?
++            cache_write_way == $clog2(WAYS > 1 ? WAYS : 2)'(w) ?
+             ld_transform(way_store, i_ldfmt_check) : ld_transform(raw_cache_words[w], i_ldfmt_check);
+     end
+-    assign formatted = WAY_FORMAT ? way_formatted[(WAYS > 1 && raw_cache_word_sel) ? 1 : 0] :
++    assign formatted = WAY_FORMAT ? way_formatted[raw_cache_word_sel] :
+                        store_collision ? ld_transform(store_word, i_ldfmt_check) :
+                                          ld_transform(hit_word, i_ldfmt_check);
+ `ifndef SYNTHESIS
+--- a/rtl/cpu/zap/zap_top.sv
++++ b/rtl/cpu/zap/zap_top.sv
+@@ -271,7 +271,7 @@
+ logic            cpu_dline_req, cpu_dline_va, dc_line_done;   // ARM925T
+ logic [1:0]      cpu_dline_op;                                // ARM925T
+ logic [31:0]     cpu_dline_addr;                              // ARM925T
+-logic            cpu_dline_way;                               // ARM925T
++logic [(DATA_CACHE_WAYS > 1 ? $clog2(DATA_CACHE_WAYS) : 1)-1:0] cpu_dline_way;                               // ARM925T
+ logic [31:0]     cpu_daddr_va;      // ARM925T
+ logic [5:0] cpu_dldfmt_check;
+ logic [5:0]      cpu_dldfmt;        // ARM925T

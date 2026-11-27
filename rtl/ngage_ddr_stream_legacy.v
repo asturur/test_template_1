@@ -65,6 +65,7 @@ module ngage_ddr_stream_legacy #(
         .req_cancel_on_phone(1'b0),
         .req_write          (req_write),
         .req_stream         (1'b0),
+        .req_fill           (1'b0),
         .req_addr           ({req_addr[31:3], 3'b0}),
         .req_count          (count),
         .req_data           ({req_wdata, req_wdata}),

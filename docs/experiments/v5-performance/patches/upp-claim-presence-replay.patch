@@ -1,0 +1,1176 @@
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/replay.py b/scratch/v5-fit-loop/upp-claim-presence/replay.py
+new file mode 100644
+index 0000000..43093b0
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/replay.py
+@@ -0,0 +1,182 @@
++"""Replay prepared UPP timer writes against the retained 104 MHz control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = repo / 'build/sim/v5-104-upp-claim-presence' / args.output
++work.mkdir(parents=True, exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(stage / 'source/tests/cpu/arm9v2_board'))
++import payload_clocks
++payload_clocks.OUT = repo / "build/sim"
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_upp_peripherals.v', 'rtl/ngage_keypad.v', 'rtl/ngage_upp_euart.v', 'rtl/ngage_timers.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/upp-claim-presence/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_upp_peripherals.v', 'ngage_keypad.v', 'ngage_upp_euart.v', 'ngage_timers.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/upp-claim-presence/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((stage.parent/'prepared-wb-write-data'/'candidate'/f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                source_sha256={name:digest(stage / 'source/rtl' / name) for name in ('ngage_upp.v','ngage_upp_peripherals.v','ngage_upp_euart.v', 'ngage_timers.v','ngage_keypad.v')}, rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/mixed.py b/scratch/v5-fit-loop/upp-claim-presence/mixed.py
+new file mode 100644
+index 0000000..644ccca
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/mixed.py
+@@ -0,0 +1,34 @@
++"""Stage the frozen physical-SDRAM replay with parallel UPP claim presence."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-timer-write-prepare/mixed')
++trial = Path('build/sim/v5-104-upp-claim-presence/mixed')
++changed = {'rtl/ngage_upp_peripherals.v'}
++peer = 'tests/phone/upp_ddr_ram/peer.v'
++
++trial.mkdir(parents=True, exist_ok=True)
++shutil.copytree(base / 'source', trial / 'source', dirs_exist_ok=True)
++for name in ('stress.hex', 'image.hex', 'program.hex'):
++    shutil.copyfile(base / name, trial / name)
++(trial / 'source' / peer).parent.mkdir(parents=True, exist_ok=True)
++shutil.copyfile(stage / 'source' / peer, trial / 'source' / peer)
++for name in changed:
++    shutil.copyfile(stage / 'source' / name, trial / 'source' / name)
++
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert changed <= hashes.keys() and peer in hashes
++for name, reference in hashes.items():
++    if name.startswith('rtl/'):
++        assert sha256((stage / 'reference' / name).read_bytes()).hexdigest() == reference, name
++    actual = sha256((trial / 'source' / name).read_bytes()).hexdigest()
++    assert (actual != reference) == (name in changed), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++
++build = (base / 'build.sh').read_text().replace(str(base), str(trial))
++(trial / 'build.sh').write_text(build)
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/mixed.sh b/scratch/v5-fit-loop/upp-claim-presence/mixed.sh
+new file mode 100644
+index 0000000..48d12dc
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/mixed.sh
+@@ -0,0 +1,16 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/upp-claim-presence
++out=build/sim/v5-104-upp-claim-presence
++mixed="$out/mixed"
++base=build/sim/v5-104-timer-write-prepare/mixed
++python3 -B "$area/mixed.py"
++docker image inspect -f '{{.Id}} {{.Os}}/{{.Architecture}}' jotego/simulator:arm64 > "$out/image.id"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 \
++    -ec "sh '$mixed/build.sh'
++         '$mixed/obj/Vtb' +upp_stress '+compare_trace=$mixed/traffic.log' > '$mixed/replay.log'"
++cmp "$base/traffic.log" "$mixed/traffic.log"
++grep '^PASS' "$mixed/replay.log"
++sh "$area/coexistence.sh"
++sh "$area/hold.sh"
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/coexistence.sh b/scratch/v5-fit-loop/upp-claim-presence/coexistence.sh
+new file mode 100644
+index 0000000..c1d35a6
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/coexistence.sh
+@@ -0,0 +1,20 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/upp-claim-presence
++out=build/sim/v5-104-upp-claim-presence/coexistence
++retained=build/sim/v5-104-timer-write-prepare/mixed
++candidate=build/sim/v5-104-upp-claim-presence/mixed
++python3 -B "$area/prepare-coexistence.py"
++guest_path=build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed/stress.hex
++for leg in retained candidate; do
++  if [ "$leg" = retained ]; then replay=$retained; else replay=$candidate; fi
++  docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++    -v "$PWD/$out/stress-timer.hex:/work/$guest_path:ro" -w /work \
++    --entrypoint "/work/$replay/obj/Vtb" jotego/simulator:arm64 \
++    +upp_stress "+compare_trace=$out/$leg.trace" > "$out/$leg.log"
++  grep '^PASS ' "$out/$leg.log" > "$out/$leg.pass"
++done
++cmp "$out/retained.trace" "$out/candidate.trace"
++cmp "$out/retained.pass" "$out/candidate.pass"
++wc -l "$out/candidate.trace"
++cat "$out/candidate.pass"
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/prepare-coexistence.py b/scratch/v5-fit-loop/upp-claim-presence/prepare-coexistence.py
+new file mode 100644
+index 0000000..2b9bccb
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/prepare-coexistence.py
+@@ -0,0 +1,51 @@
++"""Insert a one-shot timer into the active physical MMC/LCD replay."""
++from pathlib import Path
++import subprocess
++
++
++stage = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-upp-claim-presence/coexistence')
++out.mkdir(parents=True, exist_ok=True)
++base = Path('build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed')
++guest = (base / 'stress.S').read_text()
++marker = ' // Read/copy/partial-write round trips while LCD DMA and PCM are active.'
++assert guest.count(marker) == 1
++guest = guest.replace(marker, ''' // Timer4 must expire with both transfers still active.
++ mov r12,#83
++ ldr r0,=0x0c120a80
++ put r0,4,1
++ put r0,0x10,13
++timer4_wait:
++ ldr r4,[r0,#8]
++ tst r4,#1
++ beq timer4_wait
++ ldr r4,[r8,#0x18]
++ tst r4,#4
++ beq fail
++ ldr r1,=0x0c120348
++ ldr r4,[r1]
++ cmp r4,#0
++ beq fail
++ put r0,4,0
++ put r0,8,0
++ ldr r4,[r0,#8]
++ tst r4,#1
++ bne fail
++
++''' + marker)
++assembly = out / 'stress-timer.S'
++obj = assembly.with_suffix('.o')
++elf = assembly.with_suffix('.elf')
++binary = assembly.with_suffix('.bin')
++assembly.write_text(guest)
++for command in (
++    ['arm-none-eabi-gcc', '-c', '-mcpu=arm920t', '-marm', assembly, '-o', obj],
++    ['arm-none-eabi-ld', '-T', stage / 'source/sim/programs/link.ld', obj, '-o', elf],
++    ['arm-none-eabi-objcopy', '-O', 'binary', elf, binary],
++):
++    subprocess.run(command, check=True)
++raw = binary.read_bytes()
++assert len(raw) % 4 == 0 and len(raw) <= 8192
++assembly.with_suffix('.hex').write_text(''.join(
++    f'{int.from_bytes(raw[i:i+4], "little"):08x}\n' for i in range(0, len(raw), 4)
++))
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/architectural_trace.vh b/scratch/v5-fit-loop/upp-claim-presence/architectural_trace.vh
+new file mode 100644
+index 0000000..88b6546
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/architectural_trace.vh
+@@ -0,0 +1,69 @@
++`define RESUPP dut.board.upp.cpu_inside
++`define RESZAP `RESUPP.cpu.u_arm925t.u_zap
++`define RESCORE `RESZAP.g_arm9.u_arm9_core
++`define RESFETCH `RESCORE.u_front_decode.u_fetch
++
++reg [31:0] res_begin, res_end;
++integer res_window = 0;
++integer res_retired, res_data, res_mmio, res_recover;
++reg res_active = 0;
++reg [63:0] res_retire_hash, res_data_hash, res_mmio_hash;
++localparam [63:0] RES_INITIAL = 64'hcbf29ce484222325;
++initial begin
++    if (!$value$plusargs("begin_pc=%h", res_begin) || !$value$plusargs("end_pc=%h", res_end))
++        $fatal(1, "Missing architectural digest window");
++end
++
++function automatic [63:0] res_mix(input [63:0] digest, input [63:0] data);
++    res_mix = (digest ^ data) * 64'h00000100000001b3;
++endfunction
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        res_active = 1;
++        res_retired = 0;
++        res_data = 0;
++        res_mmio = 0;
++        res_recover = 0;
++        res_retire_hash = RES_INITIAL;
++        res_data_hash = RES_INITIAL;
++        res_mmio_hash = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && res_active) begin
++        $display("RES_ARCH window=%0d retired=%0d data=%0d mmio=%0d recover=%0d retire_hash=%016x data_hash=%016x mmio_hash=%016x",
++                 res_window, res_retired, res_data, res_mmio, res_recover,
++                 res_retire_hash, res_data_hash, res_mmio_hash);
++        res_window++;
++        res_active = 0;
++    end else if (res_active) begin
++        if (`RESCORE.wb_complete) begin
++            res_retired++;
++            res_retire_hash = res_mix(res_retire_hash, {`RESCORE.w[526:495], `RESCORE.w[494:463]});
++            res_retire_hash = res_mix(res_retire_hash, {25'b0, exceptions, `RESCORE.cpsr_next});
++            if (`RESCORE.wb_valid) begin
++                if (`RESCORE.wb_tag0 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {26'b0, `RESCORE.wb_tag0, `RESCORE.wb_data0});
++                if (`RESCORE.wb_pair && `RESCORE.wb_tag1 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {25'b0, 1'b1, `RESCORE.wb_tag1, `RESCORE.wb_data1});
++            end
++        end
++        if (`RESZAP.o_dbg_d_done) begin
++            res_data++;
++            res_data_hash = res_mix(res_data_hash, {26'b0, `RESZAP.data_err, `RESZAP.o_dbg_d_we,
++                                                   `RESZAP.o_dbg_d_sel, `RESZAP.o_dbg_d_va});
++            res_data_hash = res_mix(res_data_hash, {32'b0, `RESZAP.o_dbg_d_we ?
++                                                   `RESZAP.o_dbg_d_wdata : `RESZAP.o_dbg_d_rdata});
++        end
++        if (`RESUPP.master_cyc && `RESUPP.master_stb && !`RESUPP.master_code &&
++            (`RESUPP.slow_ack || `RESUPP.slow_error)) begin
++            res_mmio++;
++            res_mmio_hash = res_mix(res_mmio_hash, {26'b0, `RESUPP.slow_error, `RESUPP.master_we,
++                                                   `RESUPP.master_sel, `RESUPP.master_address});
++            res_mmio_hash = res_mix(res_mmio_hash, {32'b0, `RESUPP.master_we ?
++                                                   `RESUPP.master_data : `RESUPP.slow_read_data});
++        end
++    end
++end
++`undef RESFETCH
++`undef RESCORE
++`undef RESZAP
++`undef RESUPP
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/wb-write-trace.vh b/scratch/v5-fit-loop/upp-claim-presence/wb-write-trace.vh
+new file mode 100644
+index 0000000..e4ee4c7
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/wb-write-trace.vh
+@@ -0,0 +1,98 @@
++`define WC dut.board.upp.cpu_inside.cpu
++`define WZ `WC.u_arm925t.u_zap
++`define WD `WZ.l_generate_with_cache_mmu.u_data_cache
++`define WM `WZ.l_merger_for_core_with_cache_mmu.u_zap_wb_merger
++wire obs_bus_on = `WM.o_wb_cyc && `WM.o_wb_stb;
++wire obs_write = obs_bus_on && `WM.o_wb_wen;
++wire obs_ack = obs_bus_on && `WM.i_wb_ack && !`WM.i_wb_err;
++wire obs_err = obs_bus_on && `WM.i_wb_err;
++wire obs_native = obs_write && `WC.wb_write_block;
++wire [3:0] obs_owner = `WM.o_dbg_data_owner ? `WD.state_ff : 4'b0;
++wire [7:0] obs_ctl = {`WM.o_wb_cti, `WM.o_wb_sel, obs_native};
++wire [31:0] obs_adr = `WM.o_wb_adr;
++wire [31:0] obs_data = `WM.o_wb_dat;
++wire [127:0] obs_block = obs_native ? `WC.wb_block_data : 128'b0;
++wire [199:0] obs_payload = {obs_adr, obs_ctl, obs_data, obs_block};
++wire [2:0] obs_source = {obs_native, `WD.u_zap_cache_fsm.state_ff[`WD.u_zap_cache_fsm.CLEAN_SINGLE], `WM.o_dbg_data_owner};
++
++integer wbt_window = 0;
++integer wbt_clock, wbt_writes, wbt_stalls, wbt_read_acks, wbt_write_acks, wbt_errors;
++integer wbt_read_to_write, wbt_write_next_changed, wbt_owner_changes;
++integer wbt_tag_changed, wbt_cch_changed, wbt_native_changed, wbt_post_changed, wbt_unc_changed;
++integer wbt_tag, wbt_cch, wbt_native, wbt_post, wbt_unc;
++reg wbt_active = 0;
++reg wbt_prev_read_ack, wbt_prev_write_ack, wbt_prev_stalled;
++reg [3:0] wbt_prev_owner;
++reg [199:0] wbt_prev_payload;
++reg [63:0] wbt_digest;
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        wbt_active = 1;
++        wbt_clock = 0;
++        wbt_writes = 0; wbt_stalls = 0; wbt_read_acks = 0; wbt_write_acks = 0; wbt_errors = 0;
++        wbt_read_to_write = 0; wbt_write_next_changed = 0; wbt_owner_changes = 0;
++        wbt_tag_changed = 0; wbt_cch_changed = 0; wbt_native_changed = 0;
++        wbt_post_changed = 0; wbt_unc_changed = 0;
++        wbt_tag = 0; wbt_cch = 0; wbt_native = 0; wbt_post = 0; wbt_unc = 0;
++        wbt_prev_read_ack = 0; wbt_prev_write_ack = 0; wbt_prev_stalled = 0;
++        wbt_prev_owner = 0; wbt_prev_payload = 0;
++        wbt_digest = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && wbt_active) begin
++        $display("RES_WB window=%0d offer=%0d stall=%0d read_ack=%0d write_ack=%0d write_error=%0d read_to_write=%0d changed_after_write_ack=%0d owner_changes=%0d tag=%0d evict_scalar=%0d evict_native=%0d post=%0d unc=%0d tag_changed=%0d evict_scalar_changed=%0d evict_native_changed=%0d post_changed=%0d unc_changed=%0d write_hash=%016x",
++                 wbt_window,wbt_writes,wbt_stalls,wbt_read_acks,wbt_write_acks,wbt_errors,
++                 wbt_read_to_write,wbt_write_next_changed,wbt_owner_changes,
++                 wbt_tag,wbt_cch,wbt_native,wbt_post,wbt_unc,wbt_tag_changed,
++                 wbt_cch_changed,wbt_native_changed,wbt_post_changed,wbt_unc_changed,wbt_digest);
++        wbt_window++;
++        wbt_active = 0;
++    end else if (wbt_active) begin
++        wbt_clock++;
++        if (obs_ack && !obs_write) wbt_read_acks++;
++        if (wbt_prev_stalled && !obs_write) $fatal(1, "write withdrawn while stalled");
++        if (obs_write) begin
++            wbt_writes++;
++            if (wbt_prev_stalled && obs_payload !== wbt_prev_payload)
++                $fatal(1, "stalled write changed payload");
++            if (obs_ack) begin
++                wbt_write_acks++;
++                case (obs_owner)
++                    4'b0010: wbt_tag++;
++                    4'b1000: wbt_post++;
++                    4'b0001: if (obs_native) wbt_native++; else if (obs_source[1]) wbt_cch++; else wbt_unc++;
++                    default: $fatal(1, "unexpected write owner %b", obs_owner);
++                endcase
++            end else if (obs_err) wbt_errors++;
++            else wbt_stalls++;
++            if (wbt_prev_read_ack) wbt_read_to_write++;
++            if (wbt_prev_write_ack) begin
++                if (wbt_prev_owner != obs_owner) wbt_owner_changes++;
++                if (obs_payload[159:0] != wbt_prev_payload[159:0]) begin
++                    wbt_write_next_changed++;
++                    if (wbt_prev_owner == obs_owner)
++                        case (obs_owner)
++                            4'b0010: wbt_tag_changed++;
++                            4'b1000: wbt_post_changed++;
++                            4'b0001: if (obs_native) wbt_native_changed++; else if (obs_source[1]) wbt_cch_changed++; else wbt_unc_changed++;
++                            default: ;
++                        endcase
++                end
++            end
++            wbt_digest = res_mix(wbt_digest, {obs_adr, wbt_clock[21:0], obs_ctl, obs_ack, obs_err});
++            wbt_digest = res_mix(wbt_digest, {31'b0, `WC.wb_lock, obs_data});
++            if (obs_native) begin
++                wbt_digest = res_mix(wbt_digest, obs_block[63:0]);
++                wbt_digest = res_mix(wbt_digest, obs_block[127:64]);
++            end
++        end
++        wbt_prev_read_ack = obs_ack && !obs_write;
++        wbt_prev_write_ack = obs_ack && obs_write;
++        wbt_prev_stalled = obs_write && !obs_ack && !obs_err;
++        wbt_prev_owner = obs_owner;
++        wbt_prev_payload = obs_payload;
++    end
++end
++`undef WM
++`undef WD
++`undef WZ
++`undef WC
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/directed.sh b/scratch/v5-fit-loop/upp-claim-presence/directed.sh
+new file mode 100644
+index 0000000..f9f8c4d
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/directed.sh
+@@ -0,0 +1,40 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/upp-claim-presence
++out=build/sim/v5-104-upp-claim-presence
++python3 -B "$area/prepare-lane.py"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -ec '
++    area=scratch/v5-fit-loop/upp-claim-presence
++    out=build/sim/v5-104-upp-claim-presence
++    for keypad in 0 1; do
++        for leg in reference source; do
++            rtl="$area/$leg/rtl"
++            name="$out/lane/$leg-$keypad"
++            iverilog -g2012 -s tb -Ptb.KEYPAD_ENABLE="$keypad" -y "$rtl" -I "$rtl" \
++                -o "$name" "$rtl/ngage_upp.v" "$rtl/ngage_upp_euart.v" "$out/lane/tb.sv"
++            vvp "$name" > "$name.log"
++            grep -E "^(TRACE|SAMPLE|DONE|PASS) " "$name.log" > "$name.trace"
++            grep "^PASS " "$name.trace"
++        done
++        cmp "$out/lane/reference-$keypad.trace" "$out/lane/source-$keypad.trace"
++    done
++    mkdir -p "$out/reset"
++    for leg in reference source; do
++        source="$area/$leg"
++        rtl="$source/rtl"
++        name="$out/reset/$leg-ddr"
++        iverilog -g2012 -s tb -y "$rtl" -I "$rtl" -o "$name" "$rtl/ngage_upp.v" "$rtl/ngage_adsp.v" \
++            "$source/tests/phone/upp_ddr_ram/peripherals_tb.v" "$source/tests/phone/upp_ddr_ram/peer.v"
++        vvp "$name" > "$name.log"
++        grep "^PASS " "$name.log"
++        name="$out/reset/$leg-lcd-dma"
++        iverilog -g2012 -s transport_tb -y "$rtl" -I "$rtl" -o "$name" "$rtl/ngage_upp.v" "$rtl/ngage_adsp.v" \
++            "$source/tests/phone/dma_handover/transport_tb.v"
++        vvp "$name" > "$name.log"
++        grep "^PASS " "$name.log"
++    done
++    for endpoint in ddr lcd-dma; do
++        sed "s@$area/reference/@$area/source/@" "$out/reset/reference-$endpoint.log" > "$out/reset/reference-$endpoint.normalized"
++        cmp "$out/reset/reference-$endpoint.normalized" "$out/reset/source-$endpoint.log"
++    done'
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/prepare-lane.py b/scratch/v5-fit-loop/upp-claim-presence/prepare-lane.py
+new file mode 100644
+index 0000000..41b52c4
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/prepare-lane.py
+@@ -0,0 +1,43 @@
++"""Use the archived lane differential through the actual held UPP stage."""
++from pathlib import Path
++import re
++
++
++out = Path('build/sim/v5-104-upp-claim-presence/lane')
++out.mkdir(parents=True, exist_ok=True)
++archive = Path('docs/experiments/v5-performance/patches/peripheral-lane13.patch').read_text()
++added = archive.split('diff --git a/tests/phone/upp_lane13/tb.sv', 1)[1]
++added = added.split('\ndiff --git ', 1)[0].split('\n@@ ', 1)[1]
++bench = '\n'.join(line[1:] for line in added.splitlines() if line.startswith('+')) + '\n'
++bench, count = re.subn(r'`ifndef REFERENCE\n.*?`endif\n', '', bench, flags=re.S)
++assert count == 4, count
++# Include the outer board's unclaimed-address error in the differential.
++original = 'invalid_response <= !invalid_response && packet && claim && ready && error;'
++assert bench.count(original) == 1
++bench = bench.replace(original, 'invalid_response <= !invalid_response && packet && (!claim || (ready && error));')
++anchor = "        access (0, 0, 'h0c150508, 0, 15, 'hffffffff, 'ha5b6c7df, 4);\n        cyc = 0;"
++assert bench.count(anchor) == 1
++bench = bench.replace(anchor, """
++        access (0, 0, 'h0c150508, 0, 15, 'hffffffff, 'ha5b6c7df, 4);
++        // Probe unclaimed and claimed-invalid responses independently.
++        access (0, 1, 'h0f000000, 0, 15, 0, 0, 0);
++        access (1, 1, 'h0c120a10, 3, 5, 0, 0, 4);
++        access (1, 0, 'h0c120a10, 3, 15, 0, 0, 3);
++
++        // Cancel on reset before the registered authorization edge. Also
++        // check immediately, between edges, after the already-valid reset.
++        offer(1, 'h0c150508, 'hbad0feed, 15);
++        tick;
++        #1;
++        reset = 1;
++        #1;
++        if (packet || ready || cpu_ack || cpu_error)
++            $fatal(1, "Reset did not immediately suppress the offered bus beat");
++        cyc = 0;
++        tick;
++        reset = 0;
++        if (pending) $fatal(1, "Canceled write became valid after reset");
++        access (0, 0, 'h0c150508, 0, 15, 'hffffffff, 'ha5b6c7df, 4);
++        cyc = 0;""")
++bench = bench.replace('PASS lane13 keypad=', 'PASS UPP claim/priority keypad=')
++(out / 'tb.sv').write_text(bench)
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/prepare-claim.py b/scratch/v5-fit-loop/upp-claim-presence/prepare-claim.py
+new file mode 100644
+index 0000000..d7c90c8
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/prepare-claim.py
+@@ -0,0 +1,59 @@
++"""Extract the exact claim selector and valid recurrence for four-state replay."""
++from pathlib import Path
++import re
++
++
++area = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-upp-claim-presence/claim')
++out.mkdir(parents=True, exist_ok=True)
++source = 'rtl/ngage_upp_peripherals.v'
++old, new = ((area / leg / source).read_text() for leg in ('reference', 'source'))
++
++
++def selection(text):
++    return text.split('    reg [15:0] selected_owner;', 1)[1].split('    wire [511:0] local_data', 1)[0]
++
++
++def valid_update(text):
++    pattern = r'            always @\(posedge clk\) begin\n                if \(rst \|\| !req\) valid <= 0;.*?(?=            assign response_pending = valid;)'
++    return re.search(pattern, text, re.S)[0]
++
++
++terms = re.findall(r'if \((.+)\) selected_owner\[(\d+)\] = 1;', selection(old))
++priority = [int(lane) for _, lane in terms]
++assert priority == [15, *range(15)]
++candidate_terms = re.search(r'wire \[15:0\] request_claims = \{([^}]+)\}', new)[1].split(',')
++assert {i: re.sub(r'\s+', '', term) for i, term in enumerate(reversed(candidate_terms))} == {
++    int(lane): re.sub(r'\s+', '', term) for term, lane in terms}
++assert [(int(raw), int(lane)) for raw, lane in re.findall(
++    r'if \(request_claims\[(\d+)\]\) selected_owner\[(\d+)\] = 1;', selection(new))] == [
++    (lane, lane) for lane in priority]
++assert 'reg [15:0] selected_owner;' not in selection(new)
++assert valid_update(old).replace('if (claim && local_ready && commit)',
++                                 'if (any_request_claim && local_ready && commit)') == valid_update(new)
++
++reference = selection(old)
++for predicate, lane in terms:
++    reference = reference.replace(f'if ({predicate}) selected_owner[{lane}]',
++                                  f'if (flags[{lane}]) selected_owner[{lane}]')
++trial = '    wire [15:0] request_claims = flags;\n    wire any_request_claim = |request_claims;\n' + selection(new)
++
++for leg, logic, text in (('reference', reference, old), ('trial', trial, new)):
++    (out / f'{leg}.v').write_text(f"""
++module {leg}_claim (
++    input wire clk, rst, req, local_ready, commit,
++    input wire [15:0] flags,
++    output reg [15:0] selected_owner,
++    output reg claim,
++    output wire response_pending, ready
++);
++    reg valid;
++    reg [15:0] result_owner;
++    always @(posedge clk)
++        if (!rst && req && !valid) result_owner <= selected_owner;
++{logic.replace('    wire [15:0] result_owner, result_bad;', '')}
++{valid_update(text)}
++    assign response_pending = valid;
++    assign ready = valid && req;
++endmodule
++""")
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/claim-miter.v b/scratch/v5-fit-loop/upp-claim-presence/claim-miter.v
+new file mode 100644
+index 0000000..9aef117
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/claim-miter.v
+@@ -0,0 +1,76 @@
++`timescale 1ns/1ps
++module tb;
++    reg clk = 0, rst = 1, req = 0, local_ready = 0, commit = 0;
++    reg [15:0] flags = 0;
++    wire [15:0] old_owner, new_owner;
++    wire old_claim, old_pending, old_ready, new_claim, new_pending, new_ready;
++    reference_claim reference_dut (
++        clk, rst, req, local_ready, commit, flags, old_owner, old_claim, old_pending, old_ready
++    );
++    trial_claim trial_dut (
++        clk, rst, req, local_ready, commit, flags, new_owner, new_claim, new_pending, new_ready
++    );
++    integer comparisons = 0;
++    integer vector, bit_index;
++    reg [31:0] prng = 32'hb536c091;
++
++    task compare;
++        begin
++            #1;
++            if ({old_owner, old_claim, old_pending, old_ready} !==
++                {new_owner, new_claim, new_pending, new_ready})
++                $fatal(1, "Claim or registered valid difference flags=%b req=%b reset=%b", flags, req, rst);
++            comparisons = comparisons + 1;
++        end
++    endtask
++
++    task clock_edge;
++        begin
++            compare;
++            clk = 1;
++            compare;
++            clk = 0;
++        end
++    endtask
++
++    task check_pattern;
++        begin
++            req = 0;
++            clock_edge;
++            req = 1;
++            compare;
++            clock_edge;
++            compare;
++        end
++    endtask
++
++    initial begin
++        clock_edge;
++        rst = 0;
++        local_ready = 1;
++        commit = 1;
++        for (vector = 0; vector < 65536; vector = vector + 1) begin
++            flags = vector[15:0];
++            check_pattern;
++        end
++        // A claim containing unknowns only must not become a positive claim.
++        // A definite lower-priority claimant still wins under unknowns above it.
++        for (vector = 0; vector < 65536; vector = vector + 1) begin
++            for (bit_index = 0; bit_index < 16; bit_index = bit_index + 1)
++                flags[bit_index] = vector[bit_index] ? 1'bx : 1'b0;
++            check_pattern;
++            flags[(vector ^ (vector >> 8)) & 15] = 1'b1;
++            check_pattern;
++        end
++        for (vector = 0; vector < 1024; vector = vector + 1) begin
++            prng = prng ^ (prng << 13);
++            prng = prng ^ (prng >> 17);
++            prng = prng ^ (prng << 5);
++            flags = prng[15:0];
++            {rst, req, local_ready, commit} = prng[20:17];
++            check_pattern;
++        end
++        $display("PASS exact claim selection and valid comparisons=%0d", comparisons);
++        $finish;
++    end
++endmodule
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/claim-miter.sh b/scratch/v5-fit-loop/upp-claim-presence/claim-miter.sh
+new file mode 100644
+index 0000000..b02e4a6
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/claim-miter.sh
+@@ -0,0 +1,11 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/upp-claim-presence
++out=build/sim/v5-104-upp-claim-presence/claim
++python3 -B "$area/prepare-claim.py"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD/$area:/trial:ro" -v "$PWD/$out:/results" -w /results \
++    --entrypoint sh jotego/simulator:arm64 -ec '
++    iverilog -g2001 -s tb -o miter reference.v trial.v /trial/claim-miter.v
++    vvp miter > miter.log
++    grep "^PASS " miter.log'
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/prepare-flash.py b/scratch/v5-fit-loop/upp-claim-presence/prepare-flash.py
+new file mode 100644
+index 0000000..6a1011c
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/prepare-flash.py
+@@ -0,0 +1,27 @@
++"""Adapt archived flash reset stubs to the retained CPU wrapper's port list."""
++from pathlib import Path
++import re
++
++
++area = Path(__file__).resolve().parent
++source = area / 'reference'
++out = Path('build/sim/v5-104-upp-claim-presence/flash-reset').resolve()
++out.mkdir(parents=True, exist_ok=True)
++for name in ('tb.v', 'cold_tb.v', 'write_tb.v'):
++    bench = (source / 'tests/phone/flash_reset' / name).read_text()
++    assert bench.count('parameter LINE_REFILL=0') == 1
++    bench = bench.replace('parameter LINE_REFILL=0', 'parameter LINE_REFILL=0, EXPLICIT_LINE_GUARANTEE=0')
++    target = 'input wire line_wide,line_last,line_error,'
++    assert bench.count(target) == 1
++    bench = bench.replace(target, target + 'line_no_late_error,')
++    target = ' output wire wb_code,'
++    assert bench.count(target) == 1
++    bench = bench.replace(target, ' output wire wb_write_block, output wire [127:0] wb_block_data,\n' + target)
++    target = ' assign line_req=0;assign line_addr=0;'
++    assert bench.count(target) == 1
++    bench = bench.replace(target, target + '\n assign wb_write_block=0; assign wb_block_data=0;')
++    (out / name).write_text(bench)
++qip = (source / 'files.qip').read_text()
++files = [path for path in re.findall(r'-name (?:SYSTEMVERILOG_FILE|VERILOG_FILE) (rtl/ngage_\S+)', qip)
++         if path != 'rtl/ngage_cpu.sv']
++(out / 'common.f').write_text('\n'.join(files) + '\n')
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/flash-reset.sh b/scratch/v5-fit-loop/upp-claim-presence/flash-reset.sh
+new file mode 100644
+index 0000000..2d8cf2c
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/flash-reset.sh
+@@ -0,0 +1,22 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/upp-claim-presence
++out=build/sim/v5-104-upp-claim-presence/flash-reset
++python3 -B "$area/prepare-flash.py"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -ec '
++    out=/work/build/sim/v5-104-upp-claim-presence/flash-reset
++    for leg in reference source; do
++        cd "/work/scratch/v5-fit-loop/upp-claim-presence/$leg"
++        for profile in tb cold_tb write_tb; do
++            name="$out/$leg-$profile"
++            iverilog -g2012 -s tb -o "$name" -f "$out/common.f" "$out/$profile.v"
++            vvp "$name" > "$name.log"
++            grep "^PASS " "$name.log"
++        done
++    done
++    for profile in tb cold_tb write_tb; do
++        sed -n "/^PASS /p" "$out/reference-$profile.log" > "$out/reference-$profile.pass"
++        sed -n "/^PASS /p" "$out/source-$profile.log" > "$out/source-$profile.pass"
++        cmp "$out/reference-$profile.pass" "$out/source-$profile.pass"
++    done'
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/sdram-drain.sh b/scratch/v5-fit-loop/upp-claim-presence/sdram-drain.sh
+new file mode 100644
+index 0000000..c074ab7
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/sdram-drain.sh
+@@ -0,0 +1,16 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/upp-claim-presence
++out=build/sim/v5-104-upp-claim-presence/sdram-drain
++model=build/sim/v5-104-timer-write-prepare/mixed/source/build/sim/unit-hardware-boot-real-sdram/mt48lc16m16a2-verilator.v
++mkdir -p "$out"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -ec "
++    verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
++        --top-module stream_tb -GSYS_HZ=104000000 --Mdir '$out/obj' \
++        '$area/source/rtl/ngage_sdram_stream.v' '$area/source/rtl/sdram/ngage_sdram_scheduler.v' \
++        '$area/source/rtl/ngage_sdram_arbiter.v' '$area/source/rtl/ngage_sdram_clock.v' \
++        '$area/source/tests/phone/sdram/ddio_model.v' '$area/source/tests/phone/sdram/stream_tb.sv' '$model' \
++        > '$out/build.log' 2>&1
++    '$out/obj/Vstream_tb' > '$out/run.log'
++    grep -E '^(SCRUB PASS|REFRESH PASS|PASS stream)' '$out/run.log'"
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/prepare-hold.py b/scratch/v5-fit-loop/upp-claim-presence/prepare-hold.py
+new file mode 100644
+index 0000000..662513b
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/prepare-hold.py
+@@ -0,0 +1,29 @@
++"""Match both exact legs against the timer's measured PCM phase after CPU Hold."""
++from pathlib import Path
++
++
++build = Path('build/sim')
++base = build / 'v5-104-timer-write-prepare/mixed'
++candidate = build / 'v5-104-upp-claim-presence/mixed'
++out = candidate.parent / 'hold'
++out.mkdir(parents=True, exist_ok=True)
++bench = 'source/tests/phone/mmc_mister/tb.v'
++source = (base / bench).read_text()
++assert source == (candidate / bench).read_text()
++needle = "sample_hash !== 32'h175ee178"
++assert source.count(needle) == 1
++# The original no-hold pin fixture expects independently fixed PCM phase.
++# A verified compare of a warm hold uses the same baseline PCM witness.
++source = source.replace(needle, "sample_hash !== ($test$plusargs(\"hold\") ? 32'h015ec64f : 32'h175ee178)")
++patched = out / 'tb.v'
++patched.write_text(source)
++for label, leg in (('reference', base), ('trial', candidate)):
++    command = (leg / 'build.sh').read_text()
++    old_bench = str(leg / bench)
++    old_object = str(leg / 'obj')
++    old_log = str(leg / 'build.log')
++    assert all(command.count(text) == 1 for text in (old_bench, old_object, old_log))
++    command = command.replace(old_bench, str(patched))
++    command = command.replace(old_object, str(out / f'{label}-obj'))
++    command = command.replace(old_log, str(out / f'{label}-build.log'))
++    (out / f'{label}-build.sh').write_text(command)
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/hold.sh b/scratch/v5-fit-loop/upp-claim-presence/hold.sh
+new file mode 100644
+index 0000000..bc86760
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/hold.sh
+@@ -0,0 +1,16 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/upp-claim-presence
++out=build/sim/v5-104-upp-claim-presence/hold
++python3 -B "$area/prepare-hold.py"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -ec "
++    for leg in reference trial; do
++        sh '$out/'\$leg-build.sh
++        '$out/'\$leg-obj/Vtb +upp_stress +hold '+compare_trace=$out/'\$leg.trace > '$out/'\$leg.log
++        grep '^PASS ' '$out/'\$leg.log > '$out/'\$leg.pass
++    done"
++cmp "$out/reference.trace" "$out/trial.trace"
++cmp "$out/reference.pass" "$out/trial.pass"
++cat "$out/trial.pass"
++wc -l "$out/trial.trace"
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/routes.py b/scratch/v5-fit-loop/upp-claim-presence/routes.py
+new file mode 100644
+index 0000000..1fe3083
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/routes.py
+@@ -0,0 +1,111 @@
++"""Preserve sampled reset and registered-completion routes on exact fitted sources."""
++import csv
++import json
++from pathlib import Path
++import re
++
++
++stage = Path(__file__).resolve().parent
++groups = {
++    'timer': {13: 45824513460, 43: 45824520116, 31337: 45824525843},
++    'a_only': {13: 45874467913, 43: 45874473714, 31337: 45874483394},
++    'joint_ram': {13: 45869671440, 43: 45869675764, 31337: 45869680539},
++    'retained': {13: 45771268571},
++}
++
++
++def reset_launch(row):
++    return '|reset_drain' in row['from']
++
++
++def peripheral(row):
++    return '|ngage_upp_peripherals:peripherals|' in row['to']
++
++
++def valid(row):
++    return '|registered_response.valid' in row['to']
++
++
++def summarize(rows):
++    return {'count': len(rows), 'below_minus_1p5_ns': sum(float(row['slack_ns']) < -1.5 for row in rows),
++            'worst': rows[0] if rows else None}
++
++
++def trace(report, row):
++    rank = int(row['rank'])
++    if rank not in report:
++        return {**row, 'class': 'outside detailed sample'}
++    chunk = report[rank]
++    cells = [line.split(';')[-2].strip().removesuffix('|combout')
++             for line in chunk.splitlines() if '|combout' in line and 'CELL' in line]
++    if any('selected_owner' in cell for cell in cells):
++        family = 'priority'
++    elif any(re.search(r'\|ready~', cell) for cell in cells):
++        family = 'readiness'
++    else:
++        family = 'other'
++    return {**row, 'class': family, 'cells': cells}
++
++
++results = {}
++for label, fits in groups.items():
++    rows_by_seed = {}
++    for seed, run in fits.items():
++        out = Path(f'build/timing-audit-{run}/output_files')
++        manifest = json.loads((out / 'resident-fit-manifest.json').read_bytes())
++        assert manifest['seed'] == seed and manifest['physical_cpu_mhz'] == 104 and not manifest['debugger']
++        corner_data = {}
++        for corner in sorted((out / 'timing/resident-store/104').glob('corner-*')):
++            with (corner / 'setup.csv').open() as handle:
++                rows = list(csv.DictReader(handle))
++            assert len(rows) == 1000
++            chunks = re.split(r'(?m)^Path #(\d+): Setup slack is ', (corner / 'setup.rpt').read_text(errors='replace'))
++            report = {int(rank): text for rank, text in zip(chunks[1::2], chunks[2::2], strict=True)}
++            reset_paths = [x for x in rows if reset_launch(x)]
++            peripheral_reset = [x for x in reset_paths if peripheral(x)]
++            response_valid = [x for x in rows if valid(x)]
++            corner_data[corner.name] = {
++                'condition': (corner / 'operating-condition.txt').read_text().splitlines()[1].split(': ', 1)[1],
++                'reset_launch': summarize(reset_paths), 'reset_to_peripheral': summarize(peripheral_reset),
++                'reset_to_valid': summarize([x for x in peripheral_reset if valid(x)]),
++                'reset_to_sdram_arbiter': summarize([x for x in reset_paths if '|ngage_sdram_arbiter:' in x['to']]),
++                'reset_to_dma_engine': summarize([x for x in reset_paths if '|ngage_dma_engine:' in x['to']]),
++                'registered_valid': summarize(response_valid),
++                'valid_paths': [trace(report, x) for x in response_valid],
++                'leading_reset_path': trace(report, reset_paths[0]) if reset_paths else None,
++            }
++        assert len(corner_data) == 4
++        rows_by_seed[str(seed)] = {'run': run, 'commit': manifest['actual_commit'], 'corners': corner_data}
++    results[label] = rows_by_seed
++
++timer = results['timer']
++for name, targets, worst in (
++    ('corner-1', (2, 1, 2), ('-1.513', '-1.668', '-1.867')),
++    ('corner-2', (2, 1, 2), ('-1.650', '-1.594', '-1.805')),
++):
++    for seed, count, slack in zip(('13', '43', '31337'), targets, worst, strict=True):
++        corner = timer[seed]['corners'][name]
++        assert corner['reset_to_peripheral']['count'] == 0
++        assert corner['registered_valid']['below_minus_1p5_ns'] == count
++        assert corner['registered_valid']['worst']['slack_ns'] == slack
++assert all(x['class'] == 'priority' for x in timer['31337']['corners']['corner-1']['valid_paths'])
++assert all(x['class'] == 'readiness' for x in timer['13']['corners']['corner-2']['valid_paths'])
++fast = timer['31337']['corners']['corner-3']
++assert fast['reset_to_peripheral']['count'] == 210
++assert fast['reset_to_peripheral']['worst']['slack_ns'] == '2.848'
++assert all(reset_launch(x) and x['class'] == 'priority' for x in fast['valid_paths'])
++assert timer['31337']['corners']['corner-4']['reset_to_peripheral']['count'] == 7
++
++a_only = results['a_only']
++peripheral_path = a_only['31337']['corners']['corner-1']['leading_reset_path']
++assert peripheral_path['slack_ns'] == '-3.204' and peripheral_path['class'] == 'priority'
++assert a_only['31337']['corners']['corner-1']['reset_to_peripheral']['below_minus_1p5_ns'] == 290
++block_path = a_only['13']['corners']['corner-1']['leading_reset_path']
++assert block_path['slack_ns'] == '-3.014' and block_path['to'].endswith('|mem_block_data[56]')
++assert any('line_mux|scalar_due' in cell for cell in block_path['cells'])
++dma_path = results['joint_ram']['13']['corners']['corner-1']['leading_reset_path']
++assert dma_path['slack_ns'] == '-3.080' and dma_path['to'].endswith('|done~DUPLICATE')
++assert any('phone_sdram|owner_ready' in cell for cell in dma_path['cells'])
++
++(stage / 'routes.json').write_text(json.dumps(results, indent=2) + '\n')
++print('PASS four-corner reset census and actual priority/readiness path families')
+diff --git a/scratch/v5-fit-loop/upp-claim-presence/record.py b/scratch/v5-fit-loop/upp-claim-presence/record.py
+new file mode 100644
+index 0000000..5a1475a
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-claim-presence/record.py
+@@ -0,0 +1,142 @@
++"""Verify the UPP claim presence design, exact fixture source and replay results."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import subprocess
++
++
++stage = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-upp-claim-presence')
++control = Path('build/sim/v5-104-timer-write-prepare')
++source = 'rtl/ngage_upp_peripherals.v'
++base = '9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e'
++base_tree = '0ccd13d8cd502bc14d3b89c6431ff0ebe4745612'
++
++
++def digest(path):
++    return sha256(path.read_bytes()).hexdigest()
++
++
++def load(path):
++    return json.loads(path.read_bytes())
++
++
++def match(left, right):
++    assert left.read_bytes() == right.read_bytes(), (left, right)
++    return digest(left)
++
++
++def fingerprint(manifest, path):
++    [row] = [shlex.split(line) for line in manifest.read_text().splitlines()
++             if line.startswith('S ') and shlex.split(line)[-1].endswith(path)]
++    return row[-2]
++
++
++def passes(log):
++    return re.findall(r'^(?:SCRUB PASS|REFRESH PASS|PASS) .+$', log.read_text(), re.M)
++
++
++design = stage / 'upp-claim-presence.patch'
++replay = stage / 'upp-claim-presence-replay.patch'
++stats = subprocess.check_output(['git', 'apply', '--numstat', str(design)], text=True)
++assert [line.split('\t')[-1] for line in stats.splitlines()] == [source]
++candidate_tree = (stage / 'design-tree.sha').read_text().strip()
++assert re.fullmatch(r'[a-f0-9]{40}', candidate_tree)
++src_sha = digest(stage / 'source' / source)
++ref_sha = digest(stage / 'reference' / source)
++production = {}
++for seed, run in ((13, 45824513460), (43, 45824520116), (31337, 45824525843)):
++    report = load(Path(f'build/timing-audit-{run}/output_files/resident-fit-manifest.json'))
++    assert report['actual_commit'] == base and report['seed'] == seed
++    assert report['physical_cpu_mhz'] == 104 and report['debugger'] is False
++    assert len(report['compiled_source_sha256']) == 133 and report['compiled_source_sha256'][source] == ref_sha
++    production[seed] = run
++
++reference = control / 'mixed'
++mixed = out / 'mixed'
++manifest = load(mixed / 'source-hashes.json')
++ref_manifest = load(reference / 'source-hashes.json')
++assert len(manifest) == 114 and manifest.keys() == ref_manifest.keys()
++assert {path: sha for path, sha in manifest.items() if sha != ref_manifest[path]} == {source: src_sha}
++assert all(digest(mixed / 'source' / path) == sha for path, sha in manifest.items())
++compiled = fingerprint(mixed / 'obj/Vtb__verFiles.dat', source)
++assert fingerprint(out / 'hold/trial-obj/Vtb__verFiles.dat', source) == compiled
++assert fingerprint(out / 'hold/reference-obj/Vtb__verFiles.dat', source) != compiled
++
++physical = {}
++for mode, ref, trace, log, count, cycles, hash_qual in (
++    ('normal', reference / 'traffic.log', mixed / 'traffic.log', mixed / 'replay.log',
++     171496, 1201547, '175ee178'),
++    ('timer_mmc_lcd', control / 'coexistence/candidate.trace', out / 'coexistence/candidate.trace',
++     out / 'coexistence/candidate.log', 171497, 1201528, '175ee178'),
++    ('mmc_hps_warm_hold', out / 'hold/reference.trace', out / 'hold/trial.trace', out / 'hold/trial.log',
++     171518, 1203504, '015ec64f'),
++):
++    status = passes(log)
++    assert len(status) == 4 and any(f'PCM hash={hash_qual}' in line for line in status)
++    assert any(f'persisted512bytes+PIOreadback cycles={cycles}' in line for line in status)
++    assert len(trace.read_bytes().splitlines()) == count
++    physical[mode] = {'events': count, 'cycles': cycles, 'sha256': match(trace, ref), 'passes': status}
++assert match(out / 'coexistence/stress-timer.hex', control / 'coexistence/stress-timer.hex')
++exact_hold = match(out / 'hold/reference.pass', out / 'hold/trial.pass')
++
++claim_log = out / 'claim/miter.log'
++assert passes(claim_log) == ['PASS exact claim selection and valid comparisons=1185794']
++lanes = {}
++for keypad in (0, 1):
++    name = f'{keypad}.trace'
++    trace = out / f'lane/source-{name}'
++    [result] = passes(trace)
++    assert f'keypad={keypad} replies=311 samples=311' in result and 'overlap=11 nos=4' in result
++    lanes[keypad] = {'expected_result': result, 'trace_sha256': match(trace, out / f'lane/reference-{name}')}
++drains = {}
++for suffix, location in (('ddr', 'reset'), ('lcd-dma', 'reset'),
++                         ('tb', 'flash-reset'), ('cold_tb', 'flash-reset'), ('write_tb', 'flash-reset')):
++    controls = out / f'{location}/reference-{suffix}.log'
++    actual = out / f'{location}/source-{suffix}.log'
++    assert passes(actual) and passes(controls) == passes(actual)
++    if location == 'reset':
++        assert controls.read_text().replace(f'{stage.name}/reference/', f'{stage.name}/source/') == actual.read_text()
++    drains[suffix] = {'passes': passes(actual), 'log_sha256': digest(actual)}
++drain = out / 'sdram-drain/run.log'
++assert any('logical reset drain' in line for line in passes(drain))
++assert any('max_interval_clocks=758' in line for line in passes(drain))
++drains['physical_sdram'] = {'passes': passes(drain), 'log_sha256': digest(drain)}
++
++workloads = {}
++for kind, field, expected in (('fixed', 'windows', 105), ('native', 'frames', 4)):
++    receipt = out / f'qualification/{kind}.json'
++    data = load(receipt)
++    baseline = load(control / f'qualification/{kind}.json')
++    assert data['status'] == baseline['status'] == 'PASS' and data['rows'] == baseline['rows']
++    periph = Path(source).name
++    assert data['source_sha256'] == {**baseline['source_sha256'], periph: src_sha}
++    assert fingerprint(out / f'qualification/obj-{kind}/Vtb__verFiles.dat', source) == compiled
++    assert sum(len(row['candidate'][field]) for row in data['rows']) == expected
++    workloads[kind] = {'count': expected, 'receipt_sha256': digest(receipt)}
++    if kind == 'fixed':
++        cases = [row['candidate']['case'] for row in data['rows']]
++        assert len(set(cases)) == 15
++        for case in cases:
++            assert (out / f'qualification/{case}-00-1.log').is_file()
++            assert 'Guest output check rejected payload' in (out / f'qualification/{case}-00-0-wrong.log').read_text()
++        workloads[kind].update(repeats=15, rejected_wrong_outputs=15)
++    else:
++        native = data['rows'][0]['candidate']
++        clocks = [frame['clocks'] for frame in native['frames']]
++        assert clocks == [14391395, 14467552, 14346201, 14303223]
++        workloads[kind].update(frame_cycles=clocks, output_sha256=native['output_sha256'])
++
++summary = {'status': 'PASS', 'base': base, 'base_tree': base_tree, 'candidate_tree': candidate_tree,
++           'design_patch_sha256': digest(design), 'replay_patch_sha256': digest(replay),
++           'reference_sha256': ref_sha, 'source_sha256': src_sha,
++           'simulator': (out / 'image.id').read_text().strip(),
++           'exact_compiled_fingerprint': compiled, 'production_control_runs': production,
++           'routed_witness_sha256': digest(stage / 'routes.json'), 'candidate_routed': False,
++           'miter': {'comparisons': 1185794, 'sha256': digest(claim_log)},
++           'lanes': lanes, 'drains': drains, 'workloads': workloads, 'physical': physical,
++           'mmc_hps_hold_pass_sha256': exact_hold, 'physical_source_count': len(manifest)}
++(stage / 'qualification.json').write_text(json.dumps(summary, indent=2) + '\n')
++print('PASS claim/priority/valid, flash and board reset/drain, 105 fixed windows, four native frames and three physical replays')

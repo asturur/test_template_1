@@ -1,0 +1,2275 @@
+{
+  "historical": [
+    {
+      "run": 45414696142,
+      "sha": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+      "seed": 43,
+      "alms": 36446,
+      "m10ks": 321,
+      "registers": 40425,
+      "average_routing_pct": 44.4,
+      "peak_routing_pct": 77.3,
+      "core_setup_tns_sta_summary_ns": -5288.569,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.508,
+          "hold-summary": 0.216,
+          "recovery-summary": 1.738,
+          "removal-summary": 0.946,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.49
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.428,
+          "hold-summary": 0.102,
+          "recovery-summary": 1.829,
+          "removal-summary": 0.914,
+          "min-pulse": 0.961,
+          "fmax_mhz": 83.04
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.468,
+          "hold-summary": 0.101,
+          "recovery-summary": 4.595,
+          "removal-summary": 0.448,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.92
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.63,
+          "hold-summary": 0.08,
+          "recovery-summary": 4.946,
+          "removal-summary": 0.377,
+          "min-pulse": 0.961,
+          "fmax_mhz": 169.35
+        }
+      ],
+      "worst_setup_ns": -2.508,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 85,
+        "ngage2_zap_tlb:": 28,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 153
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.2,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 259.6,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.2,
+          "direct_registers": 290,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 195.9,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 851.2,
+          "direct_registers": 916,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261124",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.174,
+          "paths_below_target": 441,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_execute": 87,
+            "ngage_sdram_arbiter": 63,
+            "ngage2_zap_wb_merger": 30,
+            "ngage2_arm9v2_decode": 26,
+            "ngage_mmc_host": 26,
+            "ngage_lcd_stream": 24,
+            "ngage_dma_engine": 23,
+            "ngage_keypad": 22,
+            "ngage_sdram_scheduler": 21,
+            "ngage_upp_peripherals": 16,
+            "ngage_adsp": 16,
+            "ngage2_zap_dcache": 9,
+            "ngage2_zap_cache_fsm": 9,
+            "ngage2_arm9v2_core": 8,
+            "ngage_codeflash": 8,
+            "ngage_cbus_uem": 6,
+            "ngage_dma_route": 6,
+            "ngage_icu": 4,
+            "ngage_am29n643_state": 4,
+            "ngage_upp_request_stage": 4,
+            "ngage_upp": 4,
+            "ngage_dma_ram_mux": 4,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage2_zap_dcache_half_tag_ram": 3,
+            "altsyncram_n0q1": 3,
+            "ngage2_zap_register_file": 2,
+            "ngage_cflash": 2,
+            "altsyncram_6js2": 2,
+            "ngage_sdram_stream": 2,
+            "altsyncram_p352": 1,
+            "altsyncram_j6v2": 1,
+            "ngage_nos_io": 1,
+            "altsyncram_e852": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.99,
+          "paths_below_target": 191,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_execute": 52,
+            "ngage2_zap_wb_merger": 25,
+            "ngage_sdram_scheduler": 19,
+            "ngage_sdram_arbiter": 15,
+            "ngage2_arm9v2_decode": 10,
+            "ngage2_zap_dcache": 10,
+            "ngage_upp_peripherals": 9,
+            "ngage2_arm9v2_core": 6,
+            "ngage_mmc_host": 6,
+            "ngage_dma_engine": 6,
+            "ngage_service_loader": 4,
+            "ngage_lcd_stream": 4,
+            "ngage_upp_request_stage": 4,
+            "ngage2_zap_cache_fsm": 4,
+            "ngage2_zap_dcache_half_tag_ram": 3,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage_cbus_uem": 3,
+            "ngage_codeflash": 3,
+            "ngage_mister": 2,
+            "ngage2_arm9v2_predict": 1,
+            "ngage_icu": 1,
+            "ngage_ddr_stream": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.523,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.273,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 8.514,
+        "cells_ns": 2.881
+      }
+    },
+    {
+      "run": 45414703565,
+      "sha": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+      "seed": 13,
+      "alms": 36420,
+      "m10ks": 321,
+      "registers": 40529,
+      "average_routing_pct": 45.0,
+      "peak_routing_pct": 73.7,
+      "core_setup_tns_sta_summary_ns": -4606.649,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.061,
+          "hold-summary": 0.218,
+          "recovery-summary": 2.47,
+          "removal-summary": 1.116,
+          "min-pulse": 0.961,
+          "fmax_mhz": 85.65
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -1.95,
+          "hold-summary": 0.144,
+          "recovery-summary": 2.766,
+          "removal-summary": 1.046,
+          "min-pulse": 0.961,
+          "fmax_mhz": 86.47
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.623,
+          "hold-summary": 0.098,
+          "recovery-summary": 4.758,
+          "removal-summary": 0.569,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.02
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.702,
+          "hold-summary": 0.052,
+          "recovery-summary": 5.12,
+          "removal-summary": 0.49,
+          "min-pulse": 0.961,
+          "fmax_mhz": 171.61
+        }
+      ],
+      "worst_setup_ns": -2.061,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 67,
+        "ngage_icu_extra:extra_regs|": 52,
+        "ngage_mmc_host:": 17,
+        "ngage2_zap_tlb:": 36,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 35
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.7,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.8,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.9,
+          "direct_registers": 292,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 191.8,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 825.3,
+          "direct_registers": 912,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261124",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.214,
+          "paths_below_target": 297,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_timers": 50,
+            "ngage_sdram_arbiter": 45,
+            "ngage2_zap_wb_merger": 32,
+            "ngage_icu": 17,
+            "ngage_mmc_host": 15,
+            "ngage2_zap_dcache": 11,
+            "ngage_ddr_flash_cache": 11,
+            "ngage_dma_engine": 10,
+            "ngage2_arm9v2_execute": 10,
+            "ngage_keypad": 10,
+            "ngage_upp_peripherals": 8,
+            "ngage2_zap_tlb_check": 8,
+            "ngage_sdram_scheduler": 8,
+            "ngage2_arm9v2_core": 6,
+            "ngage_cbus_uem": 6,
+            "altsyncram_6js2": 6,
+            "ngage2_arm9v2_decode": 5,
+            "ngage_adsp": 4,
+            "ngage2_zap_dcache_half_tag_ram": 4,
+            "ngage_sparse_regs": 4,
+            "ngage_icu_extra": 4,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage2_zap_cache_fsm": 2,
+            "ngage2_zap_ram_simple": 2,
+            "ngage_mister": 2,
+            "altsyncram_j6v2": 2,
+            "ngage_nos_io": 2,
+            "ngage_lcd_stream": 2,
+            "ngage_upp_request_stage": 2,
+            "ngage_am29n643_state": 1,
+            "ngage_upp_mdi": 1,
+            "ngage2_zap_tlb_fsm": 1,
+            "altsyncram_5gs2": 1,
+            "ngage_boot_regs": 1,
+            "ngage2_zap_register_file": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.962,
+          "paths_below_target": 107,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_sdram_arbiter": 22,
+            "ngage2_zap_wb_merger": 15,
+            "ngage_mmc_host": 15,
+            "ngage2_zap_dcache": 8,
+            "ngage_sdram_scheduler": 8,
+            "ngage2_zap_tlb_check": 7,
+            "ngage_dma_engine": 5,
+            "ngage_upp_peripherals": 4,
+            "ngage2_arm9v2_decode": 3,
+            "ngage2_arm9v2_core": 3,
+            "ngage_cbus_uem": 3,
+            "ngage_adsp": 2,
+            "ngage_mister": 2,
+            "ngage_ddr_flash_cache": 2,
+            "ngage_icu": 2,
+            "ngage2_arm9v2_execute": 1,
+            "ngage2_zap_ram_simple": 1,
+            "ngage_lcd_stream": 1,
+            "ngage_ddr_stream": 1,
+            "ngage2_arm9v2_predict": 1,
+            "ngage2_zap_tlb_fsm": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.485,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.226,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 8.739,
+        "cells_ns": 2.186
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-e9552bd-seed13/ngage1.rbf",
+        "sha256": "775b663ce1d8cc8fa6c6ba992ab75c2f6946b50550f45d66fb75571a795ac5f2"
+      }
+    },
+    {
+      "run": 45414709004,
+      "sha": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+      "seed": 31337,
+      "alms": 36461,
+      "m10ks": 321,
+      "registers": 40532,
+      "average_routing_pct": 46.5,
+      "peak_routing_pct": 78.4,
+      "core_setup_tns_sta_summary_ns": -5143.651,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.278,
+          "hold-summary": 0.219,
+          "recovery-summary": 2.077,
+          "removal-summary": 0.934,
+          "min-pulse": 0.961,
+          "fmax_mhz": 84.08
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.471,
+          "hold-summary": 0.082,
+          "recovery-summary": 2.26,
+          "removal-summary": 0.909,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.74
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.622,
+          "hold-summary": 0.13,
+          "recovery-summary": 4.9,
+          "removal-summary": 0.427,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.88
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.339,
+          "hold-summary": 0.074,
+          "recovery-summary": 5.19,
+          "removal-summary": 0.363,
+          "min-pulse": 0.961,
+          "fmax_mhz": 173.55
+        }
+      ],
+      "worst_setup_ns": -2.471,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 27,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 40,
+        "ngage2_zap_tlb:": 100,
+        "ngage2_zap_wb_merger:": 72,
+        "ngage2_arm9v2_execute:": 156
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.5,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 261.3,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 239.6,
+          "direct_registers": 293,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 197.6,
+          "direct_registers": 208,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 834.5,
+          "direct_registers": 908,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261124",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.168,
+          "paths_below_target": 231,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_decode": 53,
+            "ngage2_zap_wb_merger": 40,
+            "ngage2_arm9v2_core": 22,
+            "ngage2_arm9v2_execute": 18,
+            "ngage_mmc_host": 12,
+            "ngage2_zap_dcache_half_tag_ram": 11,
+            "ngage2_arm9v2_fetch": 11,
+            "altsyncram_e852": 9,
+            "ngage2_zap_cache_fsm": 9,
+            "ngage2_zap_tlb_check": 7,
+            "ngage_lcd_stream": 7,
+            "ngage_upp_peripherals": 5,
+            "ngage2_zap_dcache": 4,
+            "ngage2_zap_cache": 4,
+            "ngage_sdram_arbiter": 3,
+            "altsyncram_n0q1": 3,
+            "ngage2_zap_dcache_fsm": 2,
+            "altsyncram_04q1": 2,
+            "ngage_sdram_scheduler": 2,
+            "altsyncram_p352": 1,
+            "ngage_sparse_regs": 1,
+            "altsyncram_1qr1": 1,
+            "altsyncram_e0q1": 1,
+            "ngage2_zap_register_file": 1,
+            "ngage_cflash": 1,
+            "ngage_adsp": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.918,
+          "paths_below_target": 105,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_zap_wb_merger": 37,
+            "ngage_mmc_host": 14,
+            "ngage2_arm9v2_decode": 12,
+            "ngage2_arm9v2_execute": 10,
+            "ngage2_zap_tlb_check": 7,
+            "ngage2_zap_cache_fsm": 6,
+            "ngage2_zap_dcache": 4,
+            "ngage_sdram_arbiter": 3,
+            "altsyncram_e852": 2,
+            "altsyncram_n0q1": 2,
+            "ngage_sdram_scheduler": 2,
+            "ngage_cbus_uem": 2,
+            "ngage2_zap_dcache_half_tag_ram": 1,
+            "ngage_upp_peripherals": 1,
+            "altsyncram_p352": 1,
+            "ngage_upp_request_stage": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.457,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.281,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 5.56,
+        "cells_ns": 5.593
+      }
+    }
+  ],
+  "same_day": [
+    {
+      "run": 45771267820,
+      "sha": "81a1b455cea6daa40203275315c0cd240503a194",
+      "seed": 43,
+      "alms": 36446,
+      "m10ks": 321,
+      "registers": 40425,
+      "average_routing_pct": 44.4,
+      "peak_routing_pct": 77.3,
+      "core_setup_tns_sta_summary_ns": -5288.569,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.508,
+          "hold-summary": 0.216,
+          "recovery-summary": 1.738,
+          "removal-summary": 0.946,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.49
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.428,
+          "hold-summary": 0.102,
+          "recovery-summary": 1.829,
+          "removal-summary": 0.914,
+          "min-pulse": 0.961,
+          "fmax_mhz": 83.04
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.468,
+          "hold-summary": 0.101,
+          "recovery-summary": 4.595,
+          "removal-summary": 0.448,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.92
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.63,
+          "hold-summary": 0.08,
+          "recovery-summary": 4.946,
+          "removal-summary": 0.377,
+          "min-pulse": 0.961,
+          "fmax_mhz": 169.35
+        }
+      ],
+      "worst_setup_ns": -2.508,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 85,
+        "ngage2_zap_tlb:": 28,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 153
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.2,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 259.6,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.2,
+          "direct_registers": 290,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 195.9,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 851.2,
+          "direct_registers": 916,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.174,
+          "paths_below_target": 441,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_execute": 87,
+            "ngage_sdram_arbiter": 63,
+            "ngage2_zap_wb_merger": 30,
+            "ngage2_arm9v2_decode": 26,
+            "ngage_mmc_host": 26,
+            "ngage_lcd_stream": 24,
+            "ngage_dma_engine": 23,
+            "ngage_keypad": 22,
+            "ngage_sdram_scheduler": 21,
+            "ngage_upp_peripherals": 16,
+            "ngage_adsp": 16,
+            "ngage2_zap_dcache": 9,
+            "ngage2_zap_cache_fsm": 9,
+            "ngage2_arm9v2_core": 8,
+            "ngage_codeflash": 8,
+            "ngage_cbus_uem": 6,
+            "ngage_dma_route": 6,
+            "ngage_icu": 4,
+            "ngage_am29n643_state": 4,
+            "ngage_upp_request_stage": 4,
+            "ngage_upp": 4,
+            "ngage_dma_ram_mux": 4,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage2_zap_dcache_half_tag_ram": 3,
+            "altsyncram_n0q1": 3,
+            "ngage2_zap_register_file": 2,
+            "ngage_cflash": 2,
+            "altsyncram_6js2": 2,
+            "ngage_sdram_stream": 2,
+            "altsyncram_p352": 1,
+            "altsyncram_j6v2": 1,
+            "ngage_nos_io": 1,
+            "altsyncram_e852": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.99,
+          "paths_below_target": 191,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_execute": 52,
+            "ngage2_zap_wb_merger": 25,
+            "ngage_sdram_scheduler": 19,
+            "ngage_sdram_arbiter": 15,
+            "ngage2_arm9v2_decode": 10,
+            "ngage2_zap_dcache": 10,
+            "ngage_upp_peripherals": 9,
+            "ngage2_arm9v2_core": 6,
+            "ngage_mmc_host": 6,
+            "ngage_dma_engine": 6,
+            "ngage_service_loader": 4,
+            "ngage_lcd_stream": 4,
+            "ngage_upp_request_stage": 4,
+            "ngage2_zap_cache_fsm": 4,
+            "ngage2_zap_dcache_half_tag_ram": 3,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage_cbus_uem": 3,
+            "ngage_codeflash": 3,
+            "ngage_mister": 2,
+            "ngage2_arm9v2_predict": 1,
+            "ngage_icu": 1,
+            "ngage_ddr_stream": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.523,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.273,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 8.514,
+        "cells_ns": 2.881
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-81a1b45-seed43/ngage1.rbf",
+        "sha256": "e26deb6d408a8fb53155f4f3b6a8a6e2f3c66007a3915bd10ff9114d3c7bb332"
+      }
+    },
+    {
+      "run": 45771268571,
+      "sha": "81a1b455cea6daa40203275315c0cd240503a194",
+      "seed": 13,
+      "alms": 36420,
+      "m10ks": 321,
+      "registers": 40529,
+      "average_routing_pct": 45.0,
+      "peak_routing_pct": 73.7,
+      "core_setup_tns_sta_summary_ns": -4606.649,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.061,
+          "hold-summary": 0.218,
+          "recovery-summary": 2.47,
+          "removal-summary": 1.116,
+          "min-pulse": 0.961,
+          "fmax_mhz": 85.65
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -1.95,
+          "hold-summary": 0.144,
+          "recovery-summary": 2.766,
+          "removal-summary": 1.046,
+          "min-pulse": 0.961,
+          "fmax_mhz": 86.47
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.623,
+          "hold-summary": 0.098,
+          "recovery-summary": 4.758,
+          "removal-summary": 0.569,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.02
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.702,
+          "hold-summary": 0.052,
+          "recovery-summary": 5.12,
+          "removal-summary": 0.49,
+          "min-pulse": 0.961,
+          "fmax_mhz": 171.61
+        }
+      ],
+      "worst_setup_ns": -2.061,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 67,
+        "ngage_icu_extra:extra_regs|": 52,
+        "ngage_mmc_host:": 17,
+        "ngage2_zap_tlb:": 36,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 35
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.7,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.8,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.9,
+          "direct_registers": 292,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 191.8,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 825.3,
+          "direct_registers": 912,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.214,
+          "paths_below_target": 297,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_timers": 50,
+            "ngage_sdram_arbiter": 45,
+            "ngage2_zap_wb_merger": 32,
+            "ngage_icu": 17,
+            "ngage_mmc_host": 15,
+            "ngage2_zap_dcache": 11,
+            "ngage_ddr_flash_cache": 11,
+            "ngage_dma_engine": 10,
+            "ngage2_arm9v2_execute": 10,
+            "ngage_keypad": 10,
+            "ngage_upp_peripherals": 8,
+            "ngage2_zap_tlb_check": 8,
+            "ngage_sdram_scheduler": 8,
+            "ngage2_arm9v2_core": 6,
+            "ngage_cbus_uem": 6,
+            "altsyncram_6js2": 6,
+            "ngage2_arm9v2_decode": 5,
+            "ngage_adsp": 4,
+            "ngage2_zap_dcache_half_tag_ram": 4,
+            "ngage_sparse_regs": 4,
+            "ngage_icu_extra": 4,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage2_zap_cache_fsm": 2,
+            "ngage2_zap_ram_simple": 2,
+            "ngage_mister": 2,
+            "altsyncram_j6v2": 2,
+            "ngage_nos_io": 2,
+            "ngage_lcd_stream": 2,
+            "ngage_upp_request_stage": 2,
+            "ngage_am29n643_state": 1,
+            "ngage_upp_mdi": 1,
+            "ngage2_zap_tlb_fsm": 1,
+            "altsyncram_5gs2": 1,
+            "ngage_boot_regs": 1,
+            "ngage2_zap_register_file": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.962,
+          "paths_below_target": 107,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_sdram_arbiter": 22,
+            "ngage2_zap_wb_merger": 15,
+            "ngage_mmc_host": 15,
+            "ngage2_zap_dcache": 8,
+            "ngage_sdram_scheduler": 8,
+            "ngage2_zap_tlb_check": 7,
+            "ngage_dma_engine": 5,
+            "ngage_upp_peripherals": 4,
+            "ngage2_arm9v2_decode": 3,
+            "ngage2_arm9v2_core": 3,
+            "ngage_cbus_uem": 3,
+            "ngage_adsp": 2,
+            "ngage_mister": 2,
+            "ngage_ddr_flash_cache": 2,
+            "ngage_icu": 2,
+            "ngage2_arm9v2_execute": 1,
+            "ngage2_zap_ram_simple": 1,
+            "ngage_lcd_stream": 1,
+            "ngage_ddr_stream": 1,
+            "ngage2_arm9v2_predict": 1,
+            "ngage2_zap_tlb_fsm": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.485,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.226,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 8.739,
+        "cells_ns": 2.186
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-81a1b45-seed13/ngage1.rbf",
+        "sha256": "46e6e28a4ec926271331ebe0a6d747186b428beedab38773181fa0a5951dfb6a"
+      }
+    },
+    {
+      "run": 45771266151,
+      "sha": "81a1b455cea6daa40203275315c0cd240503a194",
+      "seed": 31337,
+      "alms": 36461,
+      "m10ks": 321,
+      "registers": 40532,
+      "average_routing_pct": 46.5,
+      "peak_routing_pct": 78.4,
+      "core_setup_tns_sta_summary_ns": -5143.651,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.278,
+          "hold-summary": 0.219,
+          "recovery-summary": 2.077,
+          "removal-summary": 0.934,
+          "min-pulse": 0.961,
+          "fmax_mhz": 84.08
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.471,
+          "hold-summary": 0.082,
+          "recovery-summary": 2.26,
+          "removal-summary": 0.909,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.74
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.622,
+          "hold-summary": 0.13,
+          "recovery-summary": 4.9,
+          "removal-summary": 0.427,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.88
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.339,
+          "hold-summary": 0.074,
+          "recovery-summary": 5.19,
+          "removal-summary": 0.363,
+          "min-pulse": 0.961,
+          "fmax_mhz": 173.55
+        }
+      ],
+      "worst_setup_ns": -2.471,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 27,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 40,
+        "ngage2_zap_tlb:": 100,
+        "ngage2_zap_wb_merger:": 72,
+        "ngage2_arm9v2_execute:": 156
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.5,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 261.3,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 239.6,
+          "direct_registers": 293,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 197.6,
+          "direct_registers": 208,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 834.5,
+          "direct_registers": 908,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.168,
+          "paths_below_target": 231,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_decode": 53,
+            "ngage2_zap_wb_merger": 40,
+            "ngage2_arm9v2_core": 22,
+            "ngage2_arm9v2_execute": 18,
+            "ngage_mmc_host": 12,
+            "ngage2_zap_dcache_half_tag_ram": 11,
+            "ngage2_arm9v2_fetch": 11,
+            "altsyncram_e852": 9,
+            "ngage2_zap_cache_fsm": 9,
+            "ngage2_zap_tlb_check": 7,
+            "ngage_lcd_stream": 7,
+            "ngage_upp_peripherals": 5,
+            "ngage2_zap_dcache": 4,
+            "ngage2_zap_cache": 4,
+            "ngage_sdram_arbiter": 3,
+            "altsyncram_n0q1": 3,
+            "ngage2_zap_dcache_fsm": 2,
+            "altsyncram_04q1": 2,
+            "ngage_sdram_scheduler": 2,
+            "altsyncram_p352": 1,
+            "ngage_sparse_regs": 1,
+            "altsyncram_1qr1": 1,
+            "altsyncram_e0q1": 1,
+            "ngage2_zap_register_file": 1,
+            "ngage_cflash": 1,
+            "ngage_adsp": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.918,
+          "paths_below_target": 105,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_zap_wb_merger": 37,
+            "ngage_mmc_host": 14,
+            "ngage2_arm9v2_decode": 12,
+            "ngage2_arm9v2_execute": 10,
+            "ngage2_zap_tlb_check": 7,
+            "ngage2_zap_cache_fsm": 6,
+            "ngage2_zap_dcache": 4,
+            "ngage_sdram_arbiter": 3,
+            "altsyncram_e852": 2,
+            "altsyncram_n0q1": 2,
+            "ngage_sdram_scheduler": 2,
+            "ngage_cbus_uem": 2,
+            "ngage2_zap_dcache_half_tag_ram": 1,
+            "ngage_upp_peripherals": 1,
+            "altsyncram_p352": 1,
+            "ngage_upp_request_stage": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.457,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.281,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 5.56,
+        "cells_ns": 5.593
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-81a1b45-seed31337/ngage1.rbf",
+        "sha256": "4796db38d667d0938b7dccb6a46232f07240c7f5f75ec5a6785adc1f918b5a9d"
+      }
+    }
+  ],
+  "automatic": [
+    {
+      "run": 45771099927,
+      "sha": "bffd426971639c1cd17342ca36fa448415e3ac50",
+      "seed": 43,
+      "alms": 36446,
+      "m10ks": 321,
+      "registers": 40425,
+      "average_routing_pct": 44.4,
+      "peak_routing_pct": 77.3,
+      "core_setup_tns_sta_summary_ns": -5288.569,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.508,
+          "hold-summary": 0.216,
+          "recovery-summary": 1.738,
+          "removal-summary": 0.946,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.49
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.428,
+          "hold-summary": 0.102,
+          "recovery-summary": 1.829,
+          "removal-summary": 0.914,
+          "min-pulse": 0.961,
+          "fmax_mhz": 83.04
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.468,
+          "hold-summary": 0.101,
+          "recovery-summary": 4.595,
+          "removal-summary": 0.448,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.92
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.63,
+          "hold-summary": 0.08,
+          "recovery-summary": 4.946,
+          "removal-summary": 0.377,
+          "min-pulse": 0.961,
+          "fmax_mhz": 169.35
+        }
+      ],
+      "worst_setup_ns": -2.508,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 85,
+        "ngage2_zap_tlb:": 28,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 153
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.2,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 259.6,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.2,
+          "direct_registers": 290,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 195.9,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 851.2,
+          "direct_registers": 916,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "auto",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.174,
+          "paths_below_target": 441,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_execute": 87,
+            "ngage_sdram_arbiter": 63,
+            "ngage2_zap_wb_merger": 30,
+            "ngage2_arm9v2_decode": 26,
+            "ngage_mmc_host": 26,
+            "ngage_lcd_stream": 24,
+            "ngage_dma_engine": 23,
+            "ngage_keypad": 22,
+            "ngage_sdram_scheduler": 21,
+            "ngage_upp_peripherals": 16,
+            "ngage_adsp": 16,
+            "ngage2_zap_dcache": 9,
+            "ngage2_zap_cache_fsm": 9,
+            "ngage2_arm9v2_core": 8,
+            "ngage_codeflash": 8,
+            "ngage_cbus_uem": 6,
+            "ngage_dma_route": 6,
+            "ngage_icu": 4,
+            "ngage_am29n643_state": 4,
+            "ngage_upp_request_stage": 4,
+            "ngage_upp": 4,
+            "ngage_dma_ram_mux": 4,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage2_zap_dcache_half_tag_ram": 3,
+            "altsyncram_n0q1": 3,
+            "ngage2_zap_register_file": 2,
+            "ngage_cflash": 2,
+            "altsyncram_6js2": 2,
+            "ngage_sdram_stream": 2,
+            "altsyncram_p352": 1,
+            "altsyncram_j6v2": 1,
+            "ngage_nos_io": 1,
+            "altsyncram_e852": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.99,
+          "paths_below_target": 191,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_execute": 52,
+            "ngage2_zap_wb_merger": 25,
+            "ngage_sdram_scheduler": 19,
+            "ngage_sdram_arbiter": 15,
+            "ngage2_arm9v2_decode": 10,
+            "ngage2_zap_dcache": 10,
+            "ngage_upp_peripherals": 9,
+            "ngage2_arm9v2_core": 6,
+            "ngage_mmc_host": 6,
+            "ngage_dma_engine": 6,
+            "ngage_service_loader": 4,
+            "ngage_lcd_stream": 4,
+            "ngage_upp_request_stage": 4,
+            "ngage2_zap_cache_fsm": 4,
+            "ngage2_zap_dcache_half_tag_ram": 3,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage_cbus_uem": 3,
+            "ngage_codeflash": 3,
+            "ngage_mister": 2,
+            "ngage2_arm9v2_predict": 1,
+            "ngage_icu": 1,
+            "ngage_ddr_stream": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.523,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.273,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 8.514,
+        "cells_ns": 2.881
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-bffd426-seed43/ngage1.rbf",
+        "sha256": "e26deb6d408a8fb53155f4f3b6a8a6e2f3c66007a3915bd10ff9114d3c7bb332"
+      }
+    },
+    {
+      "run": 45771100820,
+      "sha": "bffd426971639c1cd17342ca36fa448415e3ac50",
+      "seed": 13,
+      "alms": 36420,
+      "m10ks": 321,
+      "registers": 40529,
+      "average_routing_pct": 45.0,
+      "peak_routing_pct": 73.7,
+      "core_setup_tns_sta_summary_ns": -4606.649,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.061,
+          "hold-summary": 0.218,
+          "recovery-summary": 2.47,
+          "removal-summary": 1.116,
+          "min-pulse": 0.961,
+          "fmax_mhz": 85.65
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -1.95,
+          "hold-summary": 0.144,
+          "recovery-summary": 2.766,
+          "removal-summary": 1.046,
+          "min-pulse": 0.961,
+          "fmax_mhz": 86.47
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.623,
+          "hold-summary": 0.098,
+          "recovery-summary": 4.758,
+          "removal-summary": 0.569,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.02
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.702,
+          "hold-summary": 0.052,
+          "recovery-summary": 5.12,
+          "removal-summary": 0.49,
+          "min-pulse": 0.961,
+          "fmax_mhz": 171.61
+        }
+      ],
+      "worst_setup_ns": -2.061,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 67,
+        "ngage_icu_extra:extra_regs|": 52,
+        "ngage_mmc_host:": 17,
+        "ngage2_zap_tlb:": 36,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 35
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.7,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.8,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.9,
+          "direct_registers": 292,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 191.8,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 825.3,
+          "direct_registers": 912,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "auto",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.214,
+          "paths_below_target": 297,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_timers": 50,
+            "ngage_sdram_arbiter": 45,
+            "ngage2_zap_wb_merger": 32,
+            "ngage_icu": 17,
+            "ngage_mmc_host": 15,
+            "ngage2_zap_dcache": 11,
+            "ngage_ddr_flash_cache": 11,
+            "ngage_dma_engine": 10,
+            "ngage2_arm9v2_execute": 10,
+            "ngage_keypad": 10,
+            "ngage_upp_peripherals": 8,
+            "ngage2_zap_tlb_check": 8,
+            "ngage_sdram_scheduler": 8,
+            "ngage2_arm9v2_core": 6,
+            "ngage_cbus_uem": 6,
+            "altsyncram_6js2": 6,
+            "ngage2_arm9v2_decode": 5,
+            "ngage_adsp": 4,
+            "ngage2_zap_dcache_half_tag_ram": 4,
+            "ngage_sparse_regs": 4,
+            "ngage_icu_extra": 4,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage2_zap_cache_fsm": 2,
+            "ngage2_zap_ram_simple": 2,
+            "ngage_mister": 2,
+            "altsyncram_j6v2": 2,
+            "ngage_nos_io": 2,
+            "ngage_lcd_stream": 2,
+            "ngage_upp_request_stage": 2,
+            "ngage_am29n643_state": 1,
+            "ngage_upp_mdi": 1,
+            "ngage2_zap_tlb_fsm": 1,
+            "altsyncram_5gs2": 1,
+            "ngage_boot_regs": 1,
+            "ngage2_zap_register_file": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.962,
+          "paths_below_target": 107,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_sdram_arbiter": 22,
+            "ngage2_zap_wb_merger": 15,
+            "ngage_mmc_host": 15,
+            "ngage2_zap_dcache": 8,
+            "ngage_sdram_scheduler": 8,
+            "ngage2_zap_tlb_check": 7,
+            "ngage_dma_engine": 5,
+            "ngage_upp_peripherals": 4,
+            "ngage2_arm9v2_decode": 3,
+            "ngage2_arm9v2_core": 3,
+            "ngage_cbus_uem": 3,
+            "ngage_adsp": 2,
+            "ngage_mister": 2,
+            "ngage_ddr_flash_cache": 2,
+            "ngage_icu": 2,
+            "ngage2_arm9v2_execute": 1,
+            "ngage2_zap_ram_simple": 1,
+            "ngage_lcd_stream": 1,
+            "ngage_ddr_stream": 1,
+            "ngage2_arm9v2_predict": 1,
+            "ngage2_zap_tlb_fsm": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.485,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.226,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 8.739,
+        "cells_ns": 2.186
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-bffd426-seed13/ngage1.rbf",
+        "sha256": "46e6e28a4ec926271331ebe0a6d747186b428beedab38773181fa0a5951dfb6a"
+      }
+    },
+    {
+      "run": 45771099906,
+      "sha": "bffd426971639c1cd17342ca36fa448415e3ac50",
+      "seed": 31337,
+      "alms": 36461,
+      "m10ks": 321,
+      "registers": 40532,
+      "average_routing_pct": 46.5,
+      "peak_routing_pct": 78.4,
+      "core_setup_tns_sta_summary_ns": -5143.651,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.278,
+          "hold-summary": 0.219,
+          "recovery-summary": 2.077,
+          "removal-summary": 0.934,
+          "min-pulse": 0.961,
+          "fmax_mhz": 84.08
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.471,
+          "hold-summary": 0.082,
+          "recovery-summary": 2.26,
+          "removal-summary": 0.909,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.74
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.622,
+          "hold-summary": 0.13,
+          "recovery-summary": 4.9,
+          "removal-summary": 0.427,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.88
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.339,
+          "hold-summary": 0.074,
+          "recovery-summary": 5.19,
+          "removal-summary": 0.363,
+          "min-pulse": 0.961,
+          "fmax_mhz": 173.55
+        }
+      ],
+      "worst_setup_ns": -2.471,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 27,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 40,
+        "ngage2_zap_tlb:": 100,
+        "ngage2_zap_wb_merger:": 72,
+        "ngage2_arm9v2_execute:": 156
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.5,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 261.3,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 239.6,
+          "direct_registers": 293,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 197.6,
+          "direct_registers": 208,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 834.5,
+          "direct_registers": 908,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "auto",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.168,
+          "paths_below_target": 231,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_decode": 53,
+            "ngage2_zap_wb_merger": 40,
+            "ngage2_arm9v2_core": 22,
+            "ngage2_arm9v2_execute": 18,
+            "ngage_mmc_host": 12,
+            "ngage2_zap_dcache_half_tag_ram": 11,
+            "ngage2_arm9v2_fetch": 11,
+            "altsyncram_e852": 9,
+            "ngage2_zap_cache_fsm": 9,
+            "ngage2_zap_tlb_check": 7,
+            "ngage_lcd_stream": 7,
+            "ngage_upp_peripherals": 5,
+            "ngage2_zap_dcache": 4,
+            "ngage2_zap_cache": 4,
+            "ngage_sdram_arbiter": 3,
+            "altsyncram_n0q1": 3,
+            "ngage2_zap_dcache_fsm": 2,
+            "altsyncram_04q1": 2,
+            "ngage_sdram_scheduler": 2,
+            "altsyncram_p352": 1,
+            "ngage_sparse_regs": 1,
+            "altsyncram_1qr1": 1,
+            "altsyncram_e0q1": 1,
+            "ngage2_zap_register_file": 1,
+            "ngage_cflash": 1,
+            "ngage_adsp": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.918,
+          "paths_below_target": 105,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_zap_wb_merger": 37,
+            "ngage_mmc_host": 14,
+            "ngage2_arm9v2_decode": 12,
+            "ngage2_arm9v2_execute": 10,
+            "ngage2_zap_tlb_check": 7,
+            "ngage2_zap_cache_fsm": 6,
+            "ngage2_zap_dcache": 4,
+            "ngage_sdram_arbiter": 3,
+            "altsyncram_e852": 2,
+            "altsyncram_n0q1": 2,
+            "ngage_sdram_scheduler": 2,
+            "ngage_cbus_uem": 2,
+            "ngage2_zap_dcache_half_tag_ram": 1,
+            "ngage_upp_peripherals": 1,
+            "altsyncram_p352": 1,
+            "ngage_upp_request_stage": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.457,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.281,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 5.56,
+        "cells_ns": 5.593
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-bffd426-seed31337/ngage1.rbf",
+        "sha256": "4796db38d667d0938b7dccb6a46232f07240c7f5f75ec5a6785adc1f918b5a9d"
+      }
+    }
+  ],
+  "refill_m10k": [
+    {
+      "run": 45772369046,
+      "sha": "5b29095c60167aeb12cbec31c0fc2e4b3cb18e52",
+      "seed": 43,
+      "alms": 36368,
+      "m10ks": 323,
+      "registers": 39705,
+      "average_routing_pct": 46.4,
+      "peak_routing_pct": 75.6,
+      "core_setup_tns_sta_summary_ns": -3981.452,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.431,
+          "hold-summary": 0.238,
+          "recovery-summary": 1.583,
+          "removal-summary": 1.041,
+          "min-pulse": 0.961,
+          "fmax_mhz": 83.02
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.281,
+          "hold-summary": 0.101,
+          "recovery-summary": 1.904,
+          "removal-summary": 0.997,
+          "min-pulse": 0.961,
+          "fmax_mhz": 84.06
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.67,
+          "hold-summary": 0.131,
+          "recovery-summary": 4.616,
+          "removal-summary": 0.498,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.99
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.695,
+          "hold-summary": 0.087,
+          "recovery-summary": 5.006,
+          "removal-summary": 0.433,
+          "min-pulse": 0.961,
+          "fmax_mhz": 172.12
+        }
+      ],
+      "worst_setup_ns": -2.431,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 16,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 155,
+        "ngage2_zap_tlb:": 100,
+        "ngage2_zap_wb_merger:": 89,
+        "ngage2_arm9v2_execute:": 217
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|wb_flush",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[28]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 252.9,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 261.0,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 149.3,
+          "direct_registers": 103,
+          "inclusive_m10ks": 2
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 200.3,
+          "direct_registers": 220,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 804.5,
+          "direct_registers": 825,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.011,
+          "paths_below_target": 135,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_zap_wb_merger": 38,
+            "ngage2_arm9v2_execute": 19,
+            "ngage_sdram_arbiter": 18,
+            "altsyncram_e852": 9,
+            "ngage_mmc_host": 8,
+            "ngage2_arm9v2_core": 7,
+            "ngage2_arm9v2_decode": 6,
+            "ngage2_zap_dcache_half_tag_ram": 5,
+            "ngage2_zap_dcache_fsm": 4,
+            "ngage2_zap_dcache": 4,
+            "ngage_upp_dsp_pcm": 3,
+            "ngage2_zap_cache_fsm": 2,
+            "ngage_game_pcm": 2,
+            "ngage_dma_channels": 2,
+            "altsyncram_6js2": 2,
+            "ngage2_zap_ram_simple": 2,
+            "altsyncram_5gs2": 1,
+            "ngage2_zap_mem_inv_block": 1,
+            "ngage_mmc_card": 1,
+            "altsyncram_n0q1": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.788,
+          "paths_below_target": 66,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_zap_wb_merger": 25,
+            "ngage_mmc_host": 6,
+            "ngage2_zap_dcache_half_tag_ram": 4,
+            "ngage2_zap_dcache": 4,
+            "ngage_dma_engine": 4,
+            "ngage2_arm9v2_core": 4,
+            "ngage2_arm9v2_execute": 4,
+            "ngage2_zap_dcache_fsm": 3,
+            "ngage_game_pcm": 2,
+            "ngage2_zap_cache_fsm": 2,
+            "ngage2_zap_ram_simple": 2,
+            "altsyncram_6js2": 2,
+            "ngage_dma_channels": 1,
+            "altsyncram_5gs2": 1,
+            "ngage2_zap_mem_inv_block": 1,
+            "ngage2_arm9v2_decode": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.575,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.3,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 8.566,
+        "cells_ns": 2.75
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-5b29095-seed43/ngage1.rbf",
+        "sha256": "3f8a985bcc023f428d1c6530ba0a86dce43ad265156e41add413d007a914cfaf"
+      }
+    },
+    {
+      "run": 45772367974,
+      "sha": "5b29095c60167aeb12cbec31c0fc2e4b3cb18e52",
+      "seed": 13,
+      "alms": 36401,
+      "m10ks": 323,
+      "registers": 39633,
+      "average_routing_pct": 45.9,
+      "peak_routing_pct": 78.2,
+      "core_setup_tns_sta_summary_ns": -6026.175,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.434,
+          "hold-summary": 0.249,
+          "recovery-summary": 1.154,
+          "removal-summary": 0.854,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.99
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.221,
+          "hold-summary": 0.174,
+          "recovery-summary": 1.473,
+          "removal-summary": 0.798,
+          "min-pulse": 0.961,
+          "fmax_mhz": 84.49
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.17,
+          "hold-summary": 0.133,
+          "recovery-summary": 4.637,
+          "removal-summary": 0.383,
+          "min-pulse": 0.961,
+          "fmax_mhz": 134.32
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.462,
+          "hold-summary": 0.094,
+          "recovery-summary": 4.978,
+          "removal-summary": 0.332,
+          "min-pulse": 0.961,
+          "fmax_mhz": 162.52
+        }
+      ],
+      "worst_setup_ns": -2.434,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 94,
+        "ngage_mmc_host:": 255,
+        "ngage2_zap_tlb:": 41,
+        "ngage2_zap_wb_merger:": 289,
+        "ngage2_arm9v2_execute:": 169
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_hit",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[226]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 253.2,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 259.1,
+          "direct_registers": 306,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 155.1,
+          "direct_registers": 100,
+          "inclusive_m10ks": 2
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 206.0,
+          "direct_registers": 218,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 806.8,
+          "direct_registers": 809,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.262,
+          "paths_below_target": 601,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_sdram_arbiter": 161,
+            "ngage2_arm9v2_execute": 123,
+            "ngage_ddr_flash_cache": 60,
+            "ngage2_zap_cache_fsm": 36,
+            "ngage2_zap_wb_merger": 30,
+            "ngage_mmc_host": 28,
+            "ngage_icu_extra": 18,
+            "ngage_dma_engine": 15,
+            "ngage2_arm9v2_decode": 13,
+            "altsyncram_6js2": 11,
+            "ngage_sdram_scheduler": 11,
+            "ngage_upp_peripherals": 10,
+            "ngage_dma_channels": 10,
+            "ngage2_arm9v2_core": 8,
+            "ngage2_zap_dcache_half_tag_ram": 7,
+            "ngage2_zap_dcache": 6,
+            "ngage_sparse_regs": 6,
+            "ngage_upp_bus_bridge": 5,
+            "ngage_dma_route": 5,
+            "ngage_upp_mdi": 4,
+            "altsyncram_e852": 4,
+            "ngage_upp": 3,
+            "ngage_mister": 3,
+            "ngage2_zap_tlb_check": 3,
+            "ngage_game_pcm": 2,
+            "ngage2_zap_dcache_fsm": 2,
+            "ngage_icu": 2,
+            "ngage_cflash": 2,
+            "ngage_sdram_stream": 2,
+            "altsyncram_cpu2": 2,
+            "ngage_codeflash": 1,
+            "ngage2_zap_mem_inv_block": 1,
+            "ngage2_zap_ram_simple": 1,
+            "ngage2_arm9v2_predict": 1,
+            "altsyncram_rvs2": 1,
+            "ngage2_zap_register_file": 1,
+            "altsyncram_5gs2": 1,
+            "altsyncram_n0q1": 1,
+            "ngage_keypad": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -0.996,
+          "paths_below_target": 359,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_sdram_arbiter": 131,
+            "ngage2_arm9v2_execute": 79,
+            "ngage_ddr_flash_cache": 24,
+            "ngage2_zap_cache_fsm": 18,
+            "ngage2_zap_wb_merger": 17,
+            "ngage_sdram_scheduler": 11,
+            "ngage2_arm9v2_decode": 10,
+            "ngage_dma_engine": 8,
+            "altsyncram_6js2": 8,
+            "ngage_icu_extra": 5,
+            "ngage2_zap_dcache_half_tag_ram": 4,
+            "ngage_upp_bus_bridge": 4,
+            "ngage_game_pcm": 3,
+            "ngage2_arm9v2_core": 3,
+            "ngage_upp": 3,
+            "ngage2_zap_tlb_check": 3,
+            "ngage2_zap_dcache": 3,
+            "ngage2_zap_dcache_fsm": 2,
+            "ngage_upp_mdi": 2,
+            "ngage_dma_channels": 2,
+            "ngage_dma_route": 2,
+            "ngage_upp_peripherals": 2,
+            "ngage_cflash": 2,
+            "ngage_mister": 2,
+            "ngage_mmc_host": 2,
+            "ngage_sdram_stream": 2,
+            "ngage_icu": 1,
+            "ngage2_zap_mem_inv_block": 1,
+            "ngage2_zap_ram_simple": 1,
+            "ngage_codeflash": 1,
+            "ngage2_arm9v2_predict": 1,
+            "altsyncram_e852": 1,
+            "altsyncram_5gs2": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.374,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.212,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 8.435,
+        "cells_ns": 2.759
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-5b29095-seed13/ngage1.rbf",
+        "sha256": "bda3a74710df7c1d2b657e80dd55c618cbd0ed7abe65b357bda61a75fc4f566b"
+      }
+    },
+    {
+      "run": 45772369016,
+      "sha": "5b29095c60167aeb12cbec31c0fc2e4b3cb18e52",
+      "seed": 31337,
+      "alms": 36386,
+      "m10ks": 323,
+      "registers": 39492,
+      "average_routing_pct": 44.7,
+      "peak_routing_pct": 77.2,
+      "core_setup_tns_sta_summary_ns": -5995.923,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.811,
+          "hold-summary": 0.171,
+          "recovery-summary": 1.965,
+          "removal-summary": 0.766,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.48
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.814,
+          "hold-summary": 0.055,
+          "recovery-summary": 2.297,
+          "removal-summary": 0.746,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.46
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.679,
+          "hold-summary": 0.102,
+          "recovery-summary": 4.944,
+          "removal-summary": 0.383,
+          "min-pulse": 0.961,
+          "fmax_mhz": 144.18
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.551,
+          "hold-summary": 0.069,
+          "recovery-summary": 5.205,
+          "removal-summary": 0.325,
+          "min-pulse": 0.961,
+          "fmax_mhz": 170.27
+        }
+      ],
+      "worst_setup_ns": -2.814,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 35,
+        "ngage_icu_extra:extra_regs|": 10,
+        "ngage_mmc_host:": 173,
+        "ngage2_zap_tlb:": 94,
+        "ngage2_zap_wb_merger:": 82,
+        "ngage2_arm9v2_execute:": 145
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|state_ff[2]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 254.0,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 259.8,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 150.7,
+          "direct_registers": 101,
+          "inclusive_m10ks": 2
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 198.5,
+          "direct_registers": 223,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 803.7,
+          "direct_registers": 823,
+          "inclusive_m10ks": 0
+        }
+      },
+      "build_date": "261126",
+      "periphery_placement": "on",
+      "sdram_io_registers": true,
+      "sdram_io_details": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "below_target": [
+        {
+          "corner": "display_name: Slow 1100mV 100C Model",
+          "cutoff_ns": -1.364,
+          "paths_below_target": 686,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage_mmc_host": 155,
+            "ngage_sdram_arbiter": 126,
+            "ngage2_arm9v2_execute": 98,
+            "ngage2_zap_wb_merger": 36,
+            "altsyncram_6js2": 32,
+            "ngage2_zap_dcache_fsm": 27,
+            "ngage2_zap_cache_fsm": 27,
+            "ngage_lcd_stream": 18,
+            "altsyncram_e852": 17,
+            "ngage2_arm9v2_decode": 16,
+            "ngage_sdram_scheduler": 16,
+            "ngage2_zap_dcache": 15,
+            "ngage_sparse_regs": 14,
+            "ngage2_arm9v2_core": 10,
+            "ngage_upp_peripherals": 8,
+            "ngage2_zap_dcache_half_tag_ram": 7,
+            "ngage_dma_engine": 7,
+            "ngage2_zap_tlb_check": 7,
+            "altsyncram_n0q1": 6,
+            "ngage2_zap_cp15_cb": 5,
+            "ngage2_zap_mem_inv_block": 4,
+            "ngage2_zap_register_file": 3,
+            "ngage_cbus_uem": 3,
+            "ngage_dma_channels": 3,
+            "altsyncram_p352": 2,
+            "altsyncram_5gs2": 2,
+            "ngage_ddr_stream": 2,
+            "ngage_dma_route": 2,
+            "ngage2_zap_ram_simple": 2,
+            "ngage_icu_extra": 2,
+            "altsyncram_7dv2": 2,
+            "ngage_codeflash": 2,
+            "altsyncram_pms2": 2,
+            "ngage2_arm9v2_predict": 1,
+            "ngage_mister": 1,
+            "ngage_cflash": 1,
+            "ngage_upp_request_stage": 1,
+            "ngage_sdram_stream": 1,
+            "altsyncram_q3q1": 1,
+            "ngage_ddr_flash_cache": 1,
+            "altsyncram_bgk1": 1
+          }
+        },
+        {
+          "corner": "display_name: Slow 1100mV -40C Model",
+          "cutoff_ns": -1.188,
+          "paths_below_target": 313,
+          "count_complete": true,
+          "by_endpoint_entity": {
+            "ngage2_arm9v2_execute": 48,
+            "ngage_sdram_arbiter": 39,
+            "altsyncram_6js2": 30,
+            "ngage2_zap_wb_merger": 29,
+            "ngage2_zap_cache_fsm": 25,
+            "ngage2_zap_dcache_fsm": 18,
+            "ngage2_zap_dcache": 15,
+            "ngage2_zap_tlb_check": 15,
+            "ngage_mmc_host": 15,
+            "ngage2_arm9v2_decode": 12,
+            "ngage_sdram_scheduler": 10,
+            "ngage2_zap_dcache_half_tag_ram": 6,
+            "ngage_dma_engine": 6,
+            "ngage2_arm9v2_core": 6,
+            "ngage_upp_peripherals": 6,
+            "ngage_sparse_regs": 4,
+            "ngage_lcd_stream": 4,
+            "altsyncram_e852": 3,
+            "ngage_cbus_uem": 3,
+            "ngage_dma_channels": 3,
+            "ngage2_zap_register_file": 2,
+            "altsyncram_5gs2": 2,
+            "ngage2_zap_mem_inv_block": 2,
+            "altsyncram_p352": 1,
+            "ngage2_arm9v2_predict": 1,
+            "ngage_mister": 1,
+            "ngage_ddr_stream": 1,
+            "ngage_upp_request_stage": 1,
+            "ngage_sdram_stream": 1,
+            "altsyncram_n0q1": 1,
+            "ngage_dma_route": 1,
+            "ngage_cflash": 1,
+            "ngage2_zap_ram_simple": 1
+          }
+        },
+        {
+          "corner": "display_name: Fast 1100mV 100C Model",
+          "cutoff_ns": 3.449,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        },
+        {
+          "corner": "display_name: Fast 1100mV -40C Model",
+          "cutoff_ns": 4.25,
+          "paths_below_target": 0,
+          "count_complete": true,
+          "by_endpoint_entity": {}
+        }
+      ],
+      "hot_worst_arrival_delay": {
+        "routing_ns": 7.3,
+        "cells_ns": 4.281
+      },
+      "bitstream": {
+        "path": "build/fit/v5-104mhz-5b29095-seed31337/ngage1.rbf",
+        "sha256": "7379e6895ce818709fb249ec47e4c82ff380d3ec133d3d9511518bce17382506"
+      }
+    }
+  ],
+  "medians": {
+    "historical": {
+      "worst_setup_ns": -2.471,
+      "core_setup_tns_sta_summary_ns": -5143.651,
+      "alms": 36446,
+      "m10ks": 321
+    },
+    "same_day": {
+      "worst_setup_ns": -2.471,
+      "core_setup_tns_sta_summary_ns": -5143.651,
+      "alms": 36446,
+      "m10ks": 321
+    },
+    "automatic": {
+      "worst_setup_ns": -2.471,
+      "core_setup_tns_sta_summary_ns": -5143.651,
+      "alms": 36446,
+      "m10ks": 321
+    },
+    "refill_m10k": {
+      "worst_setup_ns": -2.434,
+      "core_setup_tns_sta_summary_ns": -5995.923,
+      "alms": 36386,
+      "m10ks": 323
+    }
+  },
+  "verified_fit_delta": {
+    "automatic": "set_global_assignment -name PERIPHERY_TO_CORE_PLACEMENT_AND_ROUTING_OPTIMIZATION ON \u2192 AUTO",
+    "refill_m10k": "rtl/ngage_cpu.sv"
+  },
+  "same_day_automatic_bitstream_identical": {
+    "43": true,
+    "13": true,
+    "31337": true
+  },
+  "target_ns": -1.5
+}

@@ -1,0 +1,122 @@
+{
+  "status": "PASS",
+  "active_payload": "b7cf9fcef0bf2ea2c1d29ec569b3c0d0a0dcf120",
+  "active_timer": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+  "timer_tree": "0ccd13d8cd502bc14d3b89c6431ff0ebe4745612",
+  "restore": "85b21a4ce143ea09110f7fa9bda0809caf3fbc3b",
+  "restore_parent": "b7cf9fcef0bf2ea2c1d29ec569b3c0d0a0dcf120",
+  "payload_patch_sha256": "9b600875593c1e6e26431fc5bc3146ba436cd370060497a2b2276a73c0f3d5f6",
+  "refill_patch_sha256": "4dd0b57dd50157fed4ed61be86f452d8b9cff28ce8ef0ddd077ae60fdc42214a",
+  "payload_qualification_sha256": "825fc27804f026a004755ec1b3ae4d4c0618f1f5906d5b6256614e3dd4a7d81f",
+  "refill_qualification_sha256": "e71d4c7d4ae48018de73eedbd2b71ec4a007c9a7ad11649295d9de2760da6465",
+  "private_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/refill-payload-combined/dispatch-20261126/objects",
+  "alternate_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/.git/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/sdram-block-payload/followup-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-dirty-compact-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-compact-owner-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-footer-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/timer-live-trust-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-live-trust/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lltune-clock/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lane13-mmc-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-count-prepare/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/wb-reply-class/dispatch-20261126/objects",
+  "variants": {
+    "refill-on-timer": {
+      "sha": "99299836993ad77d812d314c78134ef6727d913e",
+      "parent": "85b21a4ce143ea09110f7fa9bda0809caf3fbc3b",
+      "tree": "892df71f8774aa55d4981ba78347a7aa33c84bea",
+      "paths_since_parent": [
+        "rtl/ngage_cpu.sv"
+      ],
+      "hashes_from_timer": {
+        "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11"
+      },
+      "production": {
+        "13": {
+          "control_run": 45824513460,
+          "control_commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11"
+          },
+          "qsf_sha256": "4fc5f57d431d9d7a498413222ab65fc2d9e77a295529bca77964e343a50e37f5",
+          "manifest_sha256": "2e65d588526b8da3b31db5f056a6b7d4183451d538391c689dcd1029ecbcf13c",
+          "control_manifest_sha256": "7e5e0b5c0f50b20e046c8f7fd0d07077bdabeef289e36b52c223c36622cecf01"
+        },
+        "43": {
+          "control_run": 45824520116,
+          "control_commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11"
+          },
+          "qsf_sha256": "d9b9a130e10322d51813c6ec1c104d39ad0aeb48d8735d411062794392b78e77",
+          "manifest_sha256": "71b73d1aa4bbfe3411829bb7a9f2bc35d149277496d046d1e9502add9c0fd436",
+          "control_manifest_sha256": "1e171954b772067ecc79fa1bedefbfc783377d812ba087433723cf6303b6bdf6"
+        },
+        "31337": {
+          "control_run": 45824525843,
+          "control_commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11"
+          },
+          "qsf_sha256": "13c4e6e395338cb2a02ce8089d65b033dddf5543da393510a4b90481a703a917",
+          "manifest_sha256": "9ff4e0073bd36095499059a8b25592f64bccd5fb187768a7409a05fd4d97b6d3",
+          "control_manifest_sha256": "9e7c6a1a38f47382128fe9d8ca1d6eabadc201b4e7469b570a6e6f9135c5eb20"
+        }
+      }
+    },
+    "refill-plus-payload": {
+      "sha": "8d72c2b5df2f1ea371ed23a234c930c5e5a1e6dc",
+      "parent": "b7cf9fcef0bf2ea2c1d29ec569b3c0d0a0dcf120",
+      "tree": "57cc1a796acc9b15a61522ccf2397230f38e9799",
+      "paths_since_parent": [
+        "rtl/ngage_cpu.sv"
+      ],
+      "hashes_from_timer": {
+        "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6",
+        "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+        "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11"
+      },
+      "production": {
+        "13": {
+          "control_run": 45856840289,
+          "control_commit": "b7cf9fcef0bf2ea2c1d29ec569b3c0d0a0dcf120",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11"
+          },
+          "qsf_sha256": "4fc5f57d431d9d7a498413222ab65fc2d9e77a295529bca77964e343a50e37f5",
+          "manifest_sha256": "081d5514cb230ae5894ca2b6ded3adfb3d9eb2d4adb27f96e0855b63c98c10fa",
+          "control_manifest_sha256": "366531cf499fad378ea1d55fcb2d7dc70f4debf5da83d9dafc33530757d76e45"
+        },
+        "43": {
+          "control_run": 45856845012,
+          "control_commit": "b7cf9fcef0bf2ea2c1d29ec569b3c0d0a0dcf120",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11"
+          },
+          "qsf_sha256": "d9b9a130e10322d51813c6ec1c104d39ad0aeb48d8735d411062794392b78e77",
+          "manifest_sha256": "27896674b36bcd4750a54461b260f64e7ab24f3d585051aa8d7715dec83fffa6",
+          "control_manifest_sha256": "03b825b7e9d2ea208a45545f1955761fe48ef0383d738bfa801abfdecd834836"
+        },
+        "31337": {
+          "control_run": 45856850190,
+          "control_commit": "b7cf9fcef0bf2ea2c1d29ec569b3c0d0a0dcf120",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11"
+          },
+          "qsf_sha256": "13c4e6e395338cb2a02ce8089d65b033dddf5543da393510a4b90481a703a917",
+          "manifest_sha256": "00aec07111b3ac14f4be130307ea9f4d50cc553f459edd9afa68e48f65a85fe8",
+          "control_manifest_sha256": "900c957e91545481a79f5b882954c0dbc116381cad4d4e5931a6a0b43d5e8325"
+        }
+      }
+    }
+  }
+}

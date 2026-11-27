@@ -1,0 +1,145 @@
+--- a/tests/phone/dma_channels/program_predecode_tb.sv
++++ b/tests/phone/dma_channels/program_predecode_tb.sv
+@@ -1,5 +1,5 @@
+ `timescale 1ns / 1ps
+-module program_predecode_tb;
++module dma_commit_miter;
+     reg clk = 0;
+     always #5 clk = !clk;
+     reg reset = 1, offered = 0, live = 0, commit = 0, in_we = 0;
+@@ -10,6 +10,9 @@
+     wire [3:0] sel;
+     wire [4:0] fields;
+     wire [7:0] control_channel;
++    wire mature;
++    reg [2:0] sibling_status = 0;
++    always @(posedge clk) sibling_status <= sibling_status + 1'b1;
+     ngage_upp_request_stage #(
+         .EXPLICIT_LIVE(1),
+         .DMA_PREDECODE(1)
+@@ -31,6 +34,7 @@
+         .out_address(addr),
+         .out_data   (data),
+         .out_sel    (sel),
++        .out_mature (mature),
+         .out_dma_ctl(fields),
+         .out_dma_ch (control_channel)
+     );
+@@ -43,9 +47,17 @@
+     wire [1:0] wait_mmc_rx, wait_mmc_tx, wait_lcd;
+     reg lcd_grant = 0, lcd_line_ready = 0, mmc_grant = 0;
+ 
+-    // Use identical endpoint inputs. No reference outputs drive the candidate.
++    // Candidate and control receive the same captured DMA intent and the
++    // same physical grants. Non-DMA ownership/status may change while
++    // the DMA engine runs, as on the shared UPP bus.
++    wire authorized = req && commit && !reset;
++    wire [1:0] port_commit;
++    assign port_commit[0] = authorized &&
++        (mature || sibling_status[0] || claim[0]) &&
++        (!sibling_status[1] || claim[0] || !sibling_status[2]);
++    assign port_commit[1] = authorized && claim[1];
+     `define DMA_PORTS(i) \
+-        .clk(clk), .reset(reset), .req(req), .commit(commit), .we(we), \
++        .clk(clk), .reset(reset), .req(req), .commit(port_commit[i]), .we(we), \
+         .addr(addr), .din(data), .sel(sel), .source_ready(8'hff), .destination_ready(8'hff), \
+         .claim(claim[i]), .bad(bad[i]), .ready(ready[i]), .dout(dout[i]), \
+         .irq_pending(irq[i]), .error_pending(errors[i]), .active_channels(active[i]), \
+@@ -61,12 +73,15 @@
+         .mmc_rx_ready(1'b1), .mmc_tx_ready(1'b1), .mmc_ready(mmc_grant), \
+         .mmc_read_waiting(wait_mmc_rx[i]), .mmc_write_waiting(wait_mmc_tx[i])
+ 
+-    ngage_dma_channels_reference #(
++    ngage_dma_channels #(
+         .ENGINES       (2),
+         .PRODUCTION    (1),
+-        .LCD_LINE_BYTES(16)
++        .LCD_LINE_BYTES(16),
++        .PREDECODED    (1)
+     ) reference (
+-        `DMA_PORTS(0)
++        `DMA_PORTS(0),
++        .dma_decode    (fields),
++        .dma_targets   (control_channel)
+     );
+     ngage_dma_channels #(
+         .ENGINES       (2),
+@@ -82,11 +97,20 @@
+ 
+     integer cycles = 0, requests = 0, rejected = 0, starts = 0, stops = 0;
+     integer blocked_offer = 0, taken = 0, drained = 0, held_uncommitted = 0;
+-    integer offer_stops = 0, owned_stops = 0;
++    integer offer_stops = 0, owned_stops = 0, uncoupled_cycles = 0;
++    integer unrelated_while_active = 0;
+     always @(posedge clk) begin
+         cycles = cycles + 1;
+         if (cycles >= 60000) $fatal(1, "test timed out");
+         if (!reset) begin
++            if (req && (fields[1] || fields[0]) && !fields[4])
++                $fatal(1, "START or STOP lost its DMA claim");
++            if (claim[0] && port_commit[0] !== port_commit[1])
++                $fatal(1, "Claimed DMA commit differed at clock %0d", cycles);
++            if (!claim[0] && port_commit[0] && !port_commit[1])
++                uncoupled_cycles = uncoupled_cycles + 1;
++            if (!claim[0] && port_commit[0] && cmd_valid[0])
++                unrelated_while_active = unrelated_while_active + 1;
+             if ({claim[0], bad[0], ready[0], cmd_valid[0], irq[0], errors[0], active[0],
+                  lcd_req[0], lcd_line[0], lcd_pixel[0], wait_mmc_rx[0], wait_mmc_tx[0], wait_lcd[0]} !==
+                 {claim[1], bad[1], ready[1], cmd_valid[1], irq[1], errors[1], active[1],
+@@ -177,7 +201,26 @@
+     endtask
+ 
+     localparam [31:0] CH0 = 32'h0c120300, CH1 = 32'h0c120340;
+-    integer channel, word, mask, alignment, value;
++    integer channel, word, mask, alignment, value, region;
++    function [31:0] unrelated;
++        input integer index;
++        begin
++            case (index)
++                0: unrelated = 32'h0c000000;
++                1: unrelated = 32'h0c004744;
++                2: unrelated = 32'h0c004748;
++                3: unrelated = 32'h0c0047f8;
++                4: unrelated = 32'h0c0047fc;
++                5: unrelated = 32'h0c0303f0;
++                6: unrelated = 32'h0c1003e8;
++                7: unrelated = 32'h0c1003f0;
++                8: unrelated = 32'h0c120624;
++                9: unrelated = 32'h0c121208;
++                10: unrelated = 32'h0c1f0020;
++                default: unrelated = 32'h0a000100;
++            endcase
++        end
++    endfunction
+     initial begin
+         repeat (3) @(negedge clk);
+         reset = 0;
+@@ -207,6 +250,14 @@
+ 
+         put(CH0 + 8, 1);
+         wait (cmd_valid[0]);
++        for (region = 0; region < 12; region = region + 1) begin
++            offer(unrelated(region), 32'hc3219475, 4'hf, 1);
++            commit = 1;
++            repeat (4) @(negedge clk);
++            if (!cmd_valid[0] || !cmd_valid[1])
++                $fatal(1, "Unrelated access withdrew the pending command");
++            release_request();
++        end
+         // A sampled-but-uncommitted stop cannot withdraw an OFFER. A commit
+         // after liveness has dropped cannot act on the retained packet.
+         offer(CH0 + 8, 0, 4'hf, 1);
+@@ -308,8 +359,12 @@
+                 offer_stops,
+                 owned_stops
+             );
++        if (unrelated_while_active < 12 || uncoupled_cycles != unrelated_while_active)
++            $fatal(1, "The commit cones never challenged the DMA state");
++        $display("PASS DMA commit isolation: %0d differing input levels while an offer was held",
++                 unrelated_while_active);
+         $display(
+-            "PASS DMA predecode clocks=%0d requests=%0d rejected=%0d starts=%0d stops=%0d blocked=%0d taken=%0d drained=%0d",
++            "PASS staged DMA state clocks=%0d requests=%0d rejected=%0d starts=%0d stops=%0d blocked=%0d taken=%0d drained=%0d",
+             cycles, requests, rejected, starts, stops, blocked_offer, taken, drained);
+         $finish;
+     end

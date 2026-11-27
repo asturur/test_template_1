@@ -4,7 +4,10 @@
 // Addresses are aligned byte addresses; count is 1..64 64-bit beats. Reads
 // reserve the entire BRAM before issue because physical DDR cannot be stalled.
 // Writes use individually accepted burstcount=1 commands, never write bursts.
-module ngage_ddr_stream (
+// A constant-data fill keeps the offer active and advances once per acceptance.
+module ngage_ddr_stream #(
+    parameter WRITE_FILL = 0
+) (
     input  wire        clk,
     input  wire        transport_reset,
     input  wire        phone_reset,
@@ -14,6 +17,7 @@ module ngage_ddr_stream (
     input  wire        req_cancel_on_phone,
     input  wire        req_write,
     input  wire        req_stream,
+    input  wire        req_fill,
     input  wire [31:0] req_addr,
     input  wire [ 6:0] req_count,
     input  wire [63:0] req_data,
@@ -47,7 +51,7 @@ module ngage_ddr_stream (
         WRITE_NEED=5, WRITE_ISSUE=6;
     reg [2:0] state = IDLE;
     reg [1:0] owner = 0;
-    reg cancel_on_phone = 0, discard = 0, stream_op = 0;
+    reg cancel_on_phone = 0, discard = 0, stream_op = 0, fill_op = 0;
     reg [28:0] address = 0;
     reg [6:0] count = 0, received = 0, index = 0;
     reg [63:0] data = 0;
@@ -57,9 +61,13 @@ module ngage_ddr_stream (
     wire [63:0] buffer_head;
     wire read_active = state == READ_ISSUE || state == READ_WAIT || state == READ_FINISH;
     wire cancel_now = transport_reset || (phone_reset && cancel_on_phone);
-    wire [32:0] request_end = {1'b0, req_addr} + ({26'b0, req_count} << 3);
-    wire valid_request = req_count != 0 && req_count <= 64 && req_addr[2:0] == 0 &&
-        request_end <= 33'h100000000 && (!req_write || req_stream || req_count == 1);
+    // Only the final 512 bytes can overrun a legal burst. With count <= 64
+    // the offset plus count fits seven bits, including an end exactly at 4 GiB.
+    wire [6:0] window_end = {1'b0, req_addr[8:3]} + req_count;
+    wire in_final_window = &req_addr[31:9];
+    wire offer_fill = WRITE_FILL && req_fill;
+    wire valid_request = req_count != 0 && req_count <= 7'd64 && req_addr[2:0] == 0 &&
+        (!in_final_window || window_end <= 7'd64) && (!req_write || req_stream || offer_fill || req_count == 1);
     assign idle           = state == IDLE;
     assign req_ready      = idle && !transport_reset;
     assign ddr_addr       = address;
@@ -113,6 +121,7 @@ module ngage_ddr_stream (
                 owner           <= req_owner;
                 cancel_on_phone <= req_cancel_on_phone;
                 stream_op       <= req_stream;
+                fill_op         <= offer_fill;
                 address         <= req_addr[31:3];
                 count           <= req_count;
                 received        <= 0;
@@ -194,13 +203,13 @@ module ngage_ddr_stream (
                         done      <= 1;
                         cancelled <= 1;
                         state     <= IDLE;
-                    end else if (!stream_op || index + 1'b1 == count) begin
+                    end else if ((!stream_op && !fill_op) || index + 1'b1 == count) begin
                         done  <= 1;
                         state <= IDLE;
                     end else begin
                         index   <= index + 1'b1;
                         address <= address + 1'b1;
-                        state   <= WRITE_NEED;
+                        state   <= fill_op ? WRITE_ISSUE : WRITE_NEED;
                     end
                 end
             end

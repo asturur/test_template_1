@@ -1,0 +1,41 @@
+{
+  "baseline": "4c02fdab93f690945334ba06b8e4dadaaec3e9a6",
+  "system_clock_mhz": 104,
+  "candidate_rtl_sha256": "0150176bf02002e6d2c28223ad2e752bc5b7369c7ce4de3d094b102f3f041597",
+  "changed_fit_inputs": [
+    "rtl/ngage_upp.v"
+  ],
+  "unchanged_semantics": [
+    "full UPP packet timing",
+    "two-edge data aperture",
+    "DMA cancel edge",
+    "native and MMC card cadence"
+  ],
+  "mixed": {
+    "work": "ARM9v2 MMC/LCD/PCM/raw UPP DDR",
+    "clocks": 1202156,
+    "records": 171501,
+    "trace_sha256": "9296f49f475f4e109b90acda26020665de8283d3e41da8c89f55d1e99eee8c26"
+  },
+  "alias": {
+    "work": "ARM9v2 GPIO/EUART and SRAM/ROM/boot aliases",
+    "clocks": 126242,
+    "records": 326,
+    "trace_sha256": "1319fc987e959af098369582335138b72453ef45361056b4a9cfa163704f1197"
+  },
+  "pcm": {
+    "matched_samples": 128,
+    "sha256": "a2b8906b7f6c9eb92be33c9e57d2255a625ff12cc428fb8cb819f40fc453846b"
+  },
+  "dma_miter": {
+    "clocks": 32978,
+    "requests": 5658,
+    "rejected": 5549,
+    "starts": 4,
+    "stops": 3,
+    "blocked_offers": 106,
+    "accepted": 3,
+    "drained": 2,
+    "independent_commit_clocks": 32
+  }
+}

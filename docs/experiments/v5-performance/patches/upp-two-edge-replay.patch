@@ -1,0 +1,778 @@
+diff --git a/scratch/v5-fit-loop/upp-two-edge/replay.py b/scratch/v5-fit-loop/upp-two-edge/replay.py
+new file mode 100644
+index 0000000..67be918
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-two-edge/replay.py
+@@ -0,0 +1,180 @@
++"""Replay separated peripheral lane 13 against the frozen 104 MHz execute control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = stage / args.output
++work.mkdir(exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(repo / 'tests/cpu/arm9v2_board'))
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_upp_peripherals.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/upp-two-edge/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_upp_peripherals.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/upp-two-edge/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((stage.parent/'prepared-wb-write-data'/'candidate'/f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                source_sha256={name:digest(stage / 'source/rtl' / name) for name in ('ngage_upp.v','ngage_upp_peripherals.v')}, rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/upp-two-edge/fixture/gpio.S b/scratch/v5-fit-loop/upp-two-edge/fixture/gpio.S
+new file mode 100644
+index 0000000..8a00d52
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-two-edge/fixture/gpio.S
+@@ -0,0 +1,44 @@
++.syntax unified
++.cpu arm920t
++.arm
++.section .vectors,"ax"
++.global _start
++_start: b start
++.rept 7
++ b fail
++.endr
++
++.section .text,"ax"
++start:
++ ldr r8,=0x0c150400
++ ldr r9,=0x0c15040c
++ ldr r10,=0x0c150510
++ mov r0,#0x1f
++ strb r0,[r8,#3]       @ Make keypad rows inputs.
++ mov r0,#1
++ strb r0,[r9,#2]       @ Enable output on column zero.
++ mov r6,#0
++ mov r5,#512
++loop:
++ strb r6,[r9]          @ Alternate drive low/high with the key held.
++ ldrh r2,[r8]
++ and r2,r2,#31
++ add r3,r6,#30
++ cmp r2,r3
++ bne fail
++ str r5,[r10]          @ Write a distinct EUART configuration and read it back.
++ ldr r2,[r10]
++ cmp r2,r5
++ bne fail
++ eor r6,r6,#1
++ subs r5,r5,#1
++ bne loop
++ ldr r0,=0x50415353
++ b finish
++fail:
++ mov r0,#1
++finish:
++ ldr r1,=0x0a000100
++ str r0,[r1]
++1: b 1b
++.ltorg
+diff --git a/scratch/v5-fit-loop/upp-two-edge/fixture/stock-keypad.sv b/scratch/v5-fit-loop/upp-two-edge/fixture/stock-keypad.sv
+new file mode 100644
+index 0000000..e625da3
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-two-edge/fixture/stock-keypad.sv
+@@ -0,0 +1,97 @@
++`timescale 1ns/1ps
++module tb #(parameter SYS_CLK_HZ=104000000);
++    reg clk=0, reset=1, cold=1;
++    always #4.807692 clk=~clk;
++    wire cyc,stb,we,ack,claim,ready,bad,init,irq;
++    wire [31:0] addr,din,dout,pc,board_data;
++    wire [3:0] sel;
++    reg [26:0] keys=0;
++    reg [31:0] program_words[0:2047];
++    reg [31:0] app_words[0:262143];
++    reg [31:0] ram[0:32767];
++    integer cycles=0, delay=0, wait_cycles=0, i,j,events=0;
++    reg [1023:0] program_path,app_path;
++    wire access=cyc&&stb;
++    wire in_board=addr[31:24]==8'h58;
++    wire in_program=addr<8192;
++    wire in_app=addr>=32'h50320000&&addr<32'h50420000;
++    wire in_ram=addr>=32'h80000000&&addr<32'h80020000;
++    wire board_ack,board_error,offer,live,packet,packet_we;
++    wire [31:0] held_address,held_data,board_result;
++    wire [3:0] held_sel;
++    reg registered_error=0;
++    wire [31:0] physical_address=addr-32'h4c000000;
++    integer div=1,offset=0,phase=0,blocked=0,replies=0;
++    wire selected=(physical_address[31:12]==20'h0c150 && physical_address[11:0]<12'h600) ||
++                  (physical_address[31:5]==(32'h0c120c00>>5));
++    wire admit=1;
++    wire packet_mature;
++    initial begin
++      if ($value$plusargs("pace_div=%d",div) && (div<1 || div>3)) $fatal(1,"invalid divisor");
++      if ($value$plusargs("pace_offset=%d",offset) && (offset<0 || offset>=div)) $fatal(1,"invalid offset");
++    end
++    always @(posedge clk) begin
++      if (reset) begin phase<=offset; registered_error<=0; end
++      else begin
++        phase<=(phase==div-1)?0:phase+1;
++        registered_error<=!registered_error && packet && claim && ready && bad;
++        if (bridge.idle && access && in_board && !admit) blocked<=blocked+1;
++        if (board_ack || board_error) begin
++          replies<=replies+1;
++          $display("MMIO %h %b %h %h %b",addr,we,sel,we?din:board_result,board_error);
++        end
++      end
++    end
++    assign ack=in_board?board_ack:(access&&delay>=wait_cycles);
++    ngage_upp_bus_bridge #(.REGISTERED_MASTER(1)) bridge(
++        .clk(clk),.reset(reset),.master_cyc(cyc&&in_board),.master_stb(stb&&in_board&&admit),
++        .master_we(we),.master_code(1'b0),.master_address(physical_address),.master_data(din),
++        .master_sel(sel),.master_ack(board_ack),.master_error(board_error),.master_read_data(board_result),
++        .bus_cyc(offer),.bus_live(live),.bus_ack(packet&&claim&&ready&&!bad),
++        .bus_error(registered_error),.bus_read_data(board_data));
++    ngage_upp_request_stage #(.EXPLICIT_LIVE(1)) stage(
++        .clk(clk),.reset(reset),.in_cyc(offer),.in_stb(offer),.in_live(live),.in_we(we),.in_code(1'b0),
++        .in_address(physical_address),.in_data(din),.in_sel(sel),.out_cyc(packet),
++        .out_mature(packet_mature),.out_we(packet_we),.out_address(held_address),.out_data(held_data),.out_sel(held_sel));
++
++    assign dout=in_program?program_words[addr[12:2]]:
++                in_app?app_words[(addr-32'h50320000)>>2]:
++                in_ram?ram[addr[16:2]]:in_board?board_result:0;
++    ngage_cpu cpu(.clk(clk),.reset(reset),.irq(1'b0),.fiq(1'b0),
++        .wb_cyc(cyc),.wb_stb(stb),.wb_write(we),.wb_address(addr),
++        .wb_write_data(din),.wb_byte_enable(sel),.wb_ack(ack),
++        .wb_read_data(dout),.wb_error(in_board&&board_error),.line_ready(1'b0),.line_reject(1'b0),
++        .line_valid(1'b0),.line_data(64'b0),.line_wide(1'b0),.line_last(1'b0),.line_error(1'b0),.debug_pc(pc));
++    ngage_board #(.KEYPAD_ENABLE(1),.SYS_CLK_HZ(SYS_CLK_HZ),.TIMER_CLK_DIV(4),.NOS_TICK_HZ(64)) board(
++        .clk(clk),.rst(reset),.init_rst(cold),.cyc(packet),
++        .stb(packet),.ext_mature(packet_mature),.adr(held_address),.we(packet_we),.din(held_data),
++        .sel(held_sel),.commit(packet&&init&&!registered_error&&!board.upp.peripheral_response_pending && (packet_mature || board.upp.peripheral_early_access)),.keys(keys),.sim_present(1'b0),
++        .cfg_lcd(1'b1),.cfg_keypad(1'b1),.cfg_clocks(1'b1),
++        .dma_irq_pending(1'b0),.sim_fiq_pending(1'b0),.cpu_ack(1'b0),
++        .cpu_err(1'b0),.cpu_rdata(32'b0),.claim(claim),.ready(ready),
++        .unmodeled(bad),.dout(board_data),.irq(irq),.init_done(init));
++    initial begin
++        if(!$value$plusargs("program=%s",program_path)||!$value$plusargs("app=%s",app_path))
++            $fatal(1,"program/app required");
++        i=$value$plusargs("wait=%d",wait_cycles);
++        $readmemh(program_path,program_words);$readmemh(app_path,app_words);
++        for(i=0;i<32768;i=i+1)ram[i]=0;
++        repeat(2)@(negedge clk);cold=0;wait(init);@(negedge clk);reset=0;
++    end
++    always @(posedge clk)if(!reset)begin
++        cycles<=cycles+1;
++        if(cycles>150000)$fatal(1,"timeout pc=%h",pc);
++        if(!access||ack)delay<=0;else delay<=delay+1;
++        if(board_error)$fatal(1,"board rejected %h pc=%h",addr,pc);
++        if(ack&&we)begin
++            if(in_ram)begin
++                for(j=0;j<4;j=j+1)if(sel[j])ram[addr[16:2]][j*8+:8]<=din[j*8+:8];
++            end else if(addr==32'he0000000)begin keys<=din[26:0];events<=events+1;end
++            else if(addr==32'hf0000000)begin
++                if(din!==32'h50415353||events!=9)$fatal(1,"original key flow failed %h events=%0d pc=%h",din,events,pc);
++                $display("PACE stock cycles=%0d blocked=%0d replies=%0d",cycles,blocked,replies);
++                $display("PASS original NEM-4 keypad config/scan/ACK HZ=%0d wait=%0d cycles=%0d events=%0d",SYS_CLK_HZ,wait_cycles,cycles,events);$finish;
++            end else if(!in_board)$fatal(1,"unexpected write %h pc=%h",addr,pc);
++        end
++    end
++endmodule
+diff --git a/scratch/v5-fit-loop/upp-two-edge/fixture/mixed-board.sv b/scratch/v5-fit-loop/upp-two-edge/fixture/mixed-board.sv
+new file mode 100644
+index 0000000..85c7d87
+--- /dev/null
++++ b/scratch/v5-fit-loop/upp-two-edge/fixture/mixed-board.sv
+@@ -0,0 +1,433 @@
++`timescale 1ns/1ps
++module tb;
++ parameter integer TIMER_CLK_DIV=1,NOS_TICK_HZ=1000,MMC_CLK_DIV=4;
++ reg clk=0,reset=1,cold=1,cpu_hold=0;
++ wire dma_reset;
++ reg discard=0;
++ always #(500000000.0/104000000) clk=~clk;
++ wire init_done,bus_lock;wire [24:0] csa,dsa;wire [31:0] csd,csread,dsread;wire [3:0] csb;wire cswe,csreq,csack,dsreq,dsack;
++ wire [24:0] sa;wire [31:0] sd;wire [3:0] sb;wire swe,sreq;
++
++ wire [31:0] sr;
++ wire sack, packet_lock, memory_owner, scrub_done;
++ wire [24:0] saved_sa=sa;
++ wire [31:0] saved_sd=sd;
++ wire [3:0] saved_sb=sb;
++ wire [31:0] da,dd;wire dr,dw;wire [3:0] db;reg [31:0] rd=0;reg rdy=0;reg [3:0] delay_count=0;reg [31:0] saved_da;wire accept=(dr||dw) && delay_count==0 && !rdy;
++ wire dirty,busy;wire [13:0] sector;wire ce,hs,vs,hb,vb;wire [11:0] rgb;
++ reg [31:0] rom[0:2047],ram[0:32767];integer i,j,cycles=0;integer dd_reads=0;
++ reg [26:0] test_keys=0;
++ wire cpu_ram_accept;
++
++ wire dma_cmd_valid,dma_cmd_write;
++ wire [31:0] dma_cmd_addr,dma_cmd_data;
++ wire [3:0] dma_cmd_be;
++ wire dma_cmd_ready,dma_rsp_valid,dma_rsp_error;
++ wire [31:0] dma_rsp_data;
++ wire local_waiting,local_valid,local_ready,local_write,local_done,local_error;
++ wire [31:0] local_addr,local_data,local_rdata;
++ wire [3:0] local_be;
++ wire fast_req,fast_accept,fast_ack,merge_req,merge_write,merge_ack,merge_accept;
++ wire [24:0] fast_addr,merge_addr;
++
++ wire pcm_req, pcm_ack, pcm_valid;
++ wire [24:0] pcm_addr;
++ wire [31:0] pcm_data;
++ wire [15:0] pcm_l, pcm_r;
++ integer pcm_reads=0, pixel_words=0, lcd_during_write=0, pcm_during_write=0;
++ integer underflows=0, overwritten_frames=0;
++ wire host_writing = outgoing && hps_ack;
++ wire signed_channels = pcm_l == 16'hf000 && pcm_r == 16'h0800;
++ reg done_irq=0;
++ always @(posedge clk) begin
++  if (pcm_ack) pcm_reads <= pcm_reads + 1;
++  if (dut.pcm_irq) done_irq <= 1;
++  if (dut.game_pcm.player.tick && !done_irq) begin
++   if (!dut.game_pcm.player.play) underflows <= underflows + 1;
++   if (dut.game_pcm.player.rq_v && !dut.game_pcm.player.f_take)
++    overwritten_frames <= overwritten_frames + 1;
++  end
++  if (dut.board.display.lcd.pixel_write) begin
++   if (dut.board.display.lcd.pixel_address !== 15'(pixel_words) ||
++       dut.board.display.lcd.pixel_data !== 32'h0abc0123)
++    $fatal(1,"rendered data or position at LCD word %0d",pixel_words);
++   pixel_words <= pixel_words + 1;
++   if (host_writing && signed_channels) lcd_during_write <= lcd_during_write + 1;
++  end
++  if (pcm_valid && host_writing && signed_channels &&
++      pixel_words > 0 && pixel_words < 18304)
++   pcm_during_write <= pcm_during_write + 1;
++ end
++
++ wire [31:0] fast_data,merge_data,merge_rdata;
++ wire [3:0] merge_be;
++ wire dswe; wire [31:0] dsd; wire [3:0] dsb;
++ wire mmc_card_reset,mmc_mount,mmc_ro,mmc_present,mmc_wp,mmc_active,mmc_fault,mmc_hps_busy;
++ wire [63:0] mmc_size;
++ wire [31:0] mmc_lba,hps_lba;wire [5:0] mmc_count,hps_count;
++ wire mmc_read,mmc_write,mmc_ack,mmc_wr,hps_read,hps_write;
++ wire [12:0] mmc_addr;wire [15:0] mmc_data,mmc_din,hps_din;
++ reg img_mount=0;reg [63:0] img_size=2560;
++ reg hps_ack=0,hps_wr=0;reg [12:0] hps_addr=0;reg [15:0] hps_data=0;
++ reg [15:0] image[0:1279], original_image[0:1279];
++ integer persisted=0; reg outgoing=0;
++ integer hstate=0,hdelay=0,hword=0,hwords=0,hps_reads=0;
++ reg [31:0] saved_lba;reg [5:0] saved_count;
++ reg held_once=0;
++ ngage_mmc_hps backing (
++  .clk(clk),.init_reset(cold),.guest_reset(dma_reset),
++  .hps_img_mounted(img_mount),.hps_img_readonly(1'b0),.hps_img_size(img_size),
++  .card_reset(mmc_card_reset),.card_img_mounted(mmc_mount),.card_img_readonly(mmc_ro),.card_img_size(mmc_size),
++  .card_sd_lba(mmc_lba),.card_sd_blk_cnt(mmc_count),.card_sd_rd(mmc_read),.card_sd_wr(mmc_write),.card_sd_ack(mmc_ack),
++  .card_sd_buff_addr(mmc_addr),.card_sd_buff_dout(mmc_data),.card_sd_buff_din(mmc_din),.card_sd_buff_wr(mmc_wr),
++  .hps_sd_lba(hps_lba),.hps_sd_blk_cnt(hps_count),.hps_sd_rd(hps_read),.hps_sd_wr(hps_write),.hps_sd_ack(hps_ack),
++  .hps_buff_addr(hps_addr),.hps_buff_dout(hps_data),.hps_buff_wr(hps_wr),.hps_buff_din(hps_din),
++  .busy(mmc_hps_busy),.fault(mmc_fault)
++ );
++ ngage_dma_route route (
++  .clk(clk),.reset(dma_reset),.cpu_lock(bus_lock),.cmd_valid(dma_cmd_valid),.cmd_ready(dma_cmd_ready),
++  .cmd_write(dma_cmd_write),.cmd_addr(dma_cmd_addr),.cmd_data(dma_cmd_data),.cmd_be(dma_cmd_be),
++  .rsp_valid(dma_rsp_valid),.rsp_error(dma_rsp_error),.rsp_data(dma_rsp_data),
++  .ram_req(dsreq),.ram_write(dswe),.ram_addr(dsa),.ram_data(dsd),.ram_be(dsb),.ram_ack(dsack),.ram_rdata(dsread),
++  .local_valid(local_valid),.local_waiting(local_waiting),.local_ready(local_ready),.local_write(local_write),.local_addr(local_addr),
++  .local_data(local_data),.local_be(local_be),.local_done(local_done),.local_error(local_error),.local_rdata(local_rdata)
++ );
++ ngage_mister #(.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.DMA_LOCAL(1),.GAME_PCM(1),.DDR_UPP_RAM(1),.LCD_LINE_BYTES(16),.SYS_CLK_HZ(104000000)) dut(.debug_freeze_trace(1'b0),.sim_present(1'b1),.clk_sys(clk),.reset(reset || cpu_hold),.cold_reset(cold),.dma_reset(dma_reset),
++  .upp_ddr_req(ddr_req),.upp_ddr_we(ddr_we),.upp_ddr_addr(ddr_addr),
++  .upp_ddr_wdata(ddr_wdata),.upp_ddr_be(ddr_be),.upp_ddr_ack(ddr_ack),.upp_ddr_rdata(ddr_rdata),
++  .upp_ddr_clear(ddr_clear),.upp_ddr_clear_done(ddr_clear_done),.board_init_done(init_done),.bus_lock(bus_lock),
++  .mmc_card_reset(mmc_card_reset),.mmc_img_mounted(mmc_mount),.mmc_img_readonly(mmc_ro),.mmc_img_size(mmc_size),
++  .mmc_sd_lba(mmc_lba),.mmc_sd_blk_cnt(mmc_count),.mmc_sd_rd(mmc_read),.mmc_sd_wr(mmc_write),.mmc_sd_ack(mmc_ack),
++  .mmc_sd_buff_addr(mmc_addr),.mmc_sd_buff_dout(mmc_data),.mmc_sd_buff_din(mmc_din),.mmc_sd_buff_wr(mmc_wr),
++  .mmc_present(mmc_present),.mmc_write_protected(mmc_wp),.mmc_active(mmc_active),
++  .lcd_line_req(lcd_line_req),.lcd_line_addr(lcd_line_addr),.lcd_line_ready(lcd_line_ready),
++  .lcd_line_valid(lcd_line_valid),.lcd_line_data(shared_line_data),.lcd_line_last(lcd_line_last),
++  .sdram_write_block(cpu_block_write),.sdram_block_data(cpu_block_data),
++  .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csread),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack),.sdram_accept(cpu_ram_accept),
++
++  .pcm_sdram_req(pcm_req),.pcm_sdram_addr(pcm_addr),.pcm_sdram_ack(pcm_ack),
++  .pcm_sdram_data(pcm_data),.pcm_left(pcm_l),.pcm_right(pcm_r),.pcm_valid(pcm_valid),
++  .dma_sdram_req(fast_req),.dma_sdram_addr(fast_addr),.dma_sdram_accept(fast_accept),.dma_sdram_ack(fast_ack),.dma_sdram_data(fast_data),
++  .dma_cmd_valid(dma_cmd_valid),.dma_cmd_ready(dma_cmd_ready),.dma_cmd_write(dma_cmd_write),
++  .dma_cmd_addr(dma_cmd_addr),.dma_cmd_data(dma_cmd_data),.dma_cmd_be(dma_cmd_be),
++  .dma_rsp_valid(dma_rsp_valid),.dma_rsp_error(dma_rsp_error),.dma_rsp_data(dma_rsp_data),
++  .dma_local_valid(local_valid),.dma_local_waiting(local_waiting),.dma_local_ready(local_ready),.dma_local_write(local_write),
++  .dma_local_addr(local_addr),.dma_local_data(local_data),.dma_local_be(local_be),
++  .dma_local_done(local_done),.dma_local_error(local_error),.dma_local_rdata(local_rdata),
++  .ddram_addr(da),.ddram_rd(dr),.ddram_wr(dw),.ddram_din(dd),.ddram_be(db),.ddram_dout(rd),.ddram_dout_ready(rdy),.ddram_accept(accept),
++  .flash_dirty(dirty),.flash_dirty_sector(sector),.flash_busy(busy),.ce_pix(ce),.hsync(hs),.vsync(vs),.hblank(hb),.vblank(vb),.rgb444(rgb),.keys(test_keys));
++ ngage_dma_ram_mux dma_merge(.clk(clk),.reset(dma_reset),
++ .dma_req(dsreq),.dma_write(dswe),.dma_addr(dsa),.dma_data(dsd),.dma_be(dsb),.dma_ack(dsack),.dma_rdata(dsread),
++
++ .pcm_req(pcm_req),.pcm_addr(pcm_addr),.pcm_ack(pcm_ack),.pcm_rdata(pcm_data),
++ .lcd_req(fast_req),.lcd_addr(fast_addr),.lcd_accept(fast_accept),.lcd_ack(fast_ack),.lcd_rdata(fast_data),
++ .mem_req(merge_req),.mem_write(merge_write),.mem_addr(merge_addr),.mem_data(merge_data),.mem_be(merge_be),.mem_accept(merge_accept),.mem_ack(merge_ack),.mem_rdata(merge_rdata));
++ ngage_sdram_arbiter #(.CPU_BLOCK_WRITES(1)) arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(dma_reset),.cpu_lock(bus_lock),.cpu_req(csreq && memory_owner && !hold_scalar),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_write_block(cpu_block_write),.cpu_block_data(cpu_block_data),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csread),
++ .dma_accept(merge_accept),.dma_req(merge_req && memory_owner && !hold_scalar),.dma_we(merge_write),.dma_addr(merge_addr),.dma_data(merge_data),.dma_be(merge_be),.dma_ack(merge_ack),.dma_rdata(merge_rdata),
++ .mem_req(sreq),.mem_we(swe),.mem_lock(packet_lock),.mem_write_block(active_block_write),.mem_block_data(active_block_data),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
++
++ wire pin_req,pin_we,pin_line,pin_cmd_ready,pin_busy,pin_valid,pin_ready,pin_short;
++ wire lcd_line_req, lcd_line_ready, lcd_line_valid, lcd_line_last;
++ wire shared_line_req, shared_line_ready, shared_line_valid, shared_line_last;
++ wire shared_line_short, hold_scalar;
++ wire [24:0] lcd_line_addr, shared_line_addr;
++ wire [15:0] shared_line_data;
++ wire cpu_block_write, active_block_write;
++ wire [127:0] cpu_block_data, active_block_data;
++ integer lcd_native_grants=0, lcd_native_completed=0;
++ always @(posedge clk)
++   if (!dma_reset && !cold) begin
++     if (lcd_line_req && lcd_line_ready) lcd_native_grants <= lcd_native_grants + 1;
++     if (lcd_line_valid && lcd_line_last) lcd_native_completed <= lcd_native_completed + 1;
++   end
++ ngage_sdram_line_mux #(.LCD_LINE_BYTES(16)) line_mux (
++  .clk(clk),.reset(dma_reset || cold),.cpu_lock(bus_lock),
++  .scalar_waiting(csreq || merge_req),.scalar_accept(cpu_ram_accept || merge_accept),
++  .scalar_active(sreq),.hold_scalar(hold_scalar),
++  .cpu_req(1'b0),.cpu_addr(25'd0),.cpu_ready(),.cpu_valid(),.cpu_last(),
++  .lcd_req(lcd_line_req),.lcd_addr(lcd_line_addr),.lcd_ready(lcd_line_ready),
++  .lcd_valid(lcd_line_valid),.lcd_last(lcd_line_last),
++  .ram_req(shared_line_req),.ram_short(shared_line_short),.ram_addr(shared_line_addr),
++  .ram_ready(shared_line_ready),.ram_valid(shared_line_valid),.ram_last(shared_line_last));
++ wire [24:2] pin_address;
++ wire [127:0] pin_write_data;
++ wire [15:0] pin_write_mask;
++ wire [31:0] pin_read_data;
++ wire pin_clk,cke,cs_n,ras_n,cas_n,we_n,dqml,dqmh;
++ wire [1:0] bank;
++ wire [12:0] pin_a;
++ wire [15:0] pin_out,pin_in;
++ tri [15:0] unused_dq;
++ ngage_sdram_clock forward_clock(.clk(clk),.sdram_clk(pin_clk));
++ assign #5.5 pin_in = memory.Dq_reg;
++ ngage_sdram_stream #(.SCRUB_BYTES(25'd32)) bridge(
++   .clk(clk),.cold(cold),.phone_reset(dma_reset),.lock(packet_lock),.owner_ready(memory_owner),
++   .grant_read((cpu_ram_accept && !cswe) || (merge_accept && !merge_write)),
++   .grant_addr(cpu_ram_accept ? csa : merge_addr),.req(sreq),.we(swe),
++   .write_block(active_block_write),.block_data(active_block_data),.addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sr),
++   .line_req(shared_line_req),.line_short(shared_line_short),.line_addr(shared_line_addr),.line_ready(shared_line_ready),.line_valid(shared_line_valid),.line_last(shared_line_last),.line_data(shared_line_data),.mem_short(pin_short),
++   .mem_req(pin_req),.mem_we(pin_we),.mem_line(pin_line),.mem_addr(pin_address),
++   .mem_wdata(pin_write_data),.mem_wbe(pin_write_mask),.scrub_done(scrub_done),
++   .mem_ready(pin_ready),.mem_cmd_ready(pin_cmd_ready),.mem_busy(pin_busy),
++   .mem_valid(pin_valid),.mem_rdata(pin_read_data));
++ ngage_sdram_scheduler #(.CLK_HZ(104000000)) controller(
++   .clk(clk),.init(cold),.ready(pin_ready),.req(pin_req),.busy(pin_busy),.we(pin_we),
++   .line(pin_line),.read_short(pin_short),.cmd_ready(pin_cmd_ready),.addr(pin_address),
++   .wdata(pin_write_data),.wbe(pin_write_mask),.rvalid(pin_valid),
++   .rdata(pin_read_data),.sdram_cke(cke),.sdram_cs_n(cs_n),.sdram_ras_n(ras_n),
++   .sdram_cas_n(cas_n),.sdram_we_n(we_n),.sdram_ba(bank),.sdram_a(pin_a),
++   .sdram_dqml(dqml),.sdram_dqmh(dqmh),.sdram_dq_o(pin_out),.sdram_dq_i(pin_in));
++ mt48lc16m16a2 memory(.Dq_write(pin_out),.Clk(pin_clk),.Cke(cke),.Dq(unused_dq),
++   .Addr(pin_a),.Ba(bank),.Cs_n(cs_n),.Ras_n(ras_n),.Cas_n(cas_n),.We_n(we_n),
++   .Dqm({dqmh,dqml}),.downloading(1'b0),.VS(1'b0),.frame_cnt(32'b0));
++ // HPS peer follows the shared-buffer pipeline contract. The final strobe
++ // accompanies ACK falling; unrelated-slot writes occur only without slot2 ACK.
++ always @(posedge clk)begin
++  hps_wr<=0;
++  if(cold)begin hstate<=0;hps_ack<=0;end
++  else begin
++
++   case(hstate)
++    0:begin
++     hps_addr<=13'h123;hps_data<=16'hdead;hps_wr<=1;
++     if(hps_read || hps_write)begin
++      outgoing<=hps_write;
++      saved_lba<=hps_lba;saved_count<=hps_count;hwords<=(hps_count+1)*256;
++      hword<=0;hdelay<=11;hstate<=1;hps_reads<=hps_reads+(!hps_write);
++     end
++    end
++    1:begin
++     if(!(outgoing ? hps_write : hps_read) || hps_lba!==saved_lba || hps_count!==saved_count)$fatal(1,"HPS request changed before ACK");
++     if(hdelay==0)begin hps_addr<=0;hps_ack<=1;hps_wr<=0;hdelay<=2;hstate<=2;end
++     else hdelay<=hdelay-1;
++    end
++    2:begin
++     if(hps_lba!==saved_lba || hps_count!==saved_count)$fatal(1,"owned HPS address changed");
++     if(hdelay!=0)hdelay<=hdelay-1;
++     else begin
++      if(saved_lba*256+hword>=1280)$fatal(1,"HPS read beyond generated image");
++      if(outgoing)begin
++       if(saved_lba!=3 || hwords!=256)$fatal(1,"write extent/direction");
++       if(hps_din !== {8'((hword*2+1)*37+'h69),8'((hword*2)*37+'h69)})
++        $fatal(1,"persist mismatch word%0d got%h",hword,hps_din);
++       image[saved_lba*256+hword]<=hps_din ^ (($test$plusargs("corrupt_persist") && hword==255) ? 16'd1 : 16'd0);
++       hps_addr<=hword+1;hps_wr<=0;
++       if(hword==255) persisted<=persisted+1;
++      end else begin
++       hps_addr<=hword;hps_data<=image[saved_lba*256+hword];hps_wr<=1;
++      end
++      hdelay<=outgoing ? 11 : 5;
++      if(hword==hwords-1)begin hps_ack<=0;hstate<=3;hdelay<=5;end
++      else hword<=hword+1;
++     end
++    end
++    3:if(hdelay==0)hstate<=0;else hdelay<=hdelay-1;
++   endcase
++  end
++ end
++ always @(posedge clk)begin
++  rdy<=0;
++  if(accept)begin
++   if(dw || da<32'h30000000 || da>=32'h30002000)$fatal(1,"unexpected DDR request %h",da);
++   saved_da<=da;delay_count<=4;dd_reads<=dd_reads+1;
++  end else if(delay_count!=0)begin
++   delay_count<=delay_count-1'b1;
++   if(delay_count==1)begin rd<=rom[(saved_da-32'h30000000)>>2];rdy<=1;end
++  end
++  if(sreq && sack && swe && !dma_reset)begin
++    if(sa>=131072)$fatal(1,"SDRAM address %h",sa);
++    for(i=0;i<4;i=i+1)if(sb[i])ram[sa[16:2]][i*8+:8]<=sd[i*8+:8];
++      if(saved_sa==25'h104)$fatal(1,"ARM MMC failure stage=%0d PC=%h",ram[32'h108/4],dut.cpu_pc);
++      if(saved_sa==25'h100)begin
++       report_pacing();
++       if ($test$plusargs("gpio_stress")) begin
++        if (saved_sd !== 32'h50415353 || gpio_offers != 2050 || mmc_offers != 0)
++         $fatal(1,"GPIO/EUART guest result=%h gpio=%0d mmc=%0d pc=%h",
++                saved_sd,gpio_offers,mmc_offers,dut.cpu_pc);
++        $display("PASS 512 GPIO key scans and EUART configuration round trips, cycles=%0d",cycles);
++        $finish;
++       end else begin
++       check_upp_ddr();
++
++       if (lcd_native_grants != 4576 || lcd_native_completed != 4576)
++         $fatal(1,"Native LCD lines were not used for the full frame grants=%0d complete=%0d",
++                lcd_native_grants,lcd_native_completed);
++       $display("PASS native LCD grants=%0d completed=%0d",lcd_native_grants,lcd_native_completed);
++       if (pcm_reads != 128 || pixel_words != 18304 || !done_irq ||
++           lcd_during_write == 0 || pcm_during_write == 0 ||
++           underflows != 0 || overwritten_frames != 0)
++        $fatal(1,"PCM=%0d LCD=%0d IRQ=%0d overlap=%0d/%0d underflows=%0d overwritten=%0d",
++               pcm_reads,pixel_words,done_irq,lcd_during_write,pcm_during_write,
++               underflows,overwritten_frames);
++       $display("PASS PCM/LCD/MMC coexistence: PCM reads=%0d rendered words=%0d overlapping LCD words=%0d PCM ticks=%0d underflows=%0d overwritten=%0d",
++                pcm_reads,pixel_words,lcd_during_write,pcm_during_write,
++                underflows,overwritten_frames);
++
++       for(j=0;j<1280;j=j+1)begin
++        if(j>=768 && j<1024)begin
++         if(image[j] !== {8'(((j-768)*2+1)*37+'h69),8'(((j-768)*2)*37+'h69)})
++          $fatal(1,"independent persisted oracle mismatch halfword%0d",j);
++        end else if(image[j] !== original_image[j])$fatal(1,"adjacent/footer changed%0d",j);
++       end
++
++       if(saved_sd!==32'h50415353 || mmc_fault || !mmc_present || mmc_wp || persisted!=1 || hps_reads<3 || dut.dma_error_pending)
++        $fatal(1,"MMC completion marker=%h fault%0d present%0d WP%0d HPSreads%0d DMAerrors%h",saved_sd,mmc_fault,mmc_present,mmc_wp,hps_reads,dut.dma_error_pending);
++       if($test$plusargs("hold") && (!held_once || hps_reads<4))$fatal(1,"CPU Hold path not exercised");
++       $display("PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=%0d reads=%0d writes=%0d",cycles,hps_reads,persisted);$finish;
++       end
++      end
++     end
++  if(!cold)begin cycles<=cycles+1;if(cycles>2000000)$fatal(1,"ARM MMC timeout PC=%h hoststatus%h HPSstate%0d",dut.cpu_pc,32'd0,hstate);end
++ end
++ initial begin
++  for(i=0;i<2048;i=i+1)rom[i]=0;
++
++  for(i=0;i<32768;i=i+1)ram[i]=32'ha5a5a5a5;
++  for(i=0;i<65536;i=i+1)begin
++   memory.Bank0[i]=16'ha5a5; memory.Bank1[i]=16'ha5a5;
++   memory.Bank2[i]=16'ha5a5; memory.Bank3[i]=16'ha5a5;
++  end
++  if ($test$plusargs("gpio_stress")) begin
++   $readmemh("scratch/v5-fit-loop/upp-two-edge/mixed/gpio.hex",rom);
++   test_keys=27'h20;
++  end else if ($test$plusargs("upp_stress")) $readmemh("scratch/v5-fit-loop/upp-two-edge/mixed/stress.hex",rom);
++  else $readmemh("scratch/v5-fit-loop/upp-two-edge/mixed/program.hex",rom);
++  $readmemh("scratch/v5-fit-loop/upp-two-edge/mixed/image.hex",image);
++  for(i=0;i<1280;i=i+1)original_image[i]=image[i];
++  repeat(4)@(negedge clk);cold=0;
++  @(negedge clk);img_mount=1;@(negedge clk);img_mount=0;
++  wait(init_done && scrub_done);repeat(2)@(negedge clk);reset=0;
++ end
++ initial begin
++  if($test$plusargs("hold"))begin
++   wait(hstate==2 && hword==128);@(negedge clk);cpu_hold=1;held_once=1;
++   repeat(12)@(negedge clk);cpu_hold=0;
++  end
++ end
++ wire ddr_req, ddr_we, ddr_ack, ddr_clear, ddr_clear_done;
++ wire [16:2] ddr_addr;
++ wire [31:0] ddr_wdata, ddr_rdata;
++ wire [3:0] ddr_be;
++ upp_ddr_test_peer upp_ddr (
++     .clk(clk), .cold(cold), .complete(1'b1), .req(ddr_req), .we(ddr_we),
++     .addr(ddr_addr), .wdata(ddr_wdata), .be(ddr_be), .ack(ddr_ack), .rdata(ddr_rdata),
++     .clear(ddr_clear), .clear_done(ddr_clear_done), .pending()
++ );
++
++ integer ddr_writes[0:1], ddr_reads[0:1];
++ reg [1:0] atomic_read=0, atomic_write=0, instruction_read=0, atomic_dma_overlap=0;
++ integer sample_count=0, first_sample=-1, last_sample=-1;
++ reg [31:0] sample_hash=32'h811c9dc5;
++ integer ram_bank;
++ initial begin
++     for (ram_bank=0; ram_bank<2; ram_bank=ram_bank+1) begin
++         ddr_writes[ram_bank]=0;
++         ddr_reads[ram_bank]=0;
++     end
++ end
++
++ always @(posedge clk) begin
++     if (ddr_req && ddr_ack) begin
++         if (ddr_we) ddr_writes[ddr_addr[16]] <= ddr_writes[ddr_addr[16]] + 1;
++         else ddr_reads[ddr_addr[16]] <= ddr_reads[ddr_addr[16]] + 1;
++         if (bus_lock) begin
++             if (ddr_we) atomic_write[ddr_addr[16]] <= 1;
++             else atomic_read[ddr_addr[16]] <= 1;
++             if (lcd_line_req && !lcd_line_ready) atomic_dma_overlap[ddr_addr[16]] <= 1;
++         end
++         if (!ddr_we && dut.wb_code) instruction_read[ddr_addr[16]] <= 1;
++     end
++     if (dut.game_pcm.player.tick && dut.game_pcm.player.play && !done_irq) begin
++         sample_count <= sample_count+1;
++         if (first_sample<0) first_sample <= cycles;
++         last_sample <= cycles;
++         sample_hash <= (sample_hash ^ {pcm_l,pcm_r}) * 32'd16777619;
++         if ($test$plusargs("characterize_pcm"))
++             $display("PCM_SAMPLE %0d %0d %04h %04h",sample_count,cycles,pcm_l,pcm_r);
++
++     end
++ end
++
++ task check_upp_ddr;
++     begin
++         if (atomic_read !== 2'b11 || atomic_write !== 2'b11 || atomic_dma_overlap !== 2'b11 ||
++             instruction_read !== 2'b11 || upp_ddr.clear_count != 1 ||
++             ddr_writes[0] != 260 || ddr_writes[1] != 260 || ddr_reads[0] < 260 || ddr_reads[1] < 260)
++             $fatal(1,"DDR owner counts upload=%0d/%0d NOS=%0d/%0d SWP=%b/%b with DMA=%b fetch=%b clears=%0d",
++                    ddr_reads[0],ddr_writes[0],ddr_reads[1],ddr_writes[1],
++                    atomic_read,atomic_write,atomic_dma_overlap,instruction_read,upp_ddr.clear_count);
++         if (sample_count != 128 || last_sample-first_sample != 275167 ||
++             (!$test$plusargs("characterize_pcm") && sample_hash !== 32'h175ee178))
++             $fatal(1,"PCM samples=%0d hash=%h first=%0d last=%0d",
++                    sample_count,sample_hash,first_sample,last_sample);
++         $display("PASS production UPP DDR RAM upload=%0d/%0d NOS=%0d/%0d SWP with LCD DMA waiting=%b fetch=%b PCM hash=%h",
++                  ddr_reads[0],ddr_writes[0],ddr_reads[1],ddr_writes[1],
++                  atomic_dma_overlap,instruction_read,sample_hash);
++     end
++ endtask
++
++    integer cpu_release = -1, gpio_offers = 0, mmc_offers = 0, mmio_offers = 0;
++    integer blocked = 0, card_edges = 0, card_gap_3 = 0, card_bad_gap = 0;
++    integer card_previous = -1;
++    always @(posedge clk) if (!dut.core_reset) begin
++        if (cpu_release < 0) cpu_release <= cycles;
++        if (dut.board.upp.bus_cyc && !dut.board.upp.peripheral_packet_mature && !dut.board.upp.peripheral_early_access && !dut.board.upp.lcd_dma_claim)
++            blocked <= blocked + 1;
++        if (dut.board.upp.cpu_inside.bridge.start) begin
++            gpio_offers <= gpio_offers + (dut.board.upp.cpu_inside.cpu_bus_adr[31:12] == 20'h0c150 || dut.board.upp.cpu_inside.cpu_bus_adr[31:5] == (32'h0c120c00 >> 5));
++            mmc_offers <= mmc_offers + (dut.board.upp.cpu_inside.cpu_bus_adr[31:6] == (32'h0c120600 >> 6));
++            mmio_offers <= mmio_offers + (dut.board.upp.cpu_inside.cpu_bus_adr[31:24] == 8'h0c && dut.board.upp.cpu_inside.cpu_bus_adr[31:16] != 16'h0c03 && dut.board.upp.cpu_inside.cpu_bus_adr[31:16] != 16'h0c10);
++        end
++    end
++    always @(posedge dut.board.mmc_clk) if (!dut.core_reset) begin
++        card_edges = card_edges + 1;
++        if (card_previous >= 0) begin
++            if (cycles - card_previous == 3) card_gap_3 = card_gap_3 + 1;
++            if (cycles - card_previous < 3) card_bad_gap = card_bad_gap + 1;
++        end
++        card_previous = cycles;
++    end
++    task report_pacing;
++        begin
++            if (cpu_release < 0 || card_bad_gap != 0) $fatal(1, "invalid pacing measurement");
++            $display("PACE total=%0d guest=%0d blocked=%0d GPIO=%0d MMC=%0d MMIO=%0d card_edges=%0d card_gap_3=%0d",
++                cycles,cycles-cpu_release+1,blocked,gpio_offers,mmc_offers,mmio_offers,card_edges,card_gap_3);
++        end
++    endtask
++    integer trace_file = 0;
++    integer sys_edge = 0, pin_edge = 0;
++    string trace_path;
++    initial if ($value$plusargs("compare_trace=%s", trace_path)) begin
++        trace_file = $fopen(trace_path, "w");
++        if (!trace_file) $fatal(1, "Could not open transaction trace");
++    end
++    final if (trace_file) $fclose(trace_file);
++
++    always @(posedge clk) begin
++        sys_edge = sys_edge + 1;
++        if (trace_file) begin
++            if (dma_cmd_valid)
++                $fwrite(trace_file,"D %0d %b %h %h %h\n",sys_edge,{dma_cmd_ready,dma_cmd_write},dma_cmd_addr,dma_cmd_data,dma_cmd_be);
++            if (dma_rsp_valid)
++                $fwrite(trace_file,"R %0d %b %h\n",sys_edge,dma_rsp_error,dma_rsp_data);
++            if (pin_req && pin_cmd_ready)
++                $fwrite(trace_file,"Q %0d %b %h %h %h\n",sys_edge,{pin_we,pin_line,pin_short},pin_address,
++                        pin_we ? pin_write_data : 128'b0,pin_we ? pin_write_mask : 16'b0);
++            if (cpu_ram_accept || merge_accept || csack || merge_ack)
++                $fwrite(trace_file,"O %0d %b %h %h\n",sys_edge,{bus_lock,cpu_ram_accept,merge_accept,csack,merge_ack,hold_scalar},
++                        csack ? csread : 32'b0,merge_ack ? merge_rdata : 32'b0);
++            if (shared_line_valid)
++                $fwrite(trace_file,"L %0d %b %h\n",sys_edge,shared_line_last,shared_line_data);
++            if (pin_valid) $fwrite(trace_file,"V %0d %h\n",sys_edge,pin_read_data);
++            if (hps_read || hps_write)
++                $fwrite(trace_file,"H %0d %b %h %h\n",sys_edge,{hps_read,hps_write,hps_ack},hps_lba,hps_count);
++        end
++    end
++    always @(posedge pin_clk) begin
++        pin_edge = pin_edge + 1;
++        if (trace_file && ((!cs_n && {ras_n,cas_n,we_n} != 3'b111) || |controller.sdram_dq_oe))
++            $fwrite(trace_file,"P %0d %b %h %h %h %h\n",pin_edge,{cke,cs_n,ras_n,cas_n,we_n,dqmh,dqml},
++                    bank,pin_a,controller.sdram_dq_oe,pin_out & controller.sdram_dq_oe);
++    end
++
++endmodule

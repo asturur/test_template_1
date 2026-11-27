@@ -1,0 +1,243 @@
+diff --git a/rtl/ngage_ddr_stream.v b/rtl/ngage_ddr_stream.v
+index 129d919..1e9f95f 100644
+--- a/rtl/ngage_ddr_stream.v
++++ b/rtl/ngage_ddr_stream.v
+@@ -61,10 +61,13 @@ module ngage_ddr_stream #(
+     wire [63:0] buffer_head;
+     wire read_active = state == READ_ISSUE || state == READ_WAIT || state == READ_FINISH;
+     wire cancel_now = transport_reset || (phone_reset && cancel_on_phone);
+-    wire [32:0] request_end = {1'b0, req_addr} + ({26'b0, req_count} << 3);
++    // Only the final 512 bytes can overrun a legal burst. With count <= 64
++    // the offset plus count fits seven bits, including an end exactly at 4 GiB.
++    wire [6:0] window_end = {1'b0, req_addr[8:3]} + req_count;
++    wire in_final_window = &req_addr[31:9];
+     wire offer_fill = WRITE_FILL && req_fill;
+-    wire valid_request = req_count != 0 && req_count <= 64 && req_addr[2:0] == 0 &&
+-        request_end <= 33'h100000000 && (!req_write || req_stream || offer_fill || req_count == 1);
++    wire valid_request = req_count != 0 && req_count <= 7'd64 && req_addr[2:0] == 0 &&
++        (!in_final_window || window_end <= 7'd64) && (!req_write || req_stream || offer_fill || req_count == 1);
+     assign idle           = state == IDLE;
+     assign req_ready      = idle && !transport_reset;
+     assign ddr_addr       = address;
+diff --git a/tests/phone/ddr_stream/bounds.smt2 b/tests/phone/ddr_stream/bounds.smt2
+new file mode 100644
+index 0000000..9d5626d
+--- /dev/null
++++ b/tests/phone/ddr_stream/bounds.smt2
+@@ -0,0 +1,31 @@
++; The two complete admission predicates must agree for arbitrary inputs.
++; Run: z3 tests/phone/ddr_stream/bounds.smt2
++(set-logic QF_BV)
++(declare-fun req_addr () (_ BitVec 32))
++(declare-fun req_count () (_ BitVec 7))
++(declare-fun req_write () Bool)
++(declare-fun req_stream () Bool)
++(declare-fun req_fill () Bool)
++(declare-fun write_fill_enabled () Bool)
++
++(define-fun common () Bool
++  (and (distinct req_count (_ bv0 7))
++       (bvule req_count (_ bv64 7))
++       (= ((_ extract 2 0) req_addr) #b000)
++       (or (not req_write) req_stream (and write_fill_enabled req_fill)
++           (= req_count (_ bv1 7)))))
++(define-fun request_end () (_ BitVec 33)
++  (bvadd ((_ zero_extend 1) req_addr)
++         (bvshl ((_ zero_extend 26) req_count) (_ bv3 33))))
++(define-fun old_valid () Bool
++  (and common (bvule request_end (_ bv4294967296 33))))
++
++(define-fun window_end () (_ BitVec 7)
++  (bvadd ((_ zero_extend 1) ((_ extract 8 3) req_addr)) req_count))
++(define-fun in_final_window () Bool
++  (= ((_ extract 31 9) req_addr) (_ bv8388607 23)))
++(define-fun new_valid () Bool
++  (and common (or (not in_final_window) (bvule window_end (_ bv64 7)))))
++
++(assert (distinct old_valid new_valid))
++(check-sat)
+diff --git a/tests/phone/ddr_stream/bounds_tb.sv b/tests/phone/ddr_stream/bounds_tb.sv
+new file mode 100644
+index 0000000..88e21e7
+--- /dev/null
++++ b/tests/phone/ddr_stream/bounds_tb.sv
+@@ -0,0 +1,162 @@
++`timescale 1ns/1ps
++
++module bounds_case #(parameter WRITE_FILL = 0) (input wire clk, output reg pass = 0);
++    reg req_valid = 0;
++    reg phone_reset = 1;
++    reg [31:0] addr = 0;
++    reg [6:0] count = 0;
++    reg write_op = 0, stream_op = 0, fill_op = 0;
++    reg ddr_busy = 0, write_valid = 0, write_last = 0, ddr_data_ready = 0;
++    wire ready, done, error, cancelled, idle, ddr_rd, ddr_we, write_ready, read_valid;
++    wire [1:0] done_owner;
++    wire [28:0] ddr_addr;
++    wire [7:0] ddr_count, ddr_be;
++    wire [63:0] ddr_din;
++    integer checks = 0;
++
++    ngage_ddr_stream #(.WRITE_FILL(WRITE_FILL)) dut (
++        .clk(clk), .transport_reset(1'b0), .phone_reset(phone_reset),
++        .req_valid(req_valid), .req_ready(ready), .req_owner(2'd2),
++        .req_cancel_on_phone(1'b1), .req_write(write_op), .req_stream(stream_op),
++        .req_fill(fill_op), .req_addr(addr), .req_count(count),
++        .req_data(64'h1122334455667788), .req_be(8'h57),
++        .write_valid(write_valid), .write_ready(write_ready),
++        .write_data(64'h99aabbccddeeff00), .write_be(8'ha9), .write_last(write_last),
++        .read_valid(read_valid), .read_ready(1'b1), .read_owner(), .read_data(),
++        .read_last(), .done(done), .done_owner(done_owner), .error(error),
++        .cancelled(cancelled), .idle(idle), .ddr_addr(ddr_addr),
++        .ddr_din(ddr_din), .ddr_be(ddr_be), .ddr_burstcount(ddr_count),
++        .ddr_rd(ddr_rd), .ddr_we(ddr_we), .ddr_busy(ddr_busy),
++        .ddr_dout(64'hca11ba11), .ddr_dout_ready(ddr_data_ready)
++    );
++
++    task offer(input [31:0] a, input [6:0] n, input [2:0] mode);
++        begin
++            @(negedge clk);
++            if (!ready) $fatal(1, "busy before test descriptor");
++            addr = a;
++            count = n;
++            {write_op, stream_op, fill_op} = mode;
++            req_valid = 1;
++            @(posedge clk);
++            #1 req_valid = 0;
++        end
++    endtask
++
++    task check_bounds(input [31:0] a, input [6:0] n, input [2:0] mode);
++        reg [32:0] ending;
++        reg allowed;
++        begin
++            ending = {1'b0, a} + ({26'b0, n} << 3);
++            allowed = n != 0 && n <= 7'd64 && a[2:0] == 0 && ending <= 33'h100000000 &&
++                      (!mode[2] || mode[1] || (WRITE_FILL && mode[0]) || n == 1);
++            offer(a, n, mode);
++            // Valid requests cancel at admission in this sweep. Invalid
++            // requests must signal an error first, without a physical offer.
++            if (!done || !idle || done_owner != 2'd2 || error != !allowed ||
++                cancelled != allowed || ddr_rd || ddr_we || read_valid || write_ready)
++                $fatal(1, "admission mismatch: fill=%b addr=%h count=%d mode=%b",
++                       WRITE_FILL, a, n, mode);
++            checks++;
++        end
++    endtask
++
++    integer beat, n, mode, lane;
++    initial begin
++        for (mode = 0; mode < 8; mode++) begin
++            for (n = 0; n < 128; n++) begin
++                for (beat = 0; beat < 64; beat++)
++                    check_bounds(32'hfffffe00 + beat * 8, n[6:0], mode[2:0]);
++                for (lane = 0; lane < 8; lane++) begin
++                    check_bounds(32'h00000000 + lane, n[6:0], mode[2:0]);
++                    check_bounds(32'hfffffdf8 + lane, n[6:0], mode[2:0]);
++                    check_bounds(32'hfffffe00 + lane, n[6:0], mode[2:0]);
++                    check_bounds(32'hfffffff8 + lane, n[6:0], mode[2:0]);
++                end
++            end
++        end
++
++        // Live out-of-range requests must error instead of wrapping to zero.
++        phone_reset = 0;
++        offer(32'hfffffe08, 7'd64, 3'b000);
++        if (!done || !error || cancelled || ddr_rd || ddr_we) $fatal(1, "overflow read issued");
++        offer(32'hfffffff8, 7'd2, 3'b110);
++        if (!done || !error || cancelled || ddr_rd || ddr_we) $fatal(1, "overflow write issued");
++        // A maximum read ending exactly at 4 GiB launches on the usual edge.
++        ddr_busy = 1;
++        offer(32'hfffffe00, 7'd64, 3'b000);
++        if (!ddr_rd || ddr_we || done || ddr_addr != 29'h1fffffc0 || ddr_count != 64)
++            $fatal(1, "legal boundary read did not issue");
++        repeat (2) begin
++            @(posedge clk);
++            #1;
++            if (!ddr_rd || ddr_addr != 29'h1fffffc0 || ddr_count != 64)
++                $fatal(1, "held boundary read changed");
++        end
++        @(negedge clk);
++        ddr_busy = 0;
++        ddr_data_ready = 1;
++        repeat (64) @(posedge clk);
++        @(negedge clk);
++        ddr_data_ready = 0;
++        @(posedge clk);
++        #1;
++        if (!done || error || cancelled) $fatal(1, "boundary read did not finish");
++
++        // Both parameterizations accept an ordinary scalar last-address write.
++        offer(32'hfffffff8, 7'd1, 3'b100);
++        if (!ddr_we || ddr_addr != 29'h1fffffff || ddr_count != 1 || ddr_be != 8'h57)
++            $fatal(1, "final scalar write did not issue");
++        @(posedge clk);
++        #1;
++        if (!done || error || cancelled || ddr_we) $fatal(1, "final scalar write did not finish");
++        // Two payload beats end exactly at 4 GiB. Exercise WRITE_NEED as
++        // well as the same-address constant-data fill variant below.
++        offer(32'hfffffff0, 7'd2, 3'b110);
++        for (beat = 0; beat < 2; beat++) begin
++            @(negedge clk);
++            if (!write_ready) $fatal(1, "stream did not request boundary beat");
++            write_valid = 1;
++            write_last = beat == 1;
++            @(posedge clk);
++            #1 write_valid = 0;
++            if (!ddr_we || ddr_addr != 29'h1ffffffe + beat || ddr_count != 1 ||
++                ddr_be != 8'ha9 || ddr_din != 64'h99aabbccddeeff00)
++                $fatal(1, "stream boundary beat changed");
++            @(posedge clk);
++            #1;
++        end
++        if (!done || error || cancelled || ddr_we) $fatal(1, "stream did not finish at boundary");
++        offer(32'hfffffff0, 7'd2, 3'b101);
++        if (WRITE_FILL) begin
++            for (beat = 0; beat < 2; beat++) begin
++                if (!ddr_we || ddr_addr != 29'h1ffffffe + beat || ddr_count != 1 ||
++                    ddr_be != 8'h57 || ddr_din != 64'h1122334455667788)
++                    $fatal(1, "fill boundary beat changed");
++                @(posedge clk);
++                #1;
++            end
++            if (!done || error || cancelled || ddr_we) $fatal(1, "fill did not finish at boundary");
++        end else if (!done || !error || cancelled || ddr_we) begin
++            $fatal(1, "unsupported multi-beat fill issued");
++        end
++        $display("PASS DDR bounds WRITE_FILL=%0d admission_checks=%0d", WRITE_FILL, checks);
++        pass = 1;
++    end
++endmodule
++
++module bounds_tb;
++    reg clk = 0;
++    wire baseline_pass, fill_pass;
++    always #5 clk = !clk;
++    bounds_case plain (clk, baseline_pass);
++    bounds_case #(.WRITE_FILL(1)) fill (clk, fill_pass);
++    initial begin
++        wait (baseline_pass && fill_pass);
++        $finish;
++    end
++    initial begin
++        #2000000;
++        $fatal(1, "test timeout");
++    end
++endmodule
+diff --git a/tests/phone/ddr_stream/run-bounds.sh b/tests/phone/ddr_stream/run-bounds.sh
+new file mode 100644
+index 0000000..7916693
+--- /dev/null
++++ b/tests/phone/ddr_stream/run-bounds.sh
+@@ -0,0 +1,11 @@
++#!/bin/sh
++# Run inside the existing jotego/simulator:arm64 image, network none.
++set -eu
++out=build/sim/unit-ddr-stream-bounds
++mkdir -p "$out"
++iverilog -g2012 -s bounds_tb -o "$out/test" \
++    rtl/ngage_bram.v rtl/ngage_ddr_stream.v tests/phone/ddr_stream/bounds_tb.sv
++vvp "$out/test" > "$out/run.log"
++cat "$out/run.log"
++grep -q '^PASS DDR bounds WRITE_FILL=0 admission_checks=98304$' "$out/run.log"
++grep -q '^PASS DDR bounds WRITE_FILL=1 admission_checks=98304$' "$out/run.log"

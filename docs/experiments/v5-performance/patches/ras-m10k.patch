@@ -1,0 +1,366 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index c9d7653e3f7af4021979274f2a3e023c750ed25f..7ac65e2fe9194a1f2409d2a6a9f30889b589cb24 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -5221,8 +5221,7 @@ module ngage2_arm9v2_predict (
+ 	(* dont_retime *) reg [31:0] read_pc;
+ 	(* dont_retime *) reg [2:0] pointer;
+ 	(* dont_retime *) reg [3:0] count;
+-	reg [31:0] stack [0:7];
+-	(* dont_retime *) reg [31:0] ras_top;
++	wire [31:0] ras_top;
+ 	wire [31:0] call_link = (read_pc + (read_thumb ? 32'd2 : 32'd4)) | {31'd0, read_thumb};
+ 	reg [1:0] update_state;
+     // ARM word alignment otherwise leaves half the direct-mapped table unused.
+@@ -5296,15 +5295,52 @@ module ngage2_arm9v2_predict (
+ 			read_valid_bit <= valid_launch;
+ 	assign o_hit = ((VALID_BIT ? read_valid_bit : read_valid[read_pc[INDEX_W:1]]) && (read_entry[TAG_W + 36-:((TAG_W + 36) >= 37 ? TAG_W + 0 : 38 - (TAG_W + 36))] == read_pc[31:INDEX_W + 1])) && (read_entry[36] == read_thumb);
+ 	assign o_taken = o_hit && read_entry[3];
+-	assign o_target = ((read_entry[1-:2] == RETURN) && (count != 0) ? (RAS_TOP_FF ? ras_top : stack[pointer - 1'b1]) : read_entry[35-:32]);
++	assign o_target = ((read_entry[1-:2] == RETURN) && (count != 0) ? ras_top : read_entry[35-:32]);
+ 	assign o_state = (o_hit ? read_entry[3-:2] : 2'b01);
+ 	assign o_kind = read_entry[1-:2];
+ 	assign o_pointer = pointer;
+ 	assign o_count = count;
+-	function automatic [2:0] sv2v_cast_3;
+-		input reg [2:0] inp;
+-		sv2v_cast_3 = inp;
+-	endfunction
++
++    wire restore = !i_reset && i_repair;
++    wire speculate = !i_reset && !i_repair && !i_clear && i_accept && o_taken;
++    wire push_stack = (restore && i_repair_action == CALL) ||
++                      (speculate && o_kind == CALL);
++    wire repair_pop = i_repair_action == RETURN && i_repair_count != 0;
++    wire read_stack = (restore && i_repair_action != CALL) ||
++                      (speculate && o_kind == RETURN && count != 0);
++    wire [2:0] stack_write_address = i_repair ? i_repair_pointer : pointer;
++    wire [2:0] stack_read_address = i_repair ?
++        i_repair_pointer - (repair_pop ? 3'd2 : 3'd1) : pointer - 3'd2;
++    wire [31:0] stack_link = i_repair ? i_repair_link : call_link;
++
++    generate
++        if (RAS_TOP_FF) begin : g_m10k_ras
++            (* ramstyle = "M10K" *) reg [31:0] stack [0:7];
++            reg [31:0] read_top;
++            (* dont_retime *) reg [31:0] link_top;
++            (* dont_retime *) reg use_link;
++
++            // A push supplies the new top directly. A pop or repair reads
++            // the backing stack on the edge that used to register ras_top.
++            always @(posedge i_clk) begin
++                if (push_stack) begin
++                    stack[stack_write_address] <= stack_link;
++                    link_top <= stack_link;
++                    use_link <= 1'b1;
++                end else if (read_stack) begin
++                    read_top <= stack[stack_read_address];
++                    use_link <= 1'b0;
++                end
++            end
++            assign ras_top = use_link ? link_top : read_top;
++        end else begin : g_async_ras
++            reg [31:0] stack [0:7];
++            always @(posedge i_clk)
++                if (push_stack)
++                    stack[stack_write_address] <= stack_link;
++            assign ras_top = stack[pointer - 1'b1];
++        end
++    endgenerate
+ 	always @(posedge i_clk)
+ 		if (i_reset) begin
+ 			pointer <= 0;
+@@ -5313,17 +5349,13 @@ module ngage2_arm9v2_predict (
+ 		else if (i_repair) begin
+ 			pointer <= i_repair_pointer;
+ 			count <= i_repair_count;
+-			ras_top <= stack[i_repair_pointer - 1'b1];
+ 			case (i_repair_action)
+ 				CALL: begin
+-					stack[i_repair_pointer] <= i_repair_link;
+-					ras_top <= i_repair_link;
+ 					pointer <= i_repair_pointer + 1'b1;
+ 					count <= (i_repair_count == 8 ? 4'd8 : i_repair_count + 1'b1);
+ 				end
+ 				RETURN:
+ 					if (i_repair_count != 0) begin
+-						ras_top <= stack[sv2v_cast_3(i_repair_pointer - 2'd2)];
+ 						pointer <= i_repair_pointer - 1'b1;
+ 						count <= i_repair_count - 1'b1;
+ 					end
+@@ -5342,15 +5374,12 @@ module ngage2_arm9v2_predict (
+ 		else if (i_accept && o_taken)
+ 			case (read_entry[1-:2])
+ 				CALL: begin
+-					stack[pointer] <= call_link;
+-					ras_top <= call_link;
+ 					pointer <= pointer + 1'b1;
+ 					if (count != 8)
+ 						count <= count + 1'b1;
+ 				end
+ 				RETURN:
+ 					if (count != 0) begin
+-						ras_top <= stack[sv2v_cast_3(pointer - 2'd2)];
+ 						pointer <= pointer - 1'b1;
+ 						count <= count - 1'b1;
+ 					end
+diff --git a/tests/cpu/arm9v2_ras/run.sh b/tests/cpu/arm9v2_ras/run.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..f5af48a0f9899df53744a327f46dca6e0d8fb504
+--- /dev/null
++++ b/tests/cpu/arm9v2_ras/run.sh
+@@ -0,0 +1,25 @@
++#!/bin/sh
++set -eu
++cd "$(dirname "$0")/../../.."
++out=build/sim/arm9v2-ras
++mkdir -p "$out"
++
++git show 29479fecc32fe8a787378222f1ac2010a0eaf8a7:rtl/arm9v2/arm925t_phone.v | awk '
++    /^module ngage2_arm9v2_predict / { active = 1; sub(/ngage2_arm9v2_predict/, "reference_predict") }
++    active { print }
++    active && /^endmodule/ { exit }
++' > "$out/reference.v"
++grep -q '^module reference_predict' "$out/reference.v"
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -ec '
++        src=tests/cpu/arm9v2_ras
++        out=build/sim/arm9v2-ras
++        for mode in 1 0; do
++            verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint --top-module tb \
++                -GTOP_REGISTER="$mode" --Mdir "$out/obj-$mode" rtl/arm9v2/arm925t_phone.v \
++                "$out/reference.v" "$src/tb.sv" > "$out/build-$mode.log" 2>&1
++            "$out/obj-$mode/Vtb" > "$out/run-$mode.log" 2>&1
++            grep "^PASS" "$out/run-$mode.log"
++        done
++    '
+diff --git a/tests/cpu/arm9v2_ras/tb.sv b/tests/cpu/arm9v2_ras/tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..ea4ae643a9224ce388463fc7e9fbcf2bf0d01d7c
+--- /dev/null
++++ b/tests/cpu/arm9v2_ras/tb.sv
+@@ -0,0 +1,138 @@
++module tb;
++  parameter TOP_REGISTER = 1;
++  localparam [1:0] CALL = 1, RETURN = 2;
++  reg clk = 0, reset = 0, clear = 0;
++  reg lookup = 0, thumb = 0, accept = 0;
++  reg update = 0, repair = 0;
++  reg [31:0] pc = 0, repair_link = 0;
++  reg [2:0] repair_pointer = 0;
++  reg [3:0] repair_count = 0;
++  reg [1:0] kind = 0, action = 0;
++
++  wire [44:0] actual, expected;
++  `define PREDICT_PORTS(result) \
++    .i_clk(clk), .i_reset(reset), .i_clear(clear), .i_lookup(lookup), \
++    .i_pc(pc), .i_pc_redirect(pc), .i_pc_sequential(pc), \
++    .i_sel_redirect(1'b0), .i_sel_predicted(1'b0), .i_thumb(thumb), .i_accept(accept), \
++    .i_update(update), .i_update_pc(pc), .i_update_target(32'hd00df000), \
++    .i_update_thumb(thumb), .i_update_taken(1'b1), .i_update_hit(1'b0), \
++    .i_update_state(2'b10), .i_update_kind(kind), \
++    .i_repair(repair), .i_repair_pointer(repair_pointer), .i_repair_count(repair_count), \
++    .i_repair_action(action), .i_repair_link(repair_link), \
++    .o_hit(result[44]), .o_taken(result[43]), .o_target(result[42:11]), \
++    .o_state(result[10:9]), .o_kind(result[8:7]), \
++    .o_pointer(result[6:4]), .o_count(result[3:0])
++
++  ngage2_arm9v2_predict #(
++      .RAS_TOP_FF(TOP_REGISTER)
++  ) candidate (
++      `PREDICT_PORTS(actual)
++  );
++  reference_predict #(
++      .RAS_TOP_FF(TOP_REGISTER)
++  ) original (
++      `PREDICT_PORTS(expected)
++  );
++  `undef PREDICT_PORTS
++
++  integer edges = 0;
++  integer i, p, n, a, c;
++
++  task tick;
++    begin
++      #1 clk = 1;
++      #1 clk = 0;
++      #1;
++      edges = edges + 1;
++      if (actual !== expected)
++        $fatal(1, "edge %0d predicted %h, expected %h", edges, actual, expected);
++      if (TOP_REGISTER && actual[3:0] != 0 && candidate.ras_top !== original.ras_top)
++        $fatal(1, "edge %0d top %h, expected %h", edges, candidate.ras_top, original.ras_top);
++    end
++  endtask
++
++  task select_branch;
++    input take_return, is_thumb;
++    begin
++      thumb = is_thumb;
++      pc = take_return ? (is_thumb ? 32'h402 : 32'h300) : (is_thumb ? 32'h202 : 32'h100);
++      kind = take_return ? RETURN : CALL;
++    end
++  endtask
++
++  task train;
++    begin
++      update = 1;
++      lookup = 1;
++      for (i = 0; i < 4; i = i + 1) begin
++        select_branch(i[1], i[0]);
++        tick;
++      end
++      update = 0;
++    end
++  endtask
++
++  initial begin
++    reset = 1;
++    tick;
++    reset = 0;
++    train;
++    // Saturation and underflow with consecutive ARM/Thumb calls and returns.
++    for (i = 0; i < 32; i = i + 1) begin
++      select_branch(i[4], i[0]);
++      lookup = 1;
++      tick;
++      lookup = 0;
++      accept = 1;
++      tick;
++      accept = 0;
++      if (i == 15 && actual[3:0] != 8 || i == 31 && actual[3:0] != 0)
++        $fatal(1, "Depth did not saturate/empty at edge %0d", edges);
++    end
++
++    // Advance a new lookup on every cycle while accepting the previous one.
++    lookup = 1;
++    for (i = 0; i < 32; i = i + 1) begin
++      select_branch(i[4], i[0]);
++      accept = i != 0;
++      tick;
++    end
++    lookup = 0;
++    accept = 1;
++    tick;
++    accept = 0;
++    if (actual[3:0] != 0) $fatal(1, "Consecutive returns failed to empty stack");
++
++    // Every pointer, depth, repair action, and simultaneous control combination.
++    // Insert known nonidentical entries before repairs to make addressing errors visible.
++    for (p = 0; p < 8; p = p + 1)
++    for (n = 0; n <= 8; n = n + 1)
++    for (a = 0; a < 4; a = a + 1)
++    for (c = 0; c < 32; c = c + 1) begin
++      for (i = 0; i < 8; i = i + 1) begin
++        repair = 1;
++        action = CALL;
++        repair_pointer = i[2:0];
++        repair_count = {1'b0, i[2:0]};
++        repair_link = 32'hf1000000 + 32'(i * 4) + 32'(i[0]);
++        tick;
++      end
++      select_branch(1, c[0]);
++      lookup = 1;
++      tick;
++      {reset, clear, repair, accept, lookup} = c[4:0];
++      action = a[1:0];
++      repair_pointer = p[2:0];
++      repair_count = n[3:0];
++      repair_link = 32'hdec0dead ^ edges;
++      tick;
++      {reset, clear, repair, accept, lookup} = 0;
++      tick;
++      if (c[4] || c[3]) train;
++    end
++    $display(
++        "PASS RAS registered mode=%0d, %0d matched edges, all repair pointers/depths/actions and control priorities",
++        TOP_REGISTER, edges);
++    $finish;
++  end
++endmodule
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index d47facb7c76c9f59ef6effcd2580a022475f19cf..3a57198005c3f01bffbbcda325caf6422c30dc08 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -454,6 +454,71 @@ def xor_btb(netlist):
+     return netlist[:start] + predictor + netlist[end:]
+ 
+ 
++def bank_return_stack(phone):
++    """Read the saved return address on the existing top-of-stack edge."""
++    start = phone.index('module ngage2_arm9v2_predict (')
++    end = phone.index('\nendmodule', start)
++    predictor = phone[start:end]
++    predictor = edit(predictor, '\treg [31:0] stack [0:7];\n\t(* dont_retime *) reg [31:0] ras_top;',
++                     '\twire [31:0] ras_top;')
++    predictor = edit(predictor, '(RAS_TOP_FF ? ras_top : stack[pointer - 1\'b1])', 'ras_top')
++    predictor = edit(predictor, '''\tfunction automatic [2:0] sv2v_cast_3;
++\t\tinput reg [2:0] inp;
++\t\tsv2v_cast_3 = inp;
++\tendfunction
++''', '''
++    wire restore = !i_reset && i_repair;
++    wire speculate = !i_reset && !i_repair && !i_clear && i_accept && o_taken;
++    wire push_stack = (restore && i_repair_action == CALL) ||
++                      (speculate && o_kind == CALL);
++    wire repair_pop = i_repair_action == RETURN && i_repair_count != 0;
++    wire read_stack = (restore && i_repair_action != CALL) ||
++                      (speculate && o_kind == RETURN && count != 0);
++    wire [2:0] stack_write_address = i_repair ? i_repair_pointer : pointer;
++    wire [2:0] stack_read_address = i_repair ?
++        i_repair_pointer - (repair_pop ? 3'd2 : 3'd1) : pointer - 3'd2;
++    wire [31:0] stack_link = i_repair ? i_repair_link : call_link;
++
++    generate
++        if (RAS_TOP_FF) begin : g_m10k_ras
++            (* ramstyle = "M10K" *) reg [31:0] stack [0:7];
++            reg [31:0] read_top;
++            (* dont_retime *) reg [31:0] link_top;
++            (* dont_retime *) reg use_link;
++
++            // A push supplies the new top directly. A pop or repair reads
++            // the backing stack on the edge that used to register ras_top.
++            always @(posedge i_clk) begin
++                if (push_stack) begin
++                    stack[stack_write_address] <= stack_link;
++                    link_top <= stack_link;
++                    use_link <= 1'b1;
++                end else if (read_stack) begin
++                    read_top <= stack[stack_read_address];
++                    use_link <= 1'b0;
++                end
++            end
++            assign ras_top = use_link ? link_top : read_top;
++        end else begin : g_async_ras
++            reg [31:0] stack [0:7];
++            always @(posedge i_clk)
++                if (push_stack)
++                    stack[stack_write_address] <= stack_link;
++            assign ras_top = stack[pointer - 1'b1];
++        end
++    endgenerate
++''')
++    for indent, line in ((3, "ras_top <= stack[i_repair_pointer - 1'b1];"),
++                         (5, "stack[i_repair_pointer] <= i_repair_link;"),
++                         (5, "ras_top <= i_repair_link;"),
++                         (6, "ras_top <= stack[sv2v_cast_3(i_repair_pointer - 2'd2)];"),
++                         (5, "stack[pointer] <= call_link;"),
++                         (5, "ras_top <= call_link;"),
++                         (6, "ras_top <= stack[sv2v_cast_3(pointer - 2'd2)];")):
++        predictor = edit(predictor, '\t' * indent + line + '\n', '')
++    return phone[:start] + predictor + phone[end:]
++
++
+ def load_waw_overlay(source):
+     """Admit a younger scalar load while its older destination is in M."""
+     source = edit(source, '\twire unused = &{1\'b0, LOAD_FORMATTED,', '''    wire d_advanced_load_writer;
+@@ -887,7 +952,7 @@ def main():
+     generated = schedule_early_smull(generated)
+     generated = restart_streamed_icache(direct_accumulate(generated))
+     generated = resident_during_fill(generated)
+-    generated = xor_btb(generated)
++    generated = bank_return_stack(xor_btb(generated))
+     generated = load_waw_overlay(generated)
+     generated = predicate_block(generated)
+     generated = predecode_refill_candidates(half_dirty_writeback(generated))

@@ -1,0 +1,86 @@
+{
+  "status": "PASS",
+  "production_mhz": 104,
+  "debugger": false,
+  "selection": {
+    "payload-on-baseline": {
+      "candidate": "b7cf9fcef0bf2ea2c1d29ec569b3c0d0a0dcf120",
+      "control": "20fb1e537cad366cc700be0e4ff6c388c7563d91",
+      "seeds": {
+        "13": {
+          "paired_run": 45824513460,
+          "control_commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+          "changed_selected_sources": {
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6",
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce"
+          },
+          "qsf_sha256": "4fc5f57d431d9d7a498413222ab65fc2d9e77a295529bca77964e343a50e37f5",
+          "candidate_manifest_sha256": "366531cf499fad378ea1d55fcb2d7dc70f4debf5da83d9dafc33530757d76e45",
+          "control_manifest_sha256": "7e5e0b5c0f50b20e046c8f7fd0d07077bdabeef289e36b52c223c36622cecf01"
+        },
+        "43": {
+          "paired_run": 45824520116,
+          "control_commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+          "changed_selected_sources": {
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6",
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce"
+          },
+          "qsf_sha256": "d9b9a130e10322d51813c6ec1c104d39ad0aeb48d8735d411062794392b78e77",
+          "candidate_manifest_sha256": "03b825b7e9d2ea208a45545f1955761fe48ef0383d738bfa801abfdecd834836",
+          "control_manifest_sha256": "1e171954b772067ecc79fa1bedefbfc783377d812ba087433723cf6303b6bdf6"
+        },
+        "31337": {
+          "paired_run": 45824525843,
+          "control_commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+          "changed_selected_sources": {
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6",
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce"
+          },
+          "qsf_sha256": "13c4e6e395338cb2a02ce8089d65b033dddf5543da393510a4b90481a703a917",
+          "candidate_manifest_sha256": "900c957e91545481a79f5b882954c0dbc116381cad4d4e5931a6a0b43d5e8325",
+          "control_manifest_sha256": "9e7c6a1a38f47382128fe9d8ca1d6eabadc201b4e7469b570a6e6f9135c5eb20"
+        }
+      }
+    },
+    "payload-plus-descriptor": {
+      "candidate": "f2949f6e1569b77e0ffc34fde4e4fbb478549c41",
+      "control": "dbad302dd2f85f5a1b016e472cd9557a58e19927",
+      "seeds": {
+        "13": {
+          "paired_run": 45850041608,
+          "control_commit": "dbad302dd2f85f5a1b016e472cd9557a58e19927",
+          "changed_selected_sources": {
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6",
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce"
+          },
+          "qsf_sha256": "4fc5f57d431d9d7a498413222ab65fc2d9e77a295529bca77964e343a50e37f5",
+          "candidate_manifest_sha256": "98f5004c16ccba490f07dcfb7d849ebdc144a20761598cc10a0a630f8142a460",
+          "control_manifest_sha256": "ee002ed4d48d142b98cf315a9da20aa51082db4a3ed5f34c17f242501178a626"
+        },
+        "43": {
+          "paired_run": 45850046593,
+          "control_commit": "dbad302dd2f85f5a1b016e472cd9557a58e19927",
+          "changed_selected_sources": {
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6",
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce"
+          },
+          "qsf_sha256": "d9b9a130e10322d51813c6ec1c104d39ad0aeb48d8735d411062794392b78e77",
+          "candidate_manifest_sha256": "9169b1e4138ef486e24b4947bcfc5f302df8c642df9d2a36c825e14974da565d",
+          "control_manifest_sha256": "c97c0d8a6ff23f4662d90f23f76f9eccb478f59ec5278484b92d44f22052b388"
+        },
+        "31337": {
+          "paired_run": 45850051512,
+          "control_commit": "dbad302dd2f85f5a1b016e472cd9557a58e19927",
+          "changed_selected_sources": {
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6",
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce"
+          },
+          "qsf_sha256": "13c4e6e395338cb2a02ce8089d65b033dddf5543da393510a4b90481a703a917",
+          "candidate_manifest_sha256": "653eff9ff80bc88300dd780ec10e336f881125a83f1ea658cf61697b82729e26",
+          "control_manifest_sha256": "33585dbd49be2c5d6003e3bbf277c0fe801f7b0a02ba6a1ede2a9f1cf3f0f540"
+        }
+      }
+    }
+  },
+  "dirty_manifest_from_preflight": true
+}

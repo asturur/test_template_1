@@ -1,0 +1,421 @@
+diff --git a/scratch/v5-fit-loop/mmc-footer-crc-direct/replay.py b/scratch/v5-fit-loop/mmc-footer-crc-direct/replay.py
+new file mode 100644
+index 0000000..bf16fd6
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-footer-crc-direct/replay.py
+@@ -0,0 +1,182 @@
++"""Replay MMC footer CRC against the retained 104 MHz control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = repo / 'build/sim/v5-104-mmc-footer-crc-direct' / args.output
++work.mkdir(parents=True, exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(stage / 'source/tests/cpu/arm9v2_board'))
++import payload_clocks
++payload_clocks.OUT = repo / "build/sim"
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_upp_peripherals.v', 'rtl/ngage_keypad.v', 'rtl/ngage_upp_euart.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/mmc-footer-crc-direct/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_upp_peripherals.v', 'ngage_keypad.v', 'ngage_upp_euart.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/mmc-footer-crc-direct/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((stage.parent/'prepared-wb-write-data'/'candidate'/f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                source_sha256={name:digest(stage / 'source/rtl' / name) for name in ('ngage_upp.v','ngage_upp_peripherals.v','ngage_upp_euart.v','ngage_keypad.v')}, rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/mmc-footer-crc-direct/mixed.py b/scratch/v5-fit-loop/mmc-footer-crc-direct/mixed.py
+new file mode 100644
+index 0000000..a63f2a4
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-footer-crc-direct/mixed.py
+@@ -0,0 +1,34 @@
++"""Stage the frozen physical-SDRAM replay with the isolated MMC footer CRC RTL."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed')
++trial = Path('build/sim/v5-104-mmc-footer-crc-direct/mixed')
++rtl = 'rtl/ngage_mmc_hps.v'
++peer = 'tests/phone/upp_ddr_ram/peer.v'
++
++trial.mkdir(parents=True, exist_ok=True)
++shutil.copytree(base / 'source', trial / 'source', dirs_exist_ok=True)
++for name in ('stress.hex', 'image.hex', 'program.hex'):
++    shutil.copyfile(base / name, trial / name)
++(trial / 'source' / peer).parent.mkdir(parents=True, exist_ok=True)
++shutil.copyfile(stage / 'source' / peer, trial / 'source' / peer)
++shutil.copyfile(stage / 'source' / rtl, trial / 'source' / rtl)
++
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert rtl in hashes and peer in hashes
++for name, reference in hashes.items():
++    if name.startswith('rtl/'):
++        assert sha256((stage / 'reference' / name).read_bytes()).hexdigest() == reference, name
++    actual = sha256((trial / 'source' / name).read_bytes()).hexdigest()
++    assert (actual != reference) == (name == rtl), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++
++build = (base / 'build.sh').read_text().replace(str(base), str(trial))
++build = build.replace(f' {peer} ', f' {trial}/source/{peer} ')
++(trial / 'build.sh').write_text(build)
+diff --git a/scratch/v5-fit-loop/mmc-footer-crc-direct/prepare-verify.py b/scratch/v5-fit-loop/mmc-footer-crc-direct/prepare-verify.py
+new file mode 100644
+index 0000000..c0d3e4b
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-footer-crc-direct/prepare-verify.py
+@@ -0,0 +1,74 @@
++"""Extend the pinned HPS direct test with CRC cycle and interruption checks."""
++from pathlib import Path
++
++
++stage = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-mmc-footer-crc-direct/verify')
++out.mkdir(parents=True, exist_ok=True)
++bench = (stage / 'reference/tests/phone/mmc_hps/tb.v').read_text()
++summary = '    $display("PASS MMC HPS direct cases=%0d mounts=%0d copies=%0d clocks=%0d"'
++assert bench.count(summary) == 1
++bench = bench.replace(summary, '''    // Corrupt each data byte in both protected footer records.
++    for (j = 0; j < 30; j = j + 1) begin
++      make_footer(0);
++      if (j < 15) footer[16+j] = footer[16+j] ^ 1;
++      else footer[32+j-15] = footer[32+j-15] ^ 1;
++      do_mount(2048);
++      wait_mount;
++      base_falls = ack_falls;
++      footer_read(256);
++      expect_fault;
++      if (ack_falls != base_falls) fail("corrupted CRC payload completed");
++    end
++
++    // Interrupt the CRC pass with each ownership-changing event, then check a new footer.
++    for (j = 0; j < 3; j = j + 1) begin
++      make_footer(0);
++      do_mount(2048);
++      wait_mount;
++      begin_read((size >> 9) - 1, 0);
++      accept_read;
++      for (n = 0; n < 256; n = n + 1) beat(n, {footer[n*2+1], footer[n*2]});
++      @(negedge clk);
++      h_ack = 0;
++      repeat (8) tick;
++      if (dut.state != dut.VERIFY || !ack || fault || dut.crc_left >= 15)
++        fail("missing active VERIFICATION pass");
++      // Another unselected slot's shared bus strobe cannot modify the footer.
++      base_copies = copies;
++      beat(8, 16'hbadd);
++      if (dut.state != dut.VERIFY || copies != base_copies || fault)
++        fail("shared bus strobe entered VERIFY");
++      base_falls = ack_falls;
++      base_mounts = mounts;
++      @(negedge clk);
++      case (j)
++        0: guest_reset = 1;
++        1: init_reset = 1;
++        2: begin size = 1024; mount = 1; end
++      endcase
++      tick;
++      if (dut.state != dut.IDLE || ack || dut.admitted || fault)
++        fail("interrupted CRC verification completed");
++      @(negedge clk);
++      guest_reset = 0;
++      init_reset = 0;
++      mount = 0;
++      settle;
++      if (ack_falls != base_falls) fail("interrupted CRC exposed an ACK fall");
++      if (j == 1) begin
++        if (!card_reset || mounts != base_mounts) fail("init inferred a stale remount");
++        do_mount(2048);
++        wait_mount;
++      end else if (mounts != base_mounts + 1 || card_size != size)
++        fail("CRC cancellation lost retained/remounted media");
++      footer_read(256);
++      if (fault || !dut.admitted) fail("fresh CRC verification failed");
++    end
++''' + summary)
++monitor = '''
++  always @(negedge clk) if (dut.state == dut.VERIFY)
++    $display("CRC_EDGE clock=%0d byte=%0d cid=%h csd=%h ack=%b admitted=%b fault=%b",
++             cycles, dut.crc_left, dut.cid_crc, dut.csd_crc, ack, dut.admitted, fault);
++'''
++(out / 'tb.v').write_text(bench.rsplit('endmodule', 1)[0] + monitor + 'endmodule\n')
+diff --git a/scratch/v5-fit-loop/mmc-footer-crc-direct/record-qualification.py b/scratch/v5-fit-loop/mmc-footer-crc-direct/record-qualification.py
+new file mode 100644
+index 0000000..f6224c3
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-footer-crc-direct/record-qualification.py
+@@ -0,0 +1,107 @@
++"""Verify compressed evidence and record the MMC footer CRC qualification."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shlex
++import subprocess
++
++
++stage = Path(__file__).resolve().parent
++root = stage.parents[2]
++out = root / 'build/sim/v5-104-mmc-footer-crc-direct'
++old_mixed = root / 'build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed'
++rtl = 'rtl/ngage_mmc_hps.v'
++base = '11c4a0c32983cc9aba89cae986684558583a33f2'
++
++
++def digest(path):
++    return sha256(path.read_bytes()).hexdigest()
++
++
++def git(*args):
++    return subprocess.check_output(['git', *args], cwd=root)
++
++
++def fingerprint(path):
++    rows = [shlex.split(line) for line in path.read_text().splitlines()
++            if line.startswith('S ') and line.endswith(f'{rtl}"')]
++    (row,) = rows
++    return row[-2]
++
++
++def pass_lines(path):
++    return [line for line in path.read_text().splitlines() if line.startswith('PASS ')]
++
++
++assert git('show', f'{base}:{rtl}') == (stage / 'reference' / rtl).read_bytes()
++patch = stage / 'mmc-footer-crc-direct.patch'
++assert git('apply', '--numstat', str(patch)).decode().rstrip().split('\t')[-1] == rtl
++assert digest(stage / 'reference' / rtl) != digest(stage / 'source' / rtl)
++assert (stage / 'source' / rtl).read_bytes() == (out / 'mixed/source' / rtl).read_bytes()
++assert b'ngage_mmc_hps backing' in (out / 'mixed/source/tests/phone/mmc_mister/tb.v').read_bytes()
++
++units = out / 'units'
++candidate_passes = pass_lines(units / 'source.pass')
++assert candidate_passes == pass_lines(units / 'reference.pass')
++assert len(candidate_passes) == 2 and 'cases=48' in candidate_passes[0]
++assert 'card_reads=20 writes=4' in candidate_passes[1]
++unit_trial = fingerprint(units / 'source/obj/Vactual_tb__verFiles.dat')
++unit_reference = fingerprint(units / 'reference/obj/Vactual_tb__verFiles.dat')
++mixed_trial = fingerprint(out / 'mixed/obj/Vtb__verFiles.dat')
++assert unit_trial == mixed_trial and unit_trial != unit_reference
++
++crc_trace = out / 'verify/source.trace'
++assert crc_trace.read_bytes() == (out / 'verify/reference.trace').read_bytes()
++crc_edges = sum(line.startswith('CRC_EDGE ') for line in crc_trace.read_text().splitlines())
++crc_passes = pass_lines(crc_trace)
++assert crc_edges == 1186 and len(crc_passes) == 1 and 'cases=82' in crc_passes[0]
++
++mixed = out / 'mixed'
++traffic = mixed / 'traffic.log'
++traffic_entries = len(traffic.read_bytes().splitlines())
++assert traffic_entries == 171496 and digest(traffic) == digest(old_mixed / traffic.name)
++mixed_passes = pass_lines(mixed / 'replay.log')
++assert len(mixed_passes) == 4
++assert 'persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1' in mixed_passes[-1]
++mixed_hashes = json.loads((mixed / 'source-hashes.json').read_bytes())
++ref_hashes = json.loads((old_mixed / 'source-hashes.json').read_bytes())
++assert len(mixed_hashes) == 114 and mixed_hashes.keys() == ref_hashes.keys()
++assert [name for name, value in mixed_hashes.items() if value != ref_hashes[name]] == [rtl]
++assert mixed_hashes[rtl] == digest(stage / 'source' / rtl)
++
++workload = {}
++for kind, key, expected in (('fixed', 'windows', 105), ('native', 'frames', 4)):
++    receipt = out / f'qualification/{kind}.json'
++    data = json.loads(receipt.read_bytes())
++    assert data['status'] == 'PASS'
++    assert all(row['candidate'] == row['control'] for row in data['rows'])
++    count = sum(len(row['candidate'][key]) for row in data['rows'])
++    assert count == expected
++    workload[kind] = {'count': count, 'upstream_receipt_sha256': digest(receipt)}
++native = data['rows'][0]['candidate']
++workload['native']['cycle_counts'] = [frame['clocks'] for frame in native['frames']]
++workload['native']['guest_result_sha256'] = native['output_sha256']
++
++receipt = {
++    'status': 'PASS',
++    'base': base,
++    'base_tree': git('rev-parse', f'{base}^{{tree}}').decode().strip(),
++    'changed_source': rtl,
++    'reference_sha256': digest(stage / 'reference' / rtl),
++    'candidate_sha256': digest(stage / 'source' / rtl),
++    'design_patch_sha256': digest(patch),
++    'fixture_patch_sha256': digest(stage / 'mmc-footer-crc-direct-replay.patch'),
++    'simulator': (out / 'image.id').read_text().strip(),
++    'direct_and_native_hps': {'passes': candidate_passes,
++                              'reference_source_fingerprint': unit_reference,
++                              'candidate_source_fingerprint': unit_trial},
++    'crc_cancel_and_corroboration': {'verify_edge_rows': crc_edges, 'passes': crc_passes,
++                                    'fixture_sha256': digest(out / 'verify/tb.v'),
++                                    'trace_sha256': digest(crc_trace)},
++    'workload_digest_controls': workload,
++    'physical_sdram_mixed': {'source_count': len(mixed_hashes),
++                             'source_fingerprint': mixed_trial,
++                             'traffic_events': traffic_entries,
++                             'traffic_sha256': digest(traffic), 'passes': mixed_passes},
++}
++(stage / 'qualification.json').write_text(json.dumps(receipt, indent=2) + '\n')

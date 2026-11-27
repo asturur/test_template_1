@@ -1,0 +1,1940 @@
+diff --git a/scratch/v5-fit-loop/early-shift-select/architectural_trace.vh b/scratch/v5-fit-loop/early-shift-select/architectural_trace.vh
+new file mode 100644
+index 0000000..88b6546
+--- /dev/null
++++ b/scratch/v5-fit-loop/early-shift-select/architectural_trace.vh
+@@ -0,0 +1,69 @@
++`define RESUPP dut.board.upp.cpu_inside
++`define RESZAP `RESUPP.cpu.u_arm925t.u_zap
++`define RESCORE `RESZAP.g_arm9.u_arm9_core
++`define RESFETCH `RESCORE.u_front_decode.u_fetch
++
++reg [31:0] res_begin, res_end;
++integer res_window = 0;
++integer res_retired, res_data, res_mmio, res_recover;
++reg res_active = 0;
++reg [63:0] res_retire_hash, res_data_hash, res_mmio_hash;
++localparam [63:0] RES_INITIAL = 64'hcbf29ce484222325;
++initial begin
++    if (!$value$plusargs("begin_pc=%h", res_begin) || !$value$plusargs("end_pc=%h", res_end))
++        $fatal(1, "Missing architectural digest window");
++end
++
++function automatic [63:0] res_mix(input [63:0] digest, input [63:0] data);
++    res_mix = (digest ^ data) * 64'h00000100000001b3;
++endfunction
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        res_active = 1;
++        res_retired = 0;
++        res_data = 0;
++        res_mmio = 0;
++        res_recover = 0;
++        res_retire_hash = RES_INITIAL;
++        res_data_hash = RES_INITIAL;
++        res_mmio_hash = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && res_active) begin
++        $display("RES_ARCH window=%0d retired=%0d data=%0d mmio=%0d recover=%0d retire_hash=%016x data_hash=%016x mmio_hash=%016x",
++                 res_window, res_retired, res_data, res_mmio, res_recover,
++                 res_retire_hash, res_data_hash, res_mmio_hash);
++        res_window++;
++        res_active = 0;
++    end else if (res_active) begin
++        if (`RESCORE.wb_complete) begin
++            res_retired++;
++            res_retire_hash = res_mix(res_retire_hash, {`RESCORE.w[526:495], `RESCORE.w[494:463]});
++            res_retire_hash = res_mix(res_retire_hash, {25'b0, exceptions, `RESCORE.cpsr_next});
++            if (`RESCORE.wb_valid) begin
++                if (`RESCORE.wb_tag0 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {26'b0, `RESCORE.wb_tag0, `RESCORE.wb_data0});
++                if (`RESCORE.wb_pair && `RESCORE.wb_tag1 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {25'b0, 1'b1, `RESCORE.wb_tag1, `RESCORE.wb_data1});
++            end
++        end
++        if (`RESZAP.o_dbg_d_done) begin
++            res_data++;
++            res_data_hash = res_mix(res_data_hash, {26'b0, `RESZAP.data_err, `RESZAP.o_dbg_d_we,
++                                                   `RESZAP.o_dbg_d_sel, `RESZAP.o_dbg_d_va});
++            res_data_hash = res_mix(res_data_hash, {32'b0, `RESZAP.o_dbg_d_we ?
++                                                   `RESZAP.o_dbg_d_wdata : `RESZAP.o_dbg_d_rdata});
++        end
++        if (`RESUPP.master_cyc && `RESUPP.master_stb && !`RESUPP.master_code &&
++            (`RESUPP.slow_ack || `RESUPP.slow_error)) begin
++            res_mmio++;
++            res_mmio_hash = res_mix(res_mmio_hash, {26'b0, `RESUPP.slow_error, `RESUPP.master_we,
++                                                   `RESUPP.master_sel, `RESUPP.master_address});
++            res_mmio_hash = res_mix(res_mmio_hash, {32'b0, `RESUPP.master_we ?
++                                                   `RESUPP.master_data : `RESUPP.slow_read_data});
++        end
++    end
++end
++`undef RESFETCH
++`undef RESCORE
++`undef RESZAP
++`undef RESUPP
+diff --git a/scratch/v5-fit-loop/early-shift-select/replay.py b/scratch/v5-fit-loop/early-shift-select/replay.py
+new file mode 100644
+index 0000000..e6038fd
+--- /dev/null
++++ b/scratch/v5-fit-loop/early-shift-select/replay.py
+@@ -0,0 +1,178 @@
++"""Replay Early shifter select against the frozen 104 MHz execute control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = stage / args.output
++work.mkdir(exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(repo / 'tests/cpu/arm9v2_board'))
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    observer = (stage / 'architectural_trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/early-shift-select/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/early-shift-select/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((stage.parent/'dma-command-predecode'/'final-replay'/f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                upp_sha256=digest(stage / 'source/rtl/ngage_upp.v'), rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/early-shift-select/prepare-mixed.py b/scratch/v5-fit-loop/early-shift-select/prepare-mixed.py
+new file mode 100644
+index 0000000..0d90a9a
+--- /dev/null
++++ b/scratch/v5-fit-loop/early-shift-select/prepare-mixed.py
+@@ -0,0 +1,42 @@
++from pathlib import Path
++import hashlib
++import importlib.util
++import json
++import sys
++import subprocess
++
++tag = sys.argv[1]
++assert tag in ('early-shift-select-control-pin', 'early-shift-select-pin')
++p = Path('tests/phone/upp_ddr_ram/prepare.py')
++spec = importlib.util.spec_from_file_location('prepare_mixed',p)
++fixture = importlib.util.module_from_spec(spec)
++spec.loader.exec_module(fixture)
++fixture.OUT = Path(f'build/sim/v5-104-more-ram-{tag}-mixed')
++fixture.OUT.mkdir(parents=True, exist_ok=False)
++fixture.prepare_mixed()
++
++stage = Path(__file__).resolve().parent
++base = stage / 'source'
++changed = {'arm9v2/arm925t_phone.v'}
++mixed = fixture.OUT/'mixed'
++source = mixed/'source'
++for path in sorted((source/'rtl').rglob('*')):
++    if path.is_file():
++        rel=path.relative_to(source)
++        name = str(path.relative_to(source/'rtl'))
++        if tag.endswith('-control-pin') and name in changed:
++            path.write_bytes(subprocess.check_output(['git','show',f'fe145b0:{rel}']))
++        else:
++            path.write_bytes((base/rel).read_bytes())
++
++testbench = source/'tests/phone/mmc_mister/tb.v'
++body = testbench.read_text()
++observer = (stage/'sdram-pin-trace.vh').read_text()
++testbench.write_text(body.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++
++file_hashes = json.loads((mixed/'source-hashes.json').read_text())
++for file in sorted(source.rglob('*')):
++    if file.is_file():
++        file_hashes[str(file.relative_to(source))] = hashlib.sha256(file.read_bytes()).hexdigest()
++(mixed/'source-hashes.json').write_text(json.dumps(file_hashes, indent=2)+'\n')
++print(f'Prepared mixed {tag} with only {changed} against execute-ready')
+diff --git a/scratch/v5-fit-loop/early-shift-select/sdram-pin-trace.vh b/scratch/v5-fit-loop/early-shift-select/sdram-pin-trace.vh
+new file mode 100644
+index 0000000..a47a0fb
+--- /dev/null
++++ b/scratch/v5-fit-loop/early-shift-select/sdram-pin-trace.vh
+@@ -0,0 +1,35 @@
++    integer trace_file = 0;
++    integer sys_edge = 0, pin_edge = 0;
++    string trace_path;
++    initial if ($value$plusargs("compare_trace=%s", trace_path)) begin
++        trace_file = $fopen(trace_path, "w");
++        if (!trace_file) $fatal(1, "Could not open transaction trace");
++    end
++    final if (trace_file) $fclose(trace_file);
++
++    always @(posedge clk) begin
++        sys_edge = sys_edge + 1;
++        if (trace_file) begin
++            if (dma_cmd_valid)
++                $fwrite(trace_file,"D %0d %b %h %h %h\n",sys_edge,{dma_cmd_ready,dma_cmd_write},dma_cmd_addr,dma_cmd_data,dma_cmd_be);
++            if (dma_rsp_valid)
++                $fwrite(trace_file,"R %0d %b %h\n",sys_edge,dma_rsp_error,dma_rsp_data);
++            if (pin_req && pin_cmd_ready)
++                $fwrite(trace_file,"Q %0d %b %h %h %h\n",sys_edge,{pin_we,pin_line,pin_short},pin_address,
++                        pin_we ? pin_write_data : 128'b0,pin_we ? pin_write_mask : 16'b0);
++            if (cpu_ram_accept || merge_accept || csack || merge_ack)
++                $fwrite(trace_file,"O %0d %b %h %h\n",sys_edge,{bus_lock,cpu_ram_accept,merge_accept,csack,merge_ack,hold_scalar},
++                        csack ? csread : 32'b0,merge_ack ? merge_rdata : 32'b0);
++            if (shared_line_valid)
++                $fwrite(trace_file,"L %0d %b %h\n",sys_edge,shared_line_last,shared_line_data);
++            if (pin_valid) $fwrite(trace_file,"V %0d %h\n",sys_edge,pin_read_data);
++            if (hps_read || hps_write)
++                $fwrite(trace_file,"H %0d %b %h %h\n",sys_edge,{hps_read,hps_write,hps_ack},hps_lba,hps_count);
++        end
++    end
++    always @(posedge pin_clk) begin
++        pin_edge = pin_edge + 1;
++        if (trace_file && ((!cs_n && {ras_n,cas_n,we_n} != 3'b111) || |controller.sdram_dq_oe))
++            $fwrite(trace_file,"P %0d %b %h %h %h %h\n",pin_edge,{cke,cs_n,ras_n,cas_n,we_n,dqmh,dqml},
++                    bank,pin_a,controller.sdram_dq_oe,pin_out & controller.sdram_dq_oe);
++    end
+diff --git a/scratch/v5-fit-loop/early-shift-select/preflight.py b/scratch/v5-fit-loop/early-shift-select/preflight.py
+new file mode 100644
+index 0000000..b8f93ab
+--- /dev/null
++++ b/scratch/v5-fit-loop/early-shift-select/preflight.py
+@@ -0,0 +1,48 @@
++from hashlib import sha256
++from pathlib import Path
++import json
++import subprocess
++
++stage = Path(__file__).resolve().parent
++source = stage / "source"
++parent = "fe145b0b997201c8b597e49d1cf9cad265e78e6b"
++candidate = (stage / "candidate.sha").read_text().strip()
++changed = {"rtl/arm9v2/arm925t_phone.v"}
++runs = {43: 45378535187, 13: 45378617074, 31337: 45378624476}
++
++def git(*args):
++    return subprocess.check_output(["git", *args])
++
++assert git("rev-parse", candidate+"^").decode().strip() == parent
++for seed, run in runs.items():
++    receipt = json.loads(Path(f"build/timing-audit-{run}/output_files/resident-fit-manifest.json").read_text())
++    assert receipt["actual_commit"] == parent
++    assert int(receipt["seed"]) == seed and receipt["physical_cpu_mhz"] == 104 and not receipt["debugger"]
++    qsf = stage / f"preflight-{seed}.qsf"
++    qsf.write_bytes(git("show", f"{candidate}:Template.qsf"))
++    subprocess.run(["python3", str(source/"tools/set_quartus_seed.py"), str(qsf), "--seed", str(seed)], cwd=stage, check=True)
++    subprocess.run(["python3", str(source/"tools/set_quartus_debug.py"), str(qsf), "--enabled", "false"], cwd=stage, check=True)
++    raw = qsf.read_bytes()
++    assert git("show", f"{parent}:Template.qsf") == git("show", f"{candidate}:Template.qsf")
++    # Quartus rewrites only its version string when compiling this project.
++    effective = raw.replace(
++        b'LAST_QUARTUS_VERSION "17.0.2 Standard Edition"',
++        b'LAST_QUARTUS_VERSION "17.0.2 Lite Edition"',
++    )
++    qsf.write_bytes(effective)
++    assert receipt["effective_qsf"] == qsf.read_text()
++    selected = {name: value for name, value in receipt["compiled_source_sha256"].items() if name != "Template.qsf"}
++    for name, digest in selected.items():
++        assert sha256(git("show", f"{parent}:{name}")).hexdigest() == digest, name
++    expected = {name: sha256(git("show", f"{candidate}:{name}")).hexdigest() for name in selected}
++    assert {name for name in selected if selected[name] != expected[name]} == changed
++    for name in changed:
++        assert sha256((source/name).read_bytes()).hexdigest() == expected[name]
++
++    (stage/f"fit-inputs-{seed}.json").write_text(json.dumps({
++        "public_parent": parent, "candidate": candidate, "control":receipt["actual_commit"],
++        "control_run":run, "seed":seed,"physical_cpu_mhz":104,"debugger":False,
++        "expected_changed_inputs":sorted(changed), "expected_effective_qsf":qsf.read_text(),
++        "compiled_source_sha256":expected,
++    },indent=2)+"\n")
++    print(f"PASS seed {seed}, {len(selected)} selected files, one verified RTL change")
+diff --git a/scratch/v5-fit-loop/early-shift-select/board-fixture/contract.S b/scratch/v5-fit-loop/early-shift-select/board-fixture/contract.S
+new file mode 100644
+index 0000000..cbbfaf6
+--- /dev/null
++++ b/scratch/v5-fit-loop/early-shift-select/board-fixture/contract.S
+@@ -0,0 +1,628 @@
++.syntax unified
++.cpu arm920t
++.arm
++.section .vectors,"ax"
++.global _start
++_start:
++    b start
++#ifdef BLOCK_PREDICATE_TEST
++    b predicate_undefined
++#else
++    b fail
++#endif
++    b fail
++    b prefetch_abort
++    b data_abort
++    b fail
++    b irq_handler
++    b fiq_handler
++
++start:
++    mrc p15,0,r4,c0,c0,0
++    ldr r5,=0x54029252
++    cmp r4,r5
++    bne fail
++    mrc p15,0,r4,c0,c0,1
++#ifndef EXPECTED_CTYPE
++#define EXPECTED_CTYPE 0x0514a14a
++#endif
++    ldr r5,=EXPECTED_CTYPE
++    cmp r4,r5
++    bne fail
++
++#ifdef MULTIPLY_SCHEDULE_TEST
++    mvn r0,#2
++    mov r1,#5
++    smull r2,r3,r0,r1
++    adds r4,r2,r3
++    cmn r4,#16
++    bne fail
++    cmn r2,#15
++    bne fail
++    cmn r3,#1
++    bne fail
++    smullne r2,r3,r1,r1           // Failed condition keeps both result halves.
++    cmn r2,#15
++    bne fail
++    cmn r3,#1
++    bne fail
++
++    mvn r0,#0
++    mvn r2,#0
++    mvn r3,#0
++    smlals r2,r3,r0,r0           // Carry across both halves, leaving zero.
++    bne fail
++    bmi fail
++    orrs r4,r2,r3
++    bne fail
++
++    mvn r2,#3
++    ldr r3,=0x12345678
++    mov r0,#2
++    mov r1,#3
++    umlal r2,r3,r0,r1
++    cmp r2,#2
++    bne fail
++    ldr r5,=0x12345679
++    cmp r3,r5
++    bne fail
++
++    mvn r0,#2
++    mov r1,#2
++    mov r2,#6
++    mlas r4,r0,r1,r2
++    bne fail
++    bmi fail
++    cmp r4,#0
++    bne fail
++
++    // An early SMULL can replace the registered product on the same
++    // edge that the preceding SMLAL consumes it.
++    mov r2,#10
++    mov r3,#0
++    smlal r2,r3,r0,r1
++    smull r4,r5,r0,r1
++    cmp r2,#4
++    bne fail
++    cmp r3,#0
++    bne fail
++    cmn r4,#6
++    bne fail
++    cmn r5,#1
++    bne fail
++    mov r0,#0
++#endif
++
++#ifdef REGISTER_SHIFT_TEST
++    mov r0,#1
++    mov r1,#32
++    movs r2,r0,lsl r1
++    bcc fail
++    bne fail
++    mov r1,#33
++    movs r2,r0,lsl r1
++    bcs fail
++    bne fail
++
++    ldr r0,=0x80000001
++    mov r1,#255
++    movs r2,r0,asr r1
++    bcc fail
++    bpl fail
++    cmn r2,#1
++    bne fail
++    mov r1,#256
++    cmp r0,r0
++    movs r2,r0,lsr r1            // Uses the low byte and preserves C for zero.
++    bcc fail
++    cmp r2,r0
++    bne fail
++
++    ldr r1,.Lrotate_count
++    movs r2,r0,ror r1
++    bcc fail
++    cmp r2,#0xc0000000
++    bne fail
++    b .Lshift_pass
++.Lrotate_count:
++    .word 1
++.Lshift_pass:
++    mov r0,#0
++#endif
++
++    ldr r8,=0x0a000000
++    ldr r7,=0x0c000000
++    ldr r4,=0x11223344
++    str r4,[r8]
++    mov r5,#0xaa
++    add r6,r8,#1
++    swpb r9,r5,[r6]
++    cmp r9,#0x33
++    bne fail
++    ldr r9,[r8]
++    ldr r4,=0x1122aa44
++    cmp r9,r4
++    bne fail
++
++    mov r6,#0
++#if defined(LOAD_USE_TEST) || defined(LOAD_WAW_TEST)
++    mov r4,#0x55
++#endif
++    ldr r4,[r7,#32]
++#if defined(LOAD_WAW_TEST)
++load_waw_fault_follower:
++    ldr r4,[r7,#40]
++    add r5,r4,#1
++    cmp r5,#1
++    bne fail
++#elif defined(LOAD_USE_TEST)
++    add r5,r4,#1
++    cmp r5,#0x56
++    bne fail
++#endif
++    cmp r6,#1
++    bne fail
++    mrc p15,0,r4,c5,c0,0
++    and r4,r4,#15
++    cmp r4,#8
++    bne fail
++    mrc p15,0,r4,c6,c0,0
++    add r5,r7,#32
++    cmp r4,r5
++    bne fail
++
++    msr cpsr_c,#0x13
++    mov r5,#1
++    str r5,[r7]
++wait_irq:
++    cmp r0,#1
++    bne wait_irq
++    str r5,[r7,#4]
++wait_fiq:
++    cmp r0,#2
++    bne wait_fiq
++    msr cpsr_c,#0xd3
++
++    ldr r4,=0x0a004000
++    ldr r5,=0x00000c0e
++    str r5,[r4]
++    ldr r5,=0x0a000c0e
++    str r5,[r4,#0x280]
++    ldr r5,=0x0c000c02
++    str r5,[r4,#0x300]
++#ifdef SECTION_INDEX_TEST
++    add r6,r4,#0x2000
++    str r5,[r6]                   // VA 80000000 -> uncached device.
++    ldr r5,=0x0a000c02
++    str r5,[r4,#0x400]           // VA 10000000 -> uncached RAM.
++#endif
++    ldr r5,=0xf0000c02
++    add r6,r4,#0x3c00
++    str r5,[r6]
++    mcr p15,0,r4,c2,c0,0
++    mov r4,#1
++    mcr p15,0,r4,c3,c0,0
++    mcr p15,0,r4,c8,c7,0
++    mrc p15,0,r4,c1,c0,0
++    orr r4,r4,#0x1000
++    orr r4,r4,#0x000d
++    mcr p15,0,r4,c1,c0,0
++    nop
++    nop
++    nop
++
++    // A shift of Rm by a cache-supplied Rs must preserve NZCV and use
++    // the forwarded count even when Rs itself is the shift destination.
++    ldr r9,=0x0a001e00
++    mov r1,#1
++    str r1,[r9]
++    ldr r1,[r9]
++    ldr r0,=0x80000001
++    .irp gap,0,1,2,3
++    ldr r1,[r9]
++    .rept \gap
++    nop
++    .endr
++    movs r1,r0,lsl r1
++    bcc fail
++    bmi fail
++    cmp r1,#2
++    bne fail
++    .endr
++    mcr p15,0,r9,c7,c10,1
++    mcr p15,0,r9,c7,c6,1
++    ldr r1,[r9]
++    movs r1,r0,lsl r1
++    bcc fail
++    bmi fail
++    cmp r1,#2
++    bne fail
++
++    // A missing translation must abort the count load and replay the
++    // following shift with the original Rs. The result writes Rs once.
++    mov r10,#0x0b000000
++    mov r1,#1
++    mov r6,#0
++    ldr r1,[r10]
++    movs r1,r0,lsl r1
++    bcc fail
++    cmp r6,#1
++    bne fail
++    cmp r1,#2
++    bne fail
++    mrc p15,0,r10,c5,c0,0
++    and r10,r10,#15
++    cmp r10,#5
++    bne fail
++
++    // Thumb register shifts still use the stored shift count.
++    adr r2,.Lfocused_arm
++    adr r3,.Lfocused_thumb
++    orr r3,r3,#1
++    bx r3
++    .balign 4
++    .thumb
++.Lfocused_thumb:
++    movs r0,#3
++    movs r1,#3
++    lsls r0,r1
++    bx r2
++    .balign 4
++    .arm
++.Lfocused_arm:
++    cmp r0,#24
++    bne fail
++
++#ifdef MULTIPLY_SCHEDULE_TEST
++    ldr r9,=0x0a001e00
++    mvn r4,#6
++    str r4,[r9]
++    mov r5,#9
++    ldr r4,[r9]
++    smull r0,r1,r4,r5             // Warm load forwards into the first operand.
++    cmn r0,#63
++    bne fail
++    cmn r1,#1
++    bne fail
++    ldr r4,[r9]
++    smulls r0,r1,r5,r4            // Other operand and the flag-setting form.
++    bpl fail
++    beq fail
++    cmn r0,#63
++    bne fail
++    cmn r1,#1
++    bne fail
++    str r5,[r9,#4]
++    ldmia r9,{r4,r5}
++    smull r0,r1,r4,r5             // Use both destinations of a resident pair.
++    cmn r0,#63
++    bne fail
++    cmn r1,#1
++    bne fail
++    // Vary issue distance so the warm load can occupy W at SMULL launch.
++    .irp gap,1,2,3
++    ldr r4,[r9]
++    .rept \gap
++    nop
++    .endr
++    smull r0,r1,r4,r5
++    cmn r0,#63
++    bne fail
++    cmn r1,#1
++    bne fail
++    .endr
++    mcr p15,0,r9,c7,c10,1
++    mcr p15,0,r9,c7,c6,1
++    ldr r4,[r9]
++    smull r0,r1,r4,r5             // A load miss must wait for the response.
++    cmn r0,#63
++    bne fail
++    cmn r1,#1
++    bne fail
++
++    mov r0,#0x52
++    mov r1,#0x37
++    mov r6,#0
++    mov r9,#0x0b000000
++    ldr r4,[r9]
++smull_after_aborted_load:
++    smull r0,r1,r4,r5             // After the abort, use the preserved source.
++    cmp r6,#1
++    bne fail
++    cmn r0,#63
++    bne fail
++    cmn r1,#1
++    bne fail
++#endif
++
++#ifdef BLOCK_PREDICATE_TEST
++#include "contract_predicate.inc"
++#endif
++#ifdef LOAD_USE_TEST
++#include "contract_load_use.inc"
++#endif
++#ifdef MAC_TIMING_TEST
++#include "contract_mac_timing.inc"
++#endif
++#ifdef STORE_LIST_TEST
++#include "contract_store_list.inc"
++#endif
++
++#ifdef PAIRED_LDM_TEST
++    ldr r9,=0x0a001a00
++    mov r10,#37
++    mov r11,#91
++    str r10,[r9]
++    str r11,[r9,#4]
++    mov r6,#1
++    str r6,[r7,#24]
++    ldmia r9,{r4,r5}
++    add r4,r4,r5
++    cmp r4,#128
++    bne fail
++    ldmia r9,{r9,r10}             // Base in list without writeback.
++    add r4,r9,r10
++    cmp r4,#128
++    bne fail
++    mov r6,#2
++    str r6,[r7,#24]
++
++    ldr r9,=0x0a001a1c
++    mov r10,#37
++    str r10,[r9]
++    str r11,[r9,#4]
++    ldmia r9,{r4,r5}              // Crossing a 32-byte line stays serial.
++    add r4,r4,r5
++    cmp r4,#128
++    bne fail
++    ldr r9,=0x0a001a00
++    ldmiane r9,{r4,r5}            // Wrong condition must preserve both.
++    cmp r4,#128
++    bne fail
++    cmp r5,#91
++    bne fail
++    ldmia r9!,{r4,r5}             // Writeback stays on the normal path.
++    ldr r6,=0x0a001a08
++    cmp r9,r6
++    bne fail
++    mov r6,#3
++    str r6,[r7,#24]
++
++    ldr r9,=0x0a001a00
++    mcr p15,0,r9,c7,c10,1
++    mcr p15,0,r9,c7,c6,1          // Cold first beat stays serial.
++    ldmia r9,{r4,r5}
++    add r4,r4,r5
++    cmp r4,#128
++    bne fail
++#ifdef ISSUE_LDM_TEST
++    mov r6,#4
++    str r6,[r7,#24]
++    ldr r9,=0x0a0ffffc
++    mov r4,#7
++    mov r5,#217
++    str r10,[r9]
++    mov r6,#0
++    ldr r0,=0x0a100000
++    cmp r4,#7
++    ldmiane r0,{r4,r5}           // A failed pair must not fault on an unmapped address.
++    cmp r6,#0
++    bne fail
++    cmp r4,#7
++    bne fail
++    cmp r5,#217
++    bne fail
++    ldmia r9,{r4,r5}             // Second word has no section mapping.
++    cmp r6,#1
++    bne fail
++    cmp r4,#37
++    bne fail
++    cmp r5,#217
++    bne fail
++    mrc p15,0,r4,c6,c0,0
++    ldr r5,=0x0a100000
++    cmp r4,r5
++    bne fail
++#endif
++    mov r6,#0
++    str r6,[r7,#24]
++#endif
++
++#ifdef ICACHE_INDEX_TEST
++    ldr r9,=0x0a001fe0
++    ldr r10,=0x0a003fe0
++    ldr r11,=0x0a005fe0
++    .macro icache_round
++    mov lr,pc
++    bx r9
++    cmp r0,#1
++    bne fail
++    mov lr,pc
++    bx r10
++    cmp r0,#2
++    bne fail
++    mov lr,pc
++    bx r11
++    cmp r0,#3
++    bne fail
++    .endm
++    mov r5,#1
++    str r5,[r7,#20]
++    icache_round
++    mov r5,#2
++    str r5,[r7,#20]
++    .rept 4
++    icache_round
++    .endr
++    mov r5,#3
++    str r5,[r7,#20]
++    mcr p15,0,r10,c7,c5,0
++    icache_round
++    mov r5,#4
++    str r5,[r7,#20]
++    mcr p15,0,r10,c7,c5,1
++    icache_round
++    mov r5,#5
++    str r5,[r7,#20]
++    mcr p15,0,r10,c7,c5,2
++    icache_round
++    mov r5,#0
++    str r5,[r7,#20]
++#endif
++
++#ifdef SECTION_INDEX_TEST
++    mov r9,#0x10000000
++    mov r10,#0x80000000
++    ldr r3,=0x1122aa44
++    .macro section_pair
++    mov r4,#1
++    str r4,[r7,#16]
++    mov r6,#4
++1:  ldr r4,[r9]
++    cmp r4,r3
++    bne fail
++    ldr r4,[r10]
++    cmp r4,#0
++    bne fail
++    subs r6,r6,#1
++    bne 1b
++    str r4,[r7,#16]
++    .endm
++    section_pair
++    mcr p15,0,r4,c8,c6,0         // Invalidate the D-side translations.
++    section_pair
++#endif
++
++    ldr r5,[r8]
++    ldr r4,=0x1122aa44
++    cmp r5,r4
++    bne fail
++    ldr r4,=0x55667788
++    str r4,[r8]
++    mcr p15,0,r8,c7,c10,1
++    mcr p15,0,r8,c7,c6,1
++    ldr r5,[r8]
++    cmp r5,r4
++    bne fail
++
++    mov r6,#0
++    mov r9,#0x0b000000
++    ldr r5,[r9]
++    cmp r6,#1
++    bne fail
++    mrc p15,0,r4,c5,c0,0
++    and r4,r4,#15
++    cmp r4,#5
++    bne fail
++    mrc p15,0,r4,c6,c0,0
++    cmp r4,r9
++    bne fail
++
++    mov r6,#0
++    adr r12,after_prefetch
++#ifdef BLOCK_PREDICATE_TEST
++    cmp r6,#1
++#endif
++    mov pc,#0x1000
++after_prefetch:
++    cmp r6,#2
++    bne fail
++
++    // Read-allocate both ways before dirtying them. With W enabled the
++    // donor can post a store miss without installing a line.
++    ldr r11,=0x0a008000
++    add r12,r11,#0x4000
++    mov r10,r11
++warm_capacity:
++    ldr r4,[r10]
++    str r10,[r10]
++    add r10,r10,#32
++    cmp r10,r12
++    bne warm_capacity
++    mov r5,#1
++    str r5,[r7,#8]
++    mov r10,r11
++check_capacity:
++    ldr r4,[r10]
++    cmp r4,r10
++    bne fail
++    add r10,r10,#32
++    cmp r10,r12
++    bne check_capacity
++    mov r5,#0
++    str r5,[r7,#8]
++    add r10,r11,#0x1000
++    mcr p15,0,r10,c7,c14,2          // Clean and invalidate upper-half set by index.
++
++#ifdef ASSOC_WAYS
++#include "contract_associativity.inc"
++#endif
++
++#ifdef CONTROL_FLOW_TEST
++#include "contract_control_flow.inc"
++#endif
++#ifdef ICACHE_RESTART_TEST
++#include "contract_icache_restart.inc"
++#endif
++    ldr r0,=0x50415353
++    b finish
++fail:
++    ldr r0,=0x4641494c
++finish:
++    mov r1,#0xf0000000
++    str r0,[r1]
++    b .
++
++data_abort:
++#ifdef MULTIPLY_SCHEDULE_TEST
++    ldr r6,=smull_after_aborted_load+4
++    cmp lr,r6
++    bne 1f
++    cmp r0,#0x52
++    bne fail
++    cmp r1,#0x37
++    bne fail
++    cmn r4,#7
++    bne fail
++1:
++#endif
++#ifdef LOAD_WAW_TEST
++    ldr r6,=load_waw_fault_follower+4
++    cmp lr,r6
++    bne 1f
++    cmp r4,#0x55
++    bne fail
++1:
++#endif
++    mov r6,#1
++    subs pc,lr,#4
++prefetch_abort:
++    mov r6,#2
++    movs pc,r12
++#ifdef BLOCK_PREDICATE_TEST
++predicate_undefined:
++    mov r3,#1
++    movs pc,lr
++#endif
++irq_handler:
++    mov r0,#0
++    str r0,[r7]
++    mov r0,#1
++    subs pc,lr,#4
++fiq_handler:
++    mov r0,#0
++    str r0,[r7,#4]
++    mov r0,#2
++    subs pc,lr,#4
++.ltorg
++
++.org 0x1000
++    // the responder rejects the third word of this cacheable instruction fill
++#ifdef BLOCK_PREDICATE_TEST
++    ldmiaeq r10!,{r4,r5}
++#else
++    b fail
++#endif
++    nop
++    nop
++    nop
+diff --git a/scratch/v5-fit-loop/early-shift-select/board-fixture/contract.v b/scratch/v5-fit-loop/early-shift-select/board-fixture/contract.v
+new file mode 100644
+index 0000000..e047eab
+--- /dev/null
++++ b/scratch/v5-fit-loop/early-shift-select/board-fixture/contract.v
+@@ -0,0 +1,735 @@
++`timescale 1ns / 1ps
++module contract;
++  reg clk = 0, reset = 1;
++  always #5 clk = !clk;
++
++  wire cyc, stb, write, code, lock, ack, error, line;
++  wire [31:0] address, wdata, rdata, pc;
++  wire [ 3:0] be;
++  wire [ 2:0] cti;
++  wire [31:0] line_addr;
++  reg line_reject = 0, line_active = 0;
++  reg irq = 0, fiq = 0;
++  reg predicate_irq = 0, flow_irq = 0;
++  ngage_cpu #(
++      .LINE_REFILL(1)
++`ifdef NGAGE_IC_HUM_CONTRACT
++      ,.EXPLICIT_LINE_GUARANTEE(1)
++`endif
++  ) cpu (
++      .clk(clk),
++      .reset(reset),
++      .irq(irq || predicate_irq || flow_irq),
++      .fiq(fiq),
++      .wb_cyc(cyc),
++      .wb_stb(stb),
++      .wb_write(write),
++      .wb_code(code),
++      .wb_lock(lock),
++      .wb_address(address),
++      .wb_write_data(wdata),
++      .wb_byte_enable(be),
++      .wb_cycle_type(cti),
++      .wb_burst_type(),
++      .wb_ack(ack),
++      .wb_error(error),
++      .wb_read_data(rdata),
++      .line_req(line),
++      .line_addr(line_addr),
++      .line_ready(!line_active),
++      .line_reject(line_reject),
++      .line_valid(line_valid),
++      .line_data(line_data),
++      .line_wide(line_wide),
++      .line_last(line_last),
++      .line_error(line_error),
++`ifdef NGAGE_IC_RESTART_EARLY
++      .line_may_fault(line_addr == 32'h1000),
++`endif
++`ifdef NGAGE_IC_HUM_CONTRACT
++      .line_no_late_error(line_addr != 32'h1000 && !$test$plusargs("no-line-guarantee")),
++`endif
++      .debug_pc(pc),
++      .debug_cpsr(),
++      .debug_instruction(),
++      .debug_fetch()
++  );
++
++  wire slow_cyc, slow_stb, slow_idle, slow_ack, slow_error;
++  wire [31:0] slow_rdata;
++  wire ram_req, ram_write, ram_accept, ram_ack;
++  wire [31:0] ram_address, ram_wdata, ram_rdata;
++  wire [3:0] ram_be;
++  ngage_cpu_memory_route route (
++      .clk(clk),
++      .reset(reset),
++      .master_cyc(cyc),
++      .master_stb(stb),
++      .master_we(write),
++      .master_code(code),
++      .master_address(address),
++      .master_data(wdata),
++      .master_sel(be),
++      .master_ack(ack),
++      .master_error(error),
++      .master_rdata(rdata),
++      .slow_cyc(slow_cyc),
++      .slow_stb(slow_stb),
++      .slow_idle(slow_idle),
++      .slow_ack(slow_ack),
++      .slow_error(slow_error),
++      .slow_rdata(slow_rdata),
++      .ram_req(ram_req),
++      .ram_we(ram_write),
++      .ram_code(),
++      .ram_address(ram_address),
++      .ram_wdata(ram_wdata),
++      .ram_be(ram_be),
++      .ram_accept(ram_accept),
++      .ram_ack(ram_ack),
++      .ram_rdata(ram_rdata),
++      .ram_pending(),
++      .ram_response()
++  );
++
++  wire bridge_cyc, bridge_stb, bridge_write, bridge_code;
++  wire [31:0] bridge_address, bridge_wdata;
++  wire [3:0] bridge_be;
++  wire device_cyc, device_stb, device_write, device_code, device_ack, device_error;
++  wire [31:0] device_address, device_wdata, device_rdata;
++  wire [3:0] device_be;
++  ngage_upp_bus_bridge #(
++      .REGISTERED_MASTER(1)
++  ) bridge (
++      .clk(clk),
++      .reset(reset),
++      .master_cyc(slow_cyc),
++      .master_stb(slow_stb),
++      .master_we(write),
++      .master_code(code),
++      .master_address(address),
++      .master_data(wdata),
++      .master_sel(be),
++      .master_ack(slow_ack),
++      .master_error(slow_error),
++      .master_read_data(slow_rdata),
++      .bus_cyc(bridge_cyc),
++      .bus_stb(bridge_stb),
++      .bus_we(bridge_write),
++      .bus_code(bridge_code),
++      .bus_address(bridge_address),
++      .bus_data(bridge_wdata),
++      .bus_sel(bridge_be),
++      .bus_ack(device_ack),
++      .bus_error(device_error),
++      .bus_read_data(device_rdata),
++      .idle(slow_idle)
++  );
++  ngage_upp_request_stage stage (
++      .clk(clk),
++      .reset(reset),
++      .in_cyc(bridge_cyc),
++      .in_stb(bridge_stb),
++      .in_we(bridge_write),
++      .in_code(bridge_code),
++      .in_address(bridge_address),
++      .in_data(bridge_wdata),
++      .in_sel(bridge_be),
++      .out_cyc(device_cyc),
++      .out_stb(device_stb),
++      .out_we(device_write),
++      .out_code(device_code),
++      .out_address(device_address),
++      .out_data(device_wdata),
++      .out_sel(device_be)
++  );
++
++  reg [31:0] rom[0:2047], ram[0:16383];
++  integer cycle = 0, slow_delay = 0, ram_delay = 0, wait_words = 0;
++`ifdef NGAGE_LOAD_USE_TEST
++`include "load_use_observe.vh"
++`endif
++`ifdef NGAGE_MAC_TIMING_TEST
++`include "mac_timing_observe.vh"
++`endif
++`ifdef NGAGE_IC_RESTART_CONTRACT
++`include "icache_restart_observe.vh"
++`ifdef NGAGE_IC_HUM_CONTRACT
++`include "icache_hum_observe.vh"
++`endif
++  reg [31:0] icr_test_begin, icr_test_end;
++  initial begin
++    if (!$value$plusargs("icr-begin=%h",icr_test_begin) ||
++        !$value$plusargs("icr-end=%h",icr_test_end))
++      $fatal(1, "Missing I-cache trace bounds");
++  end
++  wire [31:0] icr_wb_pc = cpu.u_arm925t.u_zap.g_arm9.u_arm9_core.w[526:495];
++  always @(posedge clk) if (!reset) begin
++    observe_icache_restart(cycle);
++`ifdef NGAGE_IC_HUM_CONTRACT
++    observe_icache_hum(cycle);
++    if (cpu.u_arm925t.dbg_wb_valid && icr_wb_pc == icr_test_begin)
++      reset_icache_hum();
++    if (cpu.u_arm925t.dbg_wb_valid && icr_wb_pc == icr_test_end)
++      report_icache_hum(0);
++`endif
++    if (cpu.u_arm925t.dbg_wb_valid && icr_wb_pc == icr_test_begin)
++      reset_icache_restart();
++    if (cpu.u_arm925t.dbg_wb_valid && icr_wb_pc == icr_test_end)
++      report_icache_restart(0);
++    if (icr_active && cpu.u_arm925t.dbg_wb_valid && $test$plusargs("ic-trace"))
++      $display("ICR_RETIRE c=%0d pc=%h thumb=%b", cycle, icr_wb_pc,
++               cpu.u_arm925t.u_zap.g_arm9.u_arm9_core.w[539]);
++  end
++  localparam integer icr_pabt_checks = 1;
++`else
++  localparam integer icr_pabt_checks = 0;
++`endif
++`ifdef NGAGE_CONTROL_FLOW_CONTRACT
++`include "control_flow_observe.vh"
++  reg [31:0] flow_test_begin, flow_test_end, flow_irq_site, flow_return_site;
++  integer flow_irq_visits = 0, flow_irq_seen = 0;
++  initial begin
++    if (!$value$plusargs("flow-begin=%h",flow_test_begin) ||
++        !$value$plusargs("flow-end=%h",flow_test_end) ||
++        !$value$plusargs("flow-irq=%h",flow_irq_site) ||
++        !$value$plusargs("flow-return=%h",flow_return_site)) $fatal(1,"Missing flow trace bounds");
++  end
++`define FLOW_CONTRACT_CORE cpu.u_arm925t.u_zap.g_arm9.u_arm9_core
++`define FLOW_CONTRACT_D2 `FLOW_CONTRACT_CORE.u_front_decode.u_decode
++  wire [31:0] flow_wb_pc = `FLOW_CONTRACT_CORE.w[526:495];
++  always @(negedge clk) if (!reset && flow_active) begin
++    if (cpu.u_arm925t.dbg_wb_irq)
++      flow_irq <= 0;
++    else if (`FLOW_CONTRACT_D2.step && `FLOW_CONTRACT_D2.d2[372:341] == flow_irq_site) begin
++      flow_irq_visits <= flow_irq_visits + 1;
++      if (flow_irq_visits == 3)
++        flow_irq <= 1;
++    end
++  end
++  always @(posedge clk) if (!reset) begin
++    observe_control_flow(cycle);
++    if (cpu.u_arm925t.dbg_wb_valid && flow_wb_pc == flow_test_begin)
++      reset_control_flow();
++    if (flow_active && cpu.u_arm925t.dbg_wb_irq) begin
++      if (!`FLOW_CONTRACT_CORE.w[539] ||
++          (flow_wb_pc != flow_irq_site && flow_wb_pc != flow_return_site &&
++           flow_wb_pc != flow_return_site + 2))
++        $fatal(1,"IRQ missed Thumb return path PC=%h thumb=%b", flow_wb_pc,
++               `FLOW_CONTRACT_CORE.w[539]);
++      flow_irq_seen <= flow_irq_seen + 1;
++      $display("FLOW_IRQ pc=%h thumb=%b", flow_wb_pc, `FLOW_CONTRACT_CORE.w[539]);
++    end
++    if (cpu.u_arm925t.dbg_wb_valid && flow_wb_pc == flow_test_end) begin
++      if (flow_irq_seen != 1) $fatal(1,"Missing Thumb return IRQ");
++      report_control_flow(0);
++    end
++  end
++`undef FLOW_CONTRACT_D2
++`undef FLOW_CONTRACT_CORE
++`else
++  localparam integer flow_irq_seen = 0;
++`endif
++`ifdef NGAGE_STORE_LIST_CONTRACT
++`include "store_list_observe.vh"
++  reg [31:0] store_timing_begin, store_timing_end;
++  reg [31:0] store_device_first = 0, store_device_second = 0;
++  integer store_device_count = 0;
++  initial begin
++    if (!$value$plusargs("store-timing-begin=%h",store_timing_begin) ||
++        !$value$plusargs("store-timing-end=%h",store_timing_end)) $fatal(1,"Missing store trace bounds");
++  end
++  wire [31:0] store_pc = cpu.u_arm925t.dbg_wb_pc - (store_thumb ? 32'd4 : 32'd8);
++  always @(posedge clk) if (!reset && cpu.u_arm925t.dbg_wb_valid &&
++      store_pc >= store_timing_begin && store_pc <= store_timing_end)
++    $display("STORE_TIMING cycle=%0d pc=%h accepted=%b hit=%b last=%b address=%h",
++             cycle, store_pc, store_accepted, store_writable_hit, cpu.u_arm925t.dbg_wb_uop_last, store_address);
++`endif
++  integer scalar_faults = 0, refill_faults = 0, refill_words = 0, clean_writes = 0;
++  integer irq_writes = 0, fiq_writes = 0, swap_beats = 0;
++  integer translation_walks = 0, prefetch_aborts = 0;
++  integer irq_expected = 2;
++`ifdef NGAGE_MULTIPLY_SCHEDULE_TEST
++  integer early_smull = 0, early_smull_w_operand = 0;
++`define MULTIPLY_EXECUTE cpu.u_arm925t.u_zap.g_arm9.u_arm9_core.u_execute
++  always @(posedge clk)
++    if (!reset && `MULTIPLY_EXECUTE.launch_smull) begin
++      early_smull <= early_smull + 1;
++      if (`MULTIPLY_EXECUTE.w_take)
++        early_smull_w_operand <= early_smull_w_operand + 1;
++    end
++`undef MULTIPLY_EXECUTE
++`endif
++`ifdef NGAGE_BLOCK_PREDICATE_TEST
++`define CONTRACT_CORE cpu.u_arm925t.u_zap.g_arm9.u_arm9_core
++`define CONTRACT_DECODE `CONTRACT_CORE.u_front_decode.u_decode
++  reg [31:0] predicate_irq_pc = 0;
++  reg predicate_irq_fired = 0;
++  integer predicate_extras = 0, predicate_skips = 0, predicate_combined = 0;
++  integer predicate_irq_seen = 0, predicate_irq_returned = 0, predicate_held = 0;
++  wire [15:0] predicate_w_list = `CONTRACT_CORE.w[478:463];
++  always @(negedge clk)
++    if (!reset) begin
++      predicate_irq <= 0;
++      // The pin passes through two synchronizer edges as the list moves D2 -> S -> A.
++      if (!predicate_irq_fired && predicate_irq_pc != 0 && `CONTRACT_DECODE.step &&
++          `CONTRACT_DECODE.d2[43] && `CONTRACT_DECODE.d2[372:341] == predicate_irq_pc) begin
++        predicate_irq <= 1;
++        predicate_irq_fired <= 1;
++      end
++    end
++  always @(posedge clk)
++    if (!reset) begin
++      if (`CONTRACT_DECODE.d2_valid && !`CONTRACT_DECODE.step && `CONTRACT_DECODE.d2[131:128] == 6)
++        predicate_held <= predicate_held + 1;
++      if (cpu.u_arm925t.dbg_wb_irq && predicate_irq_fired) begin
++        if (`CONTRACT_CORE.w[526:495] != predicate_irq_pc)
++          $fatal(1, "IRQ hit %h, expected the list at %h", `CONTRACT_CORE.w[526:495], predicate_irq_pc);
++        predicate_irq_seen <= predicate_irq_seen + 1;
++      end
++      if (`CONTRACT_CORE.wb_cfail && `CONTRACT_CORE.w[8:5] == 6) begin
++        if (`CONTRACT_CORE.request || `CONTRACT_CORE.w[535] || |`CONTRACT_CORE.w[27:26])
++          $fatal(1, "Failed block attempted data or register side effects");
++        if (!`CONTRACT_CORE.w[537]) predicate_extras <= predicate_extras + 1;
++        if (`CONTRACT_CORE.wb_last) begin
++          predicate_skips <= predicate_skips + 1;
++          if (`CONTRACT_CORE.w[526:495] == predicate_irq_pc) predicate_irq_returned <= predicate_irq_returned + 1;
++          if (`CONTRACT_CORE.w[537] && |(predicate_w_list & (predicate_w_list - 16'd1)))
++            predicate_combined <= predicate_combined + 1;
++        end
++      end
++    end
++`undef CONTRACT_DECODE
++`undef CONTRACT_CORE
++`endif
++  integer expected_section_reads = 0, section_reads = 0, section_checks = 0;
++`ifdef NGAGE_PAIRED_LDM_TEST
++  integer pair_phase = 0;
++  integer pair_hits = 0;
++  integer pair_checks = 0;
++  wire paired_ldm = cpu.u_arm925t.u_zap.g_arm9.u_arm9_core.paired_ldm;
++`ifdef NGAGE_ISSUE_LDM_TEST
++  integer pair_splits = 0;
++  localparam integer LAST_PAIR_PHASE = 4;
++`ifdef NGAGE_ISSUE_LDM_STALE_HINT_TEST
++  always @(posedge clk) begin
++    if ($test$plusargs("paired-stale-address-hint")) begin
++      if (!reset && pair_phase == 4)
++        force cpu.u_arm925t.u_zap.g_arm9.u_arm9_core.u_front_decode.u_decode.base_address_hint = 5'd0;
++      else
++        release cpu.u_arm925t.u_zap.g_arm9.u_arm9_core.u_front_decode.u_decode.base_address_hint;
++    end
++  end
++`endif
++`else
++  localparam integer LAST_PAIR_PHASE = 3;
++`endif
++`endif
++  integer expected_icache_bytes = 0, icache_phase = 0, icache_fills = 0, icache_checks = 0;
++  wire [31:0] icache_sets =
++      cpu.u_arm925t.u_zap.l_generate_with_cache_mmu.u_code_cache.u_zap_cache_tag_ram.LINES;
++  wire [31:0] icache_index_sets =
++      cpu.u_arm925t.u_zap.l_generate_with_cache_mmu.u_code_cache.u_zap_cache_tag_ram.INDEX_LINES;
++  wire [31:0] icache_ways = cpu.u_arm925t.ICACHE_WAYS;
++  reg observe_sections = 0;
++  reg ram_pending = 0, ram_saved_write;
++  reg [13:0] ram_index;
++  reg [31:0] ram_saved_data;
++  reg [ 3:0] ram_saved_be;
++  integer lane, wait_cycles;
++  integer burst_enable, line_wait = 0, half_index = 0;
++  integer ram_lines = 0, rom_lines = 0, rejected_lines = 0;
++  integer capacity_markers = 0;
++  integer assoc_phase = 0, assoc_started, assoc_words, assoc_fills, assoc_empty_groups;
++  integer assoc_slot;
++  localparam [13:0] PROBE_LOW = 14'h2010, PROBE_HIGH = 14'h2014;
++  wire [31:0] assoc_ways = cpu.u_arm925t.DCACHE_WAYS;
++  wire [31:0] assoc_stride = 32'd16384 / assoc_ways;
++  wire half_writeback = $test$plusargs("half-writeback");
++  wire empty_clean_group =
++      cpu.u_arm925t.u_zap.l_generate_with_cache_mmu.u_data_cache.u_zap_cache_tag_ram.state_ff == 13'd2 &&
++      cpu.u_arm925t.u_zap.l_generate_with_cache_mmu.u_data_cache.u_zap_cache_tag_ram.dirty_scan == 0;
++  reg verify_resident = 0;
++  reg [31:0] saved_line;
++  wire line_ram = saved_line[31:24] == 8'h0a;
++  wire line_wide = !line_ram && saved_line != 32'h1000;
++  wire line_valid = line_active && line_wait == 0;
++  wire line_error = line_valid && saved_line == 32'h1000 && half_index == 4;
++  wire line_last = half_index == (line_wide ? 12 : 15) || line_error;
++  wire [31:0] beat_address = saved_line + 2 * half_index;
++  wire [31:0] ram_word = ram[beat_address[15:2]];
++  wire [31:0] rom_word = rom[beat_address[12:2]];
++  wire [31:0] narrow_word = line_ram ? ram_word : rom_word;
++  wire [63:0] line_data = line_wide ? {rom[beat_address[12:2]+1'b1], rom_word} :
++                          {48'b0, beat_address[1] ? narrow_word[31:16] : narrow_word[15:0]};
++  reg [4095:0] program_file;
++  wire fault_address = device_address == 32'h0c000020 || device_address == 32'h00001008;
++  wire ready = device_cyc && device_stb && slow_delay == wait_cycles;
++  assign device_ack = ready && !fault_address;
++  assign device_error = ready && fault_address;
++  assign device_rdata = (device_address < 8192) ? rom[device_address[12:2]] :
++`ifdef NGAGE_STORE_LIST_CONTRACT
++      device_address == 32'h0c000060 ? store_device_first :
++      device_address == 32'h0c000064 ? store_device_second :
++`endif
++      32'b0;
++  assign ram_accept = ram_req && !ram_pending;
++  assign ram_ack = ram_pending && ram_delay == 0;
++  assign ram_rdata = ram[ram_index];
++
++  always @(posedge clk)
++    if (!reset) begin
++      cycle <= cycle + 1;
++`ifdef NGAGE_PAIRED_LDM_TEST
++      if (pair_phase != 0 && paired_ldm) begin
++        pair_hits <= pair_hits + 1;
++        $display("PAIR_HIT phase=%0d pc=%h", pair_phase, cpu.u_arm925t.dbg_wb_pc - 8);
++      end
++`ifdef NGAGE_ISSUE_LDM_TEST
++      if (pair_phase != 0 && cpu.u_arm925t.u_zap.g_arm9.u_arm9_core.paired_ldm_split)
++        pair_splits <= pair_splits + 1;
++`endif
++`endif
++      if (cycle == 180000) $fatal(1, "Watchdog PC=%h", pc);
++      line_reject <= 0;
++      if (line && !line_active) begin
++        if (icache_phase != 0 && !line_reject &&
++            (line_addr == 32'h0a001fe0 || line_addr == 32'h0a003fe0 || line_addr == 32'h0a005fe0))
++          icache_fills <= icache_fills + 1;
++        if (assoc_phase >= 6 && line_addr >= 32'h0a008000 && line_addr < 32'h0a010000 &&
++            (assoc_phase < 9 || (line_addr & (assoc_stride-1)) == assoc_stride-32))
++          assoc_fills <= assoc_fills + 1;
++        if (line_addr[4:0] != 0 || cyc) $fatal(1, "Bad line offer");
++        if (burst_enable != 0) begin
++          saved_line  <= line_addr;
++          line_active <= 1;
++          half_index  <= 0;
++          line_wait   <= wait_cycles;
++          if (line_addr[31:24] == 8'h0a) begin
++            if (verify_resident) $fatal(1, "Capacity check missed in D-cache");
++            ram_lines <= ram_lines + 1;
++          end else rom_lines <= rom_lines + 1;
++        end else begin
++          line_reject <= 1;
++          rejected_lines <= rejected_lines + 1;
++        end
++      end
++      if (line_active && line_wait != 0) line_wait <= line_wait - 1;
++      if (line_valid) begin
++        if (line_last) line_active <= 0;
++        half_index <= half_index + (line_wide ? 4 : 1);
++        if (line_error) refill_faults <= refill_faults + 1;
++      end
++      if (cyc && stb && !ack && !error) wait_words <= wait_words + 1;
++      if (assoc_phase && empty_clean_group) assoc_empty_groups <= assoc_empty_groups + 1;
++      if (cpu.u_arm925t.dbg_wb_pabt) prefetch_aborts <= prefetch_aborts + 1;
++      if (device_cyc && device_address == 32'h0b000000)
++        $fatal(1, "Faulting VA reached the physical device bus");
++
++      if (device_cyc && !ready) slow_delay <= slow_delay + 1;
++      else slow_delay <= 0;
++      if (device_error && device_address == 32'h0c000020) begin
++        if (device_code) $fatal(1, "Data abort classified as code");
++        scalar_faults <= scalar_faults + 1;
++        $display("DATA_FAULT cycle=%0d address=%h", cycle, device_address);
++      end
++      if (device_ack && device_address >= 32'h1000 && device_address < 32'h1008) begin
++        if (!device_code || cti != 3'b010) $fatal(1, "Bad instruction burst");
++        refill_words <= refill_words + 1;
++      end
++      if (device_error && device_address == 32'h1008) begin
++        if (!device_code || (refill_faults == 0 && refill_words != 2))
++          $fatal(1, "Missing preceding refill words");
++        refill_faults <= refill_faults + 1;
++        $display("REFILL_FAULT cycle=%0d address=%h good_words=%0d", cycle, device_address,
++                 refill_words);
++      end
++      if (device_ack && device_write) begin
++        case (device_address)
++`ifdef NGAGE_STORE_LIST_CONTRACT
++          32'h0c000060: begin
++            if (store_device_count != 0 || device_wdata != 32'h24) $fatal(1,"Incorrect first device write");
++            store_device_first <= device_wdata;
++            store_device_count <= 1;
++          end
++          32'h0c000064: begin
++            if (store_device_count != 1 || device_wdata != 32'h25) $fatal(1,"Incorrect second device write");
++            store_device_second <= device_wdata;
++            store_device_count <= 2;
++          end
++`endif
++`ifdef NGAGE_BLOCK_PREDICATE_TEST
++          32'h0c00001c: begin
++            predicate_irq_pc <= device_wdata;
++            irq_expected <= 3;
++          end
++`endif
++`ifdef NGAGE_PAIRED_LDM_TEST
++          32'h0c000018: begin
++            if (device_wdata != (pair_phase == LAST_PAIR_PHASE ? 0 : pair_phase + 1))
++              $fatal(1, "Unexpected paired LDM stage");
++            if (pair_phase != 0) begin
++              // Same-line eligibility also requires both beats in W/M.
++              if (pair_phase == 1 ? (pair_hits < 1 || pair_hits > 2) : pair_hits != 0)
++                $fatal(1, "Paired LDM stage %0d saw %0d hits", pair_phase, pair_hits);
++              $display("PAIR phase=%0d hits=%0d", pair_phase, pair_hits);
++`ifdef NGAGE_ISSUE_LDM_TEST
++              if (pair_phase >= 2 && pair_splits != 1 &&
++                  !(pair_phase != 3 && pair_splits == 0 && $test$plusargs("paired-address-hint") &&
++                    (pair_phase != 4 || !$test$plusargs("paired-stale-address-hint"))))
++                $fatal(1, "Expected one serial fallback in phase %0d, got %0d", pair_phase, pair_splits);
++              $display("PAIR phase=%0d splits=%0d", pair_phase, pair_splits);
++`endif
++              pair_checks <= pair_checks + 1;
++            end
++            pair_phase <= device_wdata;
++            pair_hits <= 0;
++`ifdef NGAGE_ISSUE_LDM_TEST
++            pair_splits <= 0;
++`endif
++          end
++`endif
++          32'h0c000000: begin
++            irq <= device_wdata[0];
++            irq_writes <= irq_writes + 1;
++          end
++          32'h0c000004: begin
++            fiq <= device_wdata[0];
++            fiq_writes <= fiq_writes + 1;
++          end
++          32'h0c000008: begin
++            verify_resident  <= device_wdata[0];
++            capacity_markers <= capacity_markers + 1;
++          end
++          32'h0c000010: begin
++            if (expected_section_reads == 0 || device_wdata[0] == observe_sections)
++              $fatal(1, "Unexpected section index marker");
++            observe_sections <= device_wdata[0];
++            if (device_wdata[0]) section_reads <= 0;
++            else begin
++              if (section_reads != expected_section_reads)
++                $fatal(
++                    1, "Section table reads=%0d expected=%0d", section_reads, expected_section_reads
++                );
++              section_checks <= section_checks + 1;
++              $display("SECTION pass=%0d table_reads=%0d", section_checks + 1, section_reads);
++            end
++          end
++          32'h0c000014: begin
++            if (expected_icache_bytes == 0 ||
++                device_wdata != (icache_phase == 5 ? 0 : icache_phase + 1))
++              $fatal(1, "Unexpected I-cache marker %0d after %0d", device_wdata, icache_phase);
++            if (icache_phase != 0) begin
++              if (icache_phase == 2 ? ((icache_fills == 0) != (expected_icache_bytes == 32768)) :
++                  icache_fills != 3)
++                $fatal(1, "I-cache phase %0d fetched %0d target lines", icache_phase, icache_fills);
++              $display("ICACHE phase=%0d target_fills=%0d sets=%0d index_sets=%0d ways=%0d",
++                       icache_phase, icache_fills, icache_sets, icache_index_sets, icache_ways);
++              icache_checks <= icache_checks + 1;
++            end
++            icache_phase <= device_wdata;
++            icache_fills <= 0;
++          end
++          32'h0c00000c: begin
++            assoc_phase <= device_wdata;
++            if (device_wdata != 0) begin
++              assoc_started <= cycle;
++              assoc_words <= 0;
++              assoc_fills <= 0;
++              assoc_empty_groups <= 0;
++              if (device_wdata == 3) ram[PROBE_HIGH] <= 32'h89abcdef;
++              if (device_wdata == 4) ram[PROBE_LOW] <= 32'h76543210;
++            end else begin
++              case (assoc_phase)
++                1: begin
++                  if (assoc_words != (512 - assoc_ways) * (half_writeback ? 4 : 8))
++                    $fatal(
++                        1, "Dirty full clean wrote %0d words with %0d ways", assoc_words, assoc_ways
++                    );
++                  for (assoc_slot = 0; assoc_slot < 512; assoc_slot = assoc_slot + 1)
++                  if (ram[8192+8*assoc_slot] != 32'h0a008000 + 32 * assoc_slot)
++                    $fatal(1, "Whole clean missed resident slot %0d", assoc_slot);
++                end
++                2:
++                if (assoc_words != 0 || assoc_empty_groups != 32)
++                  $fatal(1, "Empty clean groups=%0d writes=%0d", assoc_empty_groups, assoc_words);
++                3:
++                if (assoc_words != (half_writeback ? 4:8) || ram[PROBE_LOW] != 32'h33008040 ||
++                       ram[PROBE_HIGH] != (half_writeback ? 32'h89abcdef : 32'd0))
++                  $fatal(
++                      1,
++                      "Low dirty half writes=%0d data=%h/%h",
++                      assoc_words,
++                      ram[PROBE_LOW],
++                      ram[PROBE_HIGH]
++                  );
++                4:
++                if (assoc_words != (half_writeback ? 4:8) || ram[PROBE_HIGH] != 32'h66000000 ||
++                       ram[PROBE_LOW] != (half_writeback ? 32'h76543210 : 32'h33008040))
++                  $fatal(
++                      1,
++                      "High dirty half writes=%0d data=%h/%h",
++                      assoc_words,
++                      ram[PROBE_LOW],
++                      ram[PROBE_HIGH]
++                  );
++                5:
++                if (assoc_words != 8 || ram[PROBE_LOW] != 32'h44008040 || ram[PROBE_HIGH] != 32'h55000000)
++                  $fatal(
++                      1,
++                      "Both dirty halves writes=%0d data=%h/%h",
++                      assoc_words,
++                      ram[PROBE_LOW],
++                      ram[PROBE_HIGH]
++                  );
++                6, 9:
++                if (assoc_fills != assoc_ways)
++                  $fatal(1, "Conflict warm phase %0d filled %0d lines", assoc_phase, assoc_fills);
++                7, 10:
++                if (assoc_fills != 0)
++                  $fatal(1, "Resident phase %0d refilled %0d lines", assoc_phase, assoc_fills);
++                8, 11:
++                if (assoc_fills != 2)
++                  $fatal(1, "Overflow phase %0d refilled %0d lines", assoc_phase, assoc_fills);
++                default: $fatal(1, "Unexpected cache diagnostic phase");
++              endcase
++              $display(
++                  "ASSOC phase=%0d ways=%0d clocks=%0d write_words=%0d fills=%0d empty_groups=%0d",
++                  assoc_phase, assoc_ways, cycle - assoc_started, assoc_words, assoc_fills,
++                  assoc_empty_groups);
++            end
++          end
++          32'hf0000000: begin
++`ifdef NGAGE_STORE_LIST_CONTRACT
++            if (store_device_count != 2) $fatal(1,"Store list did not complete both uncached writes");
++`endif
++`ifdef NGAGE_BLOCK_PREDICATE_TEST
++            if (predicate_irq_seen != 1 || predicate_irq_returned != 1 || predicate_held == 0)
++              $fatal(1,"Incomplete predicate coverage irq=%0d returned=%0d held=%0d",
++                     predicate_irq_seen, predicate_irq_returned, predicate_held);
++            $display("PREDICATE_CONTRACT skips=%0d extra=%0d collapsed=%0d held=%0d irq=%0d retried=%0d",
++                     predicate_skips, predicate_extras, predicate_combined, predicate_held,
++                     predicate_irq_seen, predicate_irq_returned);
++`endif
++`ifdef NGAGE_PAIRED_LDM_TEST
++            if (pair_checks != LAST_PAIR_PHASE) $fatal(1, "Incomplete paired LDM check");
++`endif
++            if (expected_icache_bytes != 0 && (icache_checks != 5 || icache_ways != 2 ||
++                icache_sets * icache_ways * 32 != expected_icache_bytes || icache_index_sets != icache_sets))
++              $fatal(1, "I-cache capacity or index verification failed");
++            if (expected_section_reads != 0 && section_checks != 2)
++              $fatal(1, "Both section-index phases must complete");
++            if (capacity_markers != 2 || ram[14'h2400] != 32'h0a009000)
++              $fatal(
++                  1,
++                  "D-cache capacity/upper index clean failed, RAM=%h markers=%d",
++                  ram[14'h2400],
++                  capacity_markers
++              );
++            if (burst_enable != 0 ? ram_lines < 512 || rom_lines == 0 : rejected_lines == 0)
++              $fatal(1, "Line transport was not exercised");
++            if (device_wdata != 32'h50415353 || scalar_faults != 1 || refill_faults == 0 ||
++                prefetch_aborts != 1 + icr_pabt_checks || translation_walks == 0 ||
++                        irq_writes != irq_expected + flow_irq_seen || fiq_writes != 2 || swap_beats != 2 || clean_writes != 1 ||
++                        ram[0] != 32'h55667788)
++              $fatal(
++                  1,
++                  "Guest result=%h scalar_faults=%0d refill_faults=%0d IRQ=%0d FIQ=%0d SWP=%0d clean=%0d RAM0=%h",
++                  device_wdata,
++                  scalar_faults,
++                  refill_faults,
++                  irq_writes,
++                  fiq_writes,
++                  swap_beats,
++                  clean_writes,
++                  ram[0]
++              );
++`ifdef NGAGE_MULTIPLY_SCHEDULE_TEST
++            if (early_smull == 0) $fatal(1, "Early SMULL path was not exercised");
++            $display("SMULL early=%0d wb_operand=%0d", early_smull, early_smull_w_operand);
++`endif
++            $display(
++                "PASS cycles=%0d scalar_wait_cycles=%0d swp_beats=%0d clean_writes=%0d walks=%0d prefetch_aborts=%0d",
++                cycle, wait_words, swap_beats, clean_writes, translation_walks, prefetch_aborts);
++            $display("LINES ram=%0d rom=%0d rejected=%0d resident_capacity_bytes=16384", ram_lines,
++                     rom_lines, rejected_lines);
++            $finish;
++          end
++          default: $fatal(1, "Unexpected device write %h", device_address);
++        endcase
++      end
++
++      if (swap_beats == 1 && !lock) $fatal(1, "SWPB lock dropped between beats");
++      if (ram_accept) begin
++        if (observe_sections && !ram_write && (ram_address == 32'h0a004400 || ram_address == 32'h0a006000))
++          section_reads <= section_reads + 1;
++        if (verify_resident && !ram_write)
++          $fatal(1, "Capacity check accessed scalar RAM at %h PC=%h", ram_address, pc);
++        if (!ram_write && ram_address == 32'h0a0042c0) translation_walks <= translation_walks + 1;
++        if (lock) begin
++          if (ram_address[31:2] != 30'h02800000 || (ram_write != (swap_beats == 1)) ||
++                    (ram_write && (ram_be != 4'b0010 || ram_wdata[15:8] != 8'haa)))
++            $fatal(
++                1,
++                "Bad swap beat address=%h write=%b be=%h data=%h",
++                ram_address,
++                ram_write,
++                ram_be,
++                ram_wdata
++            );
++          swap_beats <= swap_beats + 1;
++        end
++        ram_pending <= 1;
++        ram_delay <= wait_cycles + 1;
++        ram_index <= ram_address[15:2];
++        ram_saved_write <= ram_write;
++        ram_saved_data <= ram_wdata;
++        ram_saved_be <= ram_be;
++      end else if (ram_ack) begin
++        ram_pending <= 0;
++        if (ram_saved_write) begin
++          if (assoc_phase && assoc_phase <= 5) begin
++            assoc_words <= assoc_words + 1;
++            if (ram_saved_be != 15) $fatal(1, "Writeback used partial byte lanes");
++          end
++          for (lane = 0; lane < 4; lane = lane + 1)
++          if (ram_saved_be[lane]) ram[ram_index][lane*8+:8] <= ram_saved_data[lane*8+:8];
++          if (ram_index == 0 && ram_saved_data == 32'h55667788 && ram_saved_be == 15)
++            clean_writes <= clean_writes + 1;
++        end
++      end else if (ram_pending) ram_delay <= ram_delay - 1;
++    end
++
++  initial begin
++    if (!$value$plusargs("program=%s", program_file) || !$value$plusargs("wait=%d", wait_cycles))
++      $fatal(1, "Specify the guest image and wait profile");
++    if (!$value$plusargs("burst=%d", burst_enable)) burst_enable = 1;
++    if (!$value$plusargs("section-reads=%d", expected_section_reads)) expected_section_reads = 0;
++    if ($value$plusargs("icache-bytes=%d", expected_icache_bytes)) begin
++      ram[14'h07f8] = 32'he3a00001;  // mov r0,#1; bx lr
++      ram[14'h07f9] = 32'he12fff1e;
++      ram[14'h0ff8] = 32'he3a00002;
++      ram[14'h0ff9] = 32'he12fff1e;
++      ram[14'h17f8] = 32'he3a00003;
++      ram[14'h17f9] = 32'he12fff1e;
++    end
++    $readmemh(program_file, rom);
++    repeat (4) @(negedge clk);
++    reset = 0;
++  end
++`define EXEC_S cpu.u_arm925t.u_zap.g_arm9.u_arm9_core.u_execute
++  wire direct_shift_sample = `EXEC_S.i_valid && `EXEC_S.i_reg_shift &&
++      `EXEC_S.i_kind == 0 && !`EXEC_S.i_thumb && !`EXEC_S.prepared;
++  integer held_shift = 0, accepted_shift = 0, forwarded_rs = 0;
++  always @(posedge clk) if (!reset && direct_shift_sample) begin
++    if (`EXEC_S.s_wait[2] && !`EXEC_S.accept) held_shift <= held_shift + 1;
++    if (`EXEC_S.accept) begin
++      accepted_shift <= accepted_shift + 1;
++      if (`EXEC_S.s_load_hit && `EXEC_S.i_load_owner[1] && `EXEC_S.i_forward_match[10])
++        forwarded_rs <= forwarded_rs + 1;
++    end
++  end
++  final
++    $display("DIRECT_SHIFT_CONTRACT held=%0d accepted=%0d forwarded_rs=%0d",
++             held_shift, accepted_shift, forwarded_rs);
++endmodule
+diff --git a/scratch/v5-fit-loop/early-shift-select/board-fixture/run-contract.sh b/scratch/v5-fit-loop/early-shift-select/board-fixture/run-contract.sh
+new file mode 100644
+index 0000000..acd2dbe
+--- /dev/null
++++ b/scratch/v5-fit-loop/early-shift-select/board-fixture/run-contract.sh
+@@ -0,0 +1,157 @@
++#!/bin/sh
++set -eu
++
++name=${1:?specify a fresh run name}
++case "$name" in
++    *[!A-Za-z0-9_.-]*) echo "Invalid run name: $name" >&2; exit 2 ;;
++esac
++out=build/sim/arm9v2/contract-"$name"
++mkdir -p build/sim/arm9v2
++mkdir "$out"
++fixture=tests/cpu/arm9v2_board
++netlist=${ARM9V2_NETLIST:-rtl/arm9v2/arm925t_phone.v}
++cpu_wrapper=${ARM9V2_CPU_WRAPPER:-rtl/ngage_cpu.sv}
++section_reads=
++case "${ARM9V2_SECTION_INDEX:-}" in
++    direct) section_reads=8 ;;
++    xor) section_reads=2 ;;
++    '') ;;
++    *) echo 'ARM9V2_SECTION_INDEX must be direct or xor' >&2; exit 2 ;;
++esac
++set --
++if [ -n "${ARM9V2_ASSOC_WAYS:-}" ]; then set -- "$@" "-DASSOC_WAYS=$ARM9V2_ASSOC_WAYS"; fi
++if [ -n "$section_reads" ]; then set -- "$@" -DSECTION_INDEX_TEST; fi
++multiply_define=
++if [ "${ARM9V2_MULTIPLY_TEST:-0}" = 1 ]; then set -- "$@" -DMULTIPLY_SCHEDULE_TEST; fi
++if [ "${ARM9V2_SMULL_COVERAGE:-0}" = 1 ]; then multiply_define=-DNGAGE_MULTIPLY_SCHEDULE_TEST; fi
++if [ "${ARM9V2_REGISTER_SHIFT_TEST:-0}" = 1 ]; then set -- "$@" -DREGISTER_SHIFT_TEST; fi
++predicate_define=
++if [ "${ARM9V2_BLOCK_PREDICATE_TEST:-0}" = 1 ]; then
++    set -- "$@" -DBLOCK_PREDICATE_TEST
++    predicate_define=-DNGAGE_BLOCK_PREDICATE_TEST
++fi
++load_use_define=
++if [ "${ARM9V2_LOAD_USE_TEST:-0}" = 1 ]; then
++    set -- "$@" -DLOAD_USE_TEST
++    load_use_define=-DNGAGE_LOAD_USE_TEST
++fi
++if [ "${ARM9V2_LOAD_WAW_TEST:-0}" = 1 ]; then set -- "$@" -DLOAD_WAW_TEST; fi
++mac_timing_define=
++if [ "${ARM9V2_MAC_TIMING_TEST:-0}" = 1 ]; then
++    set -- "$@" -DMAC_TIMING_TEST
++    mac_timing_define=-DNGAGE_MAC_TIMING_TEST
++fi
++icache_restart_define=
++icache_restart_early=
++icache_hum_define=
++case "${ARM9V2_ICACHE_HUM_TEST:-0}" in
++    1)
++        set -- "$@" -DHIT_UNDER_MISS_TEST
++        icache_hum_define=-DNGAGE_IC_HUM_CONTRACT
++        ;;
++    control) set -- "$@" -DHIT_UNDER_MISS_TEST ;;
++    guarantee) icache_hum_define=-DNGAGE_IC_HUM_CONTRACT ;;
++esac
++if [ "${ARM9V2_ICACHE_RESTART_TEST:-0}" = 1 ]; then
++    set -- "$@" -DICACHE_RESTART_TEST
++    icache_restart_define=-DNGAGE_IC_RESTART_CONTRACT
++fi
++if [ "${ARM9V2_ICACHE_RESTART_EARLY:-0}" = 1 ]; then
++    icache_restart_early=-DNGAGE_IC_RESTART_EARLY
++fi
++control_flow_define=
++if [ "${ARM9V2_CONTROL_FLOW_TEST:-0}" = 1 ]; then
++    set -- "$@" -DCONTROL_FLOW_TEST
++    control_flow_define=-DNGAGE_CONTROL_FLOW_CONTRACT
++fi
++store_list_define=
++if [ "${ARM9V2_STORE_LIST_TEST:-0}" = 1 ]; then
++    set -- "$@" -DSTORE_LIST_TEST
++    store_list_define=-DNGAGE_STORE_LIST_CONTRACT
++fi
++paired_ldm_define=
++issue_ldm_define=
++stale_hint_define=
++if [ "${ARM9V2_PAIRED_LDM_TEST:-0}" = 1 ]; then
++    set -- "$@" -DPAIRED_LDM_TEST
++    paired_ldm_define=-DNGAGE_PAIRED_LDM_TEST
++fi
++if [ "${ARM9V2_ISSUE_LDM_TEST:-0}" = 1 ]; then
++    set -- "$@" -DPAIRED_LDM_TEST -DISSUE_LDM_TEST
++    paired_ldm_define=-DNGAGE_PAIRED_LDM_TEST
++    issue_ldm_define=-DNGAGE_ISSUE_LDM_TEST
++    if [ "${ARM9V2_ISSUE_LDM_FORCE_STALE:-0}" = 1 ]; then
++        stale_hint_define=-DNGAGE_ISSUE_LDM_STALE_HINT_TEST
++    fi
++fi
++case "${ARM9V2_ICACHE_BYTES:-}" in
++    16384|32768) set -- "$@" -DICACHE_INDEX_TEST ;;
++    '') ;;
++    *) echo 'ARM9V2_ICACHE_BYTES must be 16384 or 32768' >&2; exit 2 ;;
++esac
++arm-none-eabi-gcc -c -mcpu=arm920t -marm "-DEXPECTED_CTYPE=${ARM9V2_CTYPE:-0x0514a14a}" "$@" "$fixture/contract.S" -o "$out/guest.o"
++arm-none-eabi-ld -T sim/programs/link.ld "$out/guest.o" -o "$out/guest.elf"
++arm-none-eabi-objcopy -O binary "$out/guest.elf" "$out/guest.bin"
++python3 - "$out" <<'PY'
++from pathlib import Path
++import struct
++import sys
++
++out = Path(sys.argv[1])
++words = struct.iter_unpack('<I', (out / 'guest.bin').read_bytes())
++(out / 'guest.hex').write_text(''.join(f'{word:08x}\n' for (word,) in words))
++PY
++image=jotego/simulator:arm64
++simulation() {
++    docker run --rm --pull=never --network none --platform linux/arm64 \
++        -v "$PWD:/work" -w /work --entrypoint "$@"
++}
++simulation verilator "$image" --binary --timing --assert -j 2 \
++    -Wno-fatal -Wno-lint -DNGAGE_ARM9V2 ${paired_ldm_define:+"$paired_ldm_define"} ${issue_ldm_define:+"$issue_ldm_define"} ${stale_hint_define:+"$stale_hint_define"} ${predicate_define:+"$predicate_define"} \
++    ${load_use_define:+"$load_use_define"} ${mac_timing_define:+"$mac_timing_define"} ${multiply_define:+"$multiply_define"} ${store_list_define:+"$store_list_define"} \
++    ${control_flow_define:+"$control_flow_define"} -I"$fixture" --top-module contract --Mdir "$out/obj" \
++    ${icache_restart_define:+"$icache_restart_define"} ${icache_restart_early:+"$icache_restart_early"} ${icache_hum_define:+"$icache_hum_define"} \
++    "$cpu_wrapper" rtl/ngage_upp.v "$netlist" \
++    rtl/arm9v2/upstream/sim/stubs/*.sv "$fixture/contract.v" > "$out/build.log" 2>&1
++for burst in 0 1; do
++    for wait in 0 5; do
++        log="$out/burst-$burst-wait-$wait.log"
++        set --
++        if [ "${ARM9V2_LOAD_USE_TEST:-0}" = 1 ]; then
++            begin_pc=$(arm-none-eabi-nm "$out/guest.elf" | awk '$3 == "load_use_word_add" {print $1}')
++            end_pc=$(arm-none-eabi-nm "$out/guest.elf" | awk '$3 == "load_use_trace_end" {print $1}')
++            set -- "$@" "+load-use-begin=$begin_pc" "+load-use-end=$end_pc"
++        fi
++        if [ "${ARM9V2_MAC_TIMING_TEST:-0}" = 1 ]; then
++            begin_pc=$(arm-none-eabi-nm "$out/guest.elf" | awk '$3 == "mac_timing_mla_result" {print $1}')
++            end_pc=$(arm-none-eabi-nm "$out/guest.elf" | awk '$3 == "mac_timing_end" {print $1}')
++            set -- "$@" "+mac-timing-begin=$begin_pc" "+mac-timing-end=$end_pc"
++        fi
++        if [ "${ARM9V2_ICACHE_RESTART_TEST:-0}" = 1 ]; then
++            begin_pc=$(arm-none-eabi-nm "$out/guest.elf" | awk '$3 == "icr_test_begin" {print $1}')
++            end_pc=$(arm-none-eabi-nm "$out/guest.elf" | awk '$3 == "icr_test_end" {print $1}')
++            set -- "$@" "+icr-begin=$begin_pc" "+icr-end=$end_pc" +ic-trace
++            if [ "${ARM9V2_ICACHE_HUM_TEST:-0}" = 1 ]; then set -- "$@" +hum-trace; fi
++            if [ "${ARM9V2_NO_LINE_GUARANTEE:-0}" = 1 ]; then set -- "$@" +no-line-guarantee; fi
++        fi
++        if [ "${ARM9V2_CONTROL_FLOW_TEST:-0}" = 1 ]; then
++            begin_pc=$(arm-none-eabi-nm "$out/guest.elf" | awk '$3 == "flow_test_begin" {print $1}')
++            end_pc=$(arm-none-eabi-nm "$out/guest.elf" | awk '$3 == "flow_test_end" {print $1}')
++            irq_pc=$(arm-none-eabi-nm "$out/guest.elf" | awk '$3 == "flow_thumb_bx_lr" {print $1}')
++            return_pc=$(arm-none-eabi-nm "$out/guest.elf" | awk '$3 == "flow_thumb_after_bx" {print $1}')
++            set -- "$@" "+flow-begin=$begin_pc" "+flow-end=$end_pc" "+flow-irq=$irq_pc" "+flow-return=$return_pc" +flow-trace +flow-stages
++        fi
++        if [ "${ARM9V2_STORE_LIST_TEST:-0}" = 1 ]; then
++            begin_pc=$(arm-none-eabi-nm "$out/guest.elf" | awk '$3 == "store_timing_scalar2" {print $1}')
++            end_pc=$(arm-none-eabi-nm "$out/guest.elf" | awk '$3 == "store_timing_device_end" {print $1}')
++            set -- "$@" "+store-timing-begin=$begin_pc" "+store-timing-end=$end_pc"
++        fi
++        if [ "${ARM9V2_HALF_WRITEBACK:-0}" = 1 ]; then set -- +half-writeback; fi
++        if [ -n "$section_reads" ]; then set -- "$@" "+section-reads=$section_reads"; fi
++        if [ -n "${ARM9V2_ICACHE_BYTES:-}" ]; then set -- "$@" "+icache-bytes=$ARM9V2_ICACHE_BYTES"; fi
++        if [ "${ARM9V2_ISSUE_LDM_HINT:-0}" = 1 ]; then set -- "$@" +paired-address-hint; fi
++        if [ "${ARM9V2_ISSUE_LDM_FORCE_STALE:-0}" = 1 ]; then set -- "$@" +paired-stale-address-hint; fi
++        simulation "/work/$out/obj/Vcontract" "$image" "+program=$out/guest.hex" "+wait=$wait" "+burst=$burst" "$@" > "$log" 2>&1
++        grep -E '^(PASS|LINES|ASSOC|SECTION|ICACHE|PAIR|PREDICATE_CONTRACT|SMULL) ' "$log"
++    done
++done

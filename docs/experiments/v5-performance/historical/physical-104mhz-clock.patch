@@ -1,0 +1,828 @@
+diff --git a/.github/workflows/ci_build.yml b/.github/workflows/ci_build.yml
+index 45891c994da137c16bfb275c6ab1edbeba00c64e..8e1adf9200487348abf473af8ffbb8bf79dc931e 100644
+--- a/.github/workflows/ci_build.yml
++++ b/.github/workflows/ci_build.yml
+@@ -76,17 +76,18 @@ jobs:
+             2>&1 | tee quartus_timing_details.log
+           exit "${PIPESTATUS[0]}"
+ 
+-      - name: Record effective master fit inputs
++      - name: Record effective fit inputs
+         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+         run: |
+           docker run --rm -v "${{ github.workspace }}:/project" -w /project theypsilon/quartus-lite-c5:17.0.2.docker0 /opt/intelFPGA_lite/quartus/bin/quartus_sh -t tools/check_quartus_sources.tcl --list > output_files/source-graph.txt
+           python3 tools/record_fit_inputs.py
+ 
+-      - name: Analyze routed design at 78 and 104 MHz
++      - name: Analyze native routed timing and legacy diagnostic target
+         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+         run: |
+           set -uo pipefail
+-          docker run --rm -v "${{ github.workspace }}:/project" -w /project theypsilon/quartus-lite-c5:17.0.2.docker0 /opt/intelFPGA_lite/quartus/bin/quartus_sta -t tools/probe_retime_fit/report.tcl 2>&1 | tee resident_fit_timing.log
++          native_mhz=$(python3 -c 'import json; print(json.load(open("output_files/resident-fit-manifest.json"))["physical_cpu_mhz"])') || exit
++          docker run --rm -v "${{ github.workspace }}:/project" -w /project theypsilon/quartus-lite-c5:17.0.2.docker0 /opt/intelFPGA_lite/quartus/bin/quartus_sta -t tools/probe_retime_fit/report.tcl "$native_mhz" 2>&1 | tee resident_fit_timing.log
+           exit "${PIPESTATUS[0]}"
+ 
+       - name: Summarize path bottlenecks
+@@ -101,7 +102,10 @@ jobs:
+ 
+       - name: Require passing timing
+         if: ${{ !cancelled() && steps.compile.outcome == 'success' }}
+-        run: python3 tools/check_quartus_timing.py output_files/Template.sta.rpt
++        run: |
++          python3 tools/check_quartus_timing.py output_files/Template.sta.rpt \
++            --native-corners output_files/timing/resident-store \
++            --fit-manifest output_files/resident-fit-manifest.json
+ 
+       # Keep an existing bitstream even if compile/STA or the timing gate
+       # failed. Missing RBFs (e.g. a failed fit) cannot be recovered here.
+diff --git a/Template.sv b/Template.sv
+index 12bbdb19d5fa9dc1d76427e7e1b03b208f0d0798..1a09baae7d7dd39cafad2d85827799fa7a9fa6d3 100644
+--- a/Template.sv
++++ b/Template.sv
+@@ -142,9 +142,8 @@ module emu (
+ 
+     ///////////////////////   CLOCKS   ///////////////////////////////
+ 
+-    localparam integer SYS_CLK_HZ  = 78000000;
+-    localparam integer MMC_CLK_DIV = 2;
+-    wire clk_sys;  // 78 MHz — CPU, bus, board devices, SDRAM logic
++    localparam integer SYS_CLK_HZ = 104000000;
++    wire clk_sys;  // 104 MHz — CPU, bus, board devices, SDRAM logic
+     wire pll_locked;
+ 
+     pll pll (
+@@ -1154,17 +1153,17 @@ module emu (
+     // NOS IRQ deadlines remain firmware-controlled; this is not phone-verified.
+     // Synthetic no-PIN card supplies SIMIF bytes; no NOS/SIM-state override.
+     ngage_mister #(
+-        .ENABLE_DEBUGGER(`ENABLE_DEBUGGER),
+-        .LINE_REFILL    (1),
+-        .RAM_LINE_EARLY (1),
+-        .LCD_LINE_BYTES (LCD_LINE_BYTES),
+-        .DMA_LOCAL      (1),
+-        .GAME_PCM       (1),
+-        .MMC_CLK_DIV    (MMC_CLK_DIV),
+-        .TEST_SIM_ENABLE(1),
+-        .TIMER_CLK_DIV  (SYS_CLK_HZ / 26000000),
+-        .NOS_TICK_HZ    (64),
+-        .SYS_CLK_HZ     (SYS_CLK_HZ)
++        .ENABLE_DEBUGGER (`ENABLE_DEBUGGER),
++        .LINE_REFILL     (1),
++        .RAM_LINE_EARLY  (1),
++        .LCD_LINE_BYTES  (LCD_LINE_BYTES),
++        .DMA_LOCAL       (1),
++        .GAME_PCM        (1),
++        .MMC_CLK_FRAC_3_8(1),
++        .TEST_SIM_ENABLE (1),
++        .TIMER_CLK_DIV   (SYS_CLK_HZ / 26000000),
++        .NOS_TICK_HZ     (64),
++        .SYS_CLK_HZ      (SYS_CLK_HZ)
+     ) core (
+         .ddram_line(core_ddr_line),
+         .ddram_beat_valid(core_beat_valid),
+diff --git a/rtl/ngage_board.v b/rtl/ngage_board.v
+index 7c1970542d07745565495999fd8856ef3535f5c5..2b6a4ab218b4af88525a635e6f0f68df13b36cb5 100644
+--- a/rtl/ngage_board.v
++++ b/rtl/ngage_board.v
+@@ -19,7 +19,8 @@ module ngage_board #(
+               UEM_POWERUP_STATUS = 1,
+               SYS_CLK_HZ         = 104000000,
+               TIMER_CLK_DIV      = 1,
+-              NOS_TICK_HZ        = 1000
++              NOS_TICK_HZ        = 1000,
++              MMC_CLK_FRAC_3_8   = 0
+ ) (
+ 
+     input  tri0 [ 32:0] host_timestamp,
+@@ -393,6 +394,7 @@ module ngage_board #(
+         .LCD_LINE_BYTES  (LCD_LINE_BYTES),
+         .MMC_ENABLE      (MMC_ENABLE),
+         .MMC_CLK_DIV     (MMC_CLK_DIV),
++        .MMC_CLK_FRAC_3_8(MMC_CLK_FRAC_3_8),
+         .MMC_TIMEOUT_LOG2(MMC_TIMEOUT_LOG2),
+         .LCD_QUEUE_ENABLE(LCD_ENABLE)
+     ) upp (
+diff --git a/rtl/ngage_mister.v b/rtl/ngage_mister.v
+index a720c3fc3552750df43901a0321acea27f015e94..3b142e7825f57e342fa8c24cc7bb92bb629ec81e 100644
+--- a/rtl/ngage_mister.v
++++ b/rtl/ngage_mister.v
+@@ -25,7 +25,8 @@ module ngage_mister #(
+                       SYS_CLK_HZ         = 104000000,
+                       TIMER_CLK_DIV      = 1,
+                       NOS_TICK_HZ        = 1000,
+-                      RAM_LINE_EARLY     = 0
++                      RAM_LINE_EARLY     = 0,
++                      MMC_CLK_FRAC_3_8   = 0
+ ) (
+     output wire         ddram_line,
+     input  wire         ddram_beat_valid,
+@@ -241,6 +242,7 @@ module ngage_mister #(
+         .LCD_LINE_BYTES    (LCD_LINE_BYTES),
+         .GAME_PCM          (GAME_PCM),
+         .MMC_CLK_DIV       (MMC_CLK_DIV),
++        .MMC_CLK_FRAC_3_8  (MMC_CLK_FRAC_3_8),
+         .UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)
+     ) board (
+         .host_timestamp       (host_timestamp),
+diff --git a/rtl/ngage_mmc_card.v b/rtl/ngage_mmc_card.v
+index 5924f76b1785363d56898b2a693dfe8fbf38ccfe..2c3325839247749391153c6c9f3fb4d284dfe5c8 100644
+--- a/rtl/ngage_mmc_card.v
++++ b/rtl/ngage_mmc_card.v
+@@ -38,8 +38,9 @@
+ // the mounted data payload as well: the sidecar and padding are not writable.
+ //
+ // Timing: everything runs on clk; CLK is the host's, sampled in clk, and
+-// must stay high and low for at least two clk cycles each. The card samples
+-// CMD and DAT0 when CLK rises and changes its outputs when it falls. A
++// must stay high and low for at least one clk cycle each. The card samples
++// CMD and DAT0 on the first clk edge while CLK is high and changes its
++// outputs on the first clk edge while CLK is low. A
+ // response starts NCR clocks after the command's end bit (NID for CMD1 and
+ // CMD2); read data at least NAC clocks after the response, once the blocks
+ // are in the buffer (a read waits for the HPS, so the host's read timeout
+diff --git a/rtl/ngage_mmc_host.v b/rtl/ngage_mmc_host.v
+index d6a7913eeea75fa44acd85fa3e0e1b00ad0b9f09..cb8df9dd9fed0c92352cf42d7b52dc3f96862d17 100644
+--- a/rtl/ngage_mmc_host.v
++++ b/rtl/ngage_mmc_host.v
+@@ -66,7 +66,7 @@
+ // the next (CMD18 then waits on the card's side), so no data is ever lost.
+ // The DMA is paced by rx_ready / tx_ready (upp_dma).
+ //
+-// Bus: CLK = clk / DIV, low at rest; the host changes CMD/DAT0 as CLK falls
++// Bus: CLK = clk / DIV, or 3 * clk / 8 with FRAC_3_8, low at rest. CMD/DAT0 change as CLK falls
+ // and samples them as it rises (as rtl/board/mmc_card.sv expects). [assumed]
+ // DIV = 4 (26 MHz; 12 is the phone's own rate, the service manual's 8.66 MHz,
+ // for an accuracy build); time-outs: 64 clocks to a response start bit (NCR
+@@ -76,7 +76,8 @@ module ngage_mmc_host #(
+     parameter integer DIV = 4,  // 12 (8.66 MHz, the service manual's rate) for an accuracy build
+     parameter integer RESP_WAIT = 64,
+     parameter integer TIMEOUT_LOG2 = 23,  // ~323 ms at DIV = 4 (21 at DIV = 12)
+-    parameter integer FIFO_DEPTH = 16
++    parameter integer FIFO_DEPTH = 16,
++    parameter FRAC_3_8 = 0
+ ) (
+     input wire clk,
+     input wire reset,
+@@ -118,7 +119,7 @@ module ngage_mmc_host #(
+         end
+     endfunction
+ 
+-    localparam integer                    PHW              = clog2(DIV);
++    localparam integer                    PHW              = clog2(FRAC_3_8 ? 3 : DIV);
+     localparam integer                    FAW              = clog2(FIFO_DEPTH);
+     localparam integer                    HALF             = DIV / 2;
+     localparam integer                    LAST_PHASE       = DIV - 1;
+@@ -298,18 +299,54 @@ module ngage_mmc_host #(
+     end
+ 
+     // ------------------------------------------------------------------
+-    // The bus clock: periods of DIV clocks, run while an engine needs them
++    // Generate complete bus bits while an engine needs them.
+     // ------------------------------------------------------------------
+     reg [PHW-1:0] ph;
+     reg           run;  // this period is clocked
+     reg cmd_need, dat_need, dat_hold;
+     wire clock_needed = (cmd_need || dat_need) && !dat_hold;
+-    // With DIV=2 the receive sample and period-end decision share an
+-    // edge. Recheck the updated FIFO/state before starting the next bit.
+-    wire fall = run && ph == {PHW{1'b0}} && (DIV != 2 || clock_needed);
+-    wire rise = run && ph == HALF[PHW-1:0];
+-
+-    assign mmc_clk = run && ph >= HALF[PHW-1:0];
++    wire fall, rise;
++    generate
++        if (FRAC_3_8) begin : fractional_clock
++            // Low/high lengths of (2,1), (1,2), (1,1) clocks deliver
++            // three bits per eight clocks and equal high and low time.
++            // Keep phase across idle gaps and sample on the first high clock.
++            reg  [1:0] bit_slot;
++            wire [1:0] first_high = bit_slot == 0 ? 2'd2 : 2'd1;
++            wire [1:0] last_high = bit_slot == 2 ? 2'd1 : 2'd2;
++            assign fall    = run && ph == 0 && clock_needed;
++            assign rise    = run && ph == first_high;
++            assign mmc_clk = run && ph >= first_high;
++
++            always @(posedge clk)
++                if (reset) begin
++                    run      <= 0;
++                    ph       <= 0;
++                    bit_slot <= 0;
++                end else if (!run || (ph == 0 && !clock_needed)) begin
++                    run <= clock_needed;
++                    ph  <= 0;
++                end else if (ph == last_high) begin
++                    ph       <= 0;
++                    bit_slot <= bit_slot == 2 ? 2'd0 : bit_slot + 1'b1;
++                end else ph <= ph + 1'b1;
++        end else begin : integer_clock
++            // With DIV=2 the receive sample and period end share an
++            // edge. Recheck the updated FIFO before starting the next bit.
++            assign fall    = run && ph == 0 && (DIV != 2 || clock_needed);
++            assign rise    = run && ph == HALF[PHW-1:0];
++            assign mmc_clk = run && ph >= HALF[PHW-1:0];
++            always @(posedge clk)
++                if (reset) begin
++                    run <= 0;
++                    ph  <= 0;
++                end else begin
++                    if (run)
++                        ph <= (ph == LAST_PHASE[PHW-1:0] || (DIV == 2 && !fall)) ? 0 : ph + 1'b1;
++                    if (DIV == 2 || (run && ph == LAST_PHASE[PHW-1:0]) || !run) run <= clock_needed;
++                end
++        end
++    endgenerate
+ 
+     // ------------------------------------------------------------------
+     // The engines
+@@ -367,10 +404,6 @@ module ngage_mmc_host #(
+         pop1  = 1'b0;
+         pbyte = 8'd0;
+ 
+-        // ---- the clock ----
+-        if (run) ph <= (ph == LAST_PHASE[PHW-1:0] || (DIV == 2 && !fall)) ? {PHW{1'b0}} : ph + 1'd1;
+-        if (DIV == 2 || (run && ph == LAST_PHASE[PHW-1:0]) || !run) run <= clock_needed;
+-
+         // ---- register writes ----
+         if (wr) begin
+             case (off)
+@@ -688,8 +721,6 @@ module ngage_mmc_host #(
+         end
+ 
+         if (reset) begin
+-            run        <= 1'b0;
+-            ph         <= {PHW{1'b0}};
+             cstate     <= C_IDLE;
+             dstate     <= D_IDLE;
+             blk_done   <= 1'b0;
+diff --git a/rtl/ngage_upp.v b/rtl/ngage_upp.v
+index 9aa43dbb67a6114036345bd5611cf3a5965b6ce1..8a279e3d25e1f6de8fce2f5273ccfcf711223c86 100644
+--- a/rtl/ngage_upp.v
++++ b/rtl/ngage_upp.v
+@@ -18,7 +18,8 @@ module ngage_upp #(
+               LCD_QUEUE_ENABLE = 0,
+               SYS_CLK_HZ       = 104000000,
+               TIMER_CLK_DIV    = 1,
+-              NOS_TICK_HZ      = 1000
++              NOS_TICK_HZ      = 1000,
++              MMC_CLK_FRAC_3_8 = 0
+ ) (
+ 
+     output wire         mmc_prefetch_stop,
+@@ -597,6 +598,7 @@ module ngage_upp #(
+         .GENERAL_DMA       (GENERAL_DMA),
+         .MMC_ENABLE        (MMC_ENABLE),
+         .MMC_CLK_DIV       (MMC_CLK_DIV),
++        .MMC_CLK_FRAC_3_8  (MMC_CLK_FRAC_3_8),
+         .MMC_TIMEOUT_LOG2  (MMC_TIMEOUT_LOG2),
+         .SYS_CLK_HZ        (SYS_CLK_HZ),
+         .TIMER_CLK_DIV     (TIMER_CLK_DIV),
+diff --git a/rtl/ngage_upp_peripherals.v b/rtl/ngage_upp_peripherals.v
+index 7ab7158c7bcd2dabc0907cfee9f9a55f03628257..ca6d54e815859e52bc01fb0ab55293d88edb696d 100644
+--- a/rtl/ngage_upp_peripherals.v
++++ b/rtl/ngage_upp_peripherals.v
+@@ -49,7 +49,8 @@ module ngage_upp_peripherals #(
+               REGISTER_RESPONSES = 0,
+               SYS_CLK_HZ         = 104000000,
+               TIMER_CLK_DIV      = 1,
+-              NOS_TICK_HZ        = 1000
++              NOS_TICK_HZ        = 1000,
++              MMC_CLK_FRAC_3_8   = 0
+ ) (
+     input  wire        rst,
+     input  wire        init_rst,
+@@ -187,6 +188,7 @@ module ngage_upp_peripherals #(
+         if (MMC_ENABLE) begin : mmc_enabled
+             ngage_mmc_host #(
+                 .DIV         (MMC_CLK_DIV),
++                .FRAC_3_8    (MMC_CLK_FRAC_3_8),
+                 .TIMEOUT_LOG2(MMC_TIMEOUT_LOG2)
+             ) host (
+                 .clk     (clk),
+diff --git a/rtl/pll/pll_0002.v b/rtl/pll/pll_0002.v
+index ef2a225e37bd6ffd6353fe2f43aa96b4828a27ec..fe7ff518726abf645777a736b4d47318df356abc 100644
+--- a/rtl/pll/pll_0002.v
++++ b/rtl/pll/pll_0002.v
+@@ -7,10 +7,10 @@ module pll_0002 (
+     // interface 'reset'
+     input wire rst,
+ 
+-    // interface 'outclk0' — 78 MHz CPU/bus clock
++    // interface 'outclk0' — 104 MHz CPU/bus clock
+     output wire outclk_0,
+ 
+-    // interface 'outclk1' — 78 MHz unused output (−90° phase shift)
++    // interface 'outclk1' — 104 MHz unused output (−90° phase shift)
+     output wire outclk_1,
+ 
+     // interface 'locked'
+@@ -22,11 +22,11 @@ module pll_0002 (
+       .reference_clock_frequency("50.0 MHz"),
+       .operation_mode           ("direct"),
+       .number_of_clocks         (2),
+-      .output_clock_frequency0  ("78.000000 MHz"),
++      .output_clock_frequency0  ("104.000000 MHz"),
+       .phase_shift0             ("0 ps"),
+       .duty_cycle0              (50),
+-      .output_clock_frequency1  ("78.000000 MHz"),
+-      .phase_shift1             ("-3205 ps"),       // −90° at 78 MHz = −3205 ps
++      .output_clock_frequency1  ("104.000000 MHz"),
++      .phase_shift1             ("-2404 ps"),       // −90° at 104 MHz = −2404 ps
+       .duty_cycle1              (50),
+       .output_clock_frequency2  ("0 MHz"),
+       .phase_shift2             ("0 ps"),
+diff --git a/tests/cpu/arm9v2_board/payload_clocks.py b/tests/cpu/arm9v2_board/payload_clocks.py
+index 54a9aa98f1121a5527739097017d236d99825ac8..445e597967f76fc0f710d26183a62438d9deda30 100644
+--- a/tests/cpu/arm9v2_board/payload_clocks.py
++++ b/tests/cpu/arm9v2_board/payload_clocks.py
+@@ -121,7 +121,7 @@ def arrange_flash(path, wrapper, case, original, rule):
+         f.write(case['payload'])
+ 
+ 
+-def compile_phone(out, divider, hz, arm9v2_netlist, flash_cache_bytes, sdram_model, cpu_wrapper, posted_writes, interleave, pin_waits, handoff, donor_sdram, stream_sdram, block_writeback):
++def compile_phone(out, divider, hz, arm9v2_netlist, flash_cache_bytes, sdram_model, cpu_wrapper, posted_writes, interleave, pin_waits, handoff, donor_sdram, stream_sdram, block_writeback, *, sys_clk_hz=78_000_000):
+     source = ROOT / 'tests/phone/hardware_boot/run.sh'
+     raw = source.read_text().split('--Mdir build/sim/unit-hardware-boot/obj ', 1)[1].split(' > build/', 1)[0]
+     rtl = [name for pattern in raw.split() for name in sorted(glob.glob(pattern))
+@@ -160,7 +160,8 @@ def compile_phone(out, divider, hz, arm9v2_netlist, flash_cache_bytes, sdram_mod
+                        '-DNGAGE_RUNTIME_TRACE', '-DNGAGE_ARM9V2', '-DNGAGE_PRODUCTION_DDR',
+                        '-DNGAGE_POWERUP_NORMAL', '-Wno-fatal', '-Wno-lint', '-Irtl/arm',
+                        '--top-module', 'tb', '--Mdir', container_path(obj), '-GLINE_REFILL=1',
+-                       '-GSYS_CLK_HZ=78000000', '-GTIMER_CLK_DIV=3', '-GGAME_PCM=1',
++                       f'-GSYS_CLK_HZ={sys_clk_hz}', f'-GTIMER_CLK_DIV={sys_clk_hz // 26_000_000}',
++                       f'-GMMC_CLK_FRAC_3_8={int(sys_clk_hz == 104_000_000)}', '-GGAME_PCM=1',
+                        f'-GFLASH_CACHE_BYTES={flash_cache_bytes}', '-GBOUNDED_CYCLES=120000000', *real_sdram,
+                        f'-GNOS_TICK_HZ={hz}', f'-GMMC_CLK_DIV={divider}', *rtl],
+                        cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+@@ -227,6 +228,8 @@ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--name', required=True)
+     parser.add_argument('--case', action='append')
++    parser.add_argument('--sys-clk-hz', choices=(78_000_000, 104_000_000), type=int,
++                        default=78_000_000, help='System rate for the phone and physical SDRAM model')
+     parser.add_argument('--config', action='append', choices=('2:64', '1:64', '2:128', '1:128'))
+     parser.add_argument('--arm9v2-netlist', type=Path, default=ROOT / 'rtl/arm9v2/arm925t_phone.v')
+     parser.add_argument('--flash-cache-bytes', type=int, choices=(8192, 32768), default=8192)
+@@ -273,6 +276,8 @@ def main():
+         cpu_wrapper.write_bytes(args.cpu_wrapper.read_bytes())
+     configs = args.config or ('2:64', '2:128')
+     profile = [tuple(map(int, pair.split(':'))) for pair in configs]
++    if args.sys_clk_hz == 104_000_000 and any(divider != 2 for divider, _ in profile):
++        parser.error('104 MHz uses the fractional 39 MHz MMC profile, select 2:64 or 2:128')
+     all_cases = [case for case in qualified_inputs() if not args.case or case['name'] in args.case]
+     assert all_cases and (not args.case or len(all_cases) == len(set(args.case)))
+     original = (FIRMWARE / 'core.bin').read_bytes()
+@@ -313,14 +318,16 @@ def main():
+     (out / 'tb.v').write_text(text.rsplit('endmodule', 1)[0] + '\n' + observe + '\nendmodule\n')
+     with ThreadPoolExecutor(max_workers=4) as pool:
+         compiles = {(div, hz): pool.submit(compile_phone, out, div, hz, frozen_netlist,
+-                                           args.flash_cache_bytes, sdram_model, cpu_wrapper, args.posted_writes, args.interleave, args.pin_waits, args.handoff, args.donor_sdram, args.stream_sdram, args.block_writeback)
++                                           args.flash_cache_bytes, sdram_model, cpu_wrapper, args.posted_writes, args.interleave, args.pin_waits, args.handoff, args.donor_sdram, args.stream_sdram, args.block_writeback,
++                                           sys_clk_hz=args.sys_clk_hz)
+                     for div, hz in profile}
+         rule = rules()
+         for case in all_cases:
+             for bad in (False, True):
+                 arrange_flash(out / f'{case["name"]}-{bad}.bin', case['bad' if bad else 'good'], case, original, rule)
+         exes = {key: future.result() for key, future in compiles.items()}
+-        result = dict(status='RUNNING', configs=configs, netlist_sha256=digest(frozen_netlist.read_bytes()),
++        result = dict(status='RUNNING', configs=configs, sys_clk_hz=args.sys_clk_hz,
++                      netlist_sha256=digest(frozen_netlist.read_bytes()),
+                       flash_cache_bytes=args.flash_cache_bytes, posted_writes=args.posted_writes, interleave=args.interleave, pin_waits=args.pin_waits, handoff=args.handoff, donor_sdram=args.donor_sdram, donor_wide=args.donor_wide, stream_sdram=args.stream_sdram,
+                       sdram_model_sha256=digest(sdram_model.read_bytes()) if sdram_model else None, rows=[])
+         if args.block_writeback:
+@@ -332,8 +339,10 @@ def main():
+             for (div, hz), futures in jobs.items():
+                 first, repeat, bad = [future.result() for future in futures]
+                 assert first == repeat and bad is None
+-                print(case['name'], f'MMC={78 // div} MHz NOS={hz} Hz', first['median_clocks'], flush=True)
+-                result['rows'].append(dict(case=case['name'], mmc_hz=78000000 // div, nos_hz=hz, **first))
++                mmc_hz = 39_000_000 if args.sys_clk_hz == 104_000_000 else args.sys_clk_hz // div
++                print(case['name'], f'MMC={mmc_hz // 1_000_000} MHz NOS={hz} Hz',
++                      first['median_clocks'], flush=True)
++                result['rows'].append(dict(case=case['name'], mmc_hz=mmc_hz, nos_hz=hz, **first))
+             (out / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
+     result['status'] = 'PASS'
+     (out / 'result.json').write_text(json.dumps(result, indent=2) + '\n')
+diff --git a/tests/phone/clock_rates/run.sh b/tests/phone/clock_rates/run.sh
+index 1549401a0138731faa7b6aeea5b95a5542fe8d75..06a6016a646a300b0c9ae120a32b65ae5a76c442 100644
+--- a/tests/phone/clock_rates/run.sh
++++ b/tests/phone/clock_rates/run.sh
+@@ -6,13 +6,14 @@ mkdir -p "$out"
+ python3 - <<'PY'
+ from pathlib import Path
+ s=''.join(Path('Template.sv').read_text().split());p=Path('rtl/pll/pll_0002.v').read_text()
+-assert 'SYS_CLK_HZ=78000000' in s
+-assert p.count('78.000000 MHz')==2 and '.phase_shift1("-3205ps")' in ''.join(p.split())
++assert 'SYS_CLK_HZ=104000000' in s
++assert p.count('104.000000 MHz')==2 and '.phase_shift1("-2404ps")' in ''.join(p.split())
+ assert '.SD_TIMEOUT(SYS_CLK_HZ)' in s
+-assert '.SYS_CLK_HZ(SYS_CLK_HZ)' in ''.join(s.split()) and '.outclk_1()' in s
+-assert '.HF(1)' in s and '.READ_CAPTURE_NEGEDGE(1)' in s
+-assert "(64'd6800*SYS_CLK_HZ)/104000000" in s
+-print('PASS hardware78MHz PLL, HF1/DDIO, refresh and timeout selection')
++assert '.SYS_CLK_HZ(SYS_CLK_HZ)' in s and '.outclk_1()' in s
++assert '.MMC_CLK_FRAC_3_8(1)' in s
++assert 'ngage_sdram_clock' in s and '.sdram_clk(SDRAM_CLK)' in s
++assert '.CLK_HZ(SYS_CLK_HZ)' in s
++print('PASS physical 104 MHz PLL, DDIO, fractional MMC, SDRAM and timeout selection')
+ PY
+ iverilog -g2012 -s tb -o "$out/test" rtl/ngage_simif.v rtl/ngage_test_sim.v rtl/ngage_mmc_host.v rtl/ngage_mmc_card.v rtl/ngage_mmc_dpram.v rtl/ngage_board.v rtl/ngage_upp.v rtl/ngage_upp_peripherals.v rtl/ngage_upp_euart.v rtl/ngage_uem.v rtl/ngage_adsp.v rtl/ngage_adsp_bootstrap_tx.v rtl/ngage_adsp_diagnostic.v rtl/ngage_aic23.v rtl/ngage_lrb2.v rtl/ngage_mjoelner.v rtl/ngage_bram.v rtl/ngage_bram_be.v rtl/ngage_sparse_regs.v rtl/ngage_icu.v rtl/ngage_icu_extra.v rtl/ngage_timers.v rtl/ngage_nos_io.v rtl/ngage_mdi_stub.v rtl/ngage_upp_dsp_peer.v rtl/ngage_upp_mdi.v rtl/ngage_cbus_uem.v rtl/ngage_gpio_loopback.v rtl/ngage_boot_regs.v rtl/ngage_trace_sink.v rtl/ngage_lcd_display.v rtl/ngage_sdram_adapter.v tests/phone/clock_rates/tb.sv
+ vvp "$out/test"
+diff --git a/tests/phone/hardware_boot/tb.v b/tests/phone/hardware_boot/tb.v
+index 4820ec28f438287b9b73dd06dedceda8e31c8390..af7b569383fd870c8100899b5fcf8d80f7491a9c 100644
+--- a/tests/phone/hardware_boot/tb.v
++++ b/tests/phone/hardware_boot/tb.v
+@@ -140,6 +140,7 @@ parameter integer OVERLAY_COMPONENT=1;
+ parameter integer SYS_CLK_HZ=104000000;
+ parameter integer TIMER_CLK_DIV=1,NOS_TICK_HZ=1000;
+ parameter integer FLASH_CACHE_BYTES=8192, MMC_CLK_DIV=4, GAME_PCM=0;
++parameter integer MMC_CLK_FRAC_3_8=0;
+ parameter integer ROM_CACHE=0;
+ parameter integer DIRECT_SDRAM=1;
+ parameter integer LINE_REFILL=0;
+@@ -321,7 +322,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
+  wire cpu_ram_accept;
+  wire cpu_write_block, mem_write_block;
+  wire [127:0] cpu_block_data, mem_block_data;
+- ngage_mister #(.ENABLE_DEBUGGER(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.GAME_PCM(GAME_PCM)) dut(
++ ngage_mister #(.ENABLE_DEBUGGER(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.MMC_CLK_FRAC_3_8(MMC_CLK_FRAC_3_8),.GAME_PCM(GAME_PCM)) dut(
+   .mmc_card_reset(1'b0),.mmc_img_mounted(1'b0),.mmc_img_readonly(1'b1),.mmc_img_size(64'd0),
+   .mmc_sd_ack(1'b0),.mmc_sd_buff_addr(13'd0),.mmc_sd_buff_dout(16'd0),.mmc_sd_buff_wr(1'b0),
+ .ddram_line(ddr_line),.ddram_beat_valid(core_beat_valid),.ddram_beat_data(core_beat_data),.ddram_beat_last(core_beat_last),
+diff --git a/tests/phone/mmc_host/frac_clock_tb.v b/tests/phone/mmc_host/frac_clock_tb.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..bf2926a605c7e86e230fe64e65056318b8ffc3d6
+--- /dev/null
++++ b/tests/phone/mmc_host/frac_clock_tb.v
+@@ -0,0 +1,119 @@
++`timescale 1ns / 1ps
++module frac_clock_tb;
++  reg clk = 0;
++  always #4.808 clk = ~clk;
++  reg reset = 1;
++  reg wr = 0;
++  reg [5:0] off = 0;
++  reg [31:0] wdata = 0;
++  wire mmc_clk, cmd_o, cmd_oe;
++  wire [3:0] irq;
++
++  ngage_mmc_host #(
++      .FRAC_3_8(1)
++  ) dut (
++      .clk(clk),
++      .reset(reset),
++      .acc(wr),
++      .we(wr),
++      .wr(wr),
++      .rd(1'b0),
++      .off(off),
++      .be(4'hf),
++      .wdata(wdata),
++      .rmask(),
++      .rdata(),
++      .busy(),
++      .rx_ready(),
++      .tx_ready(),
++      .irq(irq),
++      .mmc_clk(mmc_clk),
++      .cmd_o(cmd_o),
++      .cmd_oe(cmd_oe),
++      .cmd_i(1'b1),
++      .dat_o(),
++      .dat_oe(),
++      .dat_i(1'b1)
++  );
++
++  integer clocks = 0, rises = 0, falls = 0, first_rise = 0;
++  integer last_rise = 0, last_fall = 0, high_sum = 0;
++  integer pulses_in_command = 0, commands = 0;
++  reg last_clk = 0;
++  reg [47:0] command;
++
++  // Sample on the host and card's shared clock, before NB updates.
++  always @(posedge clk)
++    if (!reset) begin
++      clocks = clocks + 1;
++      if (dut.rise !== (mmc_clk && !last_clk)) $fatal(1, "Host and peer sample at different edges");
++      if (mmc_clk && !last_clk) begin
++        if (pulses_in_command == 0) first_rise = clocks;
++        else if (clocks - last_rise < 2 || clocks - last_rise > 3 ||
++                         clocks - last_fall < 1 || clocks - last_fall > 2)
++          $fatal(1, "Illegal MMC rising/low interval");
++        if (pulses_in_command == 3 && clocks - first_rise != 8)
++          $fatal(1, "Expected three MMC periods in eight system clocks");
++        last_rise = clocks;
++        pulses_in_command = pulses_in_command + 1;
++        rises = rises + 1;
++        if (cmd_oe) command = {command[46:0], cmd_o};
++      end
++      if (!mmc_clk && last_clk) begin
++        if (clocks - last_rise < 1 || clocks - last_rise > 2)
++          $fatal(1, "Illegal MMC high interval");
++        if (pulses_in_command <= 3) high_sum = high_sum + clocks - last_rise;
++        if (pulses_in_command == 3 && high_sum != 4) $fatal(1, "Expected equal high and low time");
++        last_fall = clocks;
++        falls = falls + 1;
++      end
++      last_clk = mmc_clk;
++    end
++
++  task command_zero;
++    begin
++      @(negedge clk);
++      pulses_in_command = 0;
++      high_sum = 0;
++      command = 0;
++      wr = 1;
++      off = 6'h04;
++      wdata = 1;
++      @(negedge clk);
++      wr = 0;
++      wait (!irq[2]);
++      wait (irq[2]);
++      repeat (3) @(negedge clk);
++      repeat (12) begin
++        @(negedge clk);
++        if (mmc_clk) $fatal(1, "MMC clock kept running while idle");
++      end
++      if (command !== 48'h400000000095 || pulses_in_command < 48 || rises != falls)
++        $fatal(1, "CMD0 frame or pulse accounting failed: %h", command);
++      commands = commands + 1;
++    end
++  endtask
++
++  initial begin
++    repeat (4) @(negedge clk);
++    reset = 0;
++    @(negedge clk);
++    wr = 1;
++    off = 6'h1c;
++    wdata = 0;
++    @(negedge clk);
++    off = 6'h20;
++    @(negedge clk);
++    wr = 0;
++    command_zero;
++    command_zero;
++    $display("PASS MMC fractional 3/8 clock: CMD0=%0d, rises=%0d, falls=%0d", commands, rises,
++             falls);
++    $finish;
++  end
++
++  initial begin
++    #50000;
++    $fatal(1, "MMC fractional clock test timed out");
++  end
++endmodule
+diff --git a/tools/check_quartus_timing.py b/tools/check_quartus_timing.py
+index fb56ad592a957c10aee5725377a00c464b29ff63..ca93992ca65d1d83d24ed4c6d493550e742f699c 100644
+--- a/tools/check_quartus_timing.py
++++ b/tools/check_quartus_timing.py
+@@ -5,12 +5,16 @@ This checks reported constrained timing. It does not certify unconstrained
+ external interfaces; those remain visible in the detailed report artifact.
+ """
+ import argparse
++import csv
+ from decimal import Decimal
++import json
+ from pathlib import Path
+ import re
+ 
+ REQUIRED = {'setup', 'hold', 'recovery', 'removal', 'minimum pulse width'}
+ SLACK = re.compile(r'^Info \(332146\): Worst-case ([a-z ]+) slack is (-?\d+(?:\.\d+)?)\s*$', re.M)
++CORNER_SLACK = re.compile(r'^Report .* Worst case slack is (-?\d+(?:\.\d+)?)\s*$', re.M)
++CORNER_REPORTS = ('setup', 'hold', 'recovery', 'removal', 'min-pulse')
+ 
+ def check(report):
+     if 'Timing requirements not met' in report:
+@@ -28,13 +32,60 @@ def check(report):
+         raise ValueError('negative timing slack: ' + ', '.join(failed))
+     return observed
+ 
++
++def check_native_corners(root, manifest):
++    expected_mhz = json.loads(manifest.read_text())['physical_cpu_mhz']
++    clock = dict(line.split('=', 1) for line in (root / 'physical-clock.txt').read_text().splitlines())
++    if expected_mhz != int(clock['physical_mhz']):
++        raise ValueError('Fitted core clock disagrees with selected PLL source')
++    if abs(Decimal(clock['period_ns']) - Decimal(1000) / expected_mhz) > Decimal('0.002'):
++        raise ValueError('Native core period disagrees with selected PLL source')
++    scenario = root / str(expected_mhz)
++    if 'physical fitted PLL' not in (scenario / 'clock-coverage-PASS.txt').read_text():
++        raise ValueError('Selected timing scenario is not labeled as the physical PLL')
++
++    expected_conditions = {(model, temperature) for model in ('slow', 'fast') for temperature in ('100', '-40')}
++    conditions = set()
++    for corner in sorted(scenario.glob('corner-*')):
++        fields = dict(line.split(': ', 1) for line in (corner / 'operating-condition.txt').read_text().splitlines())
++        condition = (fields['model'], fields['temperature'])
++        if condition not in expected_conditions or condition in conditions:
++            raise ValueError(f'Unexpected or duplicate native operating condition {condition}')
++        conditions.add(condition)
++        with (corner / 'setup.csv').open(newline='') as handle:
++            paths = list(csv.DictReader(handle))
++        if len(paths) != 1000 or any(row['rank'] != str(n) or not row['from'] or not row['to']
++                                     for n, row in enumerate(paths, 1)):
++            raise ValueError(f'{corner}: expected 1000 ranked setup paths')
++        values = {}
++        for kind in CORNER_REPORTS:
++            match = CORNER_SLACK.search((corner / f'{kind}.rpt').read_text())
++            if not match:
++                raise ValueError(f'{corner}: missing {kind} slack')
++            values[kind] = Decimal(match[1])
++        yield corner.name, condition, values
++    if conditions != expected_conditions:
++        raise ValueError(f'missing native operating conditions {expected_conditions - conditions}')
++
+ def main():
+     p = argparse.ArgumentParser(description=__doc__)
+     p.add_argument('report', type=Path)
++    p.add_argument('--native-corners', type=Path)
++    p.add_argument('--fit-manifest', type=Path)
+     a = p.parse_args()
++    if bool(a.native_corners) != bool(a.fit_manifest):
++        p.error('--native-corners and --fit-manifest are required together')
+     try:
++        if a.native_corners:
++            failed = []
++            for name, condition, slacks in check_native_corners(a.native_corners, a.fit_manifest):
++                label = f'{name} {condition[0]} {condition[1]}C'
++                print(f'Native {label}: ' + ', '.join(f'{kind}={value} ns' for kind, value in slacks.items()))
++                failed.extend(f'{label} {kind}={value} ns' for kind, value in slacks.items() if value < 0)
++            if failed:
++                raise ValueError('negative native timing slack: ' + ', '.join(failed))
+         values = check(a.report.read_text())
+-    except (OSError, ValueError) as e:
++    except (OSError, ValueError, KeyError) as e:
+         p.exit(1, f'Timing gate FAILED: {e}\n')
+     print('PASS constrained setup/hold/recovery/removal/pulse-width timing: ' +
+           ', '.join(f'{name}={values[name]} ns' for name in sorted(values)))
+diff --git a/tools/probe_retime_fit/report.tcl b/tools/probe_retime_fit/report.tcl
+index 30e24ea8847262d14e4e875f6503f2aabdcb5f62..d70365a6b4b0a63851d1a17565f77f98dd5ac1d8 100644
+--- a/tools/probe_retime_fit/report.tcl
++++ b/tools/probe_retime_fit/report.tcl
+@@ -18,11 +18,7 @@ proc clock_snapshot {} {
+     }
+     return $d
+ }
+-proc retarget_core {} {
+-    # Preserve the derived clock names/targets, their original reference source,
+-    # relative phase/duty, all unrelated clocks, exceptions and I/O constraints.
+-    # Actual VCO=780 MHz -> analysis-only VCO=1040, unchanged /10 -> 104 MHz.
+-    set original [clock_snapshot]
++proc core_pll_clocks {} {
+     set vcos {};set outputs {}
+     foreach_in_collection c [get_clocks *] {
+         set n [get_clock_info -name $c]
+@@ -31,7 +27,32 @@ proc retarget_core {} {
+         if {[string match {*~PLL_OUTPUT_COUNTER*|divclk} $n]} {lappend outputs $c}
+     }
+     if {[llength $vcos]!=1 || [llength $outputs]!=1} {error "Expected one live core VCO/output, got $vcos / $outputs"}
+-    set vco [lindex $vcos 0]
++    return [list [lindex $vcos 0] [lindex $outputs 0]]
++}
++proc measure_native_core {} {
++    lassign [core_pll_clocks] vco output
++    set period [get_clock_info -period $output]
++    set vco_period [get_clock_info -period $vco]
++    if {$vco_period <= 0 || $period <= 0} {error "Invalid native PLL periods"}
++    set mhz [expr {round(1000.0/$period)}]
++    if {$mhz ni {78 104} || abs($period - 1000.0/$mhz) > 0.002} {
++        error "Unsupported fitted core PLL period $period ns"
++    }
++    set divider [expr {round($period / $vco_period)}]
++    if {$divider < 1 || abs($period - $divider * $vco_period) > 0.01} {
++        error "Inconsistent fitted core PLL VCO and output periods"
++    }
++    lassign [get_clock_info -waveform $output] rising falling
++    if {abs($rising) > 0.002 || abs($falling - $period/2) > 0.002} {
++        error "Unexpected fitted core PLL waveform $rising $falling ns"
++    }
++    return [list $mhz $period $vco_period]
++}
++proc retarget_core {} {
++    # Legacy 78 MHz diagnostic only. The fitted clock and all physical
++    # 104 MHz reports retain the original PLL, exceptions and constraints.
++    set original [clock_snapshot]
++    lassign [core_pll_clocks] vco output
+     set n [get_clock_info -name $vco]
+     set period [get_clock_info -period $vco]
+     if {abs($period - 20.0*5/78)>0.002} {error "Unexpected control VCO period $period"}
+@@ -40,7 +61,7 @@ proc retarget_core {} {
+     set targets [get_clock_info -targets $vco]
+     # Overwrite by same name/target; keep existing clock-group names meaningful.
+     create_generated_clock -name $n -source $src -master_clock $master -multiply_by 104 -divide_by 5 -duty_cycle 50 $targets
+-    foreach c $outputs {
++    foreach c [list $output] {
+         set n [get_clock_info -name $c]
+         set row [dict get $original $n]
+         set old_period [lindex $row 0]
+@@ -58,7 +79,7 @@ proc retarget_core {} {
+         if {[string first "emu|pll|" $n] != 0 && [dict get $original $n] ne [dict get $changed $n]} {error "Unrelated clock changed: $n"}
+         if {[lrange [dict get $original $n] 2 end] ne [lrange [dict get $changed $n] 2 end]} {error "Master/clock fanout changed: $n"}
+     }
+-    foreach c $outputs {
++    foreach c [list $output] {
+         set n [get_clock_info -name $c]
+         set p [lindex [dict get $changed $n] 0]
+         if {abs($p-1000.0/104)>0.002} {error "104 MHz clock validation failed: $p"}
+@@ -78,6 +99,7 @@ proc endpoint_csv {filename} {
+         puts $f [join $cells ,]
+     }
+     close $f
++    if {$rank != 1000} {error "Expected 1000 endpoint paths, found $rank"}
+ }
+ proc emit {d} {
+     file mkdir $d
+@@ -132,15 +154,31 @@ proc emit {d} {
+     close $summary
+     set clocks [open $d/clock-inventory.tcl w];puts $clocks [clock_snapshot];close $clocks
+ }
+-# Analyze each available required operating condition. All scenarios use the
+-# same routed database. No settings are written or fit/synthesis rerun.
+-foreach scenario {78 104} {
++# The fitted PLL identifies the native scenario before any clock override.
++create_timing_netlist -model slow
++read_sdc
++update_timing_netlist
++lassign [measure_native_core] native_mhz native_period native_vco_period
++delete_timing_netlist
++if {[llength $argv] > 1 || ([llength $argv] && [lindex $argv 0] ne $native_mhz)} {
++    error "Declared core clock $argv disagrees with the fitted $native_mhz MHz PLL"
++}
++set f [open $root/physical-clock.txt w]
++puts $f "physical_mhz=$native_mhz\nperiod_ns=$native_period\nvco_period_ns=$native_vco_period"
++close $f
++puts "Fitted core clock: $native_mhz MHz (period $native_period ns, VCO period $native_vco_period ns)"
++
++# Keep both reports for older 78 MHz routes. A physical 104 MHz build has
++# one native scenario and never calls the diagnostic clock override.
++set scenarios [list $native_mhz]
++if {$native_mhz == 78} {lappend scenarios 104}
++foreach scenario $scenarios {
+     create_timing_netlist -model slow
+     read_sdc
+     update_timing_netlist
+     set d $root/$scenario
+     file mkdir $d
+-    if {$scenario==104} {
++    if {$scenario != $native_mhz} {
+         if {[catch {retarget_core} why]} {
+             puts $errors "104 clock coverage FAILED: $why";flush $errors
+             set f [open $d/clock-coverage-FAILED.txt w];puts $f $why;close $f
+@@ -148,8 +186,13 @@ foreach scenario {78 104} {
+             delete_timing_netlist
+             continue
+         }
+-        set f [open $d/clock-coverage-PASS.txt w];puts $f "104 MHz internal clocks validated; see UCP for preexisting missing I/O constraints";close $f
++        set mode "diagnostic retarget of the physical $native_mhz MHz route"
++    } else {
++        set mode "physical fitted PLL"
+     }
++    set f [open $d/clock-coverage-PASS.txt w]
++    puts $f "$scenario MHz internal clocks validated ($mode)"
++    close $f
+     set index 0
+     foreach_in_collection op [get_available_operating_conditions] {
+         incr index
+@@ -160,8 +203,12 @@ foreach scenario {78 104} {
+         close $f
+         set_operating_conditions $op
+         update_timing_netlist
++        if {$scenario == $native_mhz && [lindex [measure_native_core] 0] != $native_mhz} {
++            error "Fitted core clock changed at corner $index"
++        }
+         emit $od
+     }
++    if {$index != 4} {error "Expected four operating corners, found $index"}
+     delete_timing_netlist
+ }
+ close $errors
+diff --git a/tools/record_fit_inputs.py b/tools/record_fit_inputs.py
+index dcbc52421064bd155593fc5f1df363b63ceae61b..08c75064e2eada319009783f0b8db361ae043cb0 100644
+--- a/tools/record_fit_inputs.py
++++ b/tools/record_fit_inputs.py
+@@ -1,6 +1,7 @@
+ #!/usr/bin/env python3
+ """Record effective selected inputs for the current phone build."""
+ import argparse,hashlib,json,os,re,subprocess
++from decimal import Decimal
+ from pathlib import Path
+ p=argparse.ArgumentParser();p.add_argument('--source-graph',default='output_files/source-graph.txt');p.add_argument('--output',default='output_files/resident-fit-manifest.json');a=p.parse_args()
+ root=Path.cwd();sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest();inputs={}
+@@ -25,4 +26,14 @@ info=json.loads(Path('output_files/build-info.json').read_text());qsf=Path('Temp
+ assert re.search(r'-name SEED '+str(info['fitter_seed'])+r'\b',qsf)
+ assert ('ENABLE_DEBUGGER='+str(int(info['enable_debugger']))) in qsf
+ out=dict(actual_commit=os.getenv('GITHUB_SHA') or subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),seed=info['fitter_seed'],debugger=info['enable_debugger'],effective_qsf=qsf,compiled_source_sha256=inputs,unique_module_definitions=modules,production_bram_sha256=sha(Path('rtl/ngage_bram.v')),physical_pll_sha256=sha(Path('rtl/pll/pll_0002.v')))
++
++board = Path('Template.sv').read_text()
++pll = Path('rtl/pll/pll_0002.v').read_text()
++system_hz, = re.findall(r'localparam\s+integer\s+SYS_CLK_HZ\s*=\s*(\d+)\s*;', board)
++clock0, = re.findall(r'\.output_clock_frequency0\s*\(\s*"([\d.]+) MHz"\s*\)', pll)
++if Decimal(clock0) * 1_000_000 != int(system_hz) or int(system_hz) not in (78_000_000, 104_000_000):
++    raise ValueError('PLL output 0 and board system clock disagree or use an unsupported rate')
++out['physical_cpu_mhz'] = int(system_hz) // 1_000_000
++info['physical_cpu_mhz'] = out['physical_cpu_mhz']
++Path('output_files/build-info.json').write_text(json.dumps(info, indent=2) + '\n')
+ Path(a.output).write_text(json.dumps(out,indent=2)+'\n');print('PASS effective phone input manifest',out['actual_commit'],len(inputs),'sources')

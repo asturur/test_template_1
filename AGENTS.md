@@ -1,9 +1,9 @@
 # Project workspace rules
 
-- Use `scratch/` only for the current investigation. Put reusable tests, benchmark drivers and fixed inputs under `tests/`. Keep private payloads in ignored fixture directories.
+- Treat `scratch/` as disposable: its contents must be safe to trash. Use it for temporary reference checkouts, experiments, staging copies, reproducers, and working notes.
 - Do not keep project work only in `/tmp` or another OS temporary directory. Create new scratch work under this repository instead.
 - Keep reusable software and helpers in `tools/` or their normal implementation directories, permanent tests in `tests/`, durable runtime inputs in `runtime/`, and useful findings in `docs/`. Promote useful experiments before relying on them; do not leave their only copy in `scratch/`.
-- Keep reproducible generated outputs and downloaded tool caches under `build/`. Remove generated compiler caches and build trees after completing their runs.
+- Keep reproducible generated outputs and downloaded tool caches under `build/`. `scratch/` is ignored. Keep reusable software and tests in their maintained directories.
 
 ## Single working branch and checkout
 
@@ -15,7 +15,8 @@
   path or turn it into another worktree/copy. A symlink there breaks the sandbox.
 - Use `master` for future builds. Do not create or switch to another branch, create worktrees, or continue development
   from a detached HEAD unless the user explicitly changes this instruction.
-- Reconcile accepted work onto `master`. Keep it as the sole local and remote branch; preserve historical fit tags as build provenance. Preserve other threads' running simulations.
+- Reconcile accepted work onto `master`. Keep it as the sole local and remote branch; preserve historical fit tags as build provenance. Preserve other threads'
+  running simulations and permanent checkpoints.
 
 ## Development continuity
 
@@ -27,7 +28,7 @@
 - Simulation requirements, commands, diagnostics, and output locations are in `docs/bringup.md` under Running and Diagnostics. Read the latest checkpoint in `docs/status.md` for the current experiment and its assumptions before selecting a run.
 - Use the existing `jotego/simulator:arm64` image for simulation. Do not download Quartus. Keep logs and generated files small; old build objects can be rebuilt. Screen captures, when produced, live under `build/sim/screens/`.
 - Keep observed results, unverified board assumptions, and unimplemented experiments explicitly separate; a matching software/HDL trace does not verify the shared peripheral model against a phone.
-- Simulation checkpoints and frozen executables are disposable after the run. Keep CPU/host pairs together while an active run needs them. Remove regenerable compiler objects and precompiled headers after benchmark qualification.
+- Preserve every billion-cycle checkpoint permanently for long simulations; rolling retention must never delete those checkpoints. Keep the CPU and host files together and record any missing milestones.
 
 ## Chip-oriented hardware organization
 

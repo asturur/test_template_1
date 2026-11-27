@@ -1,0 +1,49 @@
+{
+  "status": "VERIFIED_RESTORE",
+  "repository": "asturur/test_template_1",
+  "branch": "ngage-v5",
+  "previous_tip": "0c64862ebd8c5c85830a931c7f68b6b429a32076",
+  "restored_baseline": "ab75a622a80a5aedae347f63ae195f3da965815a",
+  "public_commit": {
+    "parents": [
+      "0c64862ebd8c5c85830a931c7f68b6b429a32076"
+    ],
+    "sha": "8da70c936d34a76c0b7c024784a1ce8e3c64a099",
+    "tree": "57cc1a796acc9b15a61522ccf2397230f38e9799"
+  },
+  "no_workflow_dispatch": true,
+  "new_workflow_runs_observed": [],
+  "recent_run_ids": [
+    45893169984,
+    45893165422,
+    45893161445,
+    45888191508,
+    45888187846,
+    45888184228,
+    45883749964,
+    45883746480,
+    45883742970,
+    45879022396,
+    45879019116,
+    45879015397
+  ],
+  "workflows": [
+    {
+      "path": ".github/workflows/ci_build.yml",
+      "state": "active"
+    },
+    {
+      "path": "dynamic/dependabot/update-graph",
+      "state": "active"
+    }
+  ],
+  "shared_head_and_index_preserved": true,
+  "evidence_sha256": {
+    "pause-push.log": "989d6f6331b5bafe6f24dc26aba34408a91d5372b333f83338b1ef1c46c44283",
+    "pause-remote-commit.json": "ba4fffd6b3ae0e456e00b7e6dbd089f52ad5666f0bfbd3a6259a192955f48008",
+    "pause-workflows.after.jsonl": "a60b36dd9e5a8f7d6e549121ec9431ff118c2c0658a041abe028d3bcd2a03871",
+    "pause-runs.before.json": "c16dff6d245524334b6a985ce60bd86c15e1f6dbe33766f1a689d907301e5afb",
+    "pause-runs.after.json": "c16dff6d245524334b6a985ce60bd86c15e1f6dbe33766f1a689d907301e5afb",
+    "pause-restore-runs.after.json": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+  }
+}

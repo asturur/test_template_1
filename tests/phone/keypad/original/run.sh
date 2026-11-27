@@ -1,7 +1,7 @@
 #!/bin/sh
 # Stock private original instructions, bounded CPU/board fixture; no patches.
 set -eu
-out=${2:-build/sim/phone-tests/keypad-flow-2026-11-11}
+out=${2:-scratch/ngage2-integration/keypad-flow-2026-11-11}
 mkdir -p "$out"
 arm-none-eabi-gcc -c -mcpu=arm920t -marm tests/phone/keypad/original/program.S -o "$out/program.o"
 arm-none-eabi-ld -T sim/programs/link.ld "$out/program.o" -o "$out/program.elf"

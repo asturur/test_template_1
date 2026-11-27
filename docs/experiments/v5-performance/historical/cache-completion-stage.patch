@@ -1,0 +1,11 @@
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -10491,7 +10491,7 @@
+ 	assign o_ack = (FLAT_ACK ? (ack_idle_flat || state_ff[UNC_DONE]) || hum_ack : idle_ack || hum_ack);
+ 	assign o_err = (FLAT_ACK ? err_flat : err_case);
+ 	assign o_err2 = (FLAT_ACK ? err2_flat : err2_case);
+-	assign o_ack_fast = ((((((state_ff[IDLE] && !i_align_fault) && i_cache_en) && i_hit_ok) && i_tlb_hit_ready) && !(i_wr && i_post_full)) || hum_ack) || state_ff[UNC_DONE];
++	assign o_ack_fast = state_ff[UNC_DONE];
+ 	assign o_err_fast = state_ff[UNC_DONE] && unc_err_ff;
+ 	assign o_fill_busy_nxt = fill_busy_nxt;
+ 	assign fill_busy_nxt = (((((state_nxt[CLEAN_SINGLE] || state_nxt[FETCH_SINGLE]) || state_nxt[UNLOCK_REG]) || state_nxt[UNLOCK_WR]) || state_nxt[RELOOKUP0]) || state_nxt[RELOOKUP1]) || state_nxt[RELOOKUP2];

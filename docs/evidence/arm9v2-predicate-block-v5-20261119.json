@@ -1,0 +1,2249 @@
+{
+  "status": "PASS",
+  "control_commit": "78af1df",
+  "clock_hz": 78000000,
+  "i_bytes": 16384,
+  "d_bytes": 16384,
+  "ways": 2,
+  "line_bytes": 32,
+  "independent_failed_loads_by_registers": {
+    "4": 2,
+    "5": 4,
+    "6": 4,
+    "8": 24,
+    "9": 27962,
+    "10": 7259
+  },
+  "median_frame": 2,
+  "native": {
+    "status": "PASS",
+    "results": {
+      "i16": {
+        "frames": [
+          {
+            "frame": 0,
+            "clocks": 15059940,
+            "retired": 7338211,
+            "uops": 1112061,
+            "ifills": 185297,
+            "dfills": 8778,
+            "iwalk_words": 62,
+            "dwalk_words": 6,
+            "d_wait": 308842,
+            "d_walk_wait": 183,
+            "execute_wait": 670989,
+            "iwalk_wait": 689,
+            "exposed_i": 1431960,
+            "frontend": 2490725,
+            "other": 1706280,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 1,
+            "clocks": 15146153,
+            "retired": 7372623,
+            "uops": 1117358,
+            "ifills": 187077,
+            "dfills": 8590,
+            "iwalk_words": 58,
+            "dwalk_words": 1,
+            "d_wait": 307524,
+            "d_walk_wait": 23,
+            "execute_wait": 671940,
+            "iwalk_wait": 609,
+            "exposed_i": 1446507,
+            "frontend": 2512246,
+            "other": 1717323,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 2,
+            "clocks": 15019070,
+            "retired": 7322287,
+            "uops": 1110106,
+            "ifills": 184703,
+            "dfills": 8508,
+            "iwalk_words": 58,
+            "dwalk_words": 0,
+            "d_wait": 304942,
+            "d_walk_wait": 0,
+            "execute_wait": 665600,
+            "iwalk_wait": 607,
+            "exposed_i": 1428609,
+            "frontend": 2484156,
+            "other": 1702763,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 3,
+            "clocks": 14973072,
+            "retired": 7301052,
+            "uops": 1108254,
+            "ifills": 183747,
+            "dfills": 8626,
+            "iwalk_words": 58,
+            "dwalk_words": 0,
+            "d_wait": 307011,
+            "d_walk_wait": 0,
+            "execute_wait": 665302,
+            "iwalk_wait": 605,
+            "exposed_i": 1422041,
+            "frontend": 2472779,
+            "other": 1696028,
+            "draws": 1,
+            "swaps": 1
+          }
+        ],
+        "completion": {
+          "cycles": 60205665,
+          "frames": 4,
+          "ddr_reads": 111,
+          "d2_lines": 1024
+        },
+        "output_sha": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+        "netlist_sha": "107a956d633e1acb0cd68900504ea6150b75dc4685579696ed9c54add11575b2",
+        "predicate_blocks": [
+          {
+            "window": 0,
+            "issued": 1451105,
+            "first": 35336,
+            "extra": 289887,
+            "last": 35336
+          },
+          {
+            "window": 1,
+            "issued": 1458743,
+            "first": 35305,
+            "extra": 289681,
+            "last": 35305
+          },
+          {
+            "window": 2,
+            "issued": 1449307,
+            "first": 35255,
+            "extra": 289237,
+            "last": 35255
+          },
+          {
+            "window": 3,
+            "issued": 1447006,
+            "first": 35164,
+            "extra": 288511,
+            "last": 35164
+          }
+        ]
+      },
+      "predicate-block": {
+        "frames": [
+          {
+            "frame": 0,
+            "clocks": 14986105,
+            "retired": 7338211,
+            "uops": 1045585,
+            "ifills": 185297,
+            "dfills": 8778,
+            "iwalk_words": 62,
+            "dwalk_words": 6,
+            "d_wait": 308717,
+            "d_walk_wait": 183,
+            "execute_wait": 670869,
+            "iwalk_wait": 695,
+            "exposed_i": 1432656,
+            "frontend": 2491147,
+            "other": 1698042,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 1,
+            "clocks": 15072650,
+            "retired": 7372623,
+            "uops": 1051450,
+            "ifills": 187077,
+            "dfills": 8590,
+            "iwalk_words": 58,
+            "dwalk_words": 1,
+            "d_wait": 307363,
+            "d_walk_wait": 23,
+            "execute_wait": 671939,
+            "iwalk_wait": 609,
+            "exposed_i": 1446912,
+            "frontend": 2512576,
+            "other": 1709155,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 2,
+            "clocks": 14946484,
+            "retired": 7322287,
+            "uops": 1044614,
+            "ifills": 184703,
+            "dfills": 8508,
+            "iwalk_words": 58,
+            "dwalk_words": 0,
+            "d_wait": 304947,
+            "d_walk_wait": 0,
+            "execute_wait": 665666,
+            "iwalk_wait": 596,
+            "exposed_i": 1429140,
+            "frontend": 2484587,
+            "other": 1694647,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 3,
+            "clocks": 14900448,
+            "retired": 7301052,
+            "uops": 1043602,
+            "ifills": 183747,
+            "dfills": 8626,
+            "iwalk_words": 58,
+            "dwalk_words": 0,
+            "d_wait": 306915,
+            "d_walk_wait": 0,
+            "execute_wait": 665247,
+            "iwalk_wait": 598,
+            "exposed_i": 1421974,
+            "frontend": 2473041,
+            "other": 1688019,
+            "draws": 1,
+            "swaps": 1
+          }
+        ],
+        "completion": {
+          "cycles": 59913104,
+          "frames": 4,
+          "ddr_reads": 111,
+          "d2_lines": 1024
+        },
+        "output_sha": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+        "netlist_sha": "319b50cbbac4d9e3fbbe763907990b5f6441535471cd85b1d91939bd06e12519",
+        "predicate_blocks": [
+          {
+            "window": 0,
+            "issued": 1384629,
+            "first": 35336,
+            "extra": 223411,
+            "last": 35336
+          },
+          {
+            "window": 1,
+            "issued": 1392835,
+            "first": 35305,
+            "extra": 223773,
+            "last": 35305
+          },
+          {
+            "window": 2,
+            "issued": 1383815,
+            "first": 35255,
+            "extra": 223745,
+            "last": 35255
+          },
+          {
+            "window": 3,
+            "issued": 1382354,
+            "first": 35164,
+            "extra": 223859,
+            "last": 35164
+          }
+        ]
+      }
+    },
+    "pin_model_sha": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+    "base_netlist_sha": "107a956d633e1acb0cd68900504ea6150b75dc4685579696ed9c54add11575b2",
+    "snapshot_sha": "17345b257e390e4201b949d68b5af75da0260b9f9b4c0cbadbe11758ea5f801c"
+  },
+  "decode_sites": [
+    {
+      "pc": "0x1010357c",
+      "instruction": "popeq {r4, r5, r6, r7, r8, sb, sl, fp, lr}",
+      "before": 192,
+      "after": 0
+    },
+    {
+      "pc": "0x10106504",
+      "instruction": "popne {r4, r5, r6, r7, lr}",
+      "before": 4,
+      "after": 0
+    },
+    {
+      "pc": "0x10106db8",
+      "instruction": "pople {r4, r5, r6, r7, r8, sb, sl, fp, lr}",
+      "before": 32648,
+      "after": 0
+    },
+    {
+      "pc": "0x10106e8c",
+      "instruction": "pople {r4, r5, r6, r7, r8, sb, sl, fp, lr}",
+      "before": 32648,
+      "after": 0
+    },
+    {
+      "pc": "0x10111c18",
+      "instruction": "pophi {r3, r4, r5, r6, r7, r8, sb, sl, fp, lr}",
+      "before": 65322,
+      "after": 65322
+    }
+  ],
+  "directed": {
+    "control": {
+      "burst-0-wait-0": [
+        "PREDICATE_CONTRACT skips=235 extra=253 collapsed=0 held=56 irq=1 retried=1",
+        "PASS cycles=38434 scalar_wait_cycles=11721 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ],
+      "burst-0-wait-5": [
+        "PREDICATE_CONTRACT skips=235 extra=253 collapsed=0 held=141 irq=1 retried=1",
+        "PASS cycles=67521 scalar_wait_cycles=40893 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ],
+      "burst-1-wait-0": [
+        "PREDICATE_CONTRACT skips=235 extra=253 collapsed=0 held=25 irq=1 retried=1",
+        "PASS cycles=31732 scalar_wait_cycles=473 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ],
+      "burst-1-wait-5": [
+        "PREDICATE_CONTRACT skips=235 extra=253 collapsed=0 held=44 irq=1 retried=1",
+        "PASS cycles=36184 scalar_wait_cycles=1525 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ]
+    },
+    "candidate": {
+      "burst-0-wait-0": [
+        "PREDICATE_CONTRACT skips=235 extra=2 collapsed=232 held=51 irq=1 retried=1",
+        "PASS cycles=38217 scalar_wait_cycles=11721 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ],
+      "burst-0-wait-5": [
+        "PREDICATE_CONTRACT skips=235 extra=2 collapsed=232 held=141 irq=1 retried=1",
+        "PASS cycles=67311 scalar_wait_cycles=40893 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ],
+      "burst-1-wait-0": [
+        "PREDICATE_CONTRACT skips=235 extra=2 collapsed=232 held=20 irq=1 retried=1",
+        "PASS cycles=31500 scalar_wait_cycles=473 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ],
+      "burst-1-wait-5": [
+        "PREDICATE_CONTRACT skips=235 extra=2 collapsed=232 held=39 irq=1 retried=1",
+        "PASS cycles=35965 scalar_wait_cycles=1525 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+      ]
+    }
+  },
+  "fixed_work_config": {
+    "configs": [
+      "2:64"
+    ],
+    "sdram_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+    "flash_cache_bytes": 32768,
+    "stream_sdram": true,
+    "writeback_block_bytes": 16,
+    "stream_adapter_sha256": "26b25074e36f71fbd0880c41dc340e3a8de52ea64bd70e1b6c2d81f5e1d86b2c"
+  },
+  "fixed_work": [
+    {
+      "case": "matrix4",
+      "median_clocks": 16814,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 18067,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 45,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 16814,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 16814,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 16808,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 16811,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 16817,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 16814,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 224,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 224,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 224,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 224,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 224,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 224,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 224,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "transpose4",
+      "median_clocks": 2772,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 2886,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 6,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 2754,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 2,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "triangle_edges",
+      "median_clocks": 12254,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 13302,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 50,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 12260,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 12254,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 12254,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 12257,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 12254,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 12257,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 643,
+          "first": 16,
+          "extra": 128,
+          "last": 16
+        },
+        {
+          "window": 1,
+          "issued": 640,
+          "first": 16,
+          "extra": 128,
+          "last": 16
+        },
+        {
+          "window": 2,
+          "issued": 640,
+          "first": 16,
+          "extra": 128,
+          "last": 16
+        },
+        {
+          "window": 3,
+          "issued": 640,
+          "first": 16,
+          "extra": 128,
+          "last": 16
+        },
+        {
+          "window": 4,
+          "issued": 640,
+          "first": 16,
+          "extra": 128,
+          "last": 16
+        },
+        {
+          "window": 5,
+          "issued": 640,
+          "first": 16,
+          "extra": 128,
+          "last": 16
+        },
+        {
+          "window": 6,
+          "issued": 640,
+          "first": 16,
+          "extra": 128,
+          "last": 16
+        }
+      ]
+    },
+    {
+      "case": "fill16_frame",
+      "median_clocks": 112705,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 112791,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 112690,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 112693,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 112705,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 112705,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 112705,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 112705,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "fill16_tail",
+      "median_clocks": 726,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 886,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 8,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 732,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "fill8_tail",
+      "median_clocks": 747,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 904,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "monkey-forward",
+      "median_clocks": 16443,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 16567,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 16446,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 16443,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 16443,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 16443,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 16452,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 16446,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "monkey-reverse",
+      "median_clocks": 16443,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 16567,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 16446,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 16443,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 16443,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 16443,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 16452,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 16446,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "sega-span",
+      "median_clocks": 15936,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 16093,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 15936,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 15936,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 15936,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 15936,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 15936,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 15936,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "sega-fill",
+      "median_clocks": 2622,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 2753,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 4,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "asphalt-table",
+      "median_clocks": 21396,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 21562,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 9,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 21394,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 21388,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 21398,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 21396,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 21395,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 21398,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "asphalt-double",
+      "median_clocks": 11961,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 12140,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 8,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 11977,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "asphalt-single",
+      "median_clocks": 7756,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 7931,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 8,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 7762,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 0,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "sega-scan",
+      "median_clocks": 2391228,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 2391553,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 14,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 2391253,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 73265,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 73264,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 73264,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 73264,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 73264,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 73264,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 73264,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    },
+    {
+      "case": "diffuse_m10_8x8_jpeg",
+      "median_clocks": 35903,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 37045,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 38,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "predicate_blocks": [
+        {
+          "window": 0,
+          "issued": 4202,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 1,
+          "issued": 4193,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 2,
+          "issued": 4193,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 3,
+          "issued": 4193,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 4,
+          "issued": 4193,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 5,
+          "issued": 4193,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        },
+        {
+          "window": 6,
+          "issued": 4193,
+          "first": 0,
+          "extra": 0,
+          "last": 0
+        }
+      ]
+    }
+  ]
+}

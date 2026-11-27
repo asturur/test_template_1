@@ -131,7 +131,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--name', required=True)
     parser.add_argument('--payload-dir', type=Path,
-                        default=ROOT/'tests/cpu/spmark_payload/local')
+                        default=ROOT/'scratch/spmark-benchmark-20261114/files/System/Apps/SPMark')
     parser.add_argument('--mmc', type=Path, help='extract qualified modules from this local card image')
     parser.add_argument('--rom', type=Path, default=ROOT/'build/firmware/nem4-factory/core.bin')
     parser.add_argument('--case', action='append')

@@ -1,0 +1,450 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index f80ff8eddecbab74d7030252a6014fc7c986d650..2b620c7e178faa4e15d31f7a4959ad9027ed70a3 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -14970,8 +14970,6 @@ module ngage2_zap_tlb (
+ 		.o_rdata_pre(lptlb_rdata_pre),
+ 		.o_rdav_pre(lptlb_ren_pre)
+ 	);
+-	reg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_lo;
+-	reg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_hi;
+ 	reg [1:0] sp_way;
+ 	reg sp_again;
+ 	generate
+@@ -14980,37 +14978,81 @@ module ngage2_zap_tlb (
+ 			reg [1:0] sp_last_way;
+ 			reg sp_last_valid;
+ 			(* preserve, dont_retime *) reg [31:12] sp_page;
+-			wire sp_again_nxt = sp_last_valid && (sp_page == sp_last_page);
++            wire sp_again_nxt = sp_last_valid && (sp_page == sp_last_page);
++            wire [1:0] victim_way;
++            localparam integer SET_WIDTH = $clog2(SPAGE_TLB_ENTRIES);
++            wire [SET_WIDTH - 1:0] read_set = sp_page[12+:SET_WIDTH];
++            wire [SET_WIDTH - 1:0] write_set = tlb_address[12+:SET_WIDTH];
++            wire update_victim = sptlb_wen && !sp_again;
++
++            if (SPAGE_TLB_WAYS == 2 && SPAGE_TLB_ENTRIES == 256) begin : g_victim_ram
++                wire [3:0] row = tlb_address[19:16];
++                wire row_write = update_victim && !i_reset;
++                (* ramstyle = "M10K" *) reg [15:0] rows [0:15];
++                reg [15:0] written_rows;
++                reg [15:0] row_read, row_next;
++                wire row_valid = written_rows[sp_page[19:16]];
++
++                // The page walker holds its address through the L2
++                // descriptor write. This row was read with sp_page on the
++                // previous edge, so the write can reuse it immediately.
++                always @(*) begin
++                    row_next = row_valid ? row_read : 16'd0;
++                    row_next[tlb_address[15:12]] = !sp_way[0];
++                end
++
++                // First write to a row after reset zeroes the untouched
++                // bits. The RAM uses same-port new data on a write.
++                always @(posedge i_clk) begin
++                    if (row_write)
++                        rows[row] = row_next;
++                    row_read <= rows[row];
++                end
++                always @(posedge i_clk) begin
++                    if (i_reset)
++                        written_rows <= 16'd0;
++                    else if (row_write)
++                        written_rows[row] <= 1'b1;
++                end
++                assign victim_way = {1'b0, row_valid && row_read[sp_page[15:12]]};
++`ifndef SYNTHESIS
++                always @(posedge i_clk)
++                    if (row_write && sp_page !== tlb_address[31:12])
++                        $fatal(1, "Small-page victim write lost its captured walk address");
++`endif
++            end else begin : g_victim_regs
++                reg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_lo;
++                reg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_hi;
++
++                assign victim_way = {sp_victim_hi[read_set], sp_victim_lo[read_set]};
++                always @(posedge i_clk) begin
++                    if (i_reset) begin
++                        sp_victim_lo <= 0;
++                        sp_victim_hi <= 0;
++                    end else if (update_victim) begin
++                        sp_victim_lo[write_set] <= !sp_way[0];
++                        sp_victim_hi[write_set] <= (SPAGE_TLB_WAYS > 2) && (sp_way[1] ^ sp_way[0]);
++                    end
++                end
++            end
+ 			always @(posedge i_clk) begin
+ 				sp_page <= tlb_address[31:12];
+ 				sp_again <= sp_again_nxt;
+-				sp_way <= (sp_again_nxt ? sp_last_way : {sp_victim_hi[sp_page[(12 + $clog2(SPAGE_TLB_ENTRIES)) - 1:12]], sp_victim_lo[sp_page[(12 + $clog2(SPAGE_TLB_ENTRIES)) - 1:12]]});
++				sp_way <= (sp_again_nxt ? sp_last_way : victim_way);
+ 				if (sptlb_wen) begin
+ 					sp_last_page <= tlb_address[31:12];
+ 					sp_last_way <= sp_way;
+ 					sp_last_valid <= 1'd1;
+-					if (!sp_again) begin
+-						sp_victim_lo[tlb_address[(12 + $clog2(SPAGE_TLB_ENTRIES)) - 1:12]] <= !sp_way[0];
+-						sp_victim_hi[tlb_address[(12 + $clog2(SPAGE_TLB_ENTRIES)) - 1:12]] <= (SPAGE_TLB_WAYS > 2) && (sp_way[1] ^ sp_way[0]);
+-					end
+ 				end
+ 				if ((i_reset || i_inv) || !i_mmu_en)
+ 					sp_last_valid <= 1'd0;
+ 				if (i_reset) begin
+-					sp_victim_lo <= 1'sb0;
+-					sp_victim_hi <= 1'sb0;
+ 					sp_way <= 1'sb0;
+ 					sp_again <= 1'd0;
+ 				end
+ 			end
+ 		end
+ 		else begin : l_sp_one_way
+-			wire [SPAGE_TLB_ENTRIES:1] sv2v_tmp_AFC39;
+-			assign sv2v_tmp_AFC39 = 1'sb0;
+-			always @(*) sp_victim_lo = sv2v_tmp_AFC39;
+-			wire [SPAGE_TLB_ENTRIES:1] sv2v_tmp_F4262;
+-			assign sv2v_tmp_F4262 = 1'sb0;
+-			always @(*) sp_victim_hi = sv2v_tmp_F4262;
+ 			wire [2:1] sv2v_tmp_A8694;
+ 			assign sv2v_tmp_A8694 = 1'sb0;
+ 			always @(*) sp_way = sv2v_tmp_A8694;
+diff --git a/tests/cpu/arm9v2_board/run-tlb-victim.sh b/tests/cpu/arm9v2_board/run-tlb-victim.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..c7fb39d3a38b0193f745bc6e7812761c4b50a5cd
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/run-tlb-victim.sh
+@@ -0,0 +1,33 @@
++#!/bin/sh
++set -eu
++
++name="${1:?provide a fresh run name}"
++case "$name" in *[!A-Za-z0-9_.-]*) exit 2 ;; esac
++out="build/sim/$name"
++mkdir -p build/sim
++mkdir "$out"
++
++simulate() {
++    entrypoint=$1
++    shift
++    docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++        -w /work --entrypoint "$entrypoint" jotego/simulator:arm64 "$@"
++}
++
++# Freeze only the prior TLB controller. Both legs use the same current
++# translation checks, page walker and synchronous memory models.
++git show 739d3bdb6a10ad975df500576bbde39f7676ff47:rtl/arm9v2/arm925t_phone.v | python3 -c '
++import sys
++text = sys.stdin.read()
++header = "module ngage2_zap_tlb ("
++start = text.index(header)
++end = text.index("\nendmodule", start) + len("\nendmodule")
++print(text[start:end].replace(header, "module reference_zap_tlb (", 1))
++' > "$out/reference_zap_tlb.v"
++
++simulate verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
++    --top-module walker_tb --Mdir "$out/obj" rtl/arm9v2/arm925t_phone.v \
++    rtl/arm9v2/upstream/sim/stubs/*.sv "$out/reference_zap_tlb.v" \
++    tests/cpu/arm9v2_board/tlb_victim_tb.sv > "$out/build.log" 2>&1
++simulate "/work/$out/obj/Vwalker_tb" > "$out/run.log" 2>&1
++rg '^PASS walker' "$out/run.log"
+diff --git a/tests/cpu/arm9v2_board/tlb_victim_tb.sv b/tests/cpu/arm9v2_board/tlb_victim_tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..67cc9ab43b609699d2daafa8072c2f0f11216c6e
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/tlb_victim_tb.sv
+@@ -0,0 +1,195 @@
++`timescale 1ns / 1ps
++
++module walker_case #(
++    parameter bit CHECK_WALK = 1'b0
++) (
++    output bit done
++);
++  bit clk, reset, inv, mmu_enable = 1, access_rd, hold, access_done;
++  bit pause_response, allow_walk = 1;
++  bit [31:0] address;
++  wire [1:0] busy, hit, fast_hit, ready, fault, cacheable, bufferable, wt;
++  wire [1:0] wb_stb, wb_cyc, wb_wen;
++  wire [31:0] physical[2], far[2], wb_address[2];
++  wire [7:0] fsr[2];
++  wire [3:0] wb_sel[2];
++
++  integer cycles = 0, l1_reads = 0, l2_reads = 0, writes = 0, resolved = 0;
++  wire registered_request = reference_dut.u_zap_tlb_fsm.wb_stb_ff;
++  wire [31:0] registered_address = reference_dut.u_zap_tlb_fsm.wb_adr_ff;
++  wire bus_ack = !reset && !pause_response && registered_request && cycles % 4 != 0;
++  wire [31:0] bus_data = registered_address[31:28] == 4'h1 ? 32'h2000_0001 :
++                          32'h3000_0ffe | (reference_dut.tlb_address & 32'h0fff_f000);
++
++  `define WALKER_PORTS(leg) \
++      .i_clk(clk), .i_reset(reset), .i_address(address), .i_address_check(address), \
++      .i_address_nxt(address), .i_wr_check(1'b0), .i_rd_check(access_rd), .i_hold(hold), \
++      .i_cpsr(5'h13), .i_sr(2'b00), .i_dac_reg(32'hffff_ffff), \
++      .i_baddr(32'h1000_0000), .i_mmu_en(mmu_enable), .i_inv(inv), \
++      .o_phy_addr(physical[leg]), .o_fsr(fsr[leg]), .o_far(far[leg]), .o_fault(fault[leg]), \
++      .o_cacheable(cacheable[leg]), .o_bufferable(bufferable[leg]), .o_wt(wt[leg]), \
++      .o_busy(busy[leg]), .o_hit_ready(ready[leg]), .o_hit_ok(hit[leg]), \
++      .o_hit_ok_short(fast_hit[leg]), .i_idle(allow_walk), .i_access_done(access_done), \
++      .i_access(access_rd), .o_wb_stb_nxt(wb_stb[leg]), .o_wb_cyc_nxt(wb_cyc[leg]), \
++      .o_wb_adr_nxt(wb_address[leg]), .o_wb_wen_nxt(wb_wen[leg]), .o_wb_sel_nxt(wb_sel[leg]), \
++      .i_wb_dat(bus_data), .o_wb_dat_nxt(), .i_wb_ack(bus_ack), .i_wb_err(1'b0)
++
++  reference_zap_tlb #(
++      .SPAGE_TLB_ENTRIES(256),
++      .SPAGE_TLB_WAYS(2),
++      .CHECK_WALK(CHECK_WALK),
++      .SECTION_INDEX_XOR(CHECK_WALK)
++  ) reference_dut (
++      `WALKER_PORTS(0)
++  );
++  ngage2_zap_tlb #(
++      .SPAGE_TLB_ENTRIES(256),
++      .SPAGE_TLB_WAYS(2),
++      .CHECK_WALK(CHECK_WALK),
++      .SECTION_INDEX_XOR(CHECK_WALK)
++  ) ram_dut (
++      `WALKER_PORTS(1)
++  );
++  `undef WALKER_PORTS
++
++  task automatic check_same;
++    if ({busy[0], hit[0], fast_hit[0], ready[0], fault[0], fsr[0], far[0], cacheable[0],
++             bufferable[0], wt[0], physical[0], wb_stb[0], wb_cyc[0], wb_wen[0], wb_sel[0]} !==
++            {busy[1], hit[1], fast_hit[1], ready[1], fault[1], fsr[1], far[1], cacheable[1],
++             bufferable[1], wt[1], physical[1], wb_stb[1], wb_cyc[1], wb_wen[1], wb_sel[1]} ||
++            (wb_stb[0] && wb_address[0] !== wb_address[1]) ||
++            {reference_dut.sptlb_wen, reference_dut.sptlb_wen_way, reference_dut.sp_way,
++             reference_dut.sp_again} !==
++            {ram_dut.sptlb_wen, ram_dut.sptlb_wen_way, ram_dut.sp_way, ram_dut.sp_again})
++      $fatal(1, "check walk %0d: TLB difference at cycle %0d VA %h", CHECK_WALK, cycles, address);
++  endtask
++
++  task automatic tick;
++    #1;
++    if (cycles > 1) check_same();
++    if (bus_ack) begin
++      if (registered_address[31:28] == 4'h1) l1_reads++;
++      else if (registered_address[31:28] == 4'h2) l2_reads++;
++      else $fatal(1, "Unexpected descriptor address %h", registered_address);
++    end
++    if (!reset && ram_dut.sptlb_wen) writes++;
++    clk = 1;
++    #1;
++    clk = 0;
++    #1;
++    if (cycles > 1) check_same();
++    cycles++;
++  endtask
++
++  task automatic lookup(input bit [31:0] va, input bit miss);
++    int l1_before, l2_before, for_cycles;
++    bit [31:0] physical_expected;
++    access_rd = 0;
++    address   = va;
++    tick();
++    access_rd = 1;
++    allow_walk = 1;
++    l1_before = l1_reads;
++    l2_before = l2_reads;
++    physical_expected = 32'h3000_0000 | va;
++    for_cycles = 0;
++    do begin
++      tick();
++      // Once admitted, the cache owns this access until its
++      // translation returns. Suppress stale miss re-admission.
++      if (reference_dut.u_zap_tlb_fsm.state_ff != 7'd1) allow_walk = 0;
++      for_cycles++;
++      if (for_cycles == 48)
++        $fatal(
++            1,
++            "CHECK_WALK=%0d lookup timeout at %h physical=%h hit=%b busy=%b %d:%d",
++            CHECK_WALK,
++            va,
++            physical[0],
++            fast_hit[0],
++            busy[0],
++            l1_reads,
++            l2_reads
++        );
++    end while (!fast_hit[0] || busy[0] || physical[0] != physical_expected);
++    if (l1_reads - l1_before != int'(miss) || l2_reads - l2_before != int'(miss))
++      $fatal(
++          1,
++          "CHECK_WALK=%0d lookup %h missed %0d:%0d, expected miss=%b",
++          CHECK_WALK,
++          va,
++          l1_reads - l1_before,
++          l2_reads - l2_before,
++          miss
++      );
++    resolved++;
++    access_rd   = 0;
++    allow_walk  = 0;
++    access_done = 1;
++    tick();
++    access_done = 0;
++  endtask
++
++  task automatic reset_tlb;
++    reset = 1;
++    access_rd = 0;
++    tick();
++    reset = 0;
++    repeat (3) tick();
++  endtask
++
++  initial begin
++    reset_tlb();
++    // Populate and hit both ways of every set through real L1/L2 walks.
++    for (int tag_idx = 1; tag_idx < 3; tag_idx++)
++    for (int idx = 0; idx < 256; idx++) lookup((tag_idx << 20) | (idx << 12), 1);
++    for (int tag_idx = 1; tag_idx < 3; tag_idx++)
++    for (int idx = 0; idx < 256; idx++) lookup((tag_idx << 20) | (idx << 12), 0);
++
++    // A third page evicts the original way, preserving the second.
++    for (int idx = 0; idx < 256; idx += 17) begin
++      lookup(32'h0030_0000 | (idx << 12), 1);
++      lookup(32'h0020_0000 | (idx << 12), 0);
++      lookup(32'h0010_0000 | (idx << 12), 1);
++    end
++    // Repeat a warm reset with an in-flight descriptor request.
++    for (int pass = 0; pass < 12; pass++) begin
++      address = 32'h0040_0000 | (pass << 12);
++      tick();
++      access_rd = 1;
++      allow_walk = 1;
++      pause_response = 1;
++      repeat (6) tick();
++      if (!busy[0] || !registered_request) $fatal(1, "Warm reset did not interrupt an active walk");
++      reset_tlb();
++      pause_response = 0;
++      lookup(32'h0100_0000 | (pass << 12), 1);
++      lookup(32'h0110_0000 | (pass << 12), 1);
++      lookup(32'h0100_0000 | (pass << 12), 0);
++      inv  = 1;
++      hold = 1;
++      tick();
++      inv  = 0;
++      hold = 0;
++      tick();
++      lookup(32'h0100_0000 | (pass << 12), 1);
++      mmu_enable = 0;
++      repeat (2) tick();
++      mmu_enable = 1;
++      lookup(32'h0100_0000 | (pass << 12), 1);
++    end
++    $display("PASS walker check=%0d cycles=%0d resolved=%0d l1=%0d l2=%0d small_fills=%0d",
++             CHECK_WALK, cycles, resolved, l1_reads, l2_reads, writes);
++    done = 1;
++  end
++endmodule
++
++module walker_tb;
++  wire code_done, data_done;
++  walker_case #(.CHECK_WALK(1'b0)) code_tlb (code_done);
++  walker_case #(.CHECK_WALK(1'b1)) data_tlb (data_done);
++  initial begin
++    wait (code_done && data_done);
++    $finish;
++  end
++endmodule
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index 777f9d6e14b2418c28c2af7601a0f0aba290497c..cdadc873eeaf4f8a9b114085999f8fcae7be7aec 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -210,6 +210,88 @@ def fold_section_index(phone):
+     return ''.join(parts)
+ 
+ 
++def bank_small_page_victims(phone):
++    """Keep the small-page victim read on the existing walk-address edge."""
++    start = phone.index('module ngage2_zap_tlb (')
++    end = phone.index('\nendmodule', start)
++    tlb = phone[start:end]
++    body_start = tlb.index('\treg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_lo;')
++    body_end = tlb.index('\tgenvar _gv_w_4;', body_start)
++    body = tlb[body_start:body_end]
++    body = edit(body, '\treg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_lo;\n'
++                     '\treg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_hi;\n', '')
++    body = edit(body, '\t\t\twire sp_again_nxt = sp_last_valid && (sp_page == sp_last_page);\n', """\
++            wire sp_again_nxt = sp_last_valid && (sp_page == sp_last_page);
++            wire [1:0] victim_way;
++            localparam integer SET_WIDTH = $clog2(SPAGE_TLB_ENTRIES);
++            wire [SET_WIDTH - 1:0] read_set = sp_page[12+:SET_WIDTH];
++            wire [SET_WIDTH - 1:0] write_set = tlb_address[12+:SET_WIDTH];
++            wire update_victim = sptlb_wen && !sp_again;
++
++            if (SPAGE_TLB_WAYS == 2 && SPAGE_TLB_ENTRIES == 256) begin : g_victim_ram
++                wire [3:0] row = tlb_address[19:16];
++                wire row_write = update_victim && !i_reset;
++                (* ramstyle = "M10K" *) reg [15:0] rows [0:15];
++                reg [15:0] written_rows;
++                reg [15:0] row_read, row_next;
++                wire row_valid = written_rows[sp_page[19:16]];
++
++                // The page walker holds its address through the L2
++                // descriptor write. This row was read with sp_page on the
++                // previous edge, so the write can reuse it immediately.
++                always @(*) begin
++                    row_next = row_valid ? row_read : 16'd0;
++                    row_next[tlb_address[15:12]] = !sp_way[0];
++                end
++
++                // First write to a row after reset zeroes the untouched
++                // bits. The RAM uses same-port new data on a write.
++                always @(posedge i_clk) begin
++                    if (row_write)
++                        rows[row] = row_next;
++                    row_read <= rows[row];
++                end
++                always @(posedge i_clk) begin
++                    if (i_reset)
++                        written_rows <= 16'd0;
++                    else if (row_write)
++                        written_rows[row] <= 1'b1;
++                end
++                assign victim_way = {1'b0, row_valid && row_read[sp_page[15:12]]};
++`ifndef SYNTHESIS
++                always @(posedge i_clk)
++                    if (row_write && sp_page !== tlb_address[31:12])
++                        $fatal(1, "Small-page victim write lost its captured walk address");
++`endif
++            end else begin : g_victim_regs
++                reg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_lo;
++                reg [SPAGE_TLB_ENTRIES - 1:0] sp_victim_hi;
++
++                assign victim_way = {sp_victim_hi[read_set], sp_victim_lo[read_set]};
++                always @(posedge i_clk) begin
++                    if (i_reset) begin
++                        sp_victim_lo <= 0;
++                        sp_victim_hi <= 0;
++                    end else if (update_victim) begin
++                        sp_victim_lo[write_set] <= !sp_way[0];
++                        sp_victim_hi[write_set] <= (SPAGE_TLB_WAYS > 2) && (sp_way[1] ^ sp_way[0]);
++                    end
++                end
++            end
++""")
++    old_way = ("{sp_victim_hi[sp_page[(12 + $clog2(SPAGE_TLB_ENTRIES)) - 1:12]], "
++               "sp_victim_lo[sp_page[(12 + $clog2(SPAGE_TLB_ENTRIES)) - 1:12]]}")
++    body = edit(body, old_way, 'victim_way')
++    legacy_start = body.index('\t\t\t\t\tif (!sp_again) begin')
++    legacy_end = body.index('\n\t\t\t\tend', legacy_start)
++    body = body[:legacy_start] + body[legacy_end+1:]
++    body = edit(body, "\t\t\t\t\tsp_victim_lo <= 1'sb0;\n\t\t\t\t\tsp_victim_hi <= 1'sb0;\n", '')
++    constant_start = body.index('\t\t\twire [SPAGE_TLB_ENTRIES:1] sv2v_tmp_AFC39;')
++    constant_end = body.index('\t\t\twire [2:1] sv2v_tmp_A8694;', constant_start)
++    body = body[:constant_start] + body[constant_end:]
++    return phone[:start] + tlb[:body_start] + body + tlb[body_end:] + phone[end:]
++
++
+ def expose_block_writeback(phone):
+     """Carry each captured 16-byte RAM victim half beside its bus request."""
+     parts = re.split(r'(?=^module )', phone, flags=re.M)
+@@ -1130,6 +1212,7 @@ def main():
+     generated = expose_block_writeback(fold_section_index(expose(stock.decode())))
+     generated = move_posted_store_payload_to_ram(generated)
+     generated = schedule_ready_register_shift(generated)
++    generated = bank_small_page_victims(generated)
+     generated = schedule_early_smull(generated)
+     generated = restart_streamed_icache(direct_accumulate(generated))
+     generated = resident_during_fill(generated)

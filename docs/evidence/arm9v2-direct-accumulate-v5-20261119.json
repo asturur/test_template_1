@@ -1,0 +1,5135 @@
+{
+  "status": "PASS",
+  "production": "78af1df",
+  "clock_hz": 78000000,
+  "i_cache_bytes": 16384,
+  "d_cache_bytes": 16384,
+  "ways": 2,
+  "line_bytes": 32,
+  "netlist_sha": {
+    "control": "107a956d633e1acb0cd68900504ea6150b75dc4685579696ed9c54add11575b2",
+    "candidate": "2205d666cab4b6664a6d4cc91b3dbd8d832042db48eb5404155d98f18391a526"
+  },
+  "fixed_work_configuration": {
+    "status": "PASS",
+    "configs": [
+      "2:64"
+    ],
+    "flash_cache_bytes": 32768,
+    "posted_writes": false,
+    "interleave": false,
+    "pin_waits": false,
+    "handoff": null,
+    "donor_sdram": true,
+    "donor_wide": false,
+    "stream_sdram": true,
+    "sdram_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+    "writeback_block_bytes": 16,
+    "stream_adapter_sha256": "26b25074e36f71fbd0880c41dc340e3a8de52ea64bd70e1b6c2d81f5e1d86b2c"
+  },
+  "prior_native": {
+    "status": "PASS",
+    "results": {
+      "i16": {
+        "frames": [
+          {
+            "frame": 0,
+            "clocks": 15059940,
+            "retired": 7338211,
+            "uops": 1112061,
+            "ifills": 185297,
+            "dfills": 8778,
+            "iwalk_words": 62,
+            "dwalk_words": 6,
+            "d_wait": 308842,
+            "d_walk_wait": 183,
+            "execute_wait": 670989,
+            "iwalk_wait": 689,
+            "exposed_i": 1431960,
+            "frontend": 2490725,
+            "other": 1706280,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 1,
+            "clocks": 15146153,
+            "retired": 7372623,
+            "uops": 1117358,
+            "ifills": 187077,
+            "dfills": 8590,
+            "iwalk_words": 58,
+            "dwalk_words": 1,
+            "d_wait": 307524,
+            "d_walk_wait": 23,
+            "execute_wait": 671940,
+            "iwalk_wait": 609,
+            "exposed_i": 1446507,
+            "frontend": 2512246,
+            "other": 1717323,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 2,
+            "clocks": 15019070,
+            "retired": 7322287,
+            "uops": 1110106,
+            "ifills": 184703,
+            "dfills": 8508,
+            "iwalk_words": 58,
+            "dwalk_words": 0,
+            "d_wait": 304942,
+            "d_walk_wait": 0,
+            "execute_wait": 665600,
+            "iwalk_wait": 607,
+            "exposed_i": 1428609,
+            "frontend": 2484156,
+            "other": 1702763,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 3,
+            "clocks": 14973072,
+            "retired": 7301052,
+            "uops": 1108254,
+            "ifills": 183747,
+            "dfills": 8626,
+            "iwalk_words": 58,
+            "dwalk_words": 0,
+            "d_wait": 307011,
+            "d_walk_wait": 0,
+            "execute_wait": 665302,
+            "iwalk_wait": 605,
+            "exposed_i": 1422041,
+            "frontend": 2472779,
+            "other": 1696028,
+            "draws": 1,
+            "swaps": 1
+          }
+        ],
+        "completion": {
+          "cycles": 60205665,
+          "frames": 4,
+          "ddr_reads": 111,
+          "d2_lines": 1024
+        },
+        "output_sha": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+        "netlist_sha": "107a956d633e1acb0cd68900504ea6150b75dc4685579696ed9c54add11575b2"
+      },
+      "direct-mac": {
+        "frames": [
+          {
+            "frame": 0,
+            "clocks": 14968764,
+            "retired": 7338211,
+            "uops": 1112061,
+            "ifills": 185297,
+            "dfills": 8778,
+            "iwalk_words": 62,
+            "dwalk_words": 6,
+            "d_wait": 308601,
+            "d_walk_wait": 180,
+            "execute_wait": 602771,
+            "iwalk_wait": 694,
+            "exposed_i": 1435776,
+            "frontend": 2481094,
+            "other": 1689376,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 1,
+            "clocks": 15053795,
+            "retired": 7372623,
+            "uops": 1117358,
+            "ifills": 187077,
+            "dfills": 8590,
+            "iwalk_words": 58,
+            "dwalk_words": 0,
+            "d_wait": 307040,
+            "d_walk_wait": 0,
+            "execute_wait": 603285,
+            "iwalk_wait": 601,
+            "exposed_i": 1450588,
+            "frontend": 2502155,
+            "other": 1700145,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 2,
+            "clocks": 14928261,
+            "retired": 7322287,
+            "uops": 1110106,
+            "ifills": 184703,
+            "dfills": 8508,
+            "iwalk_words": 58,
+            "dwalk_words": 0,
+            "d_wait": 304621,
+            "d_walk_wait": 0,
+            "execute_wait": 597577,
+            "iwalk_wait": 608,
+            "exposed_i": 1432956,
+            "frontend": 2474291,
+            "other": 1685815,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 3,
+            "clocks": 14881634,
+            "retired": 7301052,
+            "uops": 1108254,
+            "ifills": 183747,
+            "dfills": 8626,
+            "iwalk_words": 58,
+            "dwalk_words": 0,
+            "d_wait": 306609,
+            "d_walk_wait": 0,
+            "execute_wait": 597254,
+            "iwalk_wait": 613,
+            "exposed_i": 1425676,
+            "frontend": 2463052,
+            "other": 1679124,
+            "draws": 1,
+            "swaps": 1
+          }
+        ],
+        "completion": {
+          "cycles": 59839867,
+          "frames": 4,
+          "ddr_reads": 111,
+          "d2_lines": 1024
+        },
+        "output_sha": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+        "netlist_sha": "2205d666cab4b6664a6d4cc91b3dbd8d832042db48eb5404155d98f18391a526"
+      }
+    },
+    "pin_model_sha": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+    "base_netlist_sha": "107a956d633e1acb0cd68900504ea6150b75dc4685579696ed9c54add11575b2",
+    "snapshot_sha": "17345b257e390e4201b949d68b5af75da0260b9f9b4c0cbadbe11758ea5f801c"
+  },
+  "prior_directed": {
+    "control": [
+      "PASS cycles=25812 scalar_wait_cycles=10347 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "PASS cycles=51466 scalar_wait_cycles=36084 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "PASS cycles=20606 scalar_wait_cycles=619 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "PASS cycles=24960 scalar_wait_cycles=2036 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+    ],
+    "candidate": [
+      "PASS cycles=25812 scalar_wait_cycles=10347 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "PASS cycles=51466 scalar_wait_cycles=36084 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "PASS cycles=20606 scalar_wait_cycles=619 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "PASS cycles=24960 scalar_wait_cycles=2036 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+    ]
+  },
+  "warm_mac_timing": {
+    "control": {
+      "burst-0-wait-0": {
+        "completion": "PASS cycles=26781 scalar_wait_cycles=10685 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+        "opcodes": {
+          "mla": {
+            "pairs": [
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            }
+          },
+          "smlal": {
+            "pairs": [
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            }
+          },
+          "umlal": {
+            "pairs": [
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            }
+          }
+        }
+      },
+      "burst-0-wait-5": {
+        "completion": "PASS cycles=53280 scalar_wait_cycles=37267 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+        "opcodes": {
+          "mla": {
+            "pairs": [
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            }
+          },
+          "smlal": {
+            "pairs": [
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            }
+          },
+          "umlal": {
+            "pairs": [
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            }
+          }
+        }
+      },
+      "burst-1-wait-0": {
+        "completion": "PASS cycles=21286 scalar_wait_cycles=557 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+        "opcodes": {
+          "mla": {
+            "pairs": [
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            }
+          },
+          "smlal": {
+            "pairs": [
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            }
+          },
+          "umlal": {
+            "pairs": [
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            }
+          }
+        }
+      },
+      "burst-1-wait-5": {
+        "completion": "PASS cycles=25598 scalar_wait_cycles=1819 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+        "opcodes": {
+          "mla": {
+            "pairs": [
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            }
+          },
+          "smlal": {
+            "pairs": [
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            }
+          },
+          "umlal": {
+            "pairs": [
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              },
+              {
+                "result": 2,
+                "dependent_add": 3
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ],
+              "finish_intervals": [
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3,
+                3
+              ]
+            }
+          }
+        }
+      }
+    },
+    "candidate": {
+      "burst-0-wait-0": {
+        "completion": "PASS cycles=26695 scalar_wait_cycles=10685 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+        "opcodes": {
+          "mla": {
+            "pairs": [
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            }
+          },
+          "smlal": {
+            "pairs": [
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            }
+          },
+          "umlal": {
+            "pairs": [
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            }
+          }
+        }
+      },
+      "burst-0-wait-5": {
+        "completion": "PASS cycles=53194 scalar_wait_cycles=37267 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+        "opcodes": {
+          "mla": {
+            "pairs": [
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            }
+          },
+          "smlal": {
+            "pairs": [
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            }
+          },
+          "umlal": {
+            "pairs": [
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            }
+          }
+        }
+      },
+      "burst-1-wait-0": {
+        "completion": "PASS cycles=21158 scalar_wait_cycles=557 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+        "opcodes": {
+          "mla": {
+            "pairs": [
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            }
+          },
+          "smlal": {
+            "pairs": [
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            }
+          },
+          "umlal": {
+            "pairs": [
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            }
+          }
+        }
+      },
+      "burst-1-wait-5": {
+        "completion": "PASS cycles=25413 scalar_wait_cycles=1819 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+        "opcodes": {
+          "mla": {
+            "pairs": [
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            }
+          },
+          "smlal": {
+            "pairs": [
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            }
+          },
+          "umlal": {
+            "pairs": [
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              },
+              {
+                "result": 1,
+                "dependent_add": 2
+              }
+            ],
+            "chain": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            },
+            "independent": {
+              "accept_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ],
+              "finish_intervals": [
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2,
+                2
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "fixed_work": [
+    {
+      "case": "matrix4",
+      "clocks_saved": 0,
+      "same_inputs_sha": {
+        "False": "354080d4f5bcf315cf8977d425883b311ed9496daa24195ed0f84f6875710173",
+        "True": "09b86dc461a76d706618172218f4c850acde844e9649501a07bb2b04868c963e"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 16814,
+      "candidate_median": 16814,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 18067,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 45,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 16814,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 16814,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 16808,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 16811,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 16817,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 16814,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 18067,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 45,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 16814,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 16814,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 16808,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 16811,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 16817,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 16814,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "transpose4",
+      "clocks_saved": 0,
+      "same_inputs_sha": {
+        "False": "306e31d656d377ba7d0b086d2632924973558eef6eb11769f53a2991579cd6d0",
+        "True": "3f995bab249469b9000afd2c7154ea7c659bc73f42de9751a27cdddee2f719b7"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 2772,
+      "candidate_median": 2772,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 2886,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 6,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 2754,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 2886,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 6,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 2754,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 2772,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "triangle_edges",
+      "clocks_saved": 25,
+      "same_inputs_sha": {
+        "False": "6024e068026166bffc73ae87ebfa2aa0df5799867caaf7975032f0842c737a77",
+        "True": "02818b41c637c688ff5c95ef9b68ef85a4a33e85a666dbafba2ec2cb045b2d2f"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 16,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 16,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 16,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 16,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 16,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 16,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 16,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 12254,
+      "candidate_median": 12229,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 13302,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 50,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 12260,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 12254,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 12254,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 12257,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 12254,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 12257,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 13278,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 50,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 12229,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 12229,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 12229,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 12229,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 12202,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 12235,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "fill16_frame",
+      "clocks_saved": 0,
+      "same_inputs_sha": {
+        "False": "2fcebd18fba7afedd25c3c89e3b3c9d59ac79c0d539c995a8e685c41d7083f07",
+        "True": "1ffbd6621e6530621ccfe24356ff5a7eb1e48b1d40f6b4d3fcc97736eecb352d"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 112705,
+      "candidate_median": 112705,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 112791,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 112690,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 112693,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 112705,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 112705,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 112705,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 112705,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 112791,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 112690,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 112693,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 112705,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 112705,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 112705,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 112705,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "fill16_tail",
+      "clocks_saved": 0,
+      "same_inputs_sha": {
+        "False": "f484693089fb1ebd8c2b54718da8cf96e4609af44110b2c1f138f9ff39b9fbc0",
+        "True": "70852419f01b28fbc46cc16b6569942c8f25a3448aefdfcd944476b5e0799e31"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 726,
+      "candidate_median": 726,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 886,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 8,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 732,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 886,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 8,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 732,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 726,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "fill8_tail",
+      "clocks_saved": 0,
+      "same_inputs_sha": {
+        "False": "80a61d8a6ae63360ac281a4c6416025e5dedc0b9b074517c09ca274d2a777b0f",
+        "True": "199e0023b690aca4e435990b333762972ea4476afe7971cd9699639922f8cc63"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 747,
+      "candidate_median": 747,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 904,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 904,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 747,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "monkey-forward",
+      "clocks_saved": 509,
+      "same_inputs_sha": {
+        "False": "e770cc46248fe78135e96ba00f87cd1bc200cefdc73f36eddf0ed8510beddc66",
+        "True": "32a63ae73fff425acbc4907c7a4716630b71c81fedda3469a631fc68e75eb7c8"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 16443,
+      "candidate_median": 15934,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 16567,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 16446,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 16443,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 16443,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 16443,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 16452,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 16446,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 16065,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 15934,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 15934,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 15934,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 15934,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 15931,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 15940,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "monkey-reverse",
+      "clocks_saved": 509,
+      "same_inputs_sha": {
+        "False": "b16c6b66cb25c5bdc785ba632b9bfd85b57dbebb6157d9b322cae60318b8312b",
+        "True": "6fa13d675ce025082964cba60fe89b67ee1fe57ea0bc9e574cc90f90b14a0a18"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 16443,
+      "candidate_median": 15934,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 16567,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 16446,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 16443,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 16443,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 16443,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 16452,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 16446,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 16065,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 15934,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 15934,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 15934,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 15934,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 15931,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 15940,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "sega-span",
+      "clocks_saved": 512,
+      "same_inputs_sha": {
+        "False": "1c641c5740630689cc6fddea173ec0ea11780e4d8fc20c0709448dabcd96cb05",
+        "True": "cd41a8c31acfea526a6d5e503d9dcacc72ec0975dfd35e10ceb6591209980dc6"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 512,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 15936,
+      "candidate_median": 15424,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 16093,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 15936,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 15936,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 15936,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 15936,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 15936,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 15936,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 15582,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 15424,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 15424,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 15424,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 15424,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 15424,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 15424,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "sega-fill",
+      "clocks_saved": 0,
+      "same_inputs_sha": {
+        "False": "fd4ac8dfb3370aa77e3b5084390a6dbd6d883b90a69184f1bc09a3671f22d352",
+        "True": "aa66019d6d5dbe5b6dbe859239258d68f6fb1e4e47db2b4e6651dff5b207ea9e"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 2622,
+      "candidate_median": 2622,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 2753,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 4,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 2753,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 4,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 2622,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "asphalt-table",
+      "clocks_saved": 0,
+      "same_inputs_sha": {
+        "False": "b6c7ffc591791b8356cbc77d69d94ec5dbf608486158d6adb5b3bd7d47fb00f9",
+        "True": "64270980a2d7266bf702ebe4a13f34d62d88ed025f55d3d008b4b92dde20d7f2"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 21396,
+      "candidate_median": 21396,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 21562,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 9,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 21394,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 21388,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 21398,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 21396,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 21395,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 21398,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 21562,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 9,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 21394,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 21388,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 21398,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 21396,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 21395,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 21398,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "asphalt-double",
+      "clocks_saved": 0,
+      "same_inputs_sha": {
+        "False": "95d8a3fbce2a55570568c97bcc26bc95148a23ecdc44fe1b889ac3bc7c8bf4ca",
+        "True": "412e086955a67895e7a8fa7fa3bf4756133e4f359450087b3948e42983392b3a"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 11961,
+      "candidate_median": 11961,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 12140,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 8,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 11977,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 12140,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 8,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 11977,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 11961,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "asphalt-single",
+      "clocks_saved": 0,
+      "same_inputs_sha": {
+        "False": "4d8227712679f53ab82e0ec2f866cc900417ebb55936b8a4fb9cedfa022e8cc6",
+        "True": "213ac5f222666411b617978c1226d2fe2a7d864b4fb448ff7e186cd64f017596"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 7756,
+      "candidate_median": 7756,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 7931,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 8,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 7762,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 7931,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 8,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 7762,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 7756,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "sega-scan",
+      "clocks_saved": 0,
+      "same_inputs_sha": {
+        "False": "3bc9754e3ee7bfa616a0dad319f503344bca3827b883f44d4fcfe5be80a48e3c",
+        "True": "6d843aac08cdf2100db13bcd492ebf2717f3e121a0218c90d74bb9e836bc316f"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 2391228,
+      "candidate_median": 2391228,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 2391553,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 14,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 2391253,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 2391553,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 14,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 2391253,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 2391228,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 2,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    },
+    {
+      "case": "diffuse_m10_8x8_jpeg",
+      "clocks_saved": 0,
+      "same_inputs_sha": {
+        "False": "49aec1e06a4a04ea7bf82d40ce8b1ed96b85e497aebd3cc3be301575b04fea55",
+        "True": "6d9dd1f4944cd5071000dca63ce44a14080c45355f829a934cd0298d92cdfa99"
+      },
+      "accumulates": [
+        {
+          "window": 0,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 1,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 2,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 3,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 4,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 5,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        },
+        {
+          "window": 6,
+          "mla": 0,
+          "smlal": 0,
+          "umlal": 0
+        }
+      ],
+      "control_median": 35903,
+      "candidate_median": 35903,
+      "control_windows": [
+        {
+          "window": 0,
+          "cycles": 37045,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 38,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "candidate_windows": [
+        {
+          "window": 0,
+          "cycles": 37045,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 38,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 35903,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ]
+    }
+  ],
+  "negative_outputs_rejected": true
+}

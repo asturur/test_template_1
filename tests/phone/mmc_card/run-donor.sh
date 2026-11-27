@@ -32,11 +32,11 @@ for version in donor port equivalence; do
         top=mmc_card_equivalence
         language=1800-2017
         set -- /donor/rtl/board/tdp_ram.sv /donor/rtl/board/mmc_card.sv \
-            rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v
+            rtl/ngage_bram.v rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v
     else
         top=ngage_mmc_card
         language=1364-2001
-        set -- rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v
+        set -- rtl/ngage_bram.v rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v
     fi
     verilator --cc --exe --build -j 4 -O3 --x-assign unique --x-initial unique \
         -Wno-fatal -Wno-lint -Wno-style -Wno-MULTIDRIVEN \
@@ -53,7 +53,7 @@ for test in eof version; do
     sed "s/ngage_mmc_card dut(/mmc_card_equivalence dut(/" "tests/phone/mmc_card/${test}_tb.v" > "$out/${test}_tb.v"
     iverilog -g2012 -s "${test}_tb" -o "$out/$test" \
         /donor/rtl/board/tdp_ram.sv /donor/rtl/board/mmc_card.sv \
-        rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v \
+        rtl/ngage_bram.v rtl/ngage_mmc_dpram.v rtl/ngage_mmc_card.v tests/phone/mmc_card/equivalence.v \
         "$out/${test}_tb.v" > "$out/$test-build.log" 2>&1
     vvp "$out/$test" > "$out/$test.log"
     cat "$out/$test.log"

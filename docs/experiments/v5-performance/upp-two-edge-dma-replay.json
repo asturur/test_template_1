@@ -1,0 +1,646 @@
+{
+  "baseline": "4c02fdab93f690945334ba06b8e4dadaaec3e9a6",
+  "system_clock_mhz": 104,
+  "candidate_rtl_sha256": "0150176bf02002e6d2c28223ad2e752bc5b7369c7ce4de3d094b102f3f041597",
+  "changed_fit_inputs": [
+    "rtl/ngage_upp.v"
+  ],
+  "unchanged_semantics": [
+    "full UPP packet timing",
+    "two-edge data aperture",
+    "DMA cancel edge",
+    "native and MMC card cadence"
+  ],
+  "mixed": {
+    "work": "ARM9v2 MMC/LCD/PCM/raw UPP DDR",
+    "clocks": 1202156,
+    "records": 171501,
+    "trace_sha256": "9296f49f475f4e109b90acda26020665de8283d3e41da8c89f55d1e99eee8c26"
+  },
+  "alias": {
+    "work": "ARM9v2 GPIO/EUART and SRAM/ROM/boot aliases",
+    "clocks": 126242,
+    "records": 326,
+    "trace_sha256": "1319fc987e959af098369582335138b72453ef45361056b4a9cfa163704f1197"
+  },
+  "pcm": {
+    "matched_samples": 128,
+    "sha256": "a2b8906b7f6c9eb92be33c9e57d2255a625ff12cc428fb8cb819f40fc453846b"
+  },
+  "dma_miter": {
+    "clocks": 32978,
+    "requests": 5658,
+    "rejected": 5549,
+    "starts": 4,
+    "stops": 3,
+    "blocked_offers": 106,
+    "accepted": 3,
+    "drained": 2,
+    "independent_commit_clocks": 32
+  },
+  "status": "PASS_CYCLE_EXACT",
+  "candidate": "174ed5e05ba1080d55d914f9e500dc2c1f566ceb",
+  "corrected_fits": [
+    {
+      "seed": 43,
+      "databaseId": 45476439302,
+      "displayTitle": "ngage1 build (seed 43, DDR debug off)",
+      "event": "workflow_dispatch",
+      "headBranch": "ngage-v5",
+      "headSha": "174ed5e05ba1080d55d914f9e500dc2c1f566ceb",
+      "url": "https://github.com/asturur/test_template_1/actions/runs/45476439302",
+      "seed_debug_title_verified": true,
+      "dispatch": {
+        "seed": "43",
+        "enable_debugger": false,
+        "fit_scope": "production"
+      },
+      "preflight": {
+        "input_count": 132,
+        "control_run": 45468211620,
+        "source_sha256": "0150176bf02002e6d2c28223ad2e752bc5b7369c7ce4de3d094b102f3f041597",
+        "effective_qsf_sha256": "cd53ae81c1283ee7ad06e4615a0d6393f3daa31ae3cc434767526678167216bd",
+        "physical_cpu_mhz": 104
+      }
+    },
+    {
+      "seed": 13,
+      "databaseId": 45476444009,
+      "displayTitle": "CI Build",
+      "event": "workflow_dispatch",
+      "headBranch": "ngage-v5",
+      "headSha": "174ed5e05ba1080d55d914f9e500dc2c1f566ceb",
+      "url": "https://github.com/asturur/test_template_1/actions/runs/45476444009",
+      "seed_debug_title_verified": false,
+      "dispatch": {
+        "seed": "13",
+        "enable_debugger": false,
+        "fit_scope": "production"
+      },
+      "preflight": {
+        "input_count": 132,
+        "control_run": 45468217182,
+        "source_sha256": "0150176bf02002e6d2c28223ad2e752bc5b7369c7ce4de3d094b102f3f041597",
+        "effective_qsf_sha256": "580f4549f6b9067a893bfe227b7cd0fc2296b2303362627e8fffdf211c3054ac",
+        "physical_cpu_mhz": 104
+      }
+    },
+    {
+      "seed": 31337,
+      "databaseId": 45476448187,
+      "displayTitle": "ngage1 build (seed 31337, DDR debug off)",
+      "event": "workflow_dispatch",
+      "headBranch": "ngage-v5",
+      "headSha": "174ed5e05ba1080d55d914f9e500dc2c1f566ceb",
+      "url": "https://github.com/asturur/test_template_1/actions/runs/45476448187",
+      "seed_debug_title_verified": true,
+      "dispatch": {
+        "seed": "31337",
+        "enable_debugger": false,
+        "fit_scope": "production"
+      },
+      "preflight": {
+        "input_count": 132,
+        "control_run": 45468222028,
+        "source_sha256": "0150176bf02002e6d2c28223ad2e752bc5b7369c7ce4de3d094b102f3f041597",
+        "effective_qsf_sha256": "464934e045a3fb70e8c7a8cfb4c7bc337550fd77b93ba357b7db107fd549c352",
+        "physical_cpu_mhz": 104
+      }
+    }
+  ],
+  "fixed": [
+    {
+      "case": "sega-scan",
+      "median_cycles": 2395767,
+      "window_cycles": [
+        2396210,
+        2395853,
+        2395905,
+        2395767,
+        2395767,
+        2395767,
+        2395767
+      ]
+    },
+    {
+      "case": "matrix4",
+      "median_cycles": 16946,
+      "window_cycles": [
+        17981,
+        16937,
+        16937,
+        16937,
+        16949,
+        16946,
+        16952
+      ]
+    },
+    {
+      "case": "transpose4",
+      "median_cycles": 2976,
+      "window_cycles": [
+        3055,
+        2964,
+        2964,
+        2976,
+        2976,
+        2979,
+        2976
+      ]
+    },
+    {
+      "case": "triangle_edges",
+      "median_cycles": 12226,
+      "window_cycles": [
+        13136,
+        12220,
+        12226,
+        12262,
+        12253,
+        12220,
+        12220
+      ]
+    },
+    {
+      "case": "fill16_frame",
+      "median_cycles": 122402,
+      "window_cycles": [
+        122534,
+        122402,
+        122402,
+        122402,
+        122402,
+        122402,
+        122402
+      ]
+    },
+    {
+      "case": "fill16_tail",
+      "median_cycles": 725,
+      "window_cycles": [
+        876,
+        725,
+        725,
+        728,
+        725,
+        725,
+        725
+      ]
+    },
+    {
+      "case": "fill8_tail",
+      "median_cycles": 753,
+      "window_cycles": [
+        903,
+        753,
+        753,
+        753,
+        753,
+        753,
+        753
+      ]
+    },
+    {
+      "case": "monkey-forward",
+      "median_cycles": 15940,
+      "window_cycles": [
+        16021,
+        15937,
+        15940,
+        15940,
+        15949,
+        15937,
+        15940
+      ]
+    },
+    {
+      "case": "monkey-reverse",
+      "median_cycles": 15940,
+      "window_cycles": [
+        16021,
+        15937,
+        15940,
+        15940,
+        15949,
+        15937,
+        15940
+      ]
+    },
+    {
+      "case": "sega-span",
+      "median_cycles": 15430,
+      "window_cycles": [
+        15585,
+        15430,
+        15430,
+        15430,
+        15430,
+        15430,
+        15430
+      ]
+    },
+    {
+      "case": "sega-fill",
+      "median_cycles": 2628,
+      "window_cycles": [
+        2757,
+        2628,
+        2628,
+        2628,
+        2628,
+        2628,
+        2628
+      ]
+    },
+    {
+      "case": "asphalt-table",
+      "median_cycles": 21163,
+      "window_cycles": [
+        21328,
+        21155,
+        21160,
+        21152,
+        21168,
+        21163,
+        21171
+      ]
+    },
+    {
+      "case": "asphalt-double",
+      "median_cycles": 11974,
+      "window_cycles": [
+        12140,
+        11974,
+        11982,
+        11974,
+        11977,
+        11974,
+        11974
+      ]
+    },
+    {
+      "case": "asphalt-single",
+      "median_cycles": 7753,
+      "window_cycles": [
+        7933,
+        7753,
+        7753,
+        7762,
+        7753,
+        7753,
+        7753
+      ]
+    },
+    {
+      "case": "diffuse_m10_8x8_jpeg",
+      "median_cycles": 35324,
+      "window_cycles": [
+        36331,
+        35324,
+        35324,
+        35324,
+        35324,
+        35324,
+        35324
+      ]
+    }
+  ],
+  "native": {
+    "profile": [
+      0,
+      0
+    ],
+    "case": "native",
+    "frames": [
+      {
+        "frame": 0,
+        "clocks": 14391395,
+        "retired": 7338211,
+        "uops": 1040332,
+        "ifills": 177192,
+        "dfills": 8778,
+        "iwalk_words": 119,
+        "dwalk_words": 5,
+        "d_wait": 297524,
+        "d_walk_wait": 154,
+        "execute_wait": 556759,
+        "iwalk_wait": 1281,
+        "exposed_i": 1524860,
+        "frontend": 1491652,
+        "other": 2140622,
+        "draws": 1,
+        "swaps": 1
+      },
+      {
+        "frame": 1,
+        "clocks": 14467552,
+        "retired": 7372623,
+        "uops": 1046017,
+        "ifills": 179072,
+        "dfills": 8590,
+        "iwalk_words": 111,
+        "dwalk_words": 1,
+        "d_wait": 295747,
+        "d_walk_wait": 33,
+        "execute_wait": 556254,
+        "iwalk_wait": 1176,
+        "exposed_i": 1538774,
+        "frontend": 1501064,
+        "other": 2155864,
+        "draws": 1,
+        "swaps": 1
+      },
+      {
+        "frame": 2,
+        "clocks": 14346201,
+        "retired": 7322287,
+        "uops": 1039189,
+        "ifills": 176599,
+        "dfills": 8508,
+        "iwalk_words": 115,
+        "dwalk_words": 2,
+        "d_wait": 293387,
+        "d_walk_wait": 61,
+        "execute_wait": 551454,
+        "iwalk_wait": 1255,
+        "exposed_i": 1518818,
+        "frontend": 1485675,
+        "other": 2134075,
+        "draws": 1,
+        "swaps": 1
+      },
+      {
+        "frame": 3,
+        "clocks": 14303223,
+        "retired": 7301052,
+        "uops": 1038177,
+        "ifills": 175649,
+        "dfills": 8626,
+        "iwalk_words": 117,
+        "dwalk_words": 2,
+        "d_wait": 295271,
+        "d_walk_wait": 61,
+        "execute_wait": 551798,
+        "iwalk_wait": 1183,
+        "exposed_i": 1510829,
+        "frontend": 1479713,
+        "other": 2125139,
+        "draws": 1,
+        "swaps": 1
+      }
+    ],
+    "architecture": [
+      {
+        "window": 0,
+        "retired": 8378542,
+        "data": 2795132,
+        "mmio": 0,
+        "recover": 0,
+        "retire_hash": 10205000342560512243,
+        "data_hash": 1099935925129445331,
+        "mmio_hash": 14695981039346656037
+      },
+      {
+        "window": 1,
+        "retired": 8418639,
+        "data": 2808540,
+        "mmio": 0,
+        "recover": 0,
+        "retire_hash": 14330942816271412486,
+        "data_hash": 12998895494613033264,
+        "mmio_hash": 14695981039346656037
+      },
+      {
+        "window": 2,
+        "retired": 8361475,
+        "data": 2789266,
+        "mmio": 0,
+        "recover": 0,
+        "retire_hash": 840186148523522304,
+        "data_hash": 10876088796762072086,
+        "mmio_hash": 14695981039346656037
+      },
+      {
+        "window": 3,
+        "retired": 8339228,
+        "data": 2782792,
+        "mmio": 0,
+        "recover": 0,
+        "retire_hash": 8873323223938994861,
+        "data_hash": 709881815613675910,
+        "mmio_hash": 14695981039346656037
+      }
+    ],
+    "wb_writes": [
+      {
+        "window": 0,
+        "offer": 203207,
+        "stall": 133113,
+        "read_ack": 1487884,
+        "write_ack": 70094,
+        "write_error": 0,
+        "read_to_write": 1437,
+        "changed_after_write_ack": 7201,
+        "owner_changes": 0,
+        "tag": 0,
+        "evict_scalar": 0,
+        "evict_native": 4543,
+        "post": 65551,
+        "unc": 0,
+        "tag_changed": 0,
+        "evict_scalar_changed": 0,
+        "evict_native_changed": 1845,
+        "post_changed": 5356,
+        "unc_changed": 0,
+        "write_hash": 17993793482680284196
+      },
+      {
+        "window": 1,
+        "offer": 201904,
+        "stall": 132472,
+        "read_ack": 1501408,
+        "write_ack": 69432,
+        "write_error": 0,
+        "read_to_write": 1454,
+        "changed_after_write_ack": 6857,
+        "owner_changes": 0,
+        "tag": 0,
+        "evict_scalar": 0,
+        "evict_native": 4678,
+        "post": 64754,
+        "unc": 0,
+        "tag_changed": 0,
+        "evict_scalar_changed": 0,
+        "evict_native_changed": 1894,
+        "post_changed": 4963,
+        "unc_changed": 0,
+        "write_hash": 10036837994085394481
+      },
+      {
+        "window": 2,
+        "offer": 201052,
+        "stall": 131986,
+        "read_ack": 1480973,
+        "write_ack": 69066,
+        "write_error": 0,
+        "read_to_write": 1415,
+        "changed_after_write_ack": 6678,
+        "owner_changes": 0,
+        "tag": 0,
+        "evict_scalar": 0,
+        "evict_native": 4599,
+        "post": 64467,
+        "unc": 0,
+        "tag_changed": 0,
+        "evict_scalar_changed": 0,
+        "evict_native_changed": 1857,
+        "post_changed": 4821,
+        "unc_changed": 0,
+        "write_hash": 9412616994930253262
+      },
+      {
+        "window": 3,
+        "offer": 202083,
+        "stall": 132510,
+        "read_ack": 1474319,
+        "write_ack": 69573,
+        "write_error": 0,
+        "read_to_write": 1475,
+        "changed_after_write_ack": 6950,
+        "owner_changes": 0,
+        "tag": 0,
+        "evict_scalar": 0,
+        "evict_native": 4715,
+        "post": 64858,
+        "unc": 0,
+        "tag_changed": 0,
+        "evict_scalar_changed": 0,
+        "evict_native_changed": 1895,
+        "post_changed": 5055,
+        "unc_changed": 0,
+        "write_hash": 4619195081536685894
+      }
+    ],
+    "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+    "median": 14346201
+  },
+  "initial_fit_coverage": [
+    {
+      "seed": 43,
+      "run": 45468211620,
+      "held_pairs_per_corner": 13378,
+      "corners": [
+        {
+          "name": "Slow 1100mV 100C Model",
+          "whole_core_setup_ns": -3.261,
+          "held_setup_relationship_ns": 19.23,
+          "held_setup_worst_slack_ns": 3.458,
+          "held_hold_relationship_ns": 0.0,
+          "held_hold_worst_slack_ns": 0.616
+        },
+        {
+          "name": "Slow 1100mV -40C Model",
+          "whole_core_setup_ns": -3.374,
+          "held_setup_relationship_ns": 19.23,
+          "held_setup_worst_slack_ns": 3.846,
+          "held_hold_relationship_ns": 0.0,
+          "held_hold_worst_slack_ns": 0.564
+        },
+        {
+          "name": "Fast 1100mV 100C Model",
+          "whole_core_setup_ns": 2.181,
+          "held_setup_relationship_ns": 19.23,
+          "held_setup_worst_slack_ns": 10.345,
+          "held_hold_relationship_ns": 0.0,
+          "held_hold_worst_slack_ns": 0.353
+        },
+        {
+          "name": "Fast 1100mV -40C Model",
+          "whole_core_setup_ns": 3.346,
+          "held_setup_relationship_ns": 19.23,
+          "held_setup_worst_slack_ns": 11.706,
+          "held_hold_relationship_ns": 0.0,
+          "held_hold_worst_slack_ns": 0.265
+        }
+      ]
+    },
+    {
+      "seed": 13,
+      "run": 45468217182,
+      "held_pairs_per_corner": 13378,
+      "corners": [
+        {
+          "name": "Slow 1100mV 100C Model",
+          "whole_core_setup_ns": -3.592,
+          "held_setup_relationship_ns": 19.23,
+          "held_setup_worst_slack_ns": 2.003,
+          "held_hold_relationship_ns": 0.0,
+          "held_hold_worst_slack_ns": 0.837
+        },
+        {
+          "name": "Slow 1100mV -40C Model",
+          "whole_core_setup_ns": -3.666,
+          "held_setup_relationship_ns": 19.23,
+          "held_setup_worst_slack_ns": 2.422,
+          "held_hold_relationship_ns": 0.0,
+          "held_hold_worst_slack_ns": 0.79
+        },
+        {
+          "name": "Fast 1100mV 100C Model",
+          "whole_core_setup_ns": 2.456,
+          "held_setup_relationship_ns": 19.23,
+          "held_setup_worst_slack_ns": 9.207,
+          "held_hold_relationship_ns": 0.0,
+          "held_hold_worst_slack_ns": 0.513
+        },
+        {
+          "name": "Fast 1100mV -40C Model",
+          "whole_core_setup_ns": 3.53,
+          "held_setup_relationship_ns": 19.23,
+          "held_setup_worst_slack_ns": 10.913,
+          "held_hold_relationship_ns": 0.0,
+          "held_hold_worst_slack_ns": 0.418
+        }
+      ]
+    },
+    {
+      "seed": 31337,
+      "run": 45468222028,
+      "held_pairs_per_corner": 13378,
+      "corners": [
+        {
+          "name": "Slow 1100mV 100C Model",
+          "whole_core_setup_ns": -3.664,
+          "held_setup_relationship_ns": 19.23,
+          "held_setup_worst_slack_ns": 3.103,
+          "held_hold_relationship_ns": 0.0,
+          "held_hold_worst_slack_ns": 1.097
+        },
+        {
+          "name": "Slow 1100mV -40C Model",
+          "whole_core_setup_ns": -3.649,
+          "held_setup_relationship_ns": 19.23,
+          "held_setup_worst_slack_ns": 3.392,
+          "held_hold_relationship_ns": 0.0,
+          "held_hold_worst_slack_ns": 1.032
+        },
+        {
+          "name": "Fast 1100mV 100C Model",
+          "whole_core_setup_ns": 2.126,
+          "held_setup_relationship_ns": 19.23,
+          "held_setup_worst_slack_ns": 10.23,
+          "held_hold_relationship_ns": 0.0,
+          "held_hold_worst_slack_ns": 0.593
+        },
+        {
+          "name": "Fast 1100mV -40C Model",
+          "whole_core_setup_ns": 3.286,
+          "held_setup_relationship_ns": 19.23,
+          "held_setup_worst_slack_ns": 11.645,
+          "held_hold_relationship_ns": 0.0,
+          "held_hold_worst_slack_ns": 0.47
+        }
+      ]
+    }
+  ]
+}

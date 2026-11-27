@@ -1,0 +1,991 @@
+{
+  "status": "MEASURED",
+  "production_commit": "e7f1e31ea4f6d51e9e59463a7f13168b9a8f4530",
+  "retained_source": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+  "system_clock_mhz": 104,
+  "control_tree": "8406276acdc60d658e189d09d31b0699217717ba",
+  "model": "Phase-gate initial CPU-to-UPP request admission. All existing active handshake and device clocks remain.",
+  "stock_factory_core_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+  "stock_factory_app_range": "0x50320000 to 0x5041ffff",
+  "stock_factory_app_sha256": "e5b3d0df07a6862fc19a6c219412f8737a0567b65fd6e083dbdaccc4aff14db3",
+  "cpu_payload_mmio": {
+    "fixed_windows": 105,
+    "native_frames": 4,
+    "recorded_mmio": 0
+  },
+  "stock": [
+    {
+      "div": 1,
+      "phase": 0,
+      "memory_waits": 0,
+      "cycles": 7302,
+      "blocked": 0,
+      "replies": 44,
+      "delta_cycles": 0,
+      "delta_us": 0.0,
+      "delta_percent": 0.0,
+      "duration_us": 70.21153846153847,
+      "ordered_mmio_sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b"
+    },
+    {
+      "div": 2,
+      "phase": 0,
+      "memory_waits": 0,
+      "cycles": 7322,
+      "blocked": 20,
+      "replies": 44,
+      "delta_cycles": 20,
+      "delta_us": 0.19230769230769232,
+      "delta_percent": 0.27389756231169543,
+      "duration_us": 70.40384615384616,
+      "ordered_mmio_sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b"
+    },
+    {
+      "div": 2,
+      "phase": 1,
+      "memory_waits": 0,
+      "cycles": 7323,
+      "blocked": 21,
+      "replies": 44,
+      "delta_cycles": 21,
+      "delta_us": 0.20192307692307693,
+      "delta_percent": 0.2875924404272802,
+      "duration_us": 70.41346153846153,
+      "ordered_mmio_sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b"
+    },
+    {
+      "div": 3,
+      "phase": 0,
+      "memory_waits": 0,
+      "cycles": 7344,
+      "blocked": 42,
+      "replies": 44,
+      "delta_cycles": 42,
+      "delta_us": 0.40384615384615385,
+      "delta_percent": 0.5751848808545604,
+      "duration_us": 70.61538461538461,
+      "ordered_mmio_sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b"
+    },
+    {
+      "div": 3,
+      "phase": 1,
+      "memory_waits": 0,
+      "cycles": 7343,
+      "blocked": 41,
+      "replies": 44,
+      "delta_cycles": 41,
+      "delta_us": 0.3942307692307692,
+      "delta_percent": 0.5614900027389756,
+      "duration_us": 70.60576923076923,
+      "ordered_mmio_sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b"
+    },
+    {
+      "div": 3,
+      "phase": 2,
+      "memory_waits": 0,
+      "cycles": 7345,
+      "blocked": 43,
+      "replies": 44,
+      "delta_cycles": 43,
+      "delta_us": 0.41346153846153844,
+      "delta_percent": 0.5888797589701452,
+      "duration_us": 70.625,
+      "ordered_mmio_sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b"
+    },
+    {
+      "div": 1,
+      "phase": 0,
+      "memory_waits": 3,
+      "cycles": 12660,
+      "blocked": 0,
+      "replies": 44,
+      "delta_cycles": 0,
+      "delta_us": 0.0,
+      "delta_percent": 0.0,
+      "duration_us": 121.73076923076923,
+      "ordered_mmio_sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b"
+    },
+    {
+      "div": 2,
+      "phase": 0,
+      "memory_waits": 3,
+      "cycles": 12683,
+      "blocked": 23,
+      "replies": 44,
+      "delta_cycles": 23,
+      "delta_us": 0.22115384615384615,
+      "delta_percent": 0.18167456556082148,
+      "duration_us": 121.95192307692308,
+      "ordered_mmio_sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b"
+    },
+    {
+      "div": 2,
+      "phase": 1,
+      "memory_waits": 3,
+      "cycles": 12684,
+      "blocked": 24,
+      "replies": 44,
+      "delta_cycles": 24,
+      "delta_us": 0.23076923076923078,
+      "delta_percent": 0.1895734597156398,
+      "duration_us": 121.96153846153847,
+      "ordered_mmio_sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b"
+    },
+    {
+      "div": 3,
+      "phase": 0,
+      "memory_waits": 3,
+      "cycles": 12703,
+      "blocked": 43,
+      "replies": 44,
+      "delta_cycles": 43,
+      "delta_us": 0.41346153846153844,
+      "delta_percent": 0.33965244865718797,
+      "duration_us": 122.14423076923077,
+      "ordered_mmio_sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b"
+    },
+    {
+      "div": 3,
+      "phase": 1,
+      "memory_waits": 3,
+      "cycles": 12702,
+      "blocked": 42,
+      "replies": 44,
+      "delta_cycles": 42,
+      "delta_us": 0.40384615384615385,
+      "delta_percent": 0.33175355450236965,
+      "duration_us": 122.13461538461539,
+      "ordered_mmio_sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b"
+    },
+    {
+      "div": 3,
+      "phase": 2,
+      "memory_waits": 3,
+      "cycles": 12701,
+      "blocked": 41,
+      "replies": 44,
+      "delta_cycles": 41,
+      "delta_us": 0.3942307692307692,
+      "delta_percent": 0.32385466034755134,
+      "duration_us": 122.125,
+      "ordered_mmio_sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b"
+    }
+  ],
+  "directed": [
+    {
+      "div": 1,
+      "phase": 0,
+      "keypad": 0,
+      "replies": 307,
+      "sample_records": 308,
+      "cycles": 17817,
+      "blocked": 0,
+      "trace_sha256": "b2fc498909c8ca3ba8420169df36b57be4a53428a66866f168f91e9a0ba14360"
+    },
+    {
+      "div": 2,
+      "phase": 0,
+      "keypad": 0,
+      "replies": 307,
+      "sample_records": 308,
+      "cycles": 17968,
+      "blocked": 148,
+      "trace_sha256": "b2fc498909c8ca3ba8420169df36b57be4a53428a66866f168f91e9a0ba14360"
+    },
+    {
+      "div": 2,
+      "phase": 1,
+      "keypad": 0,
+      "replies": 307,
+      "sample_records": 308,
+      "cycles": 17970,
+      "blocked": 150,
+      "trace_sha256": "b2fc498909c8ca3ba8420169df36b57be4a53428a66866f168f91e9a0ba14360"
+    },
+    {
+      "div": 3,
+      "phase": 0,
+      "keypad": 0,
+      "replies": 307,
+      "sample_records": 308,
+      "cycles": 18256,
+      "blocked": 430,
+      "trace_sha256": "b2fc498909c8ca3ba8420169df36b57be4a53428a66866f168f91e9a0ba14360"
+    },
+    {
+      "div": 3,
+      "phase": 1,
+      "keypad": 0,
+      "replies": 307,
+      "sample_records": 308,
+      "cycles": 18260,
+      "blocked": 434,
+      "trace_sha256": "b2fc498909c8ca3ba8420169df36b57be4a53428a66866f168f91e9a0ba14360"
+    },
+    {
+      "div": 3,
+      "phase": 2,
+      "keypad": 0,
+      "replies": 307,
+      "sample_records": 308,
+      "cycles": 18258,
+      "blocked": 432,
+      "trace_sha256": "b2fc498909c8ca3ba8420169df36b57be4a53428a66866f168f91e9a0ba14360"
+    },
+    {
+      "div": 1,
+      "phase": 0,
+      "keypad": 1,
+      "replies": 307,
+      "sample_records": 308,
+      "cycles": 17817,
+      "blocked": 0,
+      "trace_sha256": "9ec12e509725ba3fe772e0b2e82ea49553b6f9d8489ce728745db416f8c873fb"
+    },
+    {
+      "div": 2,
+      "phase": 0,
+      "keypad": 1,
+      "replies": 307,
+      "sample_records": 308,
+      "cycles": 17968,
+      "blocked": 148,
+      "trace_sha256": "9ec12e509725ba3fe772e0b2e82ea49553b6f9d8489ce728745db416f8c873fb"
+    },
+    {
+      "div": 2,
+      "phase": 1,
+      "keypad": 1,
+      "replies": 307,
+      "sample_records": 308,
+      "cycles": 17970,
+      "blocked": 150,
+      "trace_sha256": "9ec12e509725ba3fe772e0b2e82ea49553b6f9d8489ce728745db416f8c873fb"
+    },
+    {
+      "div": 3,
+      "phase": 0,
+      "keypad": 1,
+      "replies": 307,
+      "sample_records": 308,
+      "cycles": 18256,
+      "blocked": 430,
+      "trace_sha256": "9ec12e509725ba3fe772e0b2e82ea49553b6f9d8489ce728745db416f8c873fb"
+    },
+    {
+      "div": 3,
+      "phase": 1,
+      "keypad": 1,
+      "replies": 307,
+      "sample_records": 308,
+      "cycles": 18260,
+      "blocked": 434,
+      "trace_sha256": "9ec12e509725ba3fe772e0b2e82ea49553b6f9d8489ce728745db416f8c873fb"
+    },
+    {
+      "div": 3,
+      "phase": 2,
+      "keypad": 1,
+      "replies": 307,
+      "sample_records": 308,
+      "cycles": 18258,
+      "blocked": 432,
+      "trace_sha256": "9ec12e509725ba3fe772e0b2e82ea49553b6f9d8489ce728745db416f8c873fb"
+    }
+  ],
+  "gpio_stress": [
+    {
+      "div": 1,
+      "phase": 0,
+      "total": 124213,
+      "guest": 91443,
+      "blocked": 0,
+      "GPIO": 2050,
+      "MMC": 0,
+      "MMIO": 2050,
+      "card_edges": 0,
+      "card_gap_3": 0,
+      "delta_cycles": 0,
+      "delta_us": 0.0,
+      "delta_percent": 0.0,
+      "duration_us": 879.2596153846154
+    },
+    {
+      "div": 2,
+      "phase": 0,
+      "total": 125239,
+      "guest": 92469,
+      "blocked": 1026,
+      "GPIO": 2050,
+      "MMC": 0,
+      "MMIO": 2050,
+      "card_edges": 0,
+      "card_gap_3": 0,
+      "delta_cycles": 1026,
+      "delta_us": 9.865384615384615,
+      "delta_percent": 1.122010432728585,
+      "duration_us": 889.125
+    },
+    {
+      "div": 2,
+      "phase": 1,
+      "total": 125240,
+      "guest": 92470,
+      "blocked": 1027,
+      "GPIO": 2050,
+      "MMC": 0,
+      "MMIO": 2050,
+      "card_edges": 0,
+      "card_gap_3": 0,
+      "delta_cycles": 1027,
+      "delta_us": 9.875,
+      "delta_percent": 1.1231040101483984,
+      "duration_us": 889.1346153846154
+    },
+    {
+      "div": 3,
+      "phase": 0,
+      "total": 125240,
+      "guest": 92470,
+      "blocked": 1027,
+      "GPIO": 2050,
+      "MMC": 0,
+      "MMIO": 2050,
+      "card_edges": 0,
+      "card_gap_3": 0,
+      "delta_cycles": 1027,
+      "delta_us": 9.875,
+      "delta_percent": 1.1231040101483984,
+      "duration_us": 889.1346153846154
+    },
+    {
+      "div": 3,
+      "phase": 1,
+      "total": 125239,
+      "guest": 92469,
+      "blocked": 1026,
+      "GPIO": 2050,
+      "MMC": 0,
+      "MMIO": 2050,
+      "card_edges": 0,
+      "card_gap_3": 0,
+      "delta_cycles": 1026,
+      "delta_us": 9.865384615384615,
+      "delta_percent": 1.122010432728585,
+      "duration_us": 889.125
+    },
+    {
+      "div": 3,
+      "phase": 2,
+      "total": 125241,
+      "guest": 92471,
+      "blocked": 1028,
+      "GPIO": 2050,
+      "MMC": 0,
+      "MMIO": 2050,
+      "card_edges": 0,
+      "card_gap_3": 0,
+      "delta_cycles": 1028,
+      "delta_us": 9.884615384615385,
+      "delta_percent": 1.124197587568212,
+      "duration_us": 889.1442307692307
+    }
+  ],
+  "mixed": [
+    {
+      "div": 1,
+      "scope": "baseline",
+      "phase": 0,
+      "total": 1201547,
+      "guest": 1168777,
+      "blocked": 0,
+      "GPIO": 0,
+      "MMC": 1247,
+      "MMIO": 5844,
+      "card_edges": 20957,
+      "card_gap_3": 19953,
+      "delta_cycles": 0,
+      "delta_us": 0.0,
+      "delta_percent": 0.0,
+      "duration_us": 11238.240384615385,
+      "pcm_differing_sample_indices": [],
+      "pcm_hash": "175ee178",
+      "first_pcm_sample_cycle": 925989,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 2,
+      "scope": "gpio",
+      "phase": 0,
+      "total": 1201547,
+      "guest": 1168777,
+      "blocked": 0,
+      "GPIO": 0,
+      "MMC": 1247,
+      "MMIO": 5844,
+      "card_edges": 20957,
+      "card_gap_3": 19953,
+      "delta_cycles": 0,
+      "delta_us": 0.0,
+      "delta_percent": 0.0,
+      "duration_us": 11238.240384615385,
+      "pcm_differing_sample_indices": [],
+      "pcm_hash": "175ee178",
+      "first_pcm_sample_cycle": 925989,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 2,
+      "scope": "gpio",
+      "phase": 1,
+      "total": 1201547,
+      "guest": 1168777,
+      "blocked": 0,
+      "GPIO": 0,
+      "MMC": 1247,
+      "MMIO": 5844,
+      "card_edges": 20957,
+      "card_gap_3": 19953,
+      "delta_cycles": 0,
+      "delta_us": 0.0,
+      "delta_percent": 0.0,
+      "duration_us": 11238.240384615385,
+      "pcm_differing_sample_indices": [],
+      "pcm_hash": "175ee178",
+      "first_pcm_sample_cycle": 925989,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 3,
+      "scope": "gpio",
+      "phase": 0,
+      "total": 1201547,
+      "guest": 1168777,
+      "blocked": 0,
+      "GPIO": 0,
+      "MMC": 1247,
+      "MMIO": 5844,
+      "card_edges": 20957,
+      "card_gap_3": 19953,
+      "delta_cycles": 0,
+      "delta_us": 0.0,
+      "delta_percent": 0.0,
+      "duration_us": 11238.240384615385,
+      "pcm_differing_sample_indices": [],
+      "pcm_hash": "175ee178",
+      "first_pcm_sample_cycle": 925989,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 3,
+      "scope": "gpio",
+      "phase": 1,
+      "total": 1201547,
+      "guest": 1168777,
+      "blocked": 0,
+      "GPIO": 0,
+      "MMC": 1247,
+      "MMIO": 5844,
+      "card_edges": 20957,
+      "card_gap_3": 19953,
+      "delta_cycles": 0,
+      "delta_us": 0.0,
+      "delta_percent": 0.0,
+      "duration_us": 11238.240384615385,
+      "pcm_differing_sample_indices": [],
+      "pcm_hash": "175ee178",
+      "first_pcm_sample_cycle": 925989,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 3,
+      "scope": "gpio",
+      "phase": 2,
+      "total": 1201547,
+      "guest": 1168777,
+      "blocked": 0,
+      "GPIO": 0,
+      "MMC": 1247,
+      "MMIO": 5844,
+      "card_edges": 20957,
+      "card_gap_3": 19953,
+      "delta_cycles": 0,
+      "delta_us": 0.0,
+      "delta_percent": 0.0,
+      "duration_us": 11238.240384615385,
+      "pcm_differing_sample_indices": [],
+      "pcm_hash": "175ee178",
+      "first_pcm_sample_cycle": 925989,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 2,
+      "scope": "mmc",
+      "phase": 0,
+      "total": 1201564,
+      "guest": 1168794,
+      "blocked": 199,
+      "GPIO": 0,
+      "MMC": 1244,
+      "MMIO": 5840,
+      "card_edges": 20948,
+      "card_gap_3": 19944,
+      "delta_cycles": 17,
+      "delta_us": 0.16346153846153846,
+      "delta_percent": 0.001454511852988209,
+      "duration_us": 11238.403846153846,
+      "pcm_differing_sample_indices": [
+        2
+      ],
+      "pcm_hash": "76c3cde3",
+      "first_pcm_sample_cycle": 926022,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [
+        {
+          "index": 2,
+          "baseline": [
+            "f415",
+            "05f5"
+          ],
+          "actual": [
+            "f453",
+            "05d6"
+          ]
+        }
+      ],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=76c3cde3",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201564 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 2,
+      "scope": "mmc",
+      "phase": 1,
+      "total": 1201563,
+      "guest": 1168793,
+      "blocked": 198,
+      "GPIO": 0,
+      "MMC": 1244,
+      "MMIO": 5840,
+      "card_edges": 20948,
+      "card_gap_3": 19944,
+      "delta_cycles": 16,
+      "delta_us": 0.15384615384615385,
+      "delta_percent": 0.0013689523322241968,
+      "duration_us": 11238.39423076923,
+      "pcm_differing_sample_indices": [
+        2
+      ],
+      "pcm_hash": "8101260a",
+      "first_pcm_sample_cycle": 926021,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [
+        {
+          "index": 2,
+          "baseline": [
+            "f415",
+            "05f5"
+          ],
+          "actual": [
+            "f452",
+            "05d7"
+          ]
+        }
+      ],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=8101260a",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201563 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 3,
+      "scope": "mmc",
+      "phase": 0,
+      "total": 1202588,
+      "guest": 1169818,
+      "blocked": 2222,
+      "GPIO": 0,
+      "MMC": 1244,
+      "MMIO": 5815,
+      "card_edges": 20948,
+      "card_gap_3": 19944,
+      "delta_cycles": 1041,
+      "delta_us": 10.009615384615385,
+      "delta_percent": 0.0890674611153368,
+      "duration_us": 11248.25,
+      "pcm_differing_sample_indices": [
+        2
+      ],
+      "pcm_hash": "42017502",
+      "first_pcm_sample_cycle": 927028,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [
+        {
+          "index": 2,
+          "baseline": [
+            "f415",
+            "05f5"
+          ],
+          "actual": [
+            "fbc1",
+            "021f"
+          ]
+        }
+      ],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=42017502",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=724 PCM ticks=2 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1202588 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 3,
+      "scope": "mmc",
+      "phase": 1,
+      "total": 1202590,
+      "guest": 1169820,
+      "blocked": 2224,
+      "GPIO": 0,
+      "MMC": 1244,
+      "MMIO": 5815,
+      "card_edges": 20948,
+      "card_gap_3": 19944,
+      "delta_cycles": 1043,
+      "delta_us": 10.028846153846153,
+      "delta_percent": 0.08923858015686482,
+      "duration_us": 11248.26923076923,
+      "pcm_differing_sample_indices": [
+        2
+      ],
+      "pcm_hash": "eb1b9550",
+      "first_pcm_sample_cycle": 927030,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [
+        {
+          "index": 2,
+          "baseline": [
+            "f415",
+            "05f5"
+          ],
+          "actual": [
+            "fbc5",
+            "021d"
+          ]
+        }
+      ],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=eb1b9550",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=724 PCM ticks=2 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1202590 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 3,
+      "scope": "mmc",
+      "phase": 2,
+      "total": 1202589,
+      "guest": 1169819,
+      "blocked": 2223,
+      "GPIO": 0,
+      "MMC": 1244,
+      "MMIO": 5815,
+      "card_edges": 20948,
+      "card_gap_3": 19944,
+      "delta_cycles": 1042,
+      "delta_us": 10.01923076923077,
+      "delta_percent": 0.08915302063610081,
+      "duration_us": 11248.259615384615,
+      "pcm_differing_sample_indices": [
+        2
+      ],
+      "pcm_hash": "170d7cdb",
+      "first_pcm_sample_cycle": 927029,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [
+        {
+          "index": 2,
+          "baseline": [
+            "f415",
+            "05f5"
+          ],
+          "actual": [
+            "fbc3",
+            "021e"
+          ]
+        }
+      ],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=170d7cdb",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=724 PCM ticks=2 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1202589 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 2,
+      "scope": "all_mmio",
+      "phase": 0,
+      "total": 1201568,
+      "guest": 1168798,
+      "blocked": 244,
+      "GPIO": 0,
+      "MMC": 1244,
+      "MMIO": 5839,
+      "card_edges": 20948,
+      "card_gap_3": 19944,
+      "delta_cycles": 21,
+      "delta_us": 0.20192307692307693,
+      "delta_percent": 0.0017967499360442582,
+      "duration_us": 11238.442307692309,
+      "pcm_differing_sample_indices": [
+        2
+      ],
+      "pcm_hash": "9010bbc1",
+      "first_pcm_sample_cycle": 926007,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [
+        {
+          "index": 2,
+          "baseline": [
+            "f415",
+            "05f5"
+          ],
+          "actual": [
+            "f437",
+            "05e4"
+          ]
+        }
+      ],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=9010bbc1",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=724 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201568 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 2,
+      "scope": "all_mmio",
+      "phase": 1,
+      "total": 1201567,
+      "guest": 1168797,
+      "blocked": 243,
+      "GPIO": 0,
+      "MMC": 1244,
+      "MMIO": 5839,
+      "card_edges": 20948,
+      "card_gap_3": 19944,
+      "delta_cycles": 20,
+      "delta_us": 0.19230769230769232,
+      "delta_percent": 0.001711190415280246,
+      "duration_us": 11238.432692307691,
+      "pcm_differing_sample_indices": [
+        2
+      ],
+      "pcm_hash": "c51d13e8",
+      "first_pcm_sample_cycle": 926006,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [
+        {
+          "index": 2,
+          "baseline": [
+            "f415",
+            "05f5"
+          ],
+          "actual": [
+            "f435",
+            "05e5"
+          ]
+        }
+      ],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=c51d13e8",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=724 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201567 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 3,
+      "scope": "all_mmio",
+      "phase": 0,
+      "total": 1202607,
+      "guest": 1169837,
+      "blocked": 9899,
+      "GPIO": 0,
+      "MMC": 1244,
+      "MMIO": 5623,
+      "card_edges": 20948,
+      "card_gap_3": 19944,
+      "delta_cycles": 1060,
+      "delta_us": 10.192307692307692,
+      "delta_percent": 0.09069309200985304,
+      "duration_us": 11248.432692307691,
+      "pcm_differing_sample_indices": [
+        2
+      ],
+      "pcm_hash": "a0329f4b",
+      "first_pcm_sample_cycle": 927046,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [
+        {
+          "index": 2,
+          "baseline": [
+            "f415",
+            "05f5"
+          ],
+          "actual": [
+            "fbe3",
+            "020e"
+          ]
+        }
+      ],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=a0329f4b",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=724 PCM ticks=2 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1202607 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 3,
+      "scope": "all_mmio",
+      "phase": 1,
+      "total": 1202606,
+      "guest": 1169836,
+      "blocked": 9900,
+      "GPIO": 0,
+      "MMC": 1244,
+      "MMIO": 5623,
+      "card_edges": 20948,
+      "card_gap_3": 19944,
+      "delta_cycles": 1059,
+      "delta_us": 10.182692307692308,
+      "delta_percent": 0.09060753248908902,
+      "duration_us": 11248.423076923076,
+      "pcm_differing_sample_indices": [
+        2
+      ],
+      "pcm_hash": "ea9d8772",
+      "first_pcm_sample_cycle": 927045,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [
+        {
+          "index": 2,
+          "baseline": [
+            "f415",
+            "05f5"
+          ],
+          "actual": [
+            "fbe1",
+            "020f"
+          ]
+        }
+      ],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=ea9d8772",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=724 PCM ticks=2 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1202606 reads=4 writes=1"
+      ]
+    },
+    {
+      "div": 3,
+      "scope": "all_mmio",
+      "phase": 2,
+      "total": 1202605,
+      "guest": 1169835,
+      "blocked": 9898,
+      "GPIO": 0,
+      "MMC": 1244,
+      "MMIO": 5623,
+      "card_edges": 20948,
+      "card_gap_3": 19944,
+      "delta_cycles": 1058,
+      "delta_us": 10.173076923076923,
+      "delta_percent": 0.09052197296832501,
+      "duration_us": 11248.413461538461,
+      "pcm_differing_sample_indices": [
+        2
+      ],
+      "pcm_hash": "1ee9bb55",
+      "first_pcm_sample_cycle": 927044,
+      "pcm_sample_span": 275167,
+      "pcm_differences": [
+        {
+          "index": 2,
+          "baseline": [
+            "f415",
+            "05f5"
+          ],
+          "actual": [
+            "fbdf",
+            "0210"
+          ]
+        }
+      ],
+      "checks": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=1ee9bb55",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=724 PCM ticks=2 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1202605 reads=4 writes=1"
+      ]
+    }
+  ],
+  "admission_rtl_sha256": "13af28adca607e1441a44e99af50191d0a7826a23d2fde3c8e712a217a49d6f0",
+  "verified_sources": {
+    "mixed/source/tests/phone/mmc_mister/tb.v": "60f392fdb62272f333b6a75bcc0a2794354da57d0074466b996e16cee170b3a5",
+    "mixed/gpio.S": "270976813093349fbed6000db5b713ff6a431c81761ac4de43e4e76808f61b1a",
+    "directed/tb.sv": "9d4e0a5f1bec5bbe1cd41159f57397be383313ac64b882ce4b8be861455cd229",
+    "stock/tb.v": "62662130c347434ddb9197540276207261db58b687945bd5a8ee1af300d48527"
+  }
+}

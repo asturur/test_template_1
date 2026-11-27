@@ -1,10 +1,3 @@
-## Current clock policy — 2026-11-11
-
-The actual PLL and production SYS_CLK_HZ remain78 MHz. Design RTL stage depth
-and fanout toward104 MHz (9.615 ns) and keep104 MHz logical/SDRAM tests, but do
-not change the operating PLL without explicit user authorization. This policy
-was clarified during [LCD/DMA timing recovery](lcd-dma-timing-recovery.md).
-
 # Phone clocks and slower interfaces
 
 ## EKA2L1 timing comparison
@@ -32,6 +25,156 @@ rate follows from either model. To measure it, read the counter from
 privileged code at two UEM RTC second boundaries on a stock NEM-4 and
 take the difference modulo 65,536. The nearby calibration counter at
 `0x0c150112` is a separate register.
+
+## Physical 104 MHz v5 baseline — 2026-11-21
+
+The v5 PLL requests 104 MHz from the 50 MHz MiSTer reference. CPU, bus,
+DDR transport and SDRAM controller share that clock. The SDRAM pin
+clock remains the 180° DDIO-forwarded system clock, so the controller
+and memory stay synchronous at 1:1. The unused PLL output retains
+its nominal −90° phase. SDRAM initialization, refresh and pin command
+spacing derive from the physical system frequency. The controller
+keeps its 200 µs power-up interval, CAS latency and pin capture scheme.
+
+The modeled MMC host and card stay in the system domain. The integer
+divide-by-three in the 104 MHz build gives 34.6667 MHz while active.
+It holds the clock low for one system clock and high for two.
+Both peers sample on the first system edge of the high phase. FIFO
+backpressure holds the clock low between complete bits. The 64-edge
+response start and 2²³-edge data/busy limits are about 1.846 µs and
+241.979 ms of active MMC clocks.
+
+The 78 and 104 MHz builds both use a 6.5 MHz pixel enable and the
+same 400×262 source raster, yielding 16.250 kHz horizontal and
+62.0229 Hz vertical. The 176×208 phone and 320×240 diagnostic active
+rectangles have identical sync positions, widths and blanking at both
+system rates. This is the source raster for MiSTer's direct video
+path. The scaler can supply its own sync timing.
+
+The general timer keeps its 26 MHz enable through divide-by-four.
+Timer0's stock reload and the production NOS counter both yield 64 Hz,
+independent of the analog raster. Diagnostic SIM retains 3.25 MHz.
+The approximate 32.768 kHz counter uses divisor 3174. UEM wall time,
+save/SD timeouts and PCM input/output phase use the system rate.
+Guest LCD uploads and DMA arbitration continue at system speed. PCM
+output remains 48 kHz.
+
+CI checks the TimeQuest PLL against the selected source and records the
+actual native period. The physical 104 MHz report uses the routed
+clock without an override. Historical physical 78 MHz fits still
+allow a separate diagnostic 104 MHz report. Native timing coverage
+requires setup, hold, recovery, removal and pulse width at four
+operating corners, with 1,000 exported setup paths per corner.
+The physical 78 MHz sign-off is preserved at `7b10754`, seed 43.
+
+Simulation checked the full normal and diagnostic source rasters, exact
+guest timer periods, MMC pin restart and CRC, a 64-sector CMD18/CMD12
+read, and persistent CMD24 write/readback alongside PCM and LCD DMA.
+The physical SDRAM pin model passed full scrub, byte masks, SWP order,
+competing LCD/DMA requests and refresh at 104 MHz. Fifteen fixed CPU
+payloads and all four native PolyCount frames matched the preceding
+104 MHz baseline. These observations use simulation and modeled media.
+
+### GPIO and EUART MMIO timing
+
+Production GPIO and keypad logic and EUART1 use the same 104 MHz system
+clock as the UPP request and response registers. The keypad tracks input
+edges each system clock. EUART models a byte-stream interface with
+synchronous FIFO read settling. A clock divider does not participate in
+its software-facing response. The timer and SIMIF enables govern their
+device events. Their UPP reads still use the system-clock handshake.
+
+In the directed trace, an immediate request sampled its register state
+and performed authorized effects on the first edge after packet capture.
+The bridge raised the CPU response on the following edge. A GPIO storage
+read spent one additional edge on BRAM. With the keypad enabled, the
+trace recorded 121 and 187 sample edges in the two phases of a divide-by-two
+clock and 104, 104 and 100 across the three phases of a divide-by-three
+clock. A divided interface would need a different handshake to handle
+those sample edges. The lane 13 trial preserved guest and peripheral
+cycles. Its routed result is archived, and the production clocking
+remains at 104 MHz.
+[Clock-edge trace and fitted comparison](experiments/v5-performance/peripheral-lane13.md#why-the-timing-paths-run-at-104-mhz)
+
+## 2026-11-18 — v5 NOS deadline cadence
+
+The NOS compare counter at `0x0c150116` advances once per programmed
+period. The original NOS routine at `0x514ae058` reads that count and
+writes its current value plus a relative deadline to `0x0c150118`.
+When the counter reaches the compare, status bit 7 is set. The enable
+and ICU routing determine whether the firmware receives IRQ25. The
+original elapsed-time routine at `0x514ae188` subtracts elapsed counter
+ticks from its software deadline. The NOS rate establishes the units
+used for those deadlines. NEM-4 register-level documentation for this
+compare rate remains unavailable.
+
+| At 78 MHz | 32 Hz trial | 64 Hz control | 128 Hz trial |
+| --- | ---: | ---: | ---: |
+| System clocks per NOS tick | 2,437,500 | 1,218,750 | 609,375 |
+| Milliseconds per NOS tick | 31.250 | 15.625 | 7.8125 |
+| Nominal milliseconds for 47 ticks | 1,468.750 | 734.375 | 367.1875 |
+
+The register test observes the exact tick intervals and one IRQ for one
+armed deadline at each rate, also at a 104 MHz analysis clock. Timer0
+uses the 26 MHz general timer clock and the stock 406,250 reload, yielding
+64 Hz at each NOS setting. The fast counter at `0x0c150112` advances every
+2,380 system clocks at 78 MHz, about 32,773 Hz. The PCM player uses its
+own sample and output rates. The modeled UPP DSP startup announcement
+uses 20 NOS ticks after its prerequisites, a nominal 312.5 ms at 64 Hz
+or 156.25 ms at 128 Hz.
+
+The ARM9V2 deadline fixture executes the unchanged original schedule
+and elapsed-time routines against the RTL NOS block. Both set a 47-tick
+deadline at CPU clock 2,571, wait for status bit 7, run the stock
+elapsed-time routine to reduce the remaining ticks to zero, and clear
+the pending IRQ. From comparison write to IRQ assertion takes
+57,278,679 clocks (734.342 ms) at 64 Hz and 28,638,054 clocks
+(367.155 ms) at 128 Hz. The private fixture extracts code from a
+hash-checked copy of the original NOS module.
+
+```sh
+sh tests/phone/nos_deadline/run.sh /path/to/ngage-gsmstuff-0x5149D280.dll
+```
+
+Both cold boots use factory firmware, identical C: images, 8 KiB D2,
+78 MHz MMC, stock PCM, and an empty card slot. They reach the first
+complete Nokia logo and run through 340 million CPU clocks. Their final
+framebuffers match byte for byte. Each has three instruction faults
+and zero data faults.
+
+| Cold boot measurement | 64 Hz NOS | 128 Hz NOS |
+| --- | ---: | ---: |
+| First complete logo, CPU clocks | 295,684,044 | 283,515,747 |
+| First complete logo, modeled seconds | 3.790821 | 3.634817 |
+| NOS ticks at 340 million clocks | 278 | 557 |
+| NOS timer assertions at 340 million clocks | 3 | 27 |
+| General timer0 assertions at 340 million clocks | 66 | 66 |
+| CPU IRQ-mode entries at 340 million clocks | 82 | 108 |
+
+The 128 Hz trial reaches the logo 156.004 ms sooner. The two runs are at
+different firmware stages near the end of the equal-time observation.
+The isolated native MDI fixture with the production 20-tick startup
+delay announces the DSP at clocks 24,375,005 and 12,187,505 respectively,
+a 156.250 ms reduction close to the logo gain. Original MDI tasks and
+the signed PCM start/refill/stop/restart sequence pass at both rates.
+Output stays at one sample every 1,625 clocks (48 kHz) in both. Keep
+production NOS at 64 Hz for now. The 128 Hz trial changes every guest
+NOS deadline and later startup and game timing remain open.
+
+Run `sh tests/phone/native_mdi/run.sh 64` and repeat with `128` for the
+isolated MDI comparison.
+
+The original full-rate MMC boot replay uses the RTL from commit `893b109`.
+
+```sh
+python3 -B tests/phone/hardware_boot/run-logo.py --name v5-mmc1-nos128-340m \
+    --cycles 340000000 --sys-clk-hz 78000000 --timer-clock 26mhz --nos-tick-hz 128 \
+    --nos-timing-stats --production-ddr --flash-cache-bytes 8192 --mmc-clk-div 1 \
+    --stock-game-pcm --line-refill --cdrive /path/to/formatted-cdrive.img
+```
+
+[MMC experiment and results](ddr-flash-cache.md#2026-11-18--8-kib-v5-with-full-rate-mmc) ·
+[Combined run evidence](evidence/mmc-full-rate-v5-20261118.json).
 
 ## Requested26MHz/64Hz spin (2026-11-09)
 

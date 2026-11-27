@@ -1,0 +1,129 @@
+{
+  "status": "PASS",
+  "active_ram": "ae3654c75c4ff5027d0bd146baf3c8f5f2280cde",
+  "active_timer": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+  "timer_tree": "0ccd13d8cd502bc14d3b89c6431ff0ebe4745612",
+  "restore": "b9d860982456bdb2b5ee925b35c99f3d26315008",
+  "restore_parent": "ae3654c75c4ff5027d0bd146baf3c8f5f2280cde",
+  "ram_patch_sha256": "669a017ea2c38e462f8df321622f3bc7592fe2a690643b7f3c3416c93d7ba532",
+  "product_patch_sha256": "fc0e795261dd6b336ada52ccc537e9c4ad58811ff920bf37a5afe09a283f1598",
+  "ram_qualification_sha256": "50aba6db22dd4be800f71c2bb9341b1217f42e76e49251dcff048e0366d98ca5",
+  "product_qualification_sha256": "abb245403dfc9b2991148724b153fca8cb302e48c236a66152a6ea3fa84baa20",
+  "changed_module": "ngage2_arm9v2_execute",
+  "private_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/a-only-product-ram-combined/dispatch-20261126/objects",
+  "alternate_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/.git/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/tlb-fifo-refill-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/refill-payload-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/sdram-block-payload/followup-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-dirty-compact-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-compact-owner-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-footer-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/timer-live-trust-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-live-trust/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lltune-clock/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lane13-mmc-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-count-prepare/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/wb-reply-class/dispatch-20261126/objects",
+  "variants": {
+    "a-only-on-timer": {
+      "sha": "9229940ac0cd68e10613a624a8d03673bc6b6f9e",
+      "parent": "b9d860982456bdb2b5ee925b35c99f3d26315008",
+      "tree": "f02c46782fc7e2a933014e25d4ddae94aeeb0712",
+      "paths_since_parent": [
+        "rtl/arm9v2/arm925t_phone.v",
+        "tools/gen_arm9v2_phone.py"
+      ],
+      "execute_sha256": "244cda7c1253301c52109a6d428ed88ed4d8355556b30490c50e01b6dc1107a5",
+      "source_sha256": {
+        "rtl/arm9v2/arm925t_phone.v": "e751e5e01e2f535892c43bd7de8cfa2aceca80347f6e5a0e4816f4b8ba703a64",
+        "rtl/ngage_mmc_host.v": "ab08844346ddfd6b7246a8b08ead7030de88d9cbbe8d46832ccdb9ee0204be31",
+        "tools/gen_arm9v2_phone.py": "bb2ceeea44d83356f5c96c75c3dfbe5209c53b61411cf3e77bb56cf8ca996ba1"
+      },
+      "production": {
+        "13": {
+          "control_run": 45824513460,
+          "control_commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/arm9v2/arm925t_phone.v": "e751e5e01e2f535892c43bd7de8cfa2aceca80347f6e5a0e4816f4b8ba703a64"
+          },
+          "qsf_sha256": "4fc5f57d431d9d7a498413222ab65fc2d9e77a295529bca77964e343a50e37f5",
+          "manifest_sha256": "1104e2faa1735d027016a81e1557b63c3518139704c003c4c0f65b7fc1c4cb2b",
+          "control_manifest_sha256": "7e5e0b5c0f50b20e046c8f7fd0d07077bdabeef289e36b52c223c36622cecf01"
+        },
+        "43": {
+          "control_run": 45824520116,
+          "control_commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/arm9v2/arm925t_phone.v": "e751e5e01e2f535892c43bd7de8cfa2aceca80347f6e5a0e4816f4b8ba703a64"
+          },
+          "qsf_sha256": "d9b9a130e10322d51813c6ec1c104d39ad0aeb48d8735d411062794392b78e77",
+          "manifest_sha256": "4da3cfbb40ca5d1a82dc4b131c33dfafd5e85d86ee417cf3cdf1e85640a55609",
+          "control_manifest_sha256": "1e171954b772067ecc79fa1bedefbfc783377d812ba087433723cf6303b6bdf6"
+        },
+        "31337": {
+          "control_run": 45824525843,
+          "control_commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/arm9v2/arm925t_phone.v": "e751e5e01e2f535892c43bd7de8cfa2aceca80347f6e5a0e4816f4b8ba703a64"
+          },
+          "qsf_sha256": "13c4e6e395338cb2a02ce8089d65b033dddf5543da393510a4b90481a703a917",
+          "manifest_sha256": "d7dc43f3653bb5799ff890d8bd6f0bfba79357e8d3abbe4058011645e264d52c",
+          "control_manifest_sha256": "9e7c6a1a38f47382128fe9d8ca1d6eabadc201b4e7469b570a6e6f9135c5eb20"
+        }
+      }
+    },
+    "a-only-plus-ram": {
+      "sha": "441063e7ce20556f092d8fe51ad444cc8225ea93",
+      "parent": "ae3654c75c4ff5027d0bd146baf3c8f5f2280cde",
+      "tree": "adf9fab55a218da8f92da969f8d8d1a2d1e0b769",
+      "paths_since_parent": [
+        "rtl/arm9v2/arm925t_phone.v",
+        "tools/gen_arm9v2_phone.py"
+      ],
+      "execute_sha256": "244cda7c1253301c52109a6d428ed88ed4d8355556b30490c50e01b6dc1107a5",
+      "source_sha256": {
+        "rtl/arm9v2/arm925t_phone.v": "ae5e75727edebfa582b70e63deda8df46c964cc3b354eaa0443b6717c3af954d",
+        "rtl/ngage_mmc_host.v": "6cf5cae2039d19fe6ca4f6d70ff8f514fa3f98097f894429892af38deea13d87",
+        "tools/gen_arm9v2_phone.py": "f41cc1ee73ee6a6cd60bfa08624aab5e9692e71ae285881e3bd9bf305ad56161"
+      },
+      "production": {
+        "13": {
+          "control_run": 45869671440,
+          "control_commit": "ae3654c75c4ff5027d0bd146baf3c8f5f2280cde",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/arm9v2/arm925t_phone.v": "ae5e75727edebfa582b70e63deda8df46c964cc3b354eaa0443b6717c3af954d"
+          },
+          "qsf_sha256": "4fc5f57d431d9d7a498413222ab65fc2d9e77a295529bca77964e343a50e37f5",
+          "manifest_sha256": "164d11aa4b95920350ab2fbf209176cfb6ae18e148dbbefc146117077abfd303",
+          "control_manifest_sha256": "631b9a7c2fff83ab36b6c2b2f6502bd20aa0addd54c6b016aace86886668d967"
+        },
+        "43": {
+          "control_run": 45869675764,
+          "control_commit": "ae3654c75c4ff5027d0bd146baf3c8f5f2280cde",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/arm9v2/arm925t_phone.v": "ae5e75727edebfa582b70e63deda8df46c964cc3b354eaa0443b6717c3af954d"
+          },
+          "qsf_sha256": "d9b9a130e10322d51813c6ec1c104d39ad0aeb48d8735d411062794392b78e77",
+          "manifest_sha256": "49b6e97c7d14dbd2420be17378e01f724d4ab42f4fd87f17d54c098ba630221b",
+          "control_manifest_sha256": "84ea284405ab11bb36818c9a7c13bfec2e439d22fae186bd509a4eb164ab7e57"
+        },
+        "31337": {
+          "control_run": 45869680539,
+          "control_commit": "ae3654c75c4ff5027d0bd146baf3c8f5f2280cde",
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/arm9v2/arm925t_phone.v": "ae5e75727edebfa582b70e63deda8df46c964cc3b354eaa0443b6717c3af954d"
+          },
+          "qsf_sha256": "13c4e6e395338cb2a02ce8089d65b033dddf5543da393510a4b90481a703a917",
+          "manifest_sha256": "fa5cbaaee1ab68ad30fdbad3d9dc0dba3c321a990f049946e7680ec78fb46c93",
+          "control_manifest_sha256": "e078e17ce88e8808af90dfc9424cf1b192a99a89824a4dccb0d5bacf1a2c8ef7"
+        }
+      }
+    }
+  }
+}

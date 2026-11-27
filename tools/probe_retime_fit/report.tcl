@@ -18,11 +18,7 @@ proc clock_snapshot {} {
     }
     return $d
 }
-proc retarget_core {} {
-    # Preserve the derived clock names/targets, their original reference source,
-    # relative phase/duty, all unrelated clocks, exceptions and I/O constraints.
-    # Actual VCO=780 MHz -> analysis-only VCO=1040, unchanged /10 -> 104 MHz.
-    set original [clock_snapshot]
+proc core_pll_clocks {} {
     set vcos {};set outputs {}
     foreach_in_collection c [get_clocks *] {
         set n [get_clock_info -name $c]
@@ -31,7 +27,32 @@ proc retarget_core {} {
         if {[string match {*~PLL_OUTPUT_COUNTER*|divclk} $n]} {lappend outputs $c}
     }
     if {[llength $vcos]!=1 || [llength $outputs]!=1} {error "Expected one live core VCO/output, got $vcos / $outputs"}
-    set vco [lindex $vcos 0]
+    return [list [lindex $vcos 0] [lindex $outputs 0]]
+}
+proc measure_native_core {} {
+    lassign [core_pll_clocks] vco output
+    set period [get_clock_info -period $output]
+    set vco_period [get_clock_info -period $vco]
+    if {$vco_period <= 0 || $period <= 0} {error "Invalid native PLL periods"}
+    set mhz [expr {round(1000.0/$period)}]
+    if {$mhz ni {78 104} || abs($period - 1000.0/$mhz) > 0.002} {
+        error "Unsupported fitted core PLL period $period ns"
+    }
+    set divider [expr {round($period / $vco_period)}]
+    if {$divider < 1 || abs($period - $divider * $vco_period) > 0.01} {
+        error "Inconsistent fitted core PLL VCO and output periods"
+    }
+    lassign [get_clock_info -waveform $output] rising falling
+    if {abs($rising) > 0.002 || abs($falling - $period/2) > 0.002} {
+        error "Unexpected fitted core PLL waveform $rising $falling ns"
+    }
+    return [list $mhz $period $vco_period]
+}
+proc retarget_core {} {
+    # Legacy 78 MHz diagnostic only. The fitted clock and all physical
+    # 104 MHz reports retain the original PLL, exceptions and constraints.
+    set original [clock_snapshot]
+    lassign [core_pll_clocks] vco output
     set n [get_clock_info -name $vco]
     set period [get_clock_info -period $vco]
     if {abs($period - 20.0*5/78)>0.002} {error "Unexpected control VCO period $period"}
@@ -40,7 +61,7 @@ proc retarget_core {} {
     set targets [get_clock_info -targets $vco]
     # Overwrite by same name/target; keep existing clock-group names meaningful.
     create_generated_clock -name $n -source $src -master_clock $master -multiply_by 104 -divide_by 5 -duty_cycle 50 $targets
-    foreach c $outputs {
+    foreach c [list $output] {
         set n [get_clock_info -name $c]
         set row [dict get $original $n]
         set old_period [lindex $row 0]
@@ -58,7 +79,7 @@ proc retarget_core {} {
         if {[string first "emu|pll|" $n] != 0 && [dict get $original $n] ne [dict get $changed $n]} {error "Unrelated clock changed: $n"}
         if {[lrange [dict get $original $n] 2 end] ne [lrange [dict get $changed $n] 2 end]} {error "Master/clock fanout changed: $n"}
     }
-    foreach c $outputs {
+    foreach c [list $output] {
         set n [get_clock_info -name $c]
         set p [lindex [dict get $changed $n] 0]
         if {abs($p-1000.0/104)>0.002} {error "104 MHz clock validation failed: $p"}
@@ -78,6 +99,7 @@ proc endpoint_csv {filename} {
         puts $f [join $cells ,]
     }
     close $f
+    if {$rank != 1000} {error "Expected 1000 endpoint paths, found $rank"}
 }
 proc emit {d} {
     file mkdir $d
@@ -132,15 +154,31 @@ proc emit {d} {
     close $summary
     set clocks [open $d/clock-inventory.tcl w];puts $clocks [clock_snapshot];close $clocks
 }
-# Analyze each available required operating condition. All scenarios use the
-# same routed database. No settings are written or fit/synthesis rerun.
-foreach scenario {78 104} {
+# The fitted PLL identifies the native scenario before any clock override.
+create_timing_netlist -model slow
+read_sdc
+update_timing_netlist
+lassign [measure_native_core] native_mhz native_period native_vco_period
+delete_timing_netlist
+if {[llength $argv] > 1 || ([llength $argv] && [lindex $argv 0] ne $native_mhz)} {
+    error "Declared core clock $argv disagrees with the fitted $native_mhz MHz PLL"
+}
+set f [open $root/physical-clock.txt w]
+puts $f "physical_mhz=$native_mhz\nperiod_ns=$native_period\nvco_period_ns=$native_vco_period"
+close $f
+puts "Fitted core clock: $native_mhz MHz (period $native_period ns, VCO period $native_vco_period ns)"
+
+# Keep both reports for older 78 MHz routes. A physical 104 MHz build has
+# one native scenario and never calls the diagnostic clock override.
+set scenarios [list $native_mhz]
+if {$native_mhz == 78} {lappend scenarios 104}
+foreach scenario $scenarios {
     create_timing_netlist -model slow
     read_sdc
     update_timing_netlist
     set d $root/$scenario
     file mkdir $d
-    if {$scenario==104} {
+    if {$scenario != $native_mhz} {
         if {[catch {retarget_core} why]} {
             puts $errors "104 clock coverage FAILED: $why";flush $errors
             set f [open $d/clock-coverage-FAILED.txt w];puts $f $why;close $f
@@ -148,8 +186,13 @@ foreach scenario {78 104} {
             delete_timing_netlist
             continue
         }
-        set f [open $d/clock-coverage-PASS.txt w];puts $f "104 MHz internal clocks validated; see UCP for preexisting missing I/O constraints";close $f
+        set mode "diagnostic retarget of the physical $native_mhz MHz route"
+    } else {
+        set mode "physical fitted PLL"
     }
+    set f [open $d/clock-coverage-PASS.txt w]
+    puts $f "$scenario MHz internal clocks validated ($mode)"
+    close $f
     set index 0
     foreach_in_collection op [get_available_operating_conditions] {
         incr index
@@ -160,8 +203,12 @@ foreach scenario {78 104} {
         close $f
         set_operating_conditions $op
         update_timing_netlist
+        if {$scenario == $native_mhz && [lindex [measure_native_core] 0] != $native_mhz} {
+            error "Fitted core clock changed at corner $index"
+        }
         emit $od
     }
+    if {$index != 4} {error "Expected four operating corners, found $index"}
     delete_timing_netlist
 }
 close $errors

@@ -1,8 +1,8 @@
 #!/bin/sh
 # Run inside the existing simulator container, from the repository root.
 set -eu
-mkdir -p build/sim/unit build/sim/mister-migration-plan
-run_dir=$(mktemp -d build/sim/mister-migration-plan/fulltest.XXXXXX)
+mkdir -p build/sim/unit scratch/mister-migration-plan
+run_dir=$(mktemp -d scratch/mister-migration-plan/fulltest.XXXXXX)
 bundle="$run_dir/test.bundle"
 trap 'rm -f "$bundle" "$bundle.json"; rmdir "$run_dir"' EXIT HUP INT TERM
 python3 tools/prepare_mister_images.py --profile diagnostic-erased-pmm --output "$bundle"

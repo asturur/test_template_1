@@ -7,7 +7,7 @@ from unicorn.arm_const import *
 ROOT=Path(__file__).resolve().parents[2]
 OUT=ROOT/'build/firmware-overlays/sim-trace'
 report=json.loads((OUT/'trace.json').read_text())
-raw=(ROOT/'tests/phone/fixtures/local/raw-original.bin').read_bytes()
+raw=(ROOT/'scratch/menu-bringup-20261112/raw-original.bin').read_bytes()
 for off,old,target in report['hooks']:
  assert struct.unpack_from('<I',raw,off)[0]==old
 for index,kind,target in ((0,'N',0x5165ed25),(1,'P',0x5165ecd1)):

@@ -1,0 +1,282 @@
+diff --git a/Template.sv b/Template.sv
+index 1625628b61185db9f60ea5498baebb600a488487..2ab0ba3bbb3c268547d636bca62e3038328d587c 100644
+--- a/Template.sv
++++ b/Template.sv
+@@ -246,7 +246,7 @@ module emu (
+ 
+     wire sdram_scrub_done, sdram_ack, cpu_sdram_accept;
+     wire [31:0] sdram_dout;
+-    wire mem_req, mem_we, mem_ack;
++    wire mem_req, mem_we, mem_ack, mem_lock;
+     wire [7:0] dma_error_pending;
+     wire dma_cmd_valid, dma_cmd_ready, dma_cmd_write;
+     wire [31:0] dma_cmd_addr, dma_cmd_data;
+@@ -365,6 +365,7 @@ module emu (
+         .dma_rdata      (shared_dma_rdata),
+         .mem_req        (mem_req),
+         .mem_we         (mem_we),
++        .mem_lock       (mem_lock),
+         .mem_addr       (mem_addr),
+         .mem_data       (mem_wdata),
+         .mem_write_block(mem_write_block),
+@@ -420,7 +421,7 @@ module emu (
+         .clk        (clk_sys),
+         .cold       (transport_reset),
+         .phone_reset(dma_reset || transport_reset),
+-        .lock       (cpu_bus_lock),
++        .lock       (mem_lock),
+         .owner_ready(sdram_owner_ready),
+         .req        (mem_req),
+         .we         (mem_we),
+diff --git a/rtl/ngage_sdram_arbiter.v b/rtl/ngage_sdram_arbiter.v
+index fd61c01b9b636fcfb265bb77295b2316d7c843e1..ec2fd0fb901cf8109381f8446949c0581610cfc1 100644
+--- a/rtl/ngage_sdram_arbiter.v
++++ b/rtl/ngage_sdram_arbiter.v
+@@ -33,11 +33,16 @@ module ngage_sdram_arbiter #(
+     input  wire          mem_ack,
+     input  wire [  31:0] mem_rdata,
+     output wire          cpu_accept,
+-    output wire          dma_accept
++    output wire          dma_accept,
++    output wire          mem_lock
+ );
+     localparam FREE = 0, ACTIVE = 1;
+     reg [1:0] state = FREE;
+     reg owner = 0, prefer_dma = 0;
++    // This bit follows the accepted scalar packet. The live CPU lock only
++    // arbitrates future grants and holds the reservation between SWP beats.
++    (* dont_retime *) reg packet_lock = 0;
++    assign mem_lock = packet_lock;
+     wire choose_cpu = cpu_req && (cpu_lock || !dma_req || !prefer_dma);
+     wire choose_dma = dma_req && !cpu_lock && !choose_cpu;
+     assign cpu_accept = !reset && state == FREE && choose_cpu;
+@@ -49,15 +54,17 @@ module ngage_sdram_arbiter #(
+     assign dma_rdata  = mem_rdata;
+     always @(posedge clk) begin
+         if (reset) begin
+-            state      <= FREE;
+-            owner      <= 0;
+-            prefer_dma <= 0;
++            state       <= FREE;
++            owner       <= 0;
++            prefer_dma  <= 0;
++            packet_lock <= 0;
+         end else
+             case (state)
+                 FREE:
+                 if (choose_cpu || choose_dma) begin
+                     owner           <= choose_dma;
+                     prefer_dma      <= !choose_dma;
++                    packet_lock     <= choose_cpu && cpu_lock;
+                     mem_we          <= choose_dma ? dma_we : cpu_we;
+                     mem_addr        <= choose_dma ? dma_addr : cpu_addr;
+                     mem_data        <= choose_dma ? dma_data : cpu_data;
+diff --git a/rtl/ngage_sdram_stream.v b/rtl/ngage_sdram_stream.v
+index b87f36e260ad2ff7ec009fd9a44f1db7d37b4ea3..f850fb6bcdbe7157f6e4d48881759d87d5ca1b56 100644
+--- a/rtl/ngage_sdram_stream.v
++++ b/rtl/ngage_sdram_stream.v
+@@ -7,6 +7,7 @@ module ngage_sdram_stream #(
+     input  wire         clk,
+     input  wire         cold,
+     input  wire         phone_reset,
++    // Lock sampled with this scalar packet by the bus owner.
+     input  wire         lock,
+     output wire         owner_ready,
+     input  wire         req,
+diff --git a/tests/cpu/arm9v2_board/frame_gap_donor_sdram.py b/tests/cpu/arm9v2_board/frame_gap_donor_sdram.py
+index d1c28ac5fb20410250d897d3a9eed96ceeffe208..c1de91b2d525a2793882efdcd24b5b8716daf5e7 100644
+--- a/tests/cpu/arm9v2_board/frame_gap_donor_sdram.py
++++ b/tests/cpu/arm9v2_board/frame_gap_donor_sdram.py
+@@ -22,7 +22,7 @@ BRIDGE = ''' wire scrub_done, sdr_ready;
+  ngage_sdram_clock forward_clock(.clk(clk),.sdram_clk(memclk));
+  assign #5.5 sdr_dq = memory.Dq_reg;
+  ngage_sdram_stream #(.WIDE_PORT(0), .SCRUB_BYTES(25'd32)) sadapter(
+-  .clk(clk),.cold(cold),.phone_reset(dma_reset || cold),.lock(lock),.owner_ready(sdram_owner_ready),
++  .clk(clk),.cold(cold),.phone_reset(dma_reset || cold),.lock(mem_lock),.owner_ready(sdram_owner_ready),
+   .req(sreq),.we(swe),.write_block(mem_write_block),.block_data(mem_block_data),
+   .addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sdata),
+   .line_req(ram_line_req && !lock),.line_short(1'b0),.line_addr(ram_line_addr),.line_ready(ram_line_ready),
+@@ -63,6 +63,10 @@ def generate(out, bench, wide=False, production=False):
+         (out / 'donor_sdram.sv').write_bytes(controller)
+     if wide or production:
+         ports = ports.replace('.WIDE_PORT(0)', '.WIDE_PORT(1)')
++    bench = swap(bench, ' wire cpu_write_block, mem_write_block;',
++                 ' wire cpu_write_block, mem_write_block, mem_lock;')
++    bench = swap(bench, '.mem_req(sreq),.mem_we(swe),.mem_addr(sa)',
++                 '.mem_req(sreq),.mem_we(swe),.mem_lock(mem_lock),.mem_addr(sa)')
+     start = bench.index(' wire scrub_done,mem_init;')
+     end = bench.index(' mt48lc16m16a2 memory(', start)
+     return swap(bench, bench[start:end], ports)
+diff --git a/tests/phone/lcd_stream/physical_tb.sv b/tests/phone/lcd_stream/physical_tb.sv
+index 0777185948727229a47f40b3beb4b3a09167acf8..e1a604a5b972630b979b1a37771dc986c0896002 100644
+--- a/tests/phone/lcd_stream/physical_tb.sv
++++ b/tests/phone/lcd_stream/physical_tb.sv
+@@ -149,6 +149,7 @@ module physical_lcd_stream_tb #(
+       .ram_valid(ram_valid),
+       .ram_last(ram_last)
+   );
++  wire packet_lock;
+   ngage_sdram_arbiter arbiter (
+       .clk(clk),
+       .reset(panel_reset),
+@@ -171,6 +172,7 @@ module physical_lcd_stream_tb #(
+       .dma_accept(dma_grant),
+       .mem_req(scalar_req),
+       .mem_we(),
++      .mem_lock(packet_lock),
+       .mem_addr(scalar_addr),
+       .mem_data(),
+       .mem_be(),
+@@ -189,7 +191,7 @@ module physical_lcd_stream_tb #(
+       .clk(clk),
+       .cold(cold),
+       .phone_reset(panel_reset),
+-      .lock(cpu_lock),
++      .lock(packet_lock),
+       .owner_ready(owner_ready),
+       .req(scalar_req),
+       .we(1'b0),
+diff --git a/tests/phone/sdram/stream_tb.sv b/tests/phone/sdram/stream_tb.sv
+index 11592f0408cb14bc7263800f037de48d62d63dfe..b3b57f33401696c40059a3ef3d36b4acf7d1dc65 100644
+--- a/tests/phone/sdram/stream_tb.sv
++++ b/tests/phone/sdram/stream_tb.sv
+@@ -13,9 +13,9 @@ module stream_tb;
+   reg cpu_write_block = 0;
+   reg [127:0] cpu_block_data = 0;
+   reg [3:0] cpu_mask = 0, dma_mask = 0;
+-  wire cpu_ack, dma_ack, owner_ready;
++  wire cpu_ack, dma_ack, owner_ready, cpu_grant, dma_grant;
+   wire [31:0] cpu_out, dma_out;
+-  wire req, we, ack;
++  wire req, we, ack, packet_lock;
+   wire [24:0] addr;
+   wire [31:0] write_data, read_data;
+   wire write_block;
+@@ -46,6 +46,7 @@ module stream_tb;
+       .dma_rdata(dma_out),
+       .mem_req(req),
+       .mem_we(we),
++      .mem_lock(packet_lock),
+       .mem_addr(addr),
+       .mem_data(write_data),
+       .mem_be(mask),
+@@ -53,8 +54,8 @@ module stream_tb;
+       .mem_block_data(block_data),
+       .mem_ack(ack),
+       .mem_rdata(read_data),
+-      .cpu_accept(),
+-      .dma_accept()
++      .cpu_accept(cpu_grant),
++      .dma_accept(dma_grant)
+   );
+ 
+   reg line_req = 0;
+@@ -69,7 +70,7 @@ module stream_tb;
+       .clk(clk),
+       .cold(cold),
+       .phone_reset(phone_reset),
+-      .lock(lock),
++      .lock(packet_lock),
+       .owner_ready(owner_ready),
+       .req(req),
+       .we(we),
+@@ -291,6 +292,99 @@ module stream_tb;
+     repeat (3) @(negedge clk);
+     phone_reset = 0;
+     cpu_transfer(0, BASE + 4, 0, 0, 32'h13579bdf);
++    // An older CPU write accepted with the reservation clear also keeps
++    // its posted completion when a younger SWP starts.
++    @(negedge clk);
++    cpu_req  = 1;
++    cpu_we   = 1;
++    cpu_addr = BASE;
++    cpu_data = 32'hba12ca34;
++    cpu_mask = 4'hf;
++    do @(posedge clk); while (!cpu_grant);
++    @(negedge clk);
++    lock = 1;
++    @(posedge clk);
++    if (packet_lock || !cpu_ack || dma_ack)
++      $fatal(1, "Older CPU write lost posted ownership when SWP locked");
++    @(negedge clk);
++    cpu_req = 0;
++    cpu_transfer(0, BASE, 0, 0, 32'hba12ca34);
++    lock = 0;
++
++    // Post a full four-word block. Grant an older DMA byte write while
++    // the pins are still busy, then raise the CPU lock before it can post.
++    cpu_write_block = 1;
++    cpu_block_data = 128'hffeeddcc_88776655_66554433_11223344;
++    cpu_transfer(1, BASE, cpu_block_data[31:0], 4'hf, 0);
++    cpu_write_block = 0;
++    dma_req = 1;
++    dma_we = 1;
++    dma_addr = BASE;
++    dma_data = 32'haabbccdd;
++    dma_mask = 4'b0101;
++    do @(posedge clk); while (!dma_grant);
++    @(negedge clk);
++    lock = 1;
++    @(posedge clk);
++    if (!busy_mem || !dma_ack || cpu_ack || packet_lock)
++      $fatal(1, "Older DMA byte write lost posted ownership when SWP locked");
++    @(negedge clk);
++    dma_req = 0;
++    dma_we  = 0;
++
++    // The swap must read the block followed by the queued DMA lanes. A DMA
++    // read requesting the same address cannot enter the read/write gap.
++    cpu_transfer(0, BASE, 0, 0, 32'h11bb33dd);
++    dma_req = 1;
++    repeat (4) begin
++      @(posedge clk);
++      if (dma_grant || dma_ack) $fatal(1, "DMA entered the locked SWP gap");
++    end
++    @(negedge clk);
++    cpu_req  = 1;
++    cpu_we   = 1;
++    cpu_addr = BASE;
++    cpu_data = 32'h44000099;
++    cpu_mask = 4'b1001;
++    do @(posedge clk); while (!cpu_grant);
++    @(negedge clk);
++    if (!packet_lock || cpu_ack) $fatal(1, "Locked write received posted acknowledgement");
++    do begin
++      @(posedge clk);
++      if (dma_grant || dma_ack) $fatal(1, "DMA passed an owned SWP write");
++    end while (!cpu_ack);
++    if (busy_mem) $fatal(1, "Locked write acknowledged before pin completion");
++    @(negedge clk);
++    cpu_req = 0;
++    lock = 0;
++    do @(posedge clk); while (!dma_ack);
++    if (dma_out !== 32'h44bb3399) $fatal(1, "DMA saw stale data after locked byte write");
++    @(negedge clk);
++    dma_req = 0;
++    for (integer word = 1; word < 4; word++)
++    cpu_transfer(0, BASE + 25'(word * 4), 0, 0, cpu_block_data[word*32+:32]);
++
++    // Once a CPU write is granted, it cannot become posted if the live
++    // reservation is withdrawn before stream admission.
++    @(negedge clk);
++    lock = 1;
++    cpu_req = 1;
++    cpu_we = 1;
++    cpu_addr = BASE;
++    cpu_data = 32'h7685abcd;
++    cpu_mask = 4'hf;
++    do @(posedge clk); while (!cpu_grant);
++    @(negedge clk);
++    lock = 0;
++    @(posedge clk);
++    if (!packet_lock || cpu_ack) $fatal(1, "Held locked write became posted");
++    do @(posedge clk); while (!cpu_ack);
++    if (busy_mem) $fatal(1, "Held write acknowledged before pin completion");
++    @(negedge clk);
++    cpu_req = 0;
++    cpu_transfer(0, BASE, 0, 0, 32'h7685abcd);
++    $display(
++        "PASS stream packet lock: older posted block/DMA, SWP gap, lane order and physical completion");
+     $display("PASS stream masks, physical burst shape, DMA/SWP order and logical reset drain");
+     $finish;
+   end

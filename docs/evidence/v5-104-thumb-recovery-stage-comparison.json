@@ -1,0 +1,1885 @@
+{
+  "base": "739d3bd",
+  "profile_order": [
+    "control",
+    "D_admission",
+    "Thumb_recovery",
+    "both"
+  ],
+  "fixed": {
+    "matrix4": {
+      "control": {
+        "median": 16946,
+        "windows": [
+          17981,
+          16937,
+          16937,
+          16937,
+          16949,
+          16946,
+          16952
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "13ace33afde0febf3468f6b14c9eb1921eebbc60a3c9441a92be87a0040e0616"
+      },
+      "D_admission": {
+        "median": 16937,
+        "windows": [
+          17978,
+          16949,
+          16937,
+          16937,
+          16937,
+          16949,
+          16943
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "13ace33afde0febf3468f6b14c9eb1921eebbc60a3c9441a92be87a0040e0616"
+      },
+      "Thumb_recovery": {
+        "median": 16946,
+        "windows": [
+          17981,
+          16937,
+          16937,
+          16937,
+          16949,
+          16946,
+          16952
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "13ace33afde0febf3468f6b14c9eb1921eebbc60a3c9441a92be87a0040e0616"
+      },
+      "both": {
+        "median": 16937,
+        "windows": [
+          17978,
+          16949,
+          16937,
+          16937,
+          16937,
+          16949,
+          16943
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "13ace33afde0febf3468f6b14c9eb1921eebbc60a3c9441a92be87a0040e0616"
+      }
+    },
+    "transpose4": {
+      "control": {
+        "median": 2976,
+        "windows": [
+          3055,
+          2964,
+          2964,
+          2976,
+          2976,
+          2979,
+          2976
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "e93849cb04884d119c3d9668c16f448c15bba267b72db4c0778310f7d484d79e"
+      },
+      "D_admission": {
+        "median": 2976,
+        "windows": [
+          3058,
+          2982,
+          2976,
+          2979,
+          2976,
+          2988,
+          2976
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "e93849cb04884d119c3d9668c16f448c15bba267b72db4c0778310f7d484d79e"
+      },
+      "Thumb_recovery": {
+        "median": 2976,
+        "windows": [
+          3055,
+          2964,
+          2964,
+          2976,
+          2976,
+          2979,
+          2976
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "e93849cb04884d119c3d9668c16f448c15bba267b72db4c0778310f7d484d79e"
+      },
+      "both": {
+        "median": 2976,
+        "windows": [
+          3058,
+          2982,
+          2976,
+          2979,
+          2976,
+          2988,
+          2976
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "e93849cb04884d119c3d9668c16f448c15bba267b72db4c0778310f7d484d79e"
+      }
+    },
+    "triangle_edges": {
+      "control": {
+        "median": 12226,
+        "windows": [
+          13136,
+          12220,
+          12226,
+          12262,
+          12253,
+          12220,
+          12220
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "7578345bdfcfe05ac4b11a95bbb1031eca817004ba9284a7dace5f340700be0e"
+      },
+      "D_admission": {
+        "median": 12220,
+        "windows": [
+          13143,
+          12235,
+          12262,
+          12253,
+          12220,
+          12220,
+          12220
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "7578345bdfcfe05ac4b11a95bbb1031eca817004ba9284a7dace5f340700be0e"
+      },
+      "Thumb_recovery": {
+        "median": 12226,
+        "windows": [
+          13136,
+          12220,
+          12226,
+          12262,
+          12253,
+          12220,
+          12220
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "7578345bdfcfe05ac4b11a95bbb1031eca817004ba9284a7dace5f340700be0e"
+      },
+      "both": {
+        "median": 12220,
+        "windows": [
+          13143,
+          12235,
+          12262,
+          12253,
+          12220,
+          12220,
+          12220
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "7578345bdfcfe05ac4b11a95bbb1031eca817004ba9284a7dace5f340700be0e"
+      }
+    },
+    "fill16_frame": {
+      "control": {
+        "median": 122402,
+        "windows": [
+          122534,
+          122402,
+          122402,
+          122402,
+          122402,
+          122402,
+          122402
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "a9f1f93837e470622ba8e2215d5ff0647d73aef6ce4d081614ce7de522409ac4"
+      },
+      "D_admission": {
+        "median": 122578,
+        "windows": [
+          122720,
+          122578,
+          122578,
+          122578,
+          122578,
+          122578,
+          122578
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "a9f1f93837e470622ba8e2215d5ff0647d73aef6ce4d081614ce7de522409ac4"
+      },
+      "Thumb_recovery": {
+        "median": 122402,
+        "windows": [
+          122534,
+          122402,
+          122402,
+          122402,
+          122402,
+          122402,
+          122402
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "a9f1f93837e470622ba8e2215d5ff0647d73aef6ce4d081614ce7de522409ac4"
+      },
+      "both": {
+        "median": 122578,
+        "windows": [
+          122720,
+          122578,
+          122578,
+          122578,
+          122578,
+          122578,
+          122578
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "a9f1f93837e470622ba8e2215d5ff0647d73aef6ce4d081614ce7de522409ac4"
+      }
+    },
+    "fill16_tail": {
+      "control": {
+        "median": 725,
+        "windows": [
+          876,
+          725,
+          725,
+          728,
+          725,
+          725,
+          725
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "69395b6592a9f65aff1e218756cbe598ce7f4a437efecda0651a734d23be8a5a"
+      },
+      "D_admission": {
+        "median": 725,
+        "windows": [
+          876,
+          725,
+          725,
+          725,
+          725,
+          725,
+          728
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "69395b6592a9f65aff1e218756cbe598ce7f4a437efecda0651a734d23be8a5a"
+      },
+      "Thumb_recovery": {
+        "median": 725,
+        "windows": [
+          876,
+          725,
+          725,
+          728,
+          725,
+          725,
+          725
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "69395b6592a9f65aff1e218756cbe598ce7f4a437efecda0651a734d23be8a5a"
+      },
+      "both": {
+        "median": 725,
+        "windows": [
+          876,
+          725,
+          725,
+          725,
+          725,
+          725,
+          728
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "69395b6592a9f65aff1e218756cbe598ce7f4a437efecda0651a734d23be8a5a"
+      }
+    },
+    "fill8_tail": {
+      "control": {
+        "median": 753,
+        "windows": [
+          903,
+          753,
+          753,
+          753,
+          753,
+          753,
+          753
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "0556a9f9109731883bc5d4113051e46778cc4d6ca8cd9e90539559a5e707f276"
+      },
+      "D_admission": {
+        "median": 753,
+        "windows": [
+          903,
+          753,
+          753,
+          753,
+          753,
+          753,
+          753
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "0556a9f9109731883bc5d4113051e46778cc4d6ca8cd9e90539559a5e707f276"
+      },
+      "Thumb_recovery": {
+        "median": 753,
+        "windows": [
+          903,
+          753,
+          753,
+          753,
+          753,
+          753,
+          753
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "0556a9f9109731883bc5d4113051e46778cc4d6ca8cd9e90539559a5e707f276"
+      },
+      "both": {
+        "median": 753,
+        "windows": [
+          903,
+          753,
+          753,
+          753,
+          753,
+          753,
+          753
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "0556a9f9109731883bc5d4113051e46778cc4d6ca8cd9e90539559a5e707f276"
+      }
+    },
+    "monkey-forward": {
+      "control": {
+        "median": 15940,
+        "windows": [
+          16021,
+          15937,
+          15940,
+          15940,
+          15949,
+          15937,
+          15940
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "b0c226d08b81ca3660fddd3d4c5192e712bcce5f2f1d4737bb187db3400c1604"
+      },
+      "D_admission": {
+        "median": 15940,
+        "windows": [
+          16021,
+          15940,
+          15937,
+          15940,
+          15937,
+          15940,
+          15940
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "b0c226d08b81ca3660fddd3d4c5192e712bcce5f2f1d4737bb187db3400c1604"
+      },
+      "Thumb_recovery": {
+        "median": 15940,
+        "windows": [
+          16021,
+          15937,
+          15940,
+          15940,
+          15949,
+          15937,
+          15940
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "b0c226d08b81ca3660fddd3d4c5192e712bcce5f2f1d4737bb187db3400c1604"
+      },
+      "both": {
+        "median": 15940,
+        "windows": [
+          16021,
+          15940,
+          15937,
+          15940,
+          15937,
+          15940,
+          15940
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "b0c226d08b81ca3660fddd3d4c5192e712bcce5f2f1d4737bb187db3400c1604"
+      }
+    },
+    "monkey-reverse": {
+      "control": {
+        "median": 15940,
+        "windows": [
+          16021,
+          15937,
+          15940,
+          15940,
+          15949,
+          15937,
+          15940
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "3f7d7ee8a903457073465e6fd837e4b4a7f5d1e0f1989950c3e8f68932dbc045"
+      },
+      "D_admission": {
+        "median": 15940,
+        "windows": [
+          16021,
+          15940,
+          15937,
+          15940,
+          15937,
+          15940,
+          15940
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "3f7d7ee8a903457073465e6fd837e4b4a7f5d1e0f1989950c3e8f68932dbc045"
+      },
+      "Thumb_recovery": {
+        "median": 15940,
+        "windows": [
+          16021,
+          15937,
+          15940,
+          15940,
+          15949,
+          15937,
+          15940
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "3f7d7ee8a903457073465e6fd837e4b4a7f5d1e0f1989950c3e8f68932dbc045"
+      },
+      "both": {
+        "median": 15940,
+        "windows": [
+          16021,
+          15940,
+          15937,
+          15940,
+          15937,
+          15940,
+          15940
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "3f7d7ee8a903457073465e6fd837e4b4a7f5d1e0f1989950c3e8f68932dbc045"
+      }
+    },
+    "sega-span": {
+      "control": {
+        "median": 15430,
+        "windows": [
+          15585,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "239bd00cc63a9eadfdaace44b50f90f8e06c0c06df5c44ff850094f9f164649f"
+      },
+      "D_admission": {
+        "median": 15430,
+        "windows": [
+          15586,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "239bd00cc63a9eadfdaace44b50f90f8e06c0c06df5c44ff850094f9f164649f"
+      },
+      "Thumb_recovery": {
+        "median": 15430,
+        "windows": [
+          15585,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "239bd00cc63a9eadfdaace44b50f90f8e06c0c06df5c44ff850094f9f164649f"
+      },
+      "both": {
+        "median": 15430,
+        "windows": [
+          15586,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "239bd00cc63a9eadfdaace44b50f90f8e06c0c06df5c44ff850094f9f164649f"
+      }
+    },
+    "sega-fill": {
+      "control": {
+        "median": 2628,
+        "windows": [
+          2757,
+          2628,
+          2628,
+          2628,
+          2628,
+          2628,
+          2628
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "a8c2b4f0aa4a542a210becb842e261ca79236ff277fdd7f2ecc8497aae08ee25"
+      },
+      "D_admission": {
+        "median": 2628,
+        "windows": [
+          2758,
+          2628,
+          2628,
+          2628,
+          2628,
+          2637,
+          2628
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "a8c2b4f0aa4a542a210becb842e261ca79236ff277fdd7f2ecc8497aae08ee25"
+      },
+      "Thumb_recovery": {
+        "median": 2628,
+        "windows": [
+          2757,
+          2628,
+          2628,
+          2628,
+          2628,
+          2628,
+          2628
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "a8c2b4f0aa4a542a210becb842e261ca79236ff277fdd7f2ecc8497aae08ee25"
+      },
+      "both": {
+        "median": 2628,
+        "windows": [
+          2758,
+          2628,
+          2628,
+          2628,
+          2628,
+          2637,
+          2628
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "a8c2b4f0aa4a542a210becb842e261ca79236ff277fdd7f2ecc8497aae08ee25"
+      }
+    },
+    "asphalt-table": {
+      "control": {
+        "median": 21163,
+        "windows": [
+          21328,
+          21155,
+          21160,
+          21152,
+          21168,
+          21163,
+          21171
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "9c27d8bf4bc07b197df4834c53a58479b329555cdd6d5cd4ab9abbbcb2f70177"
+      },
+      "D_admission": {
+        "median": 21183,
+        "windows": [
+          21356,
+          21185,
+          21179,
+          21182,
+          21185,
+          21195,
+          21183
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "9c27d8bf4bc07b197df4834c53a58479b329555cdd6d5cd4ab9abbbcb2f70177"
+      },
+      "Thumb_recovery": {
+        "median": 21163,
+        "windows": [
+          21328,
+          21155,
+          21160,
+          21152,
+          21168,
+          21163,
+          21171
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "9c27d8bf4bc07b197df4834c53a58479b329555cdd6d5cd4ab9abbbcb2f70177"
+      },
+      "both": {
+        "median": 21183,
+        "windows": [
+          21356,
+          21185,
+          21179,
+          21182,
+          21185,
+          21195,
+          21183
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "9c27d8bf4bc07b197df4834c53a58479b329555cdd6d5cd4ab9abbbcb2f70177"
+      }
+    },
+    "asphalt-double": {
+      "control": {
+        "median": 11974,
+        "windows": [
+          12140,
+          11974,
+          11982,
+          11974,
+          11977,
+          11974,
+          11974
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "c03ee620e40e99335b65a6bc1ac69a84f69d18d5493d3302a38b0838f943062c"
+      },
+      "D_admission": {
+        "median": 11977,
+        "windows": [
+          12141,
+          11985,
+          11977,
+          11987,
+          11977,
+          11980,
+          11977
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "c03ee620e40e99335b65a6bc1ac69a84f69d18d5493d3302a38b0838f943062c"
+      },
+      "Thumb_recovery": {
+        "median": 11974,
+        "windows": [
+          12140,
+          11974,
+          11982,
+          11974,
+          11977,
+          11974,
+          11974
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "c03ee620e40e99335b65a6bc1ac69a84f69d18d5493d3302a38b0838f943062c"
+      },
+      "both": {
+        "median": 11977,
+        "windows": [
+          12141,
+          11985,
+          11977,
+          11987,
+          11977,
+          11980,
+          11977
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "c03ee620e40e99335b65a6bc1ac69a84f69d18d5493d3302a38b0838f943062c"
+      }
+    },
+    "asphalt-single": {
+      "control": {
+        "median": 7753,
+        "windows": [
+          7933,
+          7753,
+          7753,
+          7762,
+          7753,
+          7753,
+          7753
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "6edbc9dbac2e51678d26cc45c6d53ced7e2e1f346b81eb608b558a07002e7137"
+      },
+      "D_admission": {
+        "median": 7753,
+        "windows": [
+          7944,
+          7753,
+          7753,
+          7753,
+          7753,
+          7753,
+          7753
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "6edbc9dbac2e51678d26cc45c6d53ced7e2e1f346b81eb608b558a07002e7137"
+      },
+      "Thumb_recovery": {
+        "median": 7753,
+        "windows": [
+          7933,
+          7753,
+          7753,
+          7762,
+          7753,
+          7753,
+          7753
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "6edbc9dbac2e51678d26cc45c6d53ced7e2e1f346b81eb608b558a07002e7137"
+      },
+      "both": {
+        "median": 7753,
+        "windows": [
+          7944,
+          7753,
+          7753,
+          7753,
+          7753,
+          7753,
+          7753
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "6edbc9dbac2e51678d26cc45c6d53ced7e2e1f346b81eb608b558a07002e7137"
+      }
+    },
+    "sega-scan": {
+      "control": {
+        "median": 2395767,
+        "windows": [
+          2396210,
+          2395853,
+          2395905,
+          2395767,
+          2395767,
+          2395767,
+          2395767
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "dbde34cb928edcd231c05f30acd34ef5d8cf8a32b41c3e6483e07723b766ff66"
+      },
+      "D_admission": {
+        "median": 2400868,
+        "windows": [
+          2401043,
+          2400835,
+          2400868,
+          2400849,
+          2400868,
+          2400849,
+          2400868
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "dbde34cb928edcd231c05f30acd34ef5d8cf8a32b41c3e6483e07723b766ff66"
+      },
+      "Thumb_recovery": {
+        "median": 2377506,
+        "windows": [
+          2377865,
+          2377505,
+          2377541,
+          2377506,
+          2377506,
+          2377506,
+          2377506
+        ],
+        "recoveries": [
+          18305,
+          18305,
+          18305,
+          18305,
+          18305,
+          18305,
+          18305
+        ],
+        "ordered_digest_sha256": "dbde34cb928edcd231c05f30acd34ef5d8cf8a32b41c3e6483e07723b766ff66"
+      },
+      "both": {
+        "median": 2382348,
+        "windows": [
+          2382642,
+          2382343,
+          2382348,
+          2382423,
+          2382348,
+          2382423,
+          2382348
+        ],
+        "recoveries": [
+          18305,
+          18305,
+          18305,
+          18305,
+          18305,
+          18305,
+          18305
+        ],
+        "ordered_digest_sha256": "dbde34cb928edcd231c05f30acd34ef5d8cf8a32b41c3e6483e07723b766ff66"
+      }
+    },
+    "diffuse_m10_8x8_jpeg": {
+      "control": {
+        "median": 35324,
+        "windows": [
+          36331,
+          35324,
+          35324,
+          35324,
+          35324,
+          35324,
+          35324
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "be1c7664825c0d5a6e4b64628bcbc58f5d93901d312122814eb3a29168dbf317"
+      },
+      "D_admission": {
+        "median": 35324,
+        "windows": [
+          36332,
+          35324,
+          35324,
+          35324,
+          35324,
+          35324,
+          35324
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "be1c7664825c0d5a6e4b64628bcbc58f5d93901d312122814eb3a29168dbf317"
+      },
+      "Thumb_recovery": {
+        "median": 35324,
+        "windows": [
+          36331,
+          35324,
+          35324,
+          35324,
+          35324,
+          35324,
+          35324
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "be1c7664825c0d5a6e4b64628bcbc58f5d93901d312122814eb3a29168dbf317"
+      },
+      "both": {
+        "median": 35324,
+        "windows": [
+          36332,
+          35324,
+          35324,
+          35324,
+          35324,
+          35324,
+          35324
+        ],
+        "recoveries": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_digest_sha256": "be1c7664825c0d5a6e4b64628bcbc58f5d93901d312122814eb3a29168dbf317"
+      }
+    }
+  },
+  "native": {
+    "status": "PASS",
+    "netlist_sha256": "ea615f5321bf161a6a0f428086a17320b58356a6c2aea592fc8811cc508c54db",
+    "wrapper_sha256": "dafe39a3cfc53a2985be07ccd997cc9ef9d8e9c6e3fbc1adda52d3acf932ad6b",
+    "rows": [
+      {
+        "profile": [
+          0,
+          0
+        ],
+        "case": "native",
+        "frames": [
+          {
+            "frame": 0,
+            "clocks": 14391395,
+            "retired": 7338211,
+            "uops": 1040332,
+            "ifills": 177192,
+            "dfills": 8778,
+            "iwalk_words": 119,
+            "dwalk_words": 5,
+            "d_wait": 297524,
+            "d_walk_wait": 154,
+            "execute_wait": 556759,
+            "iwalk_wait": 1281,
+            "exposed_i": 1524860,
+            "frontend": 1491652,
+            "other": 2140622,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 1,
+            "clocks": 14467552,
+            "retired": 7372623,
+            "uops": 1046017,
+            "ifills": 179072,
+            "dfills": 8590,
+            "iwalk_words": 111,
+            "dwalk_words": 1,
+            "d_wait": 295747,
+            "d_walk_wait": 33,
+            "execute_wait": 556254,
+            "iwalk_wait": 1176,
+            "exposed_i": 1538774,
+            "frontend": 1501064,
+            "other": 2155864,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 2,
+            "clocks": 14346201,
+            "retired": 7322287,
+            "uops": 1039189,
+            "ifills": 176599,
+            "dfills": 8508,
+            "iwalk_words": 115,
+            "dwalk_words": 2,
+            "d_wait": 293387,
+            "d_walk_wait": 61,
+            "execute_wait": 551454,
+            "iwalk_wait": 1255,
+            "exposed_i": 1518818,
+            "frontend": 1485675,
+            "other": 2134075,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 3,
+            "clocks": 14303223,
+            "retired": 7301052,
+            "uops": 1038177,
+            "ifills": 175649,
+            "dfills": 8626,
+            "iwalk_words": 117,
+            "dwalk_words": 2,
+            "d_wait": 295271,
+            "d_walk_wait": 61,
+            "execute_wait": 551798,
+            "iwalk_wait": 1183,
+            "exposed_i": 1510829,
+            "frontend": 1479713,
+            "other": 2125139,
+            "draws": 1,
+            "swaps": 1
+          }
+        ],
+        "architecture": [
+          {
+            "window": 0,
+            "retired": 8378542,
+            "data": 2795132,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 10205000342560512243,
+            "data_hash": 1099935925129445331,
+            "mmio_hash": 14695981039346656037
+          },
+          {
+            "window": 1,
+            "retired": 8418639,
+            "data": 2808540,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 14330942816271412486,
+            "data_hash": 12998895494613033264,
+            "mmio_hash": 14695981039346656037
+          },
+          {
+            "window": 2,
+            "retired": 8361475,
+            "data": 2789266,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 840186148523522304,
+            "data_hash": 10876088796762072086,
+            "mmio_hash": 14695981039346656037
+          },
+          {
+            "window": 3,
+            "retired": 8339228,
+            "data": 2782792,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 8873323223938994861,
+            "data_hash": 709881815613675910,
+            "mmio_hash": 14695981039346656037
+          }
+        ],
+        "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+        "median": 14346201
+      },
+      {
+        "profile": [
+          1,
+          0
+        ],
+        "case": "native",
+        "frames": [
+          {
+            "frame": 0,
+            "clocks": 14398213,
+            "retired": 7338211,
+            "uops": 1040332,
+            "ifills": 177192,
+            "dfills": 8778,
+            "iwalk_words": 119,
+            "dwalk_words": 5,
+            "d_wait": 302828,
+            "d_walk_wait": 151,
+            "execute_wait": 559715,
+            "iwalk_wait": 1298,
+            "exposed_i": 1523522,
+            "frontend": 1491527,
+            "other": 2140629,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 1,
+            "clocks": 14475590,
+            "retired": 7372623,
+            "uops": 1046017,
+            "ifills": 179069,
+            "dfills": 8590,
+            "iwalk_words": 111,
+            "dwalk_words": 2,
+            "d_wait": 301164,
+            "d_walk_wait": 61,
+            "execute_wait": 559305,
+            "iwalk_wait": 1149,
+            "exposed_i": 1538558,
+            "frontend": 1500910,
+            "other": 2155803,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 2,
+            "clocks": 14353712,
+            "retired": 7322287,
+            "uops": 1039189,
+            "ifills": 176599,
+            "dfills": 8508,
+            "iwalk_words": 116,
+            "dwalk_words": 1,
+            "d_wait": 298441,
+            "d_walk_wait": 28,
+            "execute_wait": 554364,
+            "iwalk_wait": 1247,
+            "exposed_i": 1518451,
+            "frontend": 1485608,
+            "other": 2134097,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 3,
+            "clocks": 14310886,
+            "retired": 7301052,
+            "uops": 1038177,
+            "ifills": 175649,
+            "dfills": 8626,
+            "iwalk_words": 117,
+            "dwalk_words": 2,
+            "d_wait": 300183,
+            "d_walk_wait": 72,
+            "execute_wait": 554766,
+            "iwalk_wait": 1191,
+            "exposed_i": 1510472,
+            "frontend": 1479733,
+            "other": 2125240,
+            "draws": 1,
+            "swaps": 1
+          }
+        ],
+        "architecture": [
+          {
+            "window": 0,
+            "retired": 8378542,
+            "data": 2795132,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 10205000342560512243,
+            "data_hash": 1099935925129445331,
+            "mmio_hash": 14695981039346656037
+          },
+          {
+            "window": 1,
+            "retired": 8418639,
+            "data": 2808540,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 14330942816271412486,
+            "data_hash": 12998895494613033264,
+            "mmio_hash": 14695981039346656037
+          },
+          {
+            "window": 2,
+            "retired": 8361475,
+            "data": 2789266,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 840186148523522304,
+            "data_hash": 10876088796762072086,
+            "mmio_hash": 14695981039346656037
+          },
+          {
+            "window": 3,
+            "retired": 8339228,
+            "data": 2782792,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 8873323223938994861,
+            "data_hash": 709881815613675910,
+            "mmio_hash": 14695981039346656037
+          }
+        ],
+        "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+        "median": 14353712
+      },
+      {
+        "profile": [
+          0,
+          1
+        ],
+        "case": "native",
+        "frames": [
+          {
+            "frame": 0,
+            "clocks": 14391395,
+            "retired": 7338211,
+            "uops": 1040332,
+            "ifills": 177192,
+            "dfills": 8778,
+            "iwalk_words": 119,
+            "dwalk_words": 5,
+            "d_wait": 297524,
+            "d_walk_wait": 154,
+            "execute_wait": 556759,
+            "iwalk_wait": 1281,
+            "exposed_i": 1524860,
+            "frontend": 1491652,
+            "other": 2140622,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 1,
+            "clocks": 14467552,
+            "retired": 7372623,
+            "uops": 1046017,
+            "ifills": 179072,
+            "dfills": 8590,
+            "iwalk_words": 111,
+            "dwalk_words": 1,
+            "d_wait": 295747,
+            "d_walk_wait": 33,
+            "execute_wait": 556254,
+            "iwalk_wait": 1176,
+            "exposed_i": 1538774,
+            "frontend": 1501064,
+            "other": 2155864,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 2,
+            "clocks": 14346201,
+            "retired": 7322287,
+            "uops": 1039189,
+            "ifills": 176599,
+            "dfills": 8508,
+            "iwalk_words": 115,
+            "dwalk_words": 2,
+            "d_wait": 293387,
+            "d_walk_wait": 61,
+            "execute_wait": 551454,
+            "iwalk_wait": 1255,
+            "exposed_i": 1518818,
+            "frontend": 1485675,
+            "other": 2134075,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 3,
+            "clocks": 14303223,
+            "retired": 7301052,
+            "uops": 1038177,
+            "ifills": 175649,
+            "dfills": 8626,
+            "iwalk_words": 117,
+            "dwalk_words": 2,
+            "d_wait": 295271,
+            "d_walk_wait": 61,
+            "execute_wait": 551798,
+            "iwalk_wait": 1183,
+            "exposed_i": 1510829,
+            "frontend": 1479713,
+            "other": 2125139,
+            "draws": 1,
+            "swaps": 1
+          }
+        ],
+        "architecture": [
+          {
+            "window": 0,
+            "retired": 8378542,
+            "data": 2795132,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 10205000342560512243,
+            "data_hash": 1099935925129445331,
+            "mmio_hash": 14695981039346656037
+          },
+          {
+            "window": 1,
+            "retired": 8418639,
+            "data": 2808540,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 14330942816271412486,
+            "data_hash": 12998895494613033264,
+            "mmio_hash": 14695981039346656037
+          },
+          {
+            "window": 2,
+            "retired": 8361475,
+            "data": 2789266,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 840186148523522304,
+            "data_hash": 10876088796762072086,
+            "mmio_hash": 14695981039346656037
+          },
+          {
+            "window": 3,
+            "retired": 8339228,
+            "data": 2782792,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 8873323223938994861,
+            "data_hash": 709881815613675910,
+            "mmio_hash": 14695981039346656037
+          }
+        ],
+        "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+        "median": 14346201
+      },
+      {
+        "profile": [
+          1,
+          1
+        ],
+        "case": "native",
+        "frames": [
+          {
+            "frame": 0,
+            "clocks": 14398213,
+            "retired": 7338211,
+            "uops": 1040332,
+            "ifills": 177192,
+            "dfills": 8778,
+            "iwalk_words": 119,
+            "dwalk_words": 5,
+            "d_wait": 302828,
+            "d_walk_wait": 151,
+            "execute_wait": 559715,
+            "iwalk_wait": 1298,
+            "exposed_i": 1523522,
+            "frontend": 1491527,
+            "other": 2140629,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 1,
+            "clocks": 14475590,
+            "retired": 7372623,
+            "uops": 1046017,
+            "ifills": 179069,
+            "dfills": 8590,
+            "iwalk_words": 111,
+            "dwalk_words": 2,
+            "d_wait": 301164,
+            "d_walk_wait": 61,
+            "execute_wait": 559305,
+            "iwalk_wait": 1149,
+            "exposed_i": 1538558,
+            "frontend": 1500910,
+            "other": 2155803,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 2,
+            "clocks": 14353712,
+            "retired": 7322287,
+            "uops": 1039189,
+            "ifills": 176599,
+            "dfills": 8508,
+            "iwalk_words": 116,
+            "dwalk_words": 1,
+            "d_wait": 298441,
+            "d_walk_wait": 28,
+            "execute_wait": 554364,
+            "iwalk_wait": 1247,
+            "exposed_i": 1518451,
+            "frontend": 1485608,
+            "other": 2134097,
+            "draws": 1,
+            "swaps": 1
+          },
+          {
+            "frame": 3,
+            "clocks": 14310886,
+            "retired": 7301052,
+            "uops": 1038177,
+            "ifills": 175649,
+            "dfills": 8626,
+            "iwalk_words": 117,
+            "dwalk_words": 2,
+            "d_wait": 300183,
+            "d_walk_wait": 72,
+            "execute_wait": 554766,
+            "iwalk_wait": 1191,
+            "exposed_i": 1510472,
+            "frontend": 1479733,
+            "other": 2125240,
+            "draws": 1,
+            "swaps": 1
+          }
+        ],
+        "architecture": [
+          {
+            "window": 0,
+            "retired": 8378542,
+            "data": 2795132,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 10205000342560512243,
+            "data_hash": 1099935925129445331,
+            "mmio_hash": 14695981039346656037
+          },
+          {
+            "window": 1,
+            "retired": 8418639,
+            "data": 2808540,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 14330942816271412486,
+            "data_hash": 12998895494613033264,
+            "mmio_hash": 14695981039346656037
+          },
+          {
+            "window": 2,
+            "retired": 8361475,
+            "data": 2789266,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 840186148523522304,
+            "data_hash": 10876088796762072086,
+            "mmio_hash": 14695981039346656037
+          },
+          {
+            "window": 3,
+            "retired": 8339228,
+            "data": 2782792,
+            "mmio": 0,
+            "recover": 0,
+            "retire_hash": 8873323223938994861,
+            "data_hash": 709881815613675910,
+            "mmio_hash": 14695981039346656037
+          }
+        ],
+        "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+        "median": 14353712
+      }
+    ]
+  },
+  "patch_sha256": "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e"
+}

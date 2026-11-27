@@ -1,0 +1,1319 @@
+diff --git a/.github/workflows/ci_build.yml b/.github/workflows/ci_build.yml
+index 8e1adf9200487348abf473af8ffbb8bf79dc931e..7600e1813ef0b22c15247e5b0c923668686f248e 100644
+--- a/.github/workflows/ci_build.yml
++++ b/.github/workflows/ci_build.yml
+@@ -1,5 +1,5 @@
+ name: CI Build
+-run-name: ngage1 build (seed ${{ inputs.seed || '1' }}, DDR debug ${{ inputs.enable_debugger && 'on' || 'off' }})
++run-name: ngage1 build (seed ${{ inputs.seed || '1' }}, DDR debug ${{ inputs.enable_debugger && 'on' || 'off' }})${{ inputs.fit_scope && inputs.fit_scope != 'production' && format(' [{0}]', inputs.fit_scope) || '' }}
+ 
+ on:
+   workflow_dispatch:
+@@ -15,11 +15,30 @@ on:
+         default: false
+         type: boolean
+ 
++      fit_scope:
++        description: Production build or diagnostic-only timing isolation
++        required: false
++        default: production
++        type: choice
++        options:
++          - production
++          - cpu-only
++          - board-only
++
+ permissions:
+   contents: read
+ 
+ jobs:
++  isolation:
++    if: ${{ inputs.fit_scope == 'cpu-only' || inputs.fit_scope == 'board-only' }}
++    uses: ./.github/workflows/timing_isolation.yml
++    with:
++      mode: ${{ inputs.fit_scope }}
++      seed: ${{ inputs.seed || '1' }}
++      debugger: ${{ inputs.enable_debugger }}
++
+   build:
++    if: ${{ !inputs.fit_scope || inputs.fit_scope == 'production' }}
+     runs-on: ubuntu-latest
+ 
+     steps:
+diff --git a/.github/workflows/timing_isolation.yml b/.github/workflows/timing_isolation.yml
+new file mode 100644
+index 0000000000000000000000000000000000000000..20be5b6c246fbc9bcdde0c79e392fcb1fc0e5579
+--- /dev/null
++++ b/.github/workflows/timing_isolation.yml
+@@ -0,0 +1,100 @@
++name: Isolated timing diagnostic
++
++on:
++  workflow_call:
++    inputs:
++      mode:
++        type: string
++        required: true
++      seed:
++        type: string
++        required: true
++      debugger:
++        type: boolean
++        default: false
++
++permissions:
++  contents: read
++
++jobs:
++  fit:
++    runs-on: ubuntu-latest
++    defaults:
++      run:
++        shell: bash
++        working-directory: build/isolated-project
++    env:
++      MODE: ${{ inputs.mode }}
++      SEED: ${{ inputs.seed }}
++      DEBUGGER: ${{ inputs.debugger }}
++    steps:
++      - uses: actions/checkout@v4
++
++      - name: Prepare archived diagnostic sources
++        working-directory: .
++        run: |
++          test "$DEBUGGER" = false
++          mkdir -p build/isolated-project
++          git archive HEAD | tar -x -C build/isolated-project
++          python3 tools/fit_isolation/prepare.py --project build/isolated-project --mode "$MODE"
++          cd build/isolated-project
++          python3 tools/set_quartus_seed.py Template.qsf --seed "$SEED"
++          python3 tools/set_quartus_debug.py Template.qsf --enabled false
++          mkdir -p output_files/timing
++          docker run --rm -v "$PWD:/project" -w /project \
++            theypsilon/quartus-lite-c5:17.0.2.docker0 \
++            /opt/intelFPGA_lite/quartus/bin/quartus_sh -t tools/check_quartus_sources.tcl --list \
++            > output_files/source-graph.txt
++
++      - name: Fit diagnostic with Quartus 17.0.2
++        id: fit
++        run: |
++          docker run --rm -v "$PWD:/project" -w /project \
++            theypsilon/quartus-lite-c5:17.0.2.docker0 \
++            /opt/intelFPGA_lite/quartus/bin/quartus_sh --flow compile Template \
++            2>&1 | tee quartus_build.log
++
++      - name: Record effective diagnostic sources
++        if: ${{ !cancelled() && steps.fit.outcome == 'success' }}
++        run: python3 tools/record_fit_inputs.py
++
++      - name: Export physical 104 MHz timing by operating corner
++        if: ${{ !cancelled() && steps.fit.outcome == 'success' }}
++        run: |
++          docker run --rm -v "$PWD:/project" -w /project \
++            theypsilon/quartus-lite-c5:17.0.2.docker0 \
++            /opt/intelFPGA_lite/quartus/bin/quartus_sta -t tools/fit_isolation/report.tcl "$MODE" \
++            2>&1 | tee isolation_sta.log
++
++      - name: Verify timing export and fitted hierarchy
++        if: ${{ !cancelled() && steps.fit.outcome == 'success' }}
++        run: python3 tools/fit_isolation/verify_reports.py "$MODE"
++
++      - name: Verify physical SDRAM I/O registers
++        if: ${{ !cancelled() && steps.fit.outcome == 'success' && inputs.mode == 'board-only' }}
++        run: python3 tools/check_sdram_io_registers.py output_files/Template.fit.rpt | tee output_files/sdram-io-check.txt
++
++      - name: Describe the measurement scope
++        if: always()
++        working-directory: .
++        run: |
++          echo "Fit-only diagnostic: $MODE, seed $SEED, physical 104 MHz, DDR debugger off." >> "$GITHUB_STEP_SUMMARY"
++          echo "Negative slack is recorded as measured. No diagnostic bitstreams are published." >> "$GITHUB_STEP_SUMMARY"
++          echo "For CPU-only, SDRAM and the platform pin groups are absent by design." >> "$GITHUB_STEP_SUMMARY"
++
++      - name: Upload diagnostic reports
++        if: always()
++        uses: actions/upload-artifact@v4
++        with:
++          name: isolation-${{ inputs.mode }}-seed-${{ inputs.seed }}
++          path: |
++            build/isolated-project/quartus_build.log
++            build/isolated-project/isolation_sta.log
++            build/isolated-project/output_files/*.json
++            build/isolated-project/output_files/*.txt
++            build/isolated-project/output_files/*.rpt
++            build/isolated-project/output_files/*.summary
++            build/isolated-project/output_files/*.smsg
++            build/isolated-project/output_files/timing/
++          if-no-files-found: warn
++          retention-days: 14
+diff --git a/tools/fit_isolation/README.md b/tools/fit_isolation/README.md
+new file mode 100644
+index 0000000000000000000000000000000000000000..8c200f222c40a2223c188057e002762b1d7c2ce5
+--- /dev/null
++++ b/tools/fit_isolation/README.md
+@@ -0,0 +1,44 @@
++# CPU and platform timing isolation
++
++The **CI Build** workflow accepts `fit_scope=cpu-only` and
++`fit_scope=board-only`. Both select the existing Quartus 17.0.2
++Cyclone V project, fitter settings, physical 104 MHz PLL and fitter
++seed. The diagnostic job requires DDR debugging off and publishes
++reports only. `fit_scope=production` selects the normal build.
++
++- **CPU only** fits the production `ngage_cpu` wrapper with its two
++  16 KiB caches, TLBs, 32-byte line refill and block writeback. A
++  synchronous peer returns scalar and narrow or wide line responses.
++  Its small ARM guest enables the MMU and I-cache and exercises RAM
++  and SWP. Synchronized switches select varying data, line rejection
++  and narrow beats. The fixture SDC constrains the real PLL input and
++  identifies asynchronous switches and visual readouts. SDRAM pin
++  checks apply to the board fit.
++- **Board only** fits the production MiSTer shell and phone platform
++  with its original SDC. In a Git archive of the selected commit, one
++  UPP instance selects a registered transaction peer with the same
++  port signature. It issues SDRAM scalar and block commands, bus
++  locks, flash and peripheral accesses, native lines and eight scalar
++  fallback reads after a line rejection. All scalar and line output
++  packets are registered, and the response sink captures both data
++  buses and control.
++
++`tools/fit_isolation/run-smoke.sh` uses the installed offline simulator.
++It exercises the real CPU on the registered peer and the generated
++board peer on the real CPU memory route with modeled subordinate
++responses. Quartus separately elaborates the full board fit and
++reports its physical pin registers.
++
++Each artifact includes selected source hashes, fitted hierarchy, the
++official RAM and Fitter reports, physical clock evidence, constraint
++coverage and 1,000 setup paths across the design plus 1,000 within
++`clk_sys` per operating corner. The four path groups split same-clock
++DUT and fixture endpoints by fitted hierarchy. Their reports include
++full routing details for the worst paths. The pin and report coverage
++checks are separate from measured setup slack.
++
++Removing a device changes placement, utilization, and some boundary
++logic. Compare each seed to the same production seed. Use the two
++diagnostic distributions to localize timing pressure. The fixtures
++use authored traffic and their boundary measurements describe that
++traffic and placement.
+diff --git a/tools/fit_isolation/board_master.vh b/tools/fit_isolation/board_master.vh
+new file mode 100644
+index 0000000000000000000000000000000000000000..085ed6a8be16fb908c7731658c7c1841edb03e14
+--- /dev/null
++++ b/tools/fit_isolation/board_master.vh
+@@ -0,0 +1,175 @@
++    // Drive only the ngage_cpu boundary. Each offer remains stable through
++    // backpressure, and scalar fallback preserves the accepted line address.
++    localparam [2:0] ISSUE = 0, SCALAR = 1, LINE_OFFER = 2, LINE_RETURN = 3, FALLBACK = 4;
++    (* dont_retime *) reg [2:0] state;
++    reg [3:0] operation;
++    reg [2:0] fallback_word;
++    reg       fallback_live;
++    reg [31:0] locked_address;
++    reg [31:0] entropy0, entropy1, entropy2, entropy3;
++    (* dont_retime *) reg line_req_q, write_block_q, code_q;
++    (* dont_retime *) reg [31:0] line_addr_q;
++    (* dont_retime *) reg [127:0] block_q;
++    // Keep actual registered timing endpoints for every received data bit.
++    // The sink need not feed a synthetic checksum or high-fanout load.
++    (* preserve, noprune, dont_retime *) reg [106:0] response_sample;
++
++    assign line_req          = line_req_q;
++    assign line_addr         = line_addr_q;
++    assign wb_stb            = wb_cyc;
++    assign wb_write_block    = write_block_q;
++    assign wb_block_data     = block_q;
++    assign wb_code           = code_q;
++    assign debug_pc          = 0;
++    assign debug_cpsr        = 0;
++    assign debug_instruction = 0;
++    assign debug_fetch       = 0;
++
++    function [31:0] advance;
++        input [31:0] value;
++        advance = {value[30:0], value[31] ^ value[21] ^ value[1] ^ value[0]};
++    endfunction
++
++    wire [31:0] ram_word = {8'h0a, entropy0[23:2], 2'b00};
++    wire [31:0] ram_line = {ram_word[31:5], 5'b00000};
++    wire [9:0] flash_line_region = entropy1[1] ? (entropy1[0] ? 10'h011 : 10'h010) :
++                                     (entropy1[0] ? 10'h008 : 10'h000);
++    wire [31:0] rom_line = {flash_line_region, entropy1[21:5], 5'b00000};
++    wire [3:0] byte_mask = entropy2[3:0] == 0 ? 4'b0001 : entropy2[3:0];
++    always @(posedge clk) begin
++        response_sample <= {irq, fiq, line_ready, line_reject, line_valid, line_wide,
++                            line_last, line_error, line_no_late_error, line_data,
++                            wb_ack, wb_error, wb_read_data};
++        if (reset) begin
++            state          <= ISSUE;
++            operation      <= 0;
++            fallback_word  <= 0;
++            fallback_live  <= 0;
++            locked_address <= 0;
++            entropy0       <= 32'ha09f32e5;
++            entropy1       <= 32'h32817ccf;
++            entropy2       <= 32'hf2982c17;
++            entropy3       <= 32'hc169e835;
++            line_req_q     <= 0;
++            line_addr_q    <= 0;
++            write_block_q  <= 0;
++            code_q         <= 0;
++            block_q        <= 0;
++            wb_cyc         <= 0;
++            wb_lock        <= 0;
++            wb_address     <= 0;
++            wb_write       <= 0;
++            wb_write_data  <= 0;
++            wb_byte_enable <= 0;
++            wb_cycle_type  <= 0;
++            wb_burst_type  <= 0;
++        end else begin
++            entropy0 <= advance(entropy0);
++            entropy1 <= advance(entropy1);
++            entropy2 <= advance(entropy2);
++            entropy3 <= advance(entropy3);
++            case (state)
++                ISSUE: begin
++                    wb_address     <= ram_word;
++                    wb_write_data  <= entropy2;
++                    wb_byte_enable <= 4'hf;
++                    wb_write       <= 0;
++                    wb_lock        <= operation == 3 || operation == 4;
++                    wb_cycle_type  <= 0;
++                    write_block_q  <= 0;
++                    code_q         <= 0;
++                    wb_cyc         <= 1;
++                    state          <= SCALAR;
++                    case (operation)
++                        0: code_q <= entropy0[0];
++                        1: begin
++                            wb_write       <= 1;
++                            wb_byte_enable <= byte_mask;
++                        end
++                        2: begin
++                            wb_address    <= {ram_word[31:4], 4'b0000};
++                            wb_write      <= 1;
++                            write_block_q <= 1;
++                            block_q       <= {entropy3, entropy2, entropy1, entropy0};
++                        end
++                        3: locked_address <= ram_word;
++                        4: begin
++                            wb_address     <= locked_address;
++                            wb_write       <= 1;
++                            wb_byte_enable <= byte_mask;
++                        end
++                        5: begin
++                            wb_address <= rom_line;
++                            code_q     <= 1;
++                        end
++                        6: begin
++                            wb_address <= {entropy1[1] ? 10'h010 : 10'h008, entropy0[21:2], 2'b00};
++                            code_q     <= entropy0[0];
++                        end
++                        7: wb_address <= {10'h009, entropy1[21:2], 2'b00};
++                        8: wb_address <= 32'h0c120600; // MMC command/status window
++                        9: begin
++                            wb_address <= 32'h0c121208; // LCD data
++                            wb_write   <= 1;
++                        end
++                        10, 11, 12: if (LINE_REFILL) begin
++                            // Case 12 probes the board's unsupported backing
++                            // response. It must reject before any line data.
++                            line_addr_q <= operation == 10 ? ram_line :
++                                operation == 11 ? rom_line : {10'h009, entropy1[21:5], 5'b00000};
++                            line_req_q <= 1;
++                            wb_cyc     <= 0;
++                            state      <= LINE_OFFER;
++                        end
++                        13: begin
++                            wb_address     <= {16'h0c12, entropy0[15:2], 2'b00};
++                            wb_byte_enable <= byte_mask;
++                            wb_write       <= entropy0[0];
++                        end
++                        14: wb_address <= 32'h007f0030;
++                        15: begin
++                            // Infrequent generic probe keeps unmapped and IRQ
++                            // controller decode live. This offer is read only.
++                            wb_address <= irq && fiq ? entropy3 : 32'h0c120100;
++                        end
++                    endcase
++                end
++                SCALAR: if (wb_ack || wb_error) begin
++                    wb_cyc <= 0;
++                    if (fallback_live && fallback_word != 7 && !wb_error) begin
++                        fallback_word <= fallback_word + 1'b1;
++                        state <= FALLBACK;
++                    end else begin
++                        if (operation == 4) wb_lock <= 0;
++                        fallback_live <= 0;
++                        operation <= operation + 1'b1;
++                        state <= ISSUE;
++                    end
++                end
++                LINE_OFFER: if (line_ready) begin
++                    line_req_q <= 0;
++                    state <= LINE_RETURN;
++                end
++                LINE_RETURN: begin
++                    if (line_reject) begin
++                        fallback_word <= 0;
++                        fallback_live <= 1;
++                        state <= FALLBACK;
++                    end else if (line_valid && (line_last || line_error)) begin
++                        operation <= operation + 1'b1;
++                        state <= ISSUE;
++                    end
++                end
++                FALLBACK: begin
++                    wb_address     <= {line_addr_q[31:5], fallback_word, 2'b00};
++                    wb_byte_enable <= 4'hf;
++                    wb_cycle_type  <= fallback_word == 7 ? 3'b111 : 3'b010;
++                    wb_write       <= 0;
++                    wb_cyc         <= 1;
++                    state          <= SCALAR;
++                end
++                default: state <= ISSUE;
++            endcase
++        end
++    end
++endmodule
+diff --git a/tools/fit_isolation/board_smoke.v b/tools/fit_isolation/board_smoke.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..d957fbf545c7dcd752de2a2c5d01ca5d09478c1a
+--- /dev/null
++++ b/tools/fit_isolation/board_smoke.v
+@@ -0,0 +1,171 @@
++`timescale 1ps / 1ps
++
++module board_isolation_smoke;
++    reg clk = 0, reset = 1;
++    always #4808 clk = ~clk;
++    wire cyc, stb, write, code, lock, block_write, ack, error;
++    wire [31:0] address, wdata, rdata;
++    wire [127:0] block_data;
++    wire [3:0] mask;
++    wire line_req;
++    wire [31:0] line_address;
++    reg line_ready = 0, line_reject = 0, line_valid = 0, line_last = 0, line_wide = 0;
++    reg [63:0] line_data = 0;
++    ngage_timing_board_cpu #(
++        .LINE_REFILL(1), .EXPLICIT_LINE_GUARANTEE(1), .REGISTERED_SCALAR_PEER(1)
++    ) master (
++        .clk(clk), .reset(reset), .irq(1'b0), .fiq(1'b0),
++        .line_req(line_req), .line_addr(line_address), .line_ready(line_ready),
++        .line_reject(line_reject), .line_valid(line_valid), .line_data(line_data),
++        .line_wide(line_wide), .line_last(line_last), .line_error(1'b0),
++        .line_no_late_error(1'b1), .wb_cyc(cyc), .wb_stb(stb), .wb_lock(lock),
++        .wb_write(write), .wb_code(code), .wb_address(address), .wb_write_data(wdata),
++        .wb_write_block(block_write), .wb_block_data(block_data), .wb_byte_enable(mask),
++        .wb_cycle_type(), .wb_burst_type(), .wb_ack(ack), .wb_error(error),
++        .wb_read_data(rdata), .debug_pc(), .debug_cpsr(), .debug_instruction(), .debug_fetch()
++    );
++
++    wire ram_req, ram_we, ram_pending, slow_stb;
++    wire [31:0] ram_address, ram_write_data;
++    wire [3:0] ram_mask;
++    reg [2:0] ram_wait = 0, slow_wait = 0;
++    reg ram_ack = 0, slow_ack = 0, slow_active = 0;
++    reg [31:0] ram_read_data = 0, slow_read_data = 0;
++    reg [5:0] tick = 0;
++    wire ram_accept = ram_req && tick[1:0] == 0;
++    ngage_cpu_memory_route #(.DIRECT_SDRAM(1), .CPU_OWNS_SCALAR_REPLY(1)) route (
++        .clk(clk), .reset(reset),
++        .master_cyc(cyc), .master_stb(stb), .master_we(write), .master_code(code),
++        .master_address(address), .master_data(wdata), .master_sel(mask),
++        .master_ack(ack), .master_error(error), .master_rdata(rdata), .slow_cyc(),
++        .slow_stb(slow_stb), .slow_idle(!slow_active && !slow_ack), .slow_ack(slow_ack),
++        .slow_error(1'b0), .slow_rdata(slow_read_data), .ram_req(ram_req),
++        .ram_we(ram_we), .ram_code(), .ram_address(ram_address), .ram_wdata(ram_write_data),
++        .ram_be(ram_mask), .ram_accept(ram_accept), .ram_ack(ram_ack),
++        .ram_rdata(ram_read_data), .ram_pending(ram_pending), .ram_response()
++    );
++
++    reg [31:0] offered_line = 0, rejected_address = 0, locked_address = 0;
++    reg [4:0] pieces = 0, remaining = 0;
++    reg locked_read_seen = 0;
++    integer narrow_complete = 0, wide_complete = 0, rejected = 0, fallbacks = 0;
++    integer ram_reads = 0, ram_writes = 0, masks = 0, blocks = 0, locks = 0, local_replies = 0;
++    reg [127:0] block_bits = 0;
++    reg [39:0] scalar_bits = 0;
++
++    always @(posedge clk) begin
++        tick <= tick + 1'b1;
++        ram_ack <= 0;
++        slow_ack <= 0;
++        line_valid <= 0;
++        line_last <= 0;
++        line_reject <= 0;
++        if (reset) begin
++            ram_wait <= 0;
++            slow_active <= 0;
++            line_ready <= 0;
++            pieces <= 0;
++            remaining <= 0;
++            locked_read_seen <= 0;
++        end else begin
++            if (ram_accept) begin
++                ram_wait <= 4;
++                ram_read_data <= ram_address ^ 32'h9eed37a5;
++                if (ram_we) begin
++                    ram_writes <= ram_writes + 1;
++                    if (ram_mask != 4'hf) masks <= masks + 1;
++                    if (block_write) begin
++                        if (ram_mask != 4'hf || ram_address[3:0] != 0)
++                            $fatal(1, "Malformed block offer");
++                        block_bits <= block_bits | block_data;
++                        blocks <= blocks + 1;
++                    end
++                end else ram_reads <= ram_reads + 1;
++            end else if (ram_pending && ram_wait != 0) begin
++                ram_ack <= ram_wait == 1;
++                ram_wait <= ram_wait - 1'b1;
++            end
++            if (slow_stb && !slow_active && !slow_ack) begin
++                slow_active <= 1;
++                slow_wait <= 3;
++                slow_read_data <= address ^ 32'h05da9587;
++                if (remaining != 0) begin
++                    if (write || address != rejected_address + ((8 - remaining) * 4))
++                        $fatal(1, "Rejected line did not fall back in order");
++                    remaining <= remaining - 1'b1;
++                    fallbacks <= fallbacks + 1;
++                end
++            end else if (slow_active) begin
++                slow_wait <= slow_wait - 1'b1;
++                if (slow_wait == 1) begin
++                    slow_active <= 0;
++                    slow_ack <= 1;
++                    local_replies <= local_replies + 1;
++                end
++            end
++            if (cyc && ack) begin
++                scalar_bits <= scalar_bits | {address[15:8], rdata};
++                if (lock && !write) begin
++                    locked_address <= address;
++                    locked_read_seen <= 1;
++                end
++                if (lock && write) begin
++                    if (!locked_read_seen || locked_address != address)
++                        $fatal(1, "Unpaired locked write");
++                    locked_read_seen <= 0;
++                    locks <= locks + 1;
++                end
++            end
++            if (locked_read_seen && !lock) $fatal(1, "Lost lock between scalar halves");
++
++            if (line_req && line_ready) begin
++                if (cyc || line_address[4:0] != 0) $fatal(1, "Invalid line offer");
++                line_ready <= 0;
++                offered_line <= line_address;
++                line_wide <= line_address[31:24] != 8'h0a;
++                if (line_address[31:22] == 10'h009) begin
++                    line_reject <= 1;
++                    rejected_address <= line_address;
++                    rejected <= rejected + 1;
++                    remaining <= 8;
++                end else pieces <= line_address[31:24] == 8'h0a ? 16 : 4;
++            end else if (pieces != 0) begin
++                pieces <= pieces - 1'b1;
++                line_valid <= 1;
++                line_data <= {offered_line, offered_line[26:0], pieces};
++                if (pieces == 1) begin
++                    line_last <= 1;
++                    if (line_wide) wide_complete <= wide_complete + 1;
++                    else narrow_complete <= narrow_complete + 1;
++                end
++            end else line_ready <= tick[1];
++        end
++    end
++
++    reg blocked = 0, line_blocked = 0;
++    reg [200:0] saved_scalar;
++    reg [31:0] saved_line;
++    wire [200:0] scalar_offer = {address, write, code, lock, mask, wdata, block_write, block_data, cyc};
++    always @(posedge clk) begin
++        if (!reset && blocked && scalar_offer !== saved_scalar) $fatal(1, "Unstable scalar offer");
++        if (!reset && line_blocked && (!line_req || line_address != saved_line))
++            $fatal(1, "Unstable line offer");
++        blocked <= !reset && cyc && !(ack || error);
++        line_blocked <= !reset && line_req && !line_ready;
++        saved_scalar <= scalar_offer;
++        saved_line <= line_address;
++    end
++
++    initial begin
++        repeat (12) @(negedge clk);
++        reset = 0;
++        repeat (10000) @(negedge clk);
++        if (locks < 20 || blocks < 20 || masks < 20 || ram_reads < 50 || ram_writes < 60 ||
++            local_replies < 100 || wide_complete < 20 || narrow_complete < 20 || rejected < 20 ||
++            fallbacks < 8 * (rejected - 1) || block_bits !== {128{1'b1}} || scalar_bits == 0)
++            $fatal(1, "Insufficient activity in board diagnostic fixture");
++        $display("PASS board fixture RAM R/W=%0d/%0d locks=%0d masked=%0d blocks=%0d local=%0d lines=%0d/%0d reject=%0d fallback=%0d",
++                 ram_reads, ram_writes, locks, masks, blocks, local_replies, narrow_complete, wide_complete, rejected, fallbacks);
++        $finish;
++    end
++endmodule
+diff --git a/tools/fit_isolation/cpu_isolation.sdc b/tools/fit_isolation/cpu_isolation.sdc
+new file mode 100644
+index 0000000000000000000000000000000000000000..f016a7de9841730dc1c2bd50bdaf75959377e24c
+--- /dev/null
++++ b/tools/fit_isolation/cpu_isolation.sdc
+@@ -0,0 +1,8 @@
++# The reference and fitted PLL are the same as the production clock path.
++# Template.sdc derives the generated clock and its uncertainty.
++create_clock -name FPGA_CLK2_50 -period 20.000 [get_ports FPGA_CLK2_50]
++
++# Only the fixture's asynchronous switch inputs and visual readouts.
++# Switches enter two synchronization registers before use.
++set_false_path -from [get_ports {SW[*]}]
++set_false_path -to [get_ports {LED_USER LED_POWER}]
+diff --git a/tools/fit_isolation/cpu_isolation.v b/tools/fit_isolation/cpu_isolation.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..ff4be980f9c015b8f0e2f4f42f9d86bd7d7cadde
+--- /dev/null
++++ b/tools/fit_isolation/cpu_isolation.v
+@@ -0,0 +1,248 @@
++// SPDX-License-Identifier: GPL-3.0-or-later
++// Fit-only CPU wrapper. Keep the physical production PLL and its instance path.
++module ngage_cpu_isolation (
++    input  wire       FPGA_CLK2_50,
++    input  wire [3:0] SW,
++    output wire       LED_USER,
++    output wire       LED_POWER
++);
++    ngage_cpu_isolation_emu emu (
++        .ref_clock(FPGA_CLK2_50),
++        .switches (SW),
++        .running  (LED_POWER),
++        .progress (LED_USER)
++    );
++endmodule
++
++module ngage_cpu_isolation_emu (
++    input  wire       ref_clock,
++    input  wire [3:0] switches,
++    output wire       running,
++    output wire       progress
++);
++    wire clk, locked;
++    pll pll (
++        .refclk  (ref_clock),
++        .rst     (1'b0),
++        .outclk_0(clk),
++        .outclk_1(),
++        .locked  (locked)
++    );
++
++    (* altera_attribute = "-name SYNCHRONIZER_IDENTIFICATION FORCED_IF_ASYNCHRONOUS" *)
++    reg [4:0] sync_first = 5'b10001, sync_second = 5'b10001;
++    (* dont_retime *) reg reset = 1'b1;
++    always @(posedge clk) begin
++        sync_first  <= {!locked, switches};
++        sync_second <= sync_first;
++        reset       <= sync_second[4] || sync_second[0];
++    end
++    assign running = !reset;
++
++    wire line_ready, line_reject, line_valid, line_wide, line_last, line_guaranteed;
++    wire [63:0] line_data;
++    wire line_req, wb_cyc, wb_stb, wb_code, wb_lock, wb_write, wb_block;
++    wire [31:0] line_address, wb_address, wb_data, wb_reply;
++    wire [127:0] wb_block_data;
++    wire [3:0] wb_mask;
++    wire wb_ack, wb_error, irq, fiq;
++    // Readout registers deliberately do not feed a wide reduction network.
++    // The ports otherwise unobserved by the shipping build remain open.
++    (* noprune, preserve, dont_retime *) reg [234:0] request_sample;
++    reg [5:0] completed = 0;
++    always @(posedge clk) begin
++        request_sample <= {line_req, line_address, wb_cyc, wb_stb, wb_code, wb_lock,
++                           wb_write, wb_block, wb_address, wb_data, wb_block_data, wb_mask};
++        if (reset) completed <= 0;
++        else if (wb_ack || line_last || wb_error) completed <= completed + 1'b1;
++    end
++    assign progress = completed[5];
++
++    ngage_cpu #(
++        .LINE_REFILL            (1),
++        .EXPLICIT_LINE_GUARANTEE(1),
++        .REGISTERED_SCALAR_PEER (1)
++    ) cpu (
++        .clk                (clk),
++        .reset              (reset),
++        .irq                (irq),
++        .fiq                (fiq),
++        .line_req           (line_req),
++        .line_addr          (line_address),
++        .line_ready         (line_ready),
++        .line_reject        (line_reject),
++        .line_valid         (line_valid),
++        .line_data          (line_data),
++        .line_wide          (line_wide),
++        .line_last          (line_last),
++        .line_error         (1'b0),
++        .line_no_late_error (line_guaranteed),
++        .wb_cyc             (wb_cyc),
++        .wb_stb             (wb_stb),
++        .wb_code            (wb_code),
++        .wb_lock            (wb_lock),
++        .wb_address         (wb_address),
++        .wb_write           (wb_write),
++        .wb_write_data      (wb_data),
++        .wb_write_block     (wb_block),
++        .wb_block_data      (wb_block_data),
++        .wb_byte_enable     (wb_mask),
++        .wb_cycle_type      (),
++        .wb_burst_type      (),
++        .wb_ack             (wb_ack),
++        .wb_error           (wb_error),
++        .wb_read_data       (wb_reply),
++        .debug_pc           (),
++        .debug_cpsr         (),
++        .debug_instruction  (),
++        .debug_fetch        ()
++    );
++
++    ngage_cpu_isolation_peer peer (
++        .clk             (clk),
++        .reset           (reset),
++        .traffic         (sync_second[3:1]),
++        .irq             (irq),
++        .fiq             (fiq),
++        .line_req        (line_req),
++        .line_address    (line_address),
++        .line_ready      (line_ready),
++        .line_reject     (line_reject),
++        .line_valid      (line_valid),
++        .line_last       (line_last),
++        .line_wide       (line_wide),
++        .line_guaranteed (line_guaranteed),
++        .line_data       (line_data),
++        .wb_request      (wb_cyc && wb_stb),
++        .wb_address      (wb_address),
++        .wb_write        (wb_write),
++        .wb_data         (wb_data),
++        .wb_mask         (wb_mask),
++        .wb_ack          (wb_ack),
++        .wb_error        (wb_error),
++        .wb_reply        (wb_reply)
++    );
++endmodule
++
++module ngage_cpu_isolation_peer (
++    input  wire        clk,
++    input  wire        reset,
++    input  wire [ 2:0] traffic,
++    (* dont_retime *) output reg         irq,
++    (* dont_retime *) output reg         fiq,
++    input  wire        line_req,
++    input  wire [31:0] line_address,
++    (* dont_retime *) output reg         line_ready,
++    (* dont_retime *) output reg         line_reject,
++    (* dont_retime *) output reg         line_valid,
++    (* dont_retime *) output reg         line_last,
++    (* dont_retime *) output reg         line_wide,
++    (* dont_retime *) output reg         line_guaranteed,
++    (* dont_retime *) output reg  [63:0] line_data,
++    input  wire        wb_request,
++    input  wire [31:0] wb_address,
++    input  wire        wb_write,
++    input  wire [31:0] wb_data,
++    input  wire [ 3:0] wb_mask,
++    (* dont_retime *) output reg         wb_ack,
++    (* dont_retime *) output reg         wb_error,
++    (* dont_retime *) output reg  [31:0] wb_reply
++);
++    reg [31:0] entropy_low, entropy_high;
++    reg [31:0] scratch_word;
++    reg [31:0] refill_addr;
++    reg        refill_live;
++    reg [ 3:0] pieces;
++
++    function [31:0] mapped_word;
++        input [31:0] address;
++        input [31:0] saved_word;
++        begin
++            // CP15 TTBR/DACR, identity sections, I-cache and MMU enable.
++            // The loop then exercises RAM word/byte writes and SWP ownership.
++            case (address)
++                32'h00: mapped_word = 32'he59f001c; // ldr r0,[pc,#28]
++                32'h04: mapped_word = 32'hee020f10; // mcr p15,0,r0,c2,c0,0
++                32'h08: mapped_word = 32'he3a00003; // mov r0,#3
++                32'h0c: mapped_word = 32'hee030f10; // mcr p15,0,r0,c3,c0,0
++                32'h10: mapped_word = 32'hee110f10; // mrc p15,0,r0,c1,c0,0
++                32'h14: mapped_word = 32'he3800a01; // orr r0,r0,#0x1000
++                32'h18: mapped_word = 32'he3800001; // orr r0,r0,#1
++                32'h1c: mapped_word = 32'hee010f10; // mcr p15,0,r0,c1,c0,0
++                32'h20: mapped_word = 32'hea000006; // b 0x40
++                32'h24: mapped_word = 32'h0a004000;
++                32'h40: mapped_word = 32'he59f0018; // ldr r0,[pc,#24]
++                32'h44: mapped_word = 32'he3a01055; // mov r1,#0x55
++                32'h48: mapped_word = 32'he5801000; // str r1,[r0]
++                32'h4c: mapped_word = 32'he5902000; // ldr r2,[r0]
++                32'h50: mapped_word = 32'he2823001; // add r3,r2,#1
++                32'h54: mapped_word = 32'he1004093; // swp r4,r3,[r0]
++                32'h58: mapped_word = 32'he5c03001; // strb r3,[r0,#1]
++                32'h5c: mapped_word = 32'heafffff7; // b 0x40
++                32'h60: mapped_word = 32'h0a000100;
++                32'h0a000100: mapped_word = saved_word;
++                default: mapped_word = address[31:14] == 18'h02801 ?
++                    {address[13:2], 20'h00c0e} : 32'he1a00000;
++            endcase
++        end
++    endfunction
++    wire [31:0] word_low = mapped_word({refill_addr[31:2], 2'b00}, scratch_word);
++    wire [31:0] word_high = mapped_word(refill_addr + 32'd4, scratch_word);
++    integer lane;
++    always @(posedge clk) begin
++        wb_ack      <= 0;
++        wb_error    <= 0;
++        line_reject <= 0;
++        line_valid  <= 0;
++        line_last   <= 0;
++        if (reset) begin
++            entropy_low     <= 32'h3ae59fb7;
++            entropy_high    <= 32'h1cd793e5;
++            line_ready      <= 0;
++            line_guaranteed <= 0;
++            line_wide       <= 0;
++            refill_live     <= 0;
++            refill_addr     <= 0;
++            pieces          <= 0;
++            irq             <= 0;
++            fiq             <= 0;
++            scratch_word    <= 0;
++            wb_reply        <= 0;
++            line_data       <= 0;
++        end else begin
++            entropy_low  <= {entropy_low[30:0], entropy_low[31] ^ entropy_low[21] ^ entropy_low[1] ^ entropy_low[0]};
++            entropy_high <= {entropy_high[30:0], entropy_high[31] ^ entropy_high[21] ^ entropy_high[1] ^ entropy_high[0]};
++            irq <= traffic[0] && (&entropy_low[7:0]);
++            fiq <= traffic[0] && (&entropy_high[7:0]);
++
++            if (wb_request && !wb_ack && !wb_error) begin
++                wb_error <= traffic[0] && entropy_high[0] && entropy_high[4];
++                wb_ack   <= !(traffic[0] && entropy_high[0] && entropy_high[4]);
++                wb_reply <= traffic[0] ? entropy_low : mapped_word(wb_address, scratch_word);
++                if (wb_write && wb_address[31:2] == 30'h02800040)
++                    for (lane = 0; lane < 4; lane = lane + 1)
++                        if (wb_mask[lane]) scratch_word[lane*8+:8] <= wb_data[lane*8+:8];
++            end
++            if (line_req && line_ready) begin
++                line_ready  <= 0;
++                line_reject <= traffic[1];
++                refill_live <= !traffic[1];
++                refill_addr <= line_address;
++                line_wide   <= !traffic[2];
++                pieces      <= 0;
++            end else if (refill_live) begin
++                line_valid  <= 1;
++                line_last   <= pieces == (line_wide ? 4'd3 : 4'd15);
++                if (pieces == (line_wide ? 4'd3 : 4'd15)) refill_live <= 0;
++                pieces      <= pieces + 1'b1;
++                refill_addr <= refill_addr + (line_wide ? 32'd8 : 32'd2);
++                if (traffic[0]) line_data <= {entropy_high, entropy_low};
++                else if (line_wide) line_data <= {word_high, word_low};
++                else line_data <= {48'd0, refill_addr[1] ? word_low[31:16] : word_low[15:0]};
++            end else begin
++                line_ready      <= 1;
++                line_guaranteed <= !traffic[1] && !traffic[0];
++            end
++        end
++    end
++endmodule
+diff --git a/tools/fit_isolation/cpu_smoke.v b/tools/fit_isolation/cpu_smoke.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..f57911748afcb043859a166a54bd8531e4402b2e
+--- /dev/null
++++ b/tools/fit_isolation/cpu_smoke.v
+@@ -0,0 +1,88 @@
++`timescale 1ps / 1ps
++
++// The physical PLL HDL is fitted by Quartus. Simulation supplies its output
++// period and a delayed lock indication, with no assertion about pin phase.
++module pll (
++    input  wire refclk,
++    input  wire rst,
++    output wire outclk_0,
++    output wire outclk_1,
++    output reg  locked = 0
++);
++    assign outclk_0 = refclk;
++    assign outclk_1 = 0;
++    initial #35000 locked = 1;
++endmodule
++
++module cpu_isolation_smoke;
++    reg clk = 0;
++    reg [3:0] switches = 1;
++    wire running, progress;
++    always #4808 clk = ~clk;
++    ngage_cpu_isolation dut (
++        .FPGA_CLK2_50(clk),
++        .SW          (switches),
++        .LED_USER    (progress),
++        .LED_POWER   (running)
++    );
++
++    integer reads, writes, lock_reads, lock_writes, table_reads;
++    integer line_count, rejections, narrow_beats, wide_beats;
++    always @(posedge clk) begin
++        if (!running) begin
++            reads = 0;
++            writes = 0;
++            lock_reads = 0;
++            lock_writes = 0;
++            table_reads = 0;
++            line_count = 0;
++            rejections = 0;
++            narrow_beats = 0;
++            wide_beats = 0;
++        end else begin
++            if (dut.emu.wb_ack && dut.emu.wb_cyc) begin
++                if (dut.emu.wb_address[31:14] == 18'h02801 && !dut.emu.wb_write)
++                    table_reads = table_reads + 1;
++                if (dut.emu.wb_address[31:2] == 30'h02800040) begin
++                    if (dut.emu.wb_write) writes = writes + 1;
++                    else reads = reads + 1;
++                    if (dut.emu.wb_lock && dut.emu.wb_write) lock_writes = lock_writes + 1;
++                    if (dut.emu.wb_lock && !dut.emu.wb_write) lock_reads = lock_reads + 1;
++                end
++            end
++            if (dut.emu.line_valid && dut.emu.line_last) line_count = line_count + 1;
++            if (dut.emu.line_reject) rejections = rejections + 1;
++            if (dut.emu.line_valid && dut.emu.line_wide) wide_beats = wide_beats + 1;
++            if (dut.emu.line_valid && !dut.emu.line_wide) narrow_beats = narrow_beats + 1;
++        end
++    end
++
++    task replay;
++        input [3:0] mode;
++        begin
++            switches = mode | 1;
++            repeat (12) @(negedge clk);
++            if (running) $fatal(1, "CPU peer did not reset");
++            switches = mode;
++            repeat (3000) @(negedge clk);
++            if (!running || reads < 10 || writes < 10 || lock_reads < 5 ||
++                lock_writes != lock_reads || table_reads == 0)
++                $fatal(1, "CPU peer did not execute the MMU/SWP workload");
++            if (mode[2] ? (line_count != 0 || rejections == 0) :
++                (line_count == 0 || rejections != 0))
++                $fatal(1, "CPU peer did not exercise line accept/reject");
++            if (!mode[2] && (mode[3] ? (narrow_beats != 16 * line_count || wide_beats != 0) :
++                (wide_beats != 4 * line_count || narrow_beats != 0)))
++                $fatal(1, "CPU peer line width/beat count changed");
++            $display("PASS CPU fixture mode=%x RAM R/W=%0d/%0d SWP=%0d table_reads=%0d line=%0d reject=%0d",
++                     mode, reads, writes, lock_reads, table_reads, line_count, rejections);
++        end
++    endtask
++
++    initial begin
++        replay(0);
++        replay(8);
++        replay(4);
++        $finish;
++    end
++endmodule
+diff --git a/tools/fit_isolation/prepare.py b/tools/fit_isolation/prepare.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..5b45a79088691d43b97a855c455fb67eb3391029
+--- /dev/null
++++ b/tools/fit_isolation/prepare.py
+@@ -0,0 +1,94 @@
++#!/usr/bin/env python3
++"""Select the diagnostic top or CPU boundary in a disposable Git archive."""
++
++import argparse
++import hashlib
++import json
++from pathlib import Path
++import re
++
++
++def replace_unique(path, old, new):
++    contents = path.read_bytes()
++    if contents.count(old) != 1:
++        raise ValueError(f"Expected one {old!r} in {path}")
++    path.write_bytes(contents.replace(old, new))
++
++
++def prepare(project, mode):
++    config = project / "Template.qsf"
++    files = project / "files.qip"
++    directory = project / "tools/fit_isolation"
++    config_before = config.read_bytes()
++    source_before = {}
++    if mode == "cpu-only":
++        top = "ngage_cpu_isolation"
++        constraints = project / "sys/sys_top.sdc"
++        source_before["sys/sys_top.sdc"] = constraints.read_bytes()
++        constraints.write_bytes((directory / "cpu_isolation.sdc").read_bytes())
++        replace_unique(config, b"TOP_LEVEL_ENTITY sys_top", b"TOP_LEVEL_ENTITY ngage_cpu_isolation")
++        selection = "VERILOG_FILE tools/fit_isolation/cpu_isolation.v"
++        boundary = "production ngage_cpu; registered memory peer; board omitted"
++    else:
++        top = "sys_top"
++        source = project / "rtl/ngage_cpu.sv"
++        # Inherit the exact boundary signature, defaults, and widths. Only the
++        # single UPP instance changes selection. Source and board SDC stay intact.
++        header, _ = source.read_bytes().split(b"\n);", 1)
++        if header.count(b"module ngage_cpu #(") != 1 or b"wb_block_data" not in header:
++            raise ValueError("ngage_cpu boundary header changed")
++        header = re.sub(
++            rb"(?m)^    (output logic[^\n]+\bwb_(?:cyc|lock|address|write|write_data|byte_enable),)$",
++            rb"    (* dont_retime *) \1", header,
++        )
++        generated = directory / "board_master.sv"
++        generated.write_bytes(
++            header.replace(b"module ngage_cpu #(", b"module ngage_timing_board_cpu #(")
++            + b"\n);\n" + (directory / "board_master.vh").read_bytes()
++        )
++        upp = project / "rtl/ngage_upp.v"
++        source_before["rtl/ngage_upp.v"] = upp.read_bytes()
++        replace_unique(upp, b"            ngage_cpu #(\n", b"            ngage_timing_board_cpu #(\n")
++        selection = "SYSTEMVERILOG_FILE tools/fit_isolation/board_master.sv"
++        boundary = "production board; registered CPU transaction peer"
++
++    source_before["Template.qsf"] = config_before
++    source_before["files.qip"] = files.read_bytes()
++    with files.open("ab") as handle:
++        handle.write(f"\nset_global_assignment -name {selection}\n".encode())
++
++    def digest(contents):
++        return hashlib.sha256(contents).hexdigest()
++
++    modified = {
++        name: {"baseline_sha256": digest(before), "diagnostic_sha256": digest((project / name).read_bytes())}
++        for name, before in source_before.items()
++        if before != (project / name).read_bytes()
++    }
++    report = {
++        "variant": mode,
++        "release_eligible": False,
++        "top_level_entity": top,
++        "boundary": boundary,
++        "expected_system_mhz": 104,
++        "ddr_debugger": False,
++        "substitutions": modified,
++    }
++    output = project / "output_files"
++    output.mkdir(exist_ok=True)
++    (output / "isolation.json").write_text(json.dumps(report, indent=2) + "\n")
++    print(f"{mode} timing diagnostic selected as {top}")
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--project", required=True, type=Path)
++    parser.add_argument("--mode", required=True, choices=("cpu-only", "board-only"))
++    args = parser.parse_args()
++    if (args.project / ".git").exists():
++        parser.error("Use a disposable project copy outside the checkout root")
++    prepare(args.project, args.mode)
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/tools/fit_isolation/report.tcl b/tools/fit_isolation/report.tcl
+new file mode 100644
+index 0000000000000000000000000000000000000000..84d8f7bcb147128854721045882fd73721cdeee4
+--- /dev/null
++++ b/tools/fit_isolation/report.tcl
+@@ -0,0 +1,140 @@
++# Diagnostic TimeQuest export for an already fitted Template revision.
++# One fitted PLL, four operating corners, unchanged timing constraints.
++package require ::quartus::project
++package require ::quartus::sta
++
++set variant [lindex $argv 0]
++if {$variant ni {cpu-only board-only}} {error "Expected cpu-only or board-only"}
++set output output_files/timing
++file mkdir $output
++set diagnostics [open $output/export-errors.txt w]
++
++proc attempt {label script} {
++    global diagnostics
++    if {[catch {uplevel 1 $script} result]} {
++        puts $diagnostics "$label: $result"
++        flush $diagnostics
++        puts stderr "Timing export $label failed: $result"
++        return ""
++    }
++    return $result
++}
++
++proc quote_csv {value} {
++    return "\"[string map [list \" \"\"] $value]\""
++}
++
++proc path_clock_name {path option} {
++    set clock [get_path_info $option $path]
++    if {$clock eq ""} {return ""}
++    return [get_clock_info -name $clock]
++}
++
++proc path_csv {destination options} {
++    set file [open $destination w]
++    puts $file "rank,slack_ns,data_delay_ns,logic_levels,from_clock,to_clock,from_node,to_node"
++    set rank 0
++    foreach_in_collection path [get_timing_paths -setup -npaths 1000 -nworst 1 -detail full_path {*}$options] {
++        incr rank
++        set fields [list $rank [get_path_info -slack $path] [get_path_info -data_delay $path] \
++            [get_path_info -num_logic_levels $path] \
++            [path_clock_name $path -from_clock] \
++            [path_clock_name $path -to_clock] \
++            [get_node_info -name [get_path_info -from $path]] \
++            [get_node_info -name [get_path_info -to $path]]]
++        set row {}
++        foreach field $fields {lappend row [quote_csv $field]}
++        puts $file [join $row ,]
++    }
++    close $file
++    if {$rank != 1000} {error "Expected 1000 paths; exported $rank"}
++}
++
++proc core_clock {} {
++    set matched {}
++    foreach_in_collection clock [get_clocks *] {
++        set name [get_clock_info -name $clock]
++        if {[string match {*emu|pll|*~PLL_OUTPUT_COUNTER*|divclk} $name]} {
++            lappend matched [list $clock $name]
++        }
++    }
++    if {[llength $matched] != 1} {error "Expected one running emu PLL output: $matched"}
++    lassign [lindex $matched 0] clock name
++    set period [get_clock_info -period $clock]
++    if {abs($period - 1000.0/104) > 0.002} {error "Fitted PLL does not run at 104 MHz: $period ns"}
++    return [list $clock $name $period]
++}
++
++proc endpoint_groups {directory variant clock_options} {
++    set all [get_keepers *]
++    if {$variant eq "cpu-only"} {
++        set dut [get_keepers -nowarn {emu|cpu|* *|emu|cpu|*}]
++        set harness [remove_from_collection $all $dut]
++    } else {
++        set harness [get_keepers -nowarn {*|cpu_inside.cpu|*}]
++        set dut [remove_from_collection $all $harness]
++    }
++    set file [open $directory/groups.tsv w]
++    puts $file "group\tsource_keepers\tdestination_keepers\treported_paths\tworst_slack_ns"
++    foreach {group from to} [list dut-to-dut $dut $dut dut-to-harness $dut $harness \
++                              harness-to-dut $harness $dut harness-to-harness $harness $harness] {
++        set source_count [get_collection_size $from]
++        set destination_count [get_collection_size $to]
++        set result {}
++        if {$source_count && $destination_count} {
++            set result [attempt $group [list report_timing -setup -npaths 25 -nworst 1 -detail full_path \
++                -show_routing -file $directory/$group.rpt {*}$clock_options -from $from -to $to]]
++        }
++        puts $file [join [list $group $source_count $destination_count [lindex $result 0] [lindex $result 1]] "\t"]
++    }
++    close $file
++}
++
++project_open -revision Template Template
++create_timing_netlist -model slow
++read_sdc
++update_timing_netlist
++
++set index 0
++foreach_in_collection condition [get_available_operating_conditions] {
++    incr index
++    set directory $output/corner-$index
++    file mkdir $directory
++    set_operating_conditions $condition
++    update_timing_netlist
++    set file [open $directory/operating-condition.txt w]
++    foreach field {name display_name model temperature voltage} {
++        puts $file "$field: [get_operating_conditions_info -$field $condition]"
++    }
++    close $file
++    attempt clocks [list report_clocks -file $directory/clocks.rpt]
++    attempt fmax [list report_clock_fmax_summary -file $directory/fmax.rpt]
++    attempt constraints [list report_sdc -file $directory/constraints.rpt]
++    attempt ignored [list report_sdc -ignored -file $directory/ignored-constraints.rpt]
++    attempt coverage [list report_ucp -file $directory/unconstrained.rpt]
++    attempt checks [list check_timing -include {no_clock multiple_clock generated_clock uncertainty loops latches no_input_delay no_output_delay partial_input_delay partial_output_delay pll_cross_check} \
++        -file $directory/check-timing.rpt]
++    attempt setup [list path_csv $directory/worst-setup.csv {}]
++    foreach kind {hold recovery removal} {
++        attempt $kind [list report_timing -$kind -npaths 25 -nworst 1 -detail full_path -file $directory/$kind.rpt]
++    }
++    attempt pulse [list report_min_pulse_width -nworst 25 -detail full_path -file $directory/min-pulse.rpt]
++
++    set clock [attempt physical-clock core_clock]
++    if {$clock ne ""} {
++        lassign $clock collection name period
++        set file [open $directory/physical-clock.txt w]
++        puts $file "clock=$name\nphysical_mhz=104\nperiod_ns=$period"
++        close $file
++        set options [list -from_clock $collection -to_clock $collection]
++        attempt core-setup [list path_csv $directory/core-setup.csv $options]
++        attempt core-full [list report_timing -setup -npaths 100 -nworst 1 -detail full_path -show_routing \
++            -file $directory/core-setup-full.rpt {*}$options]
++        attempt groups [list endpoint_groups $directory $variant $options]
++    }
++}
++if {$index != 4} {puts $diagnostics "Expected four fitted operating corners, found $index"}
++close $diagnostics
++delete_timing_netlist
++project_close
++puts "Completed $variant timing export. See export-errors.txt and coverage checks."
+diff --git a/tools/fit_isolation/run-smoke.sh b/tools/fit_isolation/run-smoke.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..159432f9c78f7f944610dd2104052526d9e581f9
+--- /dev/null
++++ b/tools/fit_isolation/run-smoke.sh
+@@ -0,0 +1,31 @@
++#!/bin/sh
++# Run from the repository root with the installed offline simulator.
++set -eu
++out=build/sim/timing-isolation-smoke
++fixture=tools/fit_isolation
++stage="$out/board-project"
++mkdir -p "$stage/rtl" "$stage/$fixture"
++cp Template.qsf files.qip "$stage/"
++cp rtl/ngage_cpu.sv rtl/ngage_upp.v "$stage/rtl/"
++cp "$fixture/board_master.vh" "$stage/$fixture/"
++python3 "$fixture/prepare.py" --project "$stage" --mode board-only
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint /bin/sh jotego/simulator:arm64 -c '
++    set -eu
++    out=$1
++    fixture=$2
++    stage=$3
++    verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint -DNGAGE_ARM9V2 -DNGAGE_BLOCK_WRITEBACK \
++        --top-module cpu_isolation_smoke --Mdir "$out/cpu-obj" "$fixture/cpu_isolation.v" \
++        "$fixture/cpu_smoke.v" rtl/ngage_cpu.sv rtl/arm9v2/arm925t_phone.v \
++        rtl/arm9v2/upstream/sim/stubs/*.sv > "$out/cpu-build.log" 2>&1
++    "$out/cpu-obj/Vcpu_isolation_smoke" > "$out/cpu-run.log" 2>&1
++    grep "^PASS" "$out/cpu-run.log"
++
++    verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
++        --top-module board_isolation_smoke --Mdir "$out/board-obj" "$stage/$fixture/board_master.sv" \
++        "$stage/rtl/ngage_upp.v" "$fixture/board_smoke.v" > "$out/board-build.log" 2>&1
++    "$out/board-obj/Vboard_isolation_smoke" > "$out/board-run.log" 2>&1
++    grep "^PASS" "$out/board-run.log"
++' smoke "$out" "$fixture" "$stage"
+diff --git a/tools/fit_isolation/verify_reports.py b/tools/fit_isolation/verify_reports.py
+new file mode 100644
+index 0000000000000000000000000000000000000000..07c7053a177f322f10581648eb635eadea2d589c
+--- /dev/null
++++ b/tools/fit_isolation/verify_reports.py
+@@ -0,0 +1,112 @@
++#!/usr/bin/env python3
++"""Check fit coverage, retaining the official reports as the source of truth."""
++
++import argparse
++import csv
++import json
++from pathlib import Path
++
++
++CPU = {"ngage_cpu", "ngage2_arm925t", "ngage2_zap_cache", "ngage2_zap_dcache",
++       "ngage2_zap_tlb", "ngage_arm9v2_refill"}
++BOARD = {"ngage_upp", "ngage_sdram_scheduler", "ngage_sdram_line_mux", "ngage_lcd_stream",
++         "ngage_dma_engine", "ngage_mmc_host", "ngage_mmc_card", "ngage_game_pcm",
++         "ngage_ddr_flash_cache", "ngage_am29n643_state"}
++GROUPS = {"dut-to-dut", "dut-to-harness", "harness-to-dut", "harness-to-harness"}
++
++
++def fit_inventory(report):
++    entities = []
++    rams = []
++    target = None
++    headers = ()
++    with report.open(errors="replace") as stream:
++        for line in stream:
++            if not line.startswith(";"):
++                continue
++            fields = [field.strip() for field in line.split(";")[1:-1]]
++            if len(fields) == 1:
++                target = rams if fields == ["Fitter RAM Summary"] else None
++                headers = ()
++            if "Full Hierarchy Name" in fields and "M10Ks" in fields:
++                target, headers = entities, fields
++            elif target is rams and {"Name", "Type", "Port A Depth"}.issubset(fields):
++                headers = fields
++            elif target is not None and headers and len(fields) == len(headers):
++                target.append(dict(zip(headers, fields)))
++    return entities, rams
++
++
++def path_count(path):
++    with path.open(newline="") as stream:
++        return sum(1 for _ in csv.DictReader(stream))
++
++
++def check_timing(timing, errors):
++    export_errors = timing / "export-errors.txt"
++    if not export_errors.is_file():
++        errors.append("Missing TimeQuest export log")
++    elif export_errors.stat().st_size:
++        errors.append("One or more TimeQuest exports failed. See export-errors.txt.")
++
++    corners = sorted(timing.glob("corner-*"))
++    if len(corners) != 4:
++        errors.append(f"Expected four operating corners, found {len(corners)}")
++    for corner in corners:
++        for name in ("fmax.rpt", "constraints.rpt", "unconstrained.rpt", "check-timing.rpt",
++                     "physical-clock.txt", "core-setup-full.rpt", "groups.tsv"):
++            if not (corner / name).is_file():
++                errors.append(f"{corner.name} lacks {name}")
++        for name in ("worst-setup.csv", "core-setup.csv"):
++            path = corner / name
++            if not path.is_file() or path_count(path) != 1000:
++                errors.append(f"{corner.name} lacks 1000 paths in {name}")
++        group_report = corner / "groups.tsv"
++        if group_report.is_file():
++            with group_report.open(newline="") as stream:
++                groups = {row["group"]: row for row in csv.DictReader(stream, delimiter="\t")}
++            for group in GROUPS:
++                record = groups.get(group, {})
++                count = record.get("reported_paths", "")
++                if not count.isdigit() or int(count) < 1:
++                    errors.append(f"{corner.name} has no {group} paths")
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("mode", choices=("cpu-only", "board-only"))
++    options = parser.parse_args()
++    output = Path("output_files")
++    errors = []
++    entities, rams = fit_inventory(output / "Template.fit.rpt")
++    found = {row["Entity Name"] for row in entities}
++    if options.mode == "cpu-only":
++        required = CPU | {"ngage_cpu_isolation_peer"}
++        excluded = BOARD
++        if sum(row["Entity Name"] == "ngage2_zap_tlb" for row in entities) != 2:
++            errors.append("CPU-only fit does not show both MMU TLB instances")
++        for name in ("ngage2_zap_cache", "ngage2_zap_dcache"):
++            if not any(row["Entity Name"] == name and int(row["M10Ks"].split()[0]) > 0 for row in entities):
++                errors.append(f"No physical RAM blocks in {name}")
++    else:
++        required = BOARD | {"ngage_timing_board_cpu"}
++        excluded = CPU
++    if required - found:
++        errors.append(f"Missing required fitted entities: {', '.join(sorted(required - found))}")
++    if excluded & found:
++        errors.append(f"Unexpected fitted entities: {', '.join(sorted(excluded & found))}")
++    if not rams:
++        errors.append("No fitted RAM inventory")
++    check_timing(output / "timing", errors)
++
++    report = {"mode": options.mode, "coverage_ok": not errors, "errors": errors,
++              "entities": [row for row in entities if row["Entity Name"] in required | excluded],
++              "fitted_ram_rows": rams}
++    (output / "diagnostic-coverage.json").write_text(json.dumps(report, indent=2) + "\n")
++    if errors:
++        parser.exit(1, "\n".join(errors) + "\n")
++    print(f"PASS {options.mode} fit inventory and timing export. Check measured slack separately.")
++
++
++if __name__ == "__main__":
++    main()

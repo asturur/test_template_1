@@ -1,0 +1,1616 @@
+{
+  "status": "PASS",
+  "production_waw_wait_retire": true,
+  "candidate": "e35ecb3c788425ceb7de7f757ce2a3f61e31afaf",
+  "base": "0c64862ebd8c5c85830a931c7f68b6b429a32076",
+  "tree": "ea6fc925cf1ec76fa832b124588b3ed556ec7fc9",
+  "stacked_on_d_beat": true,
+  "compare_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "399706e26164f8d205c3a7c8114f2004536d54a91ebbf6f9e4f42b511104c692",
+    "tools/gen_arm9v2_phone.py": "65830f179f5874262681d4fb8a9d6d61e11b1765dcbc3b2aaa2dcdea52ca53d1"
+  },
+  "source_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "6a2178ff14998bb32f60803204718113ccb6a1e7d01c01eece982b740723024d",
+    "tools/gen_arm9v2_phone.py": "84b0f118cd6a000fb67f1400b52992d6e73e01df9c04d37292c8874200beb378"
+  },
+  "design_patch_sha256": "db5f5b3bd2fce609c3d16cc1d694c93711a1d5b291db9f076d768c83ecc70ab3",
+  "replay_patch_sha256": "ac60b8ce2a0ea2a58a43dfa69e4cc1e932247a305fc029e523f47bc3375d1175",
+  "simulator": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "guard_proof": {
+    "vectors": 128,
+    "same_destination_fault_cases": 32,
+    "changed_vectors": 1,
+    "no_writer_cases": 64
+  },
+  "boards": {
+    "burst-0-wait-0": {
+      "normal_trace_sha256": "5eb36a2549bc68ac5e750b70d2e5ddb95e97900ce3d5a39ecfa59971bdc46c57",
+      "ordered_retire_sha256": "520d67e8e3d870a0713daba050de0f1638bc4a5f3b4936c1c98eb8e33278a032",
+      "reference": {
+        "clocks": 219,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 56,
+        "stalls": 0,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "guard": {
+        "clocks": 254,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 62,
+        "stalls": 62,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "clock_delta": 35
+    },
+    "burst-0-wait-5": {
+      "normal_trace_sha256": "6d7c90428c2072dcba11c44b696e1e2d19b8d6f46f38973b840f09f1ecfed809",
+      "ordered_retire_sha256": "520d67e8e3d870a0713daba050de0f1638bc4a5f3b4936c1c98eb8e33278a032",
+      "reference": {
+        "clocks": 499,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 55,
+        "stalls": 0,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "guard": {
+        "clocks": 503,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 55,
+        "stalls": 55,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "clock_delta": 4
+    },
+    "burst-1-wait-0": {
+      "normal_trace_sha256": "31cd1b51eb82c54931c436fcfa8b933f8fba7b6dcac00d9bb26f3df437b0f2ee",
+      "ordered_retire_sha256": "520d67e8e3d870a0713daba050de0f1638bc4a5f3b4936c1c98eb8e33278a032",
+      "reference": {
+        "clocks": 192,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 62,
+        "stalls": 0,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "guard": {
+        "clocks": 254,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 62,
+        "stalls": 62,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "clock_delta": 62
+    },
+    "burst-1-wait-5": {
+      "normal_trace_sha256": "12349a2fe3c61600eb64ba3f1214fbdc25324d5fb59e6f5a90e96511eb6d26f4",
+      "ordered_retire_sha256": "520d67e8e3d870a0713daba050de0f1638bc4a5f3b4936c1c98eb8e33278a032",
+      "reference": {
+        "clocks": 192,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 62,
+        "stalls": 0,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "guard": {
+        "clocks": 254,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 62,
+        "stalls": 62,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "clock_delta": 62
+    }
+  },
+  "compiled_cpu_fingerprint": "aiF4BxSZi7MvYIAyBHGBE8y2oefQHAHuzpgrdAcj",
+  "physical": {
+    "normal": {
+      "records": 171496,
+      "clocks": 1201547,
+      "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26"
+    },
+    "timer_mmc_lcd": {
+      "records": 171497,
+      "clocks": 1201528,
+      "trace_sha256": "0e9fb47c965bab211b315c129e08effab414ed1ccc9e579aee4d56d9d29ba824"
+    },
+    "cpu_block_eviction": {
+      "records": 172060,
+      "clocks": 1204706,
+      "trace_sha256": "c179009830b72ecb8aa10278e73e878c3cd1b0c34d2f3bab7afacaf084766317"
+    },
+    "warm_hold": {
+      "records": 171518,
+      "clocks": 1203504,
+      "trace_sha256": "07177926dd5e174b19db23220b807531c2f7b8f0c6ca13316641d7b50e2d6a80"
+    }
+  },
+  "workloads": {
+    "fixed": {
+      "count": 105,
+      "reference_receipt_sha256": "eb00703e98b4db82b0bf96b113b9e676b1b654afec7117cb990683af7b82df45",
+      "guard_receipt_sha256": "07913d0c4ff5661d249e2da95d5cfc407de8810d8953b618c8ba031fcc94733d",
+      "rows": {
+        "sega-scan": {
+          "cycle_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "reference_cycles": [
+            2396210,
+            2395853,
+            2395905,
+            2395767,
+            2395767,
+            2395767,
+            2395767
+          ],
+          "guard_cycles": [
+            2396210,
+            2395853,
+            2395905,
+            2395767,
+            2395767,
+            2395767,
+            2395767
+          ],
+          "reference_median": 2395767,
+          "guard_median": 2395767,
+          "median_delta": 0,
+          "median_delta_pct": 0.0,
+          "reference_same_edge_accepts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "guard_extra_holds": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "matched_ordered_writes": [
+            [
+              3358,
+              "34016cbfad091684"
+            ],
+            [
+              3358,
+              "34016cbfad091684"
+            ],
+            [
+              3358,
+              "34016cbfad091684"
+            ],
+            [
+              3358,
+              "34016cbfad091684"
+            ],
+            [
+              3358,
+              "34016cbfad091684"
+            ],
+            [
+              3358,
+              "34016cbfad091684"
+            ],
+            [
+              3358,
+              "34016cbfad091684"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "matrix4": {
+          "cycle_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "reference_cycles": [
+            17981,
+            16937,
+            16937,
+            16937,
+            16949,
+            16946,
+            16952
+          ],
+          "guard_cycles": [
+            17981,
+            16937,
+            16937,
+            16937,
+            16949,
+            16946,
+            16952
+          ],
+          "reference_median": 16946,
+          "guard_median": 16946,
+          "median_delta": 0,
+          "median_delta_pct": 0.0,
+          "reference_same_edge_accepts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "guard_extra_holds": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "matched_ordered_writes": [
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "transpose4": {
+          "cycle_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "reference_cycles": [
+            3055,
+            2964,
+            2964,
+            2976,
+            2976,
+            2979,
+            2976
+          ],
+          "guard_cycles": [
+            3055,
+            2964,
+            2964,
+            2976,
+            2976,
+            2979,
+            2976
+          ],
+          "reference_median": 2976,
+          "guard_median": 2976,
+          "median_delta": 0,
+          "median_delta_pct": 0.0,
+          "reference_same_edge_accepts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "guard_extra_holds": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "matched_ordered_writes": [
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "triangle_edges": {
+          "cycle_delta": [
+            15,
+            31,
+            49,
+            -2,
+            -17,
+            16,
+            16
+          ],
+          "reference_cycles": [
+            13136,
+            12220,
+            12226,
+            12262,
+            12253,
+            12220,
+            12220
+          ],
+          "guard_cycles": [
+            13151,
+            12251,
+            12275,
+            12260,
+            12236,
+            12236,
+            12236
+          ],
+          "reference_median": 12226,
+          "guard_median": 12236,
+          "median_delta": 10,
+          "median_delta_pct": 0.08179290037624734,
+          "reference_same_edge_accepts": [
+            16,
+            16,
+            16,
+            16,
+            16,
+            16,
+            16
+          ],
+          "guard_extra_holds": [
+            16,
+            16,
+            16,
+            16,
+            16,
+            16,
+            16
+          ],
+          "matched_ordered_writes": [
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "fill16_frame": {
+          "cycle_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "reference_cycles": [
+            122534,
+            122402,
+            122402,
+            122402,
+            122402,
+            122402,
+            122402
+          ],
+          "guard_cycles": [
+            122534,
+            122402,
+            122402,
+            122402,
+            122402,
+            122402,
+            122402
+          ],
+          "reference_median": 122402,
+          "guard_median": 122402,
+          "median_delta": 0,
+          "median_delta_pct": 0.0,
+          "reference_same_edge_accepts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "guard_extra_holds": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "matched_ordered_writes": [
+            [
+              4063,
+              "4de7a1804491681c"
+            ],
+            [
+              4063,
+              "4de7a1804491681c"
+            ],
+            [
+              4063,
+              "4de7a1804491681c"
+            ],
+            [
+              4063,
+              "4de7a1804491681c"
+            ],
+            [
+              4063,
+              "4de7a1804491681c"
+            ],
+            [
+              4063,
+              "4de7a1804491681c"
+            ],
+            [
+              4063,
+              "4de7a1804491681c"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "fill16_tail": {
+          "cycle_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "reference_cycles": [
+            876,
+            725,
+            725,
+            728,
+            725,
+            725,
+            725
+          ],
+          "guard_cycles": [
+            876,
+            725,
+            725,
+            728,
+            725,
+            725,
+            725
+          ],
+          "reference_median": 725,
+          "guard_median": 725,
+          "median_delta": 0,
+          "median_delta_pct": 0.0,
+          "reference_same_edge_accepts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "guard_extra_holds": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "matched_ordered_writes": [
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "fill8_tail": {
+          "cycle_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "reference_cycles": [
+            903,
+            753,
+            753,
+            753,
+            753,
+            753,
+            753
+          ],
+          "guard_cycles": [
+            903,
+            753,
+            753,
+            753,
+            753,
+            753,
+            753
+          ],
+          "reference_median": 753,
+          "guard_median": 753,
+          "median_delta": 0,
+          "median_delta_pct": 0.0,
+          "reference_same_edge_accepts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "guard_extra_holds": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "matched_ordered_writes": [
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "monkey-forward": {
+          "cycle_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "reference_cycles": [
+            16021,
+            15937,
+            15940,
+            15940,
+            15949,
+            15937,
+            15940
+          ],
+          "guard_cycles": [
+            16021,
+            15937,
+            15940,
+            15940,
+            15949,
+            15937,
+            15940
+          ],
+          "reference_median": 15940,
+          "guard_median": 15940,
+          "median_delta": 0,
+          "median_delta_pct": 0.0,
+          "reference_same_edge_accepts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "guard_extra_holds": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "matched_ordered_writes": [
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "monkey-reverse": {
+          "cycle_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "reference_cycles": [
+            16021,
+            15937,
+            15940,
+            15940,
+            15949,
+            15937,
+            15940
+          ],
+          "guard_cycles": [
+            16021,
+            15937,
+            15940,
+            15940,
+            15949,
+            15937,
+            15940
+          ],
+          "reference_median": 15940,
+          "guard_median": 15940,
+          "median_delta": 0,
+          "median_delta_pct": 0.0,
+          "reference_same_edge_accepts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "guard_extra_holds": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "matched_ordered_writes": [
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "sega-span": {
+          "cycle_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "reference_cycles": [
+            15585,
+            15430,
+            15430,
+            15430,
+            15430,
+            15430,
+            15430
+          ],
+          "guard_cycles": [
+            15585,
+            15430,
+            15430,
+            15430,
+            15430,
+            15430,
+            15430
+          ],
+          "reference_median": 15430,
+          "guard_median": 15430,
+          "median_delta": 0,
+          "median_delta_pct": 0.0,
+          "reference_same_edge_accepts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "guard_extra_holds": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "matched_ordered_writes": [
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "sega-fill": {
+          "cycle_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "reference_cycles": [
+            2757,
+            2628,
+            2628,
+            2628,
+            2628,
+            2628,
+            2628
+          ],
+          "guard_cycles": [
+            2757,
+            2628,
+            2628,
+            2628,
+            2628,
+            2628,
+            2628
+          ],
+          "reference_median": 2628,
+          "guard_median": 2628,
+          "median_delta": 0,
+          "median_delta_pct": 0.0,
+          "reference_same_edge_accepts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "guard_extra_holds": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "matched_ordered_writes": [
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "asphalt-table": {
+          "cycle_delta": [
+            261,
+            259,
+            254,
+            259,
+            243,
+            251,
+            244
+          ],
+          "reference_cycles": [
+            21328,
+            21155,
+            21160,
+            21152,
+            21168,
+            21163,
+            21171
+          ],
+          "guard_cycles": [
+            21589,
+            21414,
+            21414,
+            21411,
+            21411,
+            21414,
+            21415
+          ],
+          "reference_median": 21163,
+          "guard_median": 21414,
+          "median_delta": 251,
+          "median_delta_pct": 1.1860322260549072,
+          "reference_same_edge_accepts": [
+            256,
+            256,
+            256,
+            256,
+            256,
+            256,
+            256
+          ],
+          "guard_extra_holds": [
+            256,
+            256,
+            256,
+            256,
+            256,
+            256,
+            256
+          ],
+          "matched_ordered_writes": [
+            [
+              10,
+              "87a794f97b780221"
+            ],
+            [
+              10,
+              "87a794f97b780221"
+            ],
+            [
+              10,
+              "87a794f97b780221"
+            ],
+            [
+              10,
+              "87a794f97b780221"
+            ],
+            [
+              10,
+              "87a794f97b780221"
+            ],
+            [
+              10,
+              "87a794f97b780221"
+            ],
+            [
+              10,
+              "87a794f97b780221"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false
+          ]
+        },
+        "asphalt-double": {
+          "cycle_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "reference_cycles": [
+            12140,
+            11974,
+            11982,
+            11974,
+            11977,
+            11974,
+            11974
+          ],
+          "guard_cycles": [
+            12140,
+            11974,
+            11982,
+            11974,
+            11977,
+            11974,
+            11974
+          ],
+          "reference_median": 11974,
+          "guard_median": 11974,
+          "median_delta": 0,
+          "median_delta_pct": 0.0,
+          "reference_same_edge_accepts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "guard_extra_holds": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "matched_ordered_writes": [
+            [
+              10,
+              "1441672fc36d6835"
+            ],
+            [
+              10,
+              "1441672fc36d6835"
+            ],
+            [
+              10,
+              "1441672fc36d6835"
+            ],
+            [
+              10,
+              "1441672fc36d6835"
+            ],
+            [
+              10,
+              "1441672fc36d6835"
+            ],
+            [
+              10,
+              "1441672fc36d6835"
+            ],
+            [
+              10,
+              "1441672fc36d6835"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "asphalt-single": {
+          "cycle_delta": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "reference_cycles": [
+            7933,
+            7753,
+            7753,
+            7762,
+            7753,
+            7753,
+            7753
+          ],
+          "guard_cycles": [
+            7933,
+            7753,
+            7753,
+            7762,
+            7753,
+            7753,
+            7753
+          ],
+          "reference_median": 7753,
+          "guard_median": 7753,
+          "median_delta": 0,
+          "median_delta_pct": 0.0,
+          "reference_same_edge_accepts": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "guard_extra_holds": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "matched_ordered_writes": [
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        },
+        "diffuse_m10_8x8_jpeg": {
+          "cycle_delta": [
+            201,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ],
+          "reference_cycles": [
+            36331,
+            35324,
+            35324,
+            35324,
+            35324,
+            35324,
+            35324
+          ],
+          "guard_cycles": [
+            36532,
+            35524,
+            35524,
+            35524,
+            35524,
+            35524,
+            35524
+          ],
+          "reference_median": 35324,
+          "guard_median": 35524,
+          "median_delta": 200,
+          "median_delta_pct": 0.5661872947571056,
+          "reference_same_edge_accepts": [
+            199,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ],
+          "guard_extra_holds": [
+            199,
+            200,
+            200,
+            200,
+            200,
+            200,
+            200
+          ],
+          "matched_ordered_writes": [
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ],
+            [
+              0,
+              "cbf29ce484222325"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ]
+        }
+      }
+    },
+    "native": {
+      "count": 4,
+      "reference_receipt_sha256": "82ea204df806748e0028a963405b56fc37f2c0e24bba5a6ba26eb767df99a896",
+      "guard_receipt_sha256": "8546aa4a9e01d3fcea342bc9a0089e348c24e6fde29bbb9dc6dd322978a0616a",
+      "rows": {
+        "native": {
+          "cycle_delta": [
+            13586,
+            14930,
+            14988,
+            14646
+          ],
+          "reference_cycles": [
+            14391395,
+            14467552,
+            14346201,
+            14303223
+          ],
+          "guard_cycles": [
+            14404981,
+            14482482,
+            14361189,
+            14317869
+          ],
+          "reference_median": 14346201,
+          "guard_median": 14361189,
+          "median_delta": 14988,
+          "median_delta_pct": 0.10447365124746266,
+          "reference_same_edge_accepts": [
+            14859,
+            15009,
+            14999,
+            14999
+          ],
+          "guard_extra_holds": [
+            14859,
+            15009,
+            14999,
+            14999
+          ],
+          "matched_ordered_writes": [
+            [
+              70094,
+              "ff5490ae4b26bc03"
+            ],
+            [
+              69432,
+              "f8bd971138bdf010"
+            ],
+            [
+              69066,
+              "a21fd611b20d99b8"
+            ],
+            [
+              69573,
+              "46c35c3e215261bc"
+            ]
+          ],
+          "matched_cycle_stamped_write_hashes": [
+            false,
+            false,
+            false,
+            false
+          ],
+          "total_delta": 58150,
+          "total_delta_pct": 0.10111571409317088,
+          "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77"
+        }
+      }
+    }
+  },
+  "routed_baseline_routes_sha256": "6a8e250a27b5895d53d9ff38e1a85940d4cc114c2bd13c88a77bd1fc9347ce6b",
+  "production_preflight": {
+    "13": {
+      "control_run": 45893161445,
+      "control_origin": "sealed D-beat control preflight",
+      "mhz": 104,
+      "debugger": false,
+      "source_count": 133,
+      "delta": {
+        "rtl/arm9v2/arm925t_phone.v": "6a2178ff14998bb32f60803204718113ccb6a1e7d01c01eece982b740723024d"
+      },
+      "manifest_sha256": "6fd4798b3bb9774124f8818f144775d6930bc6da4d1385a3a90da208c9a56ef1"
+    },
+    "43": {
+      "control_run": 45893165422,
+      "control_origin": "sealed D-beat control preflight",
+      "mhz": 104,
+      "debugger": false,
+      "source_count": 133,
+      "delta": {
+        "rtl/arm9v2/arm925t_phone.v": "6a2178ff14998bb32f60803204718113ccb6a1e7d01c01eece982b740723024d"
+      },
+      "manifest_sha256": "f30ff564ec3a75c3942b8e9dcc96dc5b71428af053936841b1c4a7c9fb41a405"
+    },
+    "31337": {
+      "control_run": 45893169984,
+      "control_origin": "sealed D-beat control preflight",
+      "mhz": 104,
+      "debugger": false,
+      "source_count": 133,
+      "delta": {
+        "rtl/arm9v2/arm925t_phone.v": "6a2178ff14998bb32f60803204718113ccb6a1e7d01c01eece982b740723024d"
+      },
+      "manifest_sha256": "d82f2c4e515c3a525413c0b2a739a96f9fbc28e4bddcddc31f036785a0b81d3c"
+    }
+  },
+  "candidate_routed": false
+}

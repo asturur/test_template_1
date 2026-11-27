@@ -142,8 +142,9 @@ module emu (
 
     ///////////////////////   CLOCKS   ///////////////////////////////
 
-    localparam integer SYS_CLK_HZ = 78000000;
-    wire clk_sys;  // 78 MHz — CPU, bus, board devices, SDRAM logic
+    localparam integer SYS_CLK_HZ  = 104000000;
+    localparam integer MMC_CLK_DIV = 3;
+    wire clk_sys;  // 104 MHz — CPU, bus, board devices, SDRAM logic
     wire pll_locked;
 
     pll pll (
@@ -226,37 +227,26 @@ module emu (
 
     ///////////////////////   SDRAM   ////////////////////////////////
 
-    // SDRAM: phone RAM 16MB at PA 0x0a000000, split across BA0 (low 8MB)
-    // and BA1 (high 8MB). AW=22 matches DE10 SDRAM geometry (8MB/bank).
-    // 78 MHz system clock, inverted DDIO output to SDRAM chip pin.
-    // Forward the 78 MHz system clock through the output IO register. The
-    // inverted pin clock is paired with falling-edge read capture in sdram_ctrl.
+    // Phone RAM occupies 16 MiB at PA 0x0a000000 with four banks
+    // interleaved every 4 KiB. Forward clk_sys through the DDIO output.
     ngage_sdram_clock sdram_clock (
         .clk      (clk_sys),
         .sdram_clk(SDRAM_CLK)
     );
 
-    // CPU → SDRAM address/data decode
-    // ngage_mister outputs: sdram_addr[24:0], sdram_din[31:0], sdram_be[3:0],
-    //                       sdram_we, sdram_req
-    // Phone PA bit 23 (= sdram_addr[23]) selects BA0 vs BA1.
     wire [24:0] cpu_sdram_addr;
     wire [31:0] cpu_sdram_din;
-    wire [ 3:0] cpu_sdram_be;
-    wire        cpu_sdram_we;
-    wire        cpu_sdram_req;
+    wire cpu_write_block, mem_write_block;
+    wire [127:0] cpu_block_data, mem_block_data;
+    wire [3:0] cpu_sdram_be;
+    wire       cpu_sdram_we;
+    wire       cpu_sdram_req;
     // Retain the CPU bus reservation across the read and write of an atomic swap.
-    wire        cpu_bus_lock;
+    wire       cpu_bus_lock;
 
-    // The adapter owns an entire 32-bit access, including both halfwords.
-    // Cold-start RAM scrub proceeds while the phone CPU remains held in reset.
-    wire [21:0] sdram_haddr;
-    wire [15:0] sdram_wdata, sdram_dout_16;
-    wire [1:0] sdram_dsn;
-    wire [3:0] sdram_rd_banks, sdram_wr_banks, sdram_ack_banks, sdram_rdy_banks;
-    wire sdram_init, sdram_rfsh, sdram_scrub_done, sdram_ack, cpu_sdram_accept;
+    wire sdram_scrub_done, sdram_ack, cpu_sdram_accept;
     wire [31:0] sdram_dout;
-    wire mem_req, mem_we, mem_ack;
+    wire mem_req, mem_we, mem_ack, mem_lock;
     wire [7:0] dma_error_pending;
     wire dma_cmd_valid, dma_cmd_ready, dma_cmd_write;
     wire [31:0] dma_cmd_addr, dma_cmd_data;
@@ -346,161 +336,176 @@ module emu (
         .mem_rdata (shared_dma_rdata)
     );
 
-    wire sdram_owner_ready;
+    wire sdram_owner_ready, hold_sdram_scalar;
     // Both DMA paths share SDRAM with the CPU and respect atomic CPU locks.
     // Keep the arbiter payload intact until a canceled physical transfer drains.
-    ngage_sdram_arbiter ram_arbiter (
-        .clk       (clk_sys),
-        .reset     (dma_reset || transport_reset),
-        .cpu_lock  (cpu_bus_lock),
-        .cpu_req   (cpu_sdram_req && sdram_owner_ready),
-        .cpu_we    (cpu_sdram_we),
-        .cpu_addr  (cpu_sdram_addr),
-        .cpu_data  (cpu_sdram_din),
-        .cpu_be    (cpu_sdram_be),
-        .cpu_ack   (sdram_ack),
-        .cpu_accept(cpu_sdram_accept),
-        .cpu_rdata (sdram_dout),
-        .dma_req   (shared_dma_req && sdram_owner_ready),
-        .dma_we    (shared_dma_write),
-        .dma_addr  (shared_dma_addr),
-        .dma_data  (shared_dma_data),
-        .dma_be    (shared_dma_be),
-        .dma_ack   (shared_dma_ack),
-        .dma_accept(shared_dma_accept),
-        .dma_rdata (shared_dma_rdata),
-        .mem_req   (mem_req),
-        .mem_we    (mem_we),
-        .mem_addr  (mem_addr),
-        .mem_data  (mem_wdata),
-        .mem_be    (mem_be),
-        .mem_ack   (mem_ack),
-        .mem_rdata (mem_rdata)
+    ngage_sdram_arbiter #(
+        .CPU_BLOCK_WRITES     (1),
+        .PRECAPTURE_BLOCK_DATA(1)
+    ) ram_arbiter (
+        .clk            (clk_sys),
+        .reset          (dma_reset || transport_reset),
+        .cpu_lock       (cpu_bus_lock),
+        .cpu_req        (cpu_sdram_req && sdram_owner_ready && !hold_sdram_scalar),
+        .cpu_we         (cpu_sdram_we),
+        .cpu_addr       (cpu_sdram_addr),
+        .cpu_data       (cpu_sdram_din),
+        .cpu_write_block(cpu_write_block),
+        .cpu_block_data (cpu_block_data),
+        .cpu_be         (cpu_sdram_be),
+        .cpu_ack        (sdram_ack),
+        .cpu_accept     (cpu_sdram_accept),
+        .cpu_rdata      (sdram_dout),
+        .dma_req        (shared_dma_req && sdram_owner_ready && !hold_sdram_scalar),
+        .dma_we         (shared_dma_write),
+        .dma_addr       (shared_dma_addr),
+        .dma_data       (shared_dma_data),
+        .dma_be         (shared_dma_be),
+        .dma_ack        (shared_dma_ack),
+        .dma_accept     (shared_dma_accept),
+        .dma_rdata      (shared_dma_rdata),
+        .mem_req        (mem_req),
+        .mem_we         (mem_we),
+        .mem_lock       (mem_lock),
+        .mem_addr       (mem_addr),
+        .mem_data       (mem_wdata),
+        .mem_write_block(mem_write_block),
+        .mem_block_data (mem_block_data),
+        .mem_be         (mem_be),
+        .mem_ack        (mem_ack),
+        .mem_rdata      (mem_rdata)
     );
-    wire [3:0] sdram_dst_banks;
     wire ram_line_req, ram_line_ready, ram_line_valid, ram_line_last;
     wire [24:0] ram_line_addr;
     wire [15:0] ram_line_data;
-    wire [ 1:0] sdram_line_banks;
+    wire lcd_line_req, lcd_line_ready, lcd_line_valid, lcd_line_last;
+    wire [24:0] lcd_line_addr;
+    localparam integer LCD_LINE_BYTES = 16;
+    wire shared_line_req, shared_line_ready, shared_line_valid, shared_line_last;
+    wire shared_line_short, sdr_read_short;
+    wire [24:0] shared_line_addr;
+    wire sdr_req, sdr_we, sdr_line, sdr_ready, sdr_cmd_ready, sdr_busy, sdr_valid;
+    wire [ 24:2] sdr_addr;
+    wire [127:0] sdr_wdata;
+    wire [15:0] sdr_wbe, sdram_dq_o, sdram_dq_oe;
+    wire [31:0] sdr_rdata;
 
-    ngage_sdram_adapter #(
-        .LINE_REFILL   (1),
-        .REFRESH_PERIOD((64'd6800 * SYS_CLK_HZ) / 104000000)
-    ) phone_sdram (
-        .owner_ready(sdram_owner_ready),
-        .line_req   (ram_line_req && !cpu_bus_lock),
-        .line_addr  (ram_line_addr),
-        .line_ready (ram_line_ready),
-        .line_valid (ram_line_valid),
-        .line_data  (ram_line_data),
-        .line_last  (ram_line_last),
-        .ba_line    (sdram_line_banks),
-        .clk        (clk_sys),
-        .rst        (transport_reset),
-        .phone_reset(dma_reset || transport_reset),
-        .init       (sdram_init),
-        .req        (mem_req),
-        .we         (mem_we),
-        .addr       (mem_addr),
-        .din        (mem_wdata),
-        .be         (mem_be),
-        .ack        (mem_ack),
-        .dout       (mem_rdata),
-        .scrub_done (sdram_scrub_done),
-        .ba_addr    (sdram_haddr),
-        .ba_din     (sdram_wdata),
-        .ba_dsn     (sdram_dsn),
-        .rd         (sdram_rd_banks),
-        .wr         (sdram_wr_banks),
-        .ba_ack     (sdram_ack_banks),
-        .ba_dst     (sdram_dst_banks),
-        .ba_rdy     (sdram_rdy_banks),
-        .ba_dout    (sdram_dout_16),
-        .rfsh       (sdram_rfsh)
+    ngage_sdram_line_mux #(
+        .LCD_LINE_BYTES(LCD_LINE_BYTES)
+    ) line_mux (
+        .clk           (clk_sys),
+        .reset         (dma_reset || transport_reset),
+        .cpu_lock      (cpu_bus_lock),
+        .scalar_waiting(cpu_sdram_req || shared_dma_req),
+        .scalar_accept (cpu_sdram_accept || shared_dma_accept),
+        .scalar_active (mem_req),
+        .hold_scalar   (hold_sdram_scalar),
+        .cpu_req       (ram_line_req),
+        .cpu_addr      (ram_line_addr),
+        .cpu_ready     (ram_line_ready),
+        .cpu_valid     (ram_line_valid),
+        .cpu_last      (ram_line_last),
+        .lcd_req       (lcd_line_req),
+        .lcd_addr      (lcd_line_addr),
+        .lcd_ready     (lcd_line_ready),
+        .lcd_valid     (lcd_line_valid),
+        .lcd_last      (lcd_line_last),
+        .ram_req       (shared_line_req),
+        .ram_short     (shared_line_short),
+        .ram_addr      (shared_line_addr),
+        .ram_ready     (shared_line_ready),
+        .ram_valid     (shared_line_valid),
+        .ram_last      (shared_line_last)
     );
 
-    jtframe_sdram64 #(
-        .BANKS               (2),
-        .PROG_ENABLE         (0),
-        .SHORT_READS         (1),
-        .DYNAMIC_LINE        (1),
-        .AW                  (22),
-        .HF                  (1),    // 78 MHz > 66 MHz → HF mode
-        .READ_CAPTURE_NEGEDGE(1),    // paired with the inverted DDIO pin clock
-        .BA0_LEN             (256),  // One logical service schedules two physical BL8s
-        .BA1_LEN             (256),
-        .BA2_LEN             (16),
-        .BA3_LEN             (16),
-        .PROG_LEN            (16),   // unused programming port; no longer than physical burst
-        .BA0_WEN             (1),    // phone RAM is read+write
-        .BA1_WEN             (1),
-        .BA2_WEN             (0),
-        .BA3_WEN             (0)
+    wire         sdram_read_grant = (cpu_sdram_accept && !cpu_sdram_we) ||
+                                     (shared_dma_accept && !shared_dma_write);
+    wire [24:0] sdram_grant_addr = cpu_sdram_accept ? cpu_sdram_addr : shared_dma_addr;
+    ngage_sdram_stream phone_sdram (
+        .clk          (clk_sys),
+        .cold         (transport_reset),
+        .phone_reset  (dma_reset || transport_reset),
+        .lock         (mem_lock),
+        .owner_ready  (sdram_owner_ready),
+        .grant_read   (sdram_read_grant),
+        .grant_addr   (sdram_grant_addr),
+        .req          (mem_req),
+        .we           (mem_we),
+        .write_block  (mem_write_block),
+        .block_data   (mem_block_data),
+        .addr         (mem_addr),
+        .din          (mem_wdata),
+        .be           (mem_be),
+        .ack          (mem_ack),
+        .dout         (mem_rdata),
+        .line_req     (shared_line_req),
+        .line_short   (shared_line_short),
+        .line_addr    (shared_line_addr),
+        .line_ready   (shared_line_ready),
+        .line_valid   (shared_line_valid),
+        .line_data    (ram_line_data),
+        .line_last    (shared_line_last),
+        .scrub_done   (sdram_scrub_done),
+        .mem_req      (sdr_req),
+        .mem_we       (sdr_we),
+        .mem_line     (sdr_line),
+        .mem_short    (sdr_read_short),
+        .mem_addr     (sdr_addr),
+        .mem_wdata    (sdr_wdata),
+        .mem_wbe      (sdr_wbe),
+        .mem_ready    (sdr_ready),
+        .mem_cmd_ready(sdr_cmd_ready),
+        .mem_busy     (sdr_busy),
+        .mem_valid    (sdr_valid),
+        .mem_rdata    (sdr_rdata)
+    );
+
+    ngage_sdram_scheduler #(
+        .CLK_HZ(SYS_CLK_HZ)
     ) sdram_ctrl (
-        .line_read(sdram_line_banks),
-        .rst      (transport_reset),
-        .clk      (clk_sys),
-        .init     (sdram_init),
-
-        // BA0: phone RAM low 8MB
-        .ba0_addr(sdram_haddr),
-        .ba0_din (sdram_wdata),
-        .ba0_dsn (sdram_dsn),
-
-        // BA1: phone RAM high 8MB
-        .ba1_addr(sdram_haddr),
-        .ba1_din (sdram_wdata),
-        .ba1_dsn (sdram_dsn),
-
-        // BA2/BA3: unused
-        .ba2_addr(22'd0),
-        .ba2_din (16'd0),
-        .ba2_dsn (2'b11),
-        .ba3_addr(22'd0),
-        .ba3_din (16'd0),
-        .ba3_dsn (2'b11),
-
-        .rd  (sdram_rd_banks),
-        .wr  (sdram_wr_banks),
-        .rfsh(sdram_rfsh),
-
-        .ack (sdram_ack_banks),
-        .dst (sdram_dst_banks),
-        .dok (),
-        .rdy (sdram_rdy_banks),
-        .dout(sdram_dout_16),
-
-        // programming port (unused — ROM goes via DDR3)
-        .prog_en  (1'b0),
-        .prog_addr(22'd0),
-        .prog_rd  (1'b0),
-        .prog_wr  (1'b0),
-        .prog_din (16'd0),
-        .prog_dsn (2'b11),
-        .prog_ba  (2'd0),
-        .prog_dst (),
-        .prog_dok (),
-        .prog_rdy (),
-        .prog_ack (),
-
-        // SDRAM chip pins
-        .sdram_dq  (SDRAM_DQ),
-        .sdram_a   (SDRAM_A),
-        .sdram_dqml(SDRAM_DQML),
-        .sdram_dqmh(SDRAM_DQMH),
-        .sdram_ba  (SDRAM_BA),
-        .sdram_nwe (SDRAM_nWE),
-        .sdram_ncas(SDRAM_nCAS),
-        .sdram_nras(SDRAM_nRAS),
-        .sdram_ncs (SDRAM_nCS),
-        .sdram_cke (SDRAM_CKE)
+        .clk        (clk_sys),
+        .init       (transport_reset),
+        .ready      (sdr_ready),
+        .req        (sdr_req),
+        .busy       (sdr_busy),
+        .cmd_ready  (sdr_cmd_ready),
+        .we         (sdr_we),
+        .line       (sdr_line),
+        .read_short (sdr_read_short),
+        .addr       (sdr_addr),
+        .wdata      (sdr_wdata),
+        .wbe        (sdr_wbe),
+        .rvalid     (sdr_valid),
+        .rword      (),
+        .rdata      (sdr_rdata),
+        .sdram_cke  (SDRAM_CKE),
+        .sdram_cs_n (SDRAM_nCS),
+        .sdram_ras_n(SDRAM_nRAS),
+        .sdram_cas_n(SDRAM_nCAS),
+        .sdram_we_n (SDRAM_nWE),
+        .sdram_ba   (SDRAM_BA),
+        .sdram_a    (SDRAM_A),
+        .sdram_dqml (SDRAM_DQML),
+        .sdram_dqmh (SDRAM_DQMH),
+        .sdram_dq_o (sdram_dq_o),
+        .sdram_dq_oe(sdram_dq_oe),
+        .sdram_dq_i (SDRAM_DQ)
     );
+
+    genvar dq_bit;
+    generate
+        for (dq_bit = 0; dq_bit < 16; dq_bit = dq_bit + 1) begin : sdram_pins
+            assign SDRAM_DQ[dq_bit] = sdram_dq_oe[dq_bit] ? sdram_dq_o[dq_bit] : 1'bz;
+        end
+    endgenerate
 
     ///////////////////////   DDR3 firmware transport   ////////////////
     // Installed Linux reserves0x1ff00000..0x3fffffff (2026-11-12 SSH audit).
     // Core ROM/C:/PMM occupy0x30000000..0x3180ffff. Diagnostics use the unused
     // ROM/C: guard at0x313f0000 (text ring and two1KiB snapshots).
-    // Optional PCM diagnostic output uses its own DDR span at 0x31900000.
+    // UPP upload and NOS RAM use the 128 KiB gap after PMM and before PCM.
+    // Optional PCM diagnostics occupy a header at 0x31900000 and ring at 0x31940000.
+    localparam [31:0] UPP_RAM_BASE = 32'h31820000;
     assign DDRAM_CLK = clk_sys;
     // DDR burst count is owned by the ROM-cache/backend transaction.
     wire loader_valid, loader_failed, loader_known_firmware;
@@ -930,18 +935,96 @@ module emu (
     );
     wire core_ddr_line, arb_line, core_beat_valid, core_beat_last, arb_beat_valid, arb_beat_last;
     wire [63:0] core_beat_data, arb_beat_data;
+    wire upp_ddr_req, upp_ddr_we, upp_ddr_ack, upp_ddr_clear, upp_ddr_clear_done;
+    wire [16:2] upp_ddr_addr;
+    wire [31:0] upp_ddr_wdata, upp_ddr_rdata;
+    wire [3:0] upp_ddr_be;
+    wire upp_mem_valid, upp_mem_ready, upp_mem_bulk, upp_mem_write, upp_mem_done;
+    wire [31:0] upp_mem_addr, upp_mem_data, upp_mem_rdata;
+    wire [3:0] upp_mem_be;
+    ngage_upp_ddr_port #(
+        .BASE(UPP_RAM_BASE)
+    ) upp_ram_port (
+        .clk       (clk_sys),
+        .reset     (transport_reset),
+        .upp_req   (upp_ddr_req),
+        .upp_we    (upp_ddr_we),
+        .upp_addr  (upp_ddr_addr),
+        .upp_wdata (upp_ddr_wdata),
+        .upp_be    (upp_ddr_be),
+        .upp_ack   (upp_ddr_ack),
+        .upp_rdata (upp_ddr_rdata),
+        .clear     (upp_ddr_clear),
+        .clear_done(upp_ddr_clear_done),
+        .req_valid (upp_mem_valid),
+        .req_ready (upp_mem_ready),
+        .req_bulk  (upp_mem_bulk),
+        .req_write (upp_mem_write),
+        .req_addr  (upp_mem_addr),
+        .req_data  (upp_mem_data),
+        .req_be    (upp_mem_be),
+        .rsp_valid (upp_mem_done),
+        .rsp_data  (upp_mem_rdata)
+    );
+    wire phone_mem_valid, phone_mem_ready, phone_mem_write, phone_mem_done;
+    wire phone_mem_bulk, phone_mem_line, phone_beat_valid, phone_beat_last;
+    wire [31:0] phone_mem_addr, phone_mem_data, phone_mem_rdata;
+    wire [63:0] phone_beat_data;
+    wire [ 3:0] phone_mem_be;
+    // A locked guest access can target either UPP RAM or phone flash. They
+    // share the CPU side of the outer lock, which excludes the HPS clients.
+    ngage_ddr_arbiter phone_ddr_arbiter (
+        .l_bulk        (upp_mem_bulk),
+        .c_bulk        (1'b0),
+        .req_bulk      (phone_mem_bulk),
+        .c_line        (core_ddr_line),
+        .req_line      (phone_mem_line),
+        .rsp_beat_valid(phone_beat_valid),
+        .rsp_beat_data (phone_beat_data),
+        .rsp_beat_last (phone_beat_last),
+        .c_beat_valid  (core_beat_valid),
+        .c_beat_data   (core_beat_data),
+        .c_beat_last   (core_beat_last),
+        .clk           (clk_sys),
+        .reset         (transport_reset),
+        .cpu_lock      (1'b0),
+        .l_valid       (upp_mem_valid),
+        .l_ready       (upp_mem_ready),
+        .l_addr        (upp_mem_addr),
+        .l_data        (upp_mem_data),
+        .l_be          (upp_mem_be),
+        .l_done        (upp_mem_done),
+        .l_write       (upp_mem_write),
+        .l_rdata       (upp_mem_rdata),
+        .c_valid       (core_ddr_rd || core_ddr_wr),
+        .c_ready       (core_accept),
+        .c_write       (core_ddr_wr),
+        .c_addr        (core_ddr_addr),
+        .c_data        (core_ddr_din),
+        .c_be          (core_ddr_be),
+        .c_done        (core_ddr_ready),
+        .c_rdata       (core_ddr_dout),
+        .req_valid     (phone_mem_valid),
+        .req_ready     (phone_mem_ready),
+        .req_write     (phone_mem_write),
+        .req_addr      (phone_mem_addr),
+        .req_data      (phone_mem_data),
+        .req_be        (phone_mem_be),
+        .rsp_valid     (phone_mem_done),
+        .rsp_data      (phone_mem_rdata)
+    );
     ngage_ddr_arbiter ddr_arbiter (
         .l_bulk        (aux_bulk),
-        .c_bulk        (1'b0),
+        .c_bulk        (phone_mem_bulk),
         .req_bulk      (arb_bulk),
-        .c_line        (core_ddr_line),
+        .c_line        (phone_mem_line),
         .req_line      (arb_line),
         .rsp_beat_valid(arb_beat_valid),
         .rsp_beat_data (arb_beat_data),
         .rsp_beat_last (arb_beat_last),
-        .c_beat_valid  (core_beat_valid),
-        .c_beat_data   (core_beat_data),
-        .c_beat_last   (core_beat_last),
+        .c_beat_valid  (phone_beat_valid),
+        .c_beat_data   (phone_beat_data),
+        .c_beat_last   (phone_beat_last),
         .clk           (clk_sys),
         .reset         (transport_reset),
         .cpu_lock      (cpu_bus_lock && !reset),
@@ -953,14 +1036,14 @@ module emu (
         .l_done        (aux_done),
         .l_write       (aux_write),
         .l_rdata       (aux_rdata),
-        .c_valid       (core_ddr_rd || core_ddr_wr),
-        .c_ready       (core_accept),
-        .c_write       (core_ddr_wr),
-        .c_addr        (core_ddr_addr),
-        .c_data        (core_ddr_din),
-        .c_be          (core_ddr_be),
-        .c_done        (core_ddr_ready),
-        .c_rdata       (core_ddr_dout),
+        .c_valid       (phone_mem_valid),
+        .c_ready       (phone_mem_ready),
+        .c_write       (phone_mem_write),
+        .c_addr        (phone_mem_addr),
+        .c_data        (phone_mem_data),
+        .c_be          (phone_mem_be),
+        .c_done        (phone_mem_done),
+        .c_rdata       (phone_mem_rdata),
         .req_valid     (arb_valid),
         .req_ready     (arb_ready),
         .req_write     (arb_write),
@@ -971,12 +1054,13 @@ module emu (
         .rsp_data      (arb_rdata)
     );
     wire core_ddr_fetch;
-    // Integration hardware build: test D1 and the 8 KiB D2 cache together.
+    // D1 streaming and the shared D2 flash backing cache.
     localparam D1_STREAM_TRANSPORT  = 1;
-    localparam D2_FLASH_CACHE_BYTES = 8192;
+    localparam D2_FLASH_CACHE_BYTES = 32768;
     ngage_ddr_flash_adapter #(
         .FLASH_CACHE_BYTES(D2_FLASH_CACHE_BYTES),
         .BULK_PERSISTENCE (D3_BULK_PERSISTENCE),
+        .UPP_RAM_BASE     (UPP_RAM_BASE),
         .STREAM_TRANSPORT (D1_STREAM_TRANSPORT),
         // The shared flash cache replaces the old instruction-only ROM cache.
         .ROM_CACHE        (0),
@@ -1154,20 +1238,33 @@ module emu (
     ngage_mister #(
         .ENABLE_DEBUGGER(`ENABLE_DEBUGGER),
         .LINE_REFILL    (1),
+        .RAM_LINE_EARLY (1),
+        .LCD_LINE_BYTES (LCD_LINE_BYTES),
         .DMA_LOCAL      (1),
         .GAME_PCM       (1),
+        .DDR_UPP_RAM    (1),
+        .MMC_CLK_DIV    (MMC_CLK_DIV),
         .TEST_SIM_ENABLE(1),
         .TIMER_CLK_DIV  (SYS_CLK_HZ / 26000000),
         .NOS_TICK_HZ    (64),
         .SYS_CLK_HZ     (SYS_CLK_HZ)
     ) core (
+        .upp_ddr_req(upp_ddr_req),
+        .upp_ddr_we(upp_ddr_we),
+        .upp_ddr_addr(upp_ddr_addr),
+        .upp_ddr_wdata(upp_ddr_wdata),
+        .upp_ddr_be(upp_ddr_be),
+        .upp_ddr_ack(upp_ddr_ack),
+        .upp_ddr_rdata(upp_ddr_rdata),
+        .upp_ddr_clear(upp_ddr_clear),
+        .upp_ddr_clear_done(upp_ddr_clear_done),
         .ddram_line(core_ddr_line),
         .ddram_beat_valid(core_beat_valid),
         .ddram_beat_data(core_beat_data),
         .ddram_beat_last(core_beat_last),
         .ram_line_req(ram_line_req),
         .ram_line_addr(ram_line_addr),
-        .ram_line_ready(ram_line_ready && !cpu_bus_lock),
+        .ram_line_ready(ram_line_ready),
         .ram_line_valid(ram_line_valid),
         .ram_line_data(ram_line_data),
         .ram_line_last(ram_line_last),
@@ -1194,6 +1291,12 @@ module emu (
         .dma_sdram_addr(lcd_dma_addr),
         .dma_sdram_ack(lcd_dma_ack),
         .dma_sdram_data(lcd_dma_rdata),
+        .lcd_line_req(lcd_line_req),
+        .lcd_line_addr(lcd_line_addr),
+        .lcd_line_ready(lcd_line_ready),
+        .lcd_line_valid(lcd_line_valid),
+        .lcd_line_data(ram_line_data),
+        .lcd_line_last(lcd_line_last),
         .pcm_sdram_req(pcm_ram_req),
         .pcm_sdram_addr(pcm_ram_addr),
         .pcm_sdram_ack(pcm_ram_ack),
@@ -1271,14 +1374,16 @@ module emu (
         .bus_lock(cpu_bus_lock),
 
         // SDRAM (phone RAM)
-        .sdram_addr  (cpu_sdram_addr),
-        .sdram_din   (cpu_sdram_din),
-        .sdram_dout  (sdram_dout),
-        .sdram_be    (cpu_sdram_be),
-        .sdram_we    (cpu_sdram_we),
-        .sdram_req   (cpu_sdram_req),
-        .sdram_ack   (sdram_ack),
-        .sdram_accept(cpu_sdram_accept),
+        .sdram_addr       (cpu_sdram_addr),
+        .sdram_din        (cpu_sdram_din),
+        .sdram_write_block(cpu_write_block),
+        .sdram_block_data (cpu_block_data),
+        .sdram_dout       (sdram_dout),
+        .sdram_be         (cpu_sdram_be),
+        .sdram_we         (cpu_sdram_we),
+        .sdram_req        (cpu_sdram_req),
+        .sdram_ack        (sdram_ack),
+        .sdram_accept     (cpu_sdram_accept),
 
         // DDR3 (flash reads)
         .ddram_addr        (core_ddr_addr),

@@ -1,0 +1,133 @@
+{
+  "status": "PASS",
+  "base": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+  "base_tree": "0ccd13d8cd502bc14d3b89c6431ff0ebe4745612",
+  "candidate_tree": "dd90394f2bbd952eb8df84fc7df09efcc40b517d",
+  "design_patch_sha256": "92b51694d53948728a09f0875084371386626ace0e0e3369495b8cb1385aa8b7",
+  "replay_patch_sha256": "2eef1e300f44246f5d9f69ef5dbd6e859a27411c811198879c99331ff241f4b4",
+  "reference_sha256": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+  "source_sha256": "9dac7a372428e6e422eaf8e57894febe415fc9d65a76fb0a17667621df0db80c",
+  "simulator": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "exact_compiled_fingerprint": "nax6NyQo5uQi6vjleJTAvkFfydZadvsKF2Z2Id8N",
+  "production_control_runs": {
+    "13": 45824513460,
+    "43": 45824520116,
+    "31337": 45824525843
+  },
+  "routed_witness_sha256": "9bcd3f16971e56d409ce95a1d27bf12381b5705154333e5454f123913f8dfdc5",
+  "candidate_routed": false,
+  "miter": {
+    "comparisons": 1185794,
+    "sha256": "5d3fec03cf197209829fa3408bf34b9df61de96b9597410165ff20c758145480"
+  },
+  "lanes": {
+    "0": {
+      "expected_result": "PASS UPP claim/priority keypad=0 replies=311 samples=311 writes=158 gpio=48 uart=237 overlap=11 nos=4 loop=3 tx=21 rx=3",
+      "trace_sha256": "a6415963cf8314db2c23ff470daa8135f29dd00be9af1538af18b36872e24f79"
+    },
+    "1": {
+      "expected_result": "PASS UPP claim/priority keypad=1 replies=311 samples=311 writes=158 gpio=48 uart=237 overlap=11 nos=4 loop=3 tx=21 rx=3",
+      "trace_sha256": "db28b40d72987874e6251dea80e25f499db51f683a51cbacccbeabed8e0a0f04"
+    }
+  },
+  "drains": {
+    "ddr": {
+      "passes": [
+        "PASS UPP DDR owner, all legal lanes and invalid mask, exactly-once handshakes, warm drain, cold clear"
+      ],
+      "log_sha256": "8720e17bd0c0a38f6201d72b8bf405d7e601e1595af5988952975d4ae34886ae"
+    },
+    "lcd-dma": {
+      "passes": [
+        "PASS production fast LCD rejects midstream transport reset without success IRQ; retained prefix=4"
+      ],
+      "log_sha256": "c9afd5c0c47dc58589bf2f3704c0d2699a6fdc9753f06cdf3abe9b5d7058270a"
+    },
+    "tb": {
+      "passes": [
+        "PASS reset drains old flash response before restarted request (code, C, PMM, response collision)"
+      ],
+      "log_sha256": "e130dc2983cee9d03bac67fb813cefa01ccb3d550c5931901d0be0f261f27cc0"
+    },
+    "cold_tb": {
+      "passes": [
+        "PASS cold reset drains actual DDR adapter and restarts flash request"
+      ],
+      "log_sha256": "de6fe96d53d07d2ffcbcdd9f858913cef6365b127276c998d29c24aee92fab1a"
+    },
+    "write_tb": {
+      "passes": [
+        "PASS integrated C/PMM program and erase reset, DDR drain and dirty tracking"
+      ],
+      "log_sha256": "863e32001d8adcfff11d0bc288edc4f14ec5fba8c019901fb8fbefd76183c1d7"
+    },
+    "physical_sdram": {
+      "passes": [
+        "SCRUB PASS bytes=16777216 clocks=9719846 all_four_banks=1",
+        "PASS stream grant-edge read, held fallback and cancelled response",
+        "PASS stream scalar reply latency, concurrent line admission and buffered cancellation",
+        "PASS stream packet lock: older posted block/DMA, SWP gap, lane order and physical completion",
+        "REFRESH PASS hz=104000000 count=12823 max_interval_clocks=758 limit=812",
+        "PASS stream command slot: accepted=1048650 issued=1048650 while_busy=1048604 grant_reads=35",
+        "PASS stream masks, physical burst shape, DMA/SWP order and logical reset drain"
+      ],
+      "log_sha256": "d2cffd2899bdde37edf39f95f617ef391cffdfc70886c8ad019c75972f4bf7aa"
+    }
+  },
+  "workloads": {
+    "fixed": {
+      "count": 105,
+      "receipt_sha256": "77e02f5ec6eae0cb2b595100251308b9419766e102eb8b51b4ae07a5b5439a4c",
+      "repeats": 15,
+      "rejected_wrong_outputs": 15
+    },
+    "native": {
+      "count": 4,
+      "receipt_sha256": "4462679cc1015f48ede3c9fc110253ca771983e763c5f8bbe748c9614cdb03d0",
+      "frame_cycles": [
+        14391395,
+        14467552,
+        14346201,
+        14303223
+      ],
+      "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77"
+    }
+  },
+  "physical": {
+    "normal": {
+      "events": 171496,
+      "cycles": 1201547,
+      "sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+      "passes": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+      ]
+    },
+    "timer_mmc_lcd": {
+      "events": 171497,
+      "cycles": 1201528,
+      "sha256": "0e9fb47c965bab211b315c129e08effab414ed1ccc9e579aee4d56d9d29ba824",
+      "passes": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201528 reads=4 writes=1"
+      ]
+    },
+    "mmc_hps_warm_hold": {
+      "events": 171518,
+      "cycles": 1203504,
+      "sha256": "07177926dd5e174b19db23220b807531c2f7b8f0c6ca13316641d7b50e2d6a80",
+      "passes": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=015ec64f",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=726 PCM ticks=2 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1203504 reads=5 writes=1"
+      ]
+    }
+  },
+  "mmc_hps_hold_pass_sha256": "a9b528cf2ecc329965b43501e1350bcf18a44d555a3e759a50e1950030fea2da",
+  "physical_source_count": 114
+}

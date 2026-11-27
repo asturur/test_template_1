@@ -37,7 +37,7 @@ module ngage_dma_route #(
     localparam [31:0] LCD_FIFO = 32'h0c121208;
     reg [ 2:0] state = IDLE;
     reg        local_response_error = 0;
-    reg [31:0] local_response_data = 0;
+    (* dont_retime *)reg [31:0] local_response_data = 0;
 
     wire legal_word = cmd_addr[1:0] == 0 && cmd_be != 0;
     wire ram_hit = cmd_addr[31:24] == 8'h0a;
@@ -58,16 +58,18 @@ module ngage_dma_route #(
     assign local_be    = live_mmc ? cmd_be : held_be;
     wire local_hit = LOCAL_ENABLE && (chip_ram_hit || (lcd_hit && cmd_write && cmd_be == 4'hf));
 
-    assign cmd_ready = !reset && !cpu_lock && state == IDLE && (!mmc_offer || local_ready);
+    wire route_available = !reset && !cpu_lock && state == IDLE;
+    assign cmd_ready = route_available && (!mmc_offer || local_ready);
     wire accept = cmd_valid && cmd_ready;
-    // Launch on the capture edge to keep the existing LCD read latency.
-    // A grant that waits for the outer SDRAM arbiter uses the held packet.
-    wire start_ram = accept && legal_word && ram_hit;
+    // RAM never uses local_ready. It can launch on the capture edge, with
+    // the route's held packet supplying any later grant.
+    wire start_ram = route_available && cmd_valid && legal_word && ram_hit;
+    wire ram_owned = state == RAM;
     assign ram_req   = !reset && (start_ram || state == RAM);
-    assign ram_write = start_ram ? cmd_write : local_write;
-    assign ram_addr  = start_ram ? cmd_addr[24:0] : local_addr[24:0];
-    assign ram_data  = start_ram ? cmd_data : local_data;
-    assign ram_be    = start_ram ? cmd_be : local_be;
+    assign ram_write = ram_owned ? held_write : cmd_write;
+    assign ram_addr  = ram_owned ? held_addr[24:0] : cmd_addr[24:0];
+    assign ram_data  = ram_owned ? held_data : cmd_data;
+    assign ram_be    = ram_owned ? held_be : cmd_be;
 
     assign local_valid   = !reset && !cpu_lock && (state == LOCAL_WAIT || (live_mmc && cmd_valid));
     // Generic local admission derives only from the captured request state.
@@ -78,8 +80,9 @@ module ngage_dma_route #(
     wire local_response = (take_local || state == LOCAL_ACTIVE) && local_done;
     assign rsp_valid = !reset && ((state == RAM && ram_ack) || state == LOCAL_RESPONSE || state == REJECT);
     assign rsp_error = rsp_valid && (state == REJECT || (state == LOCAL_RESPONSE && local_response_error));
-    assign rsp_data  = state == RAM ? ram_rdata :
-        state == LOCAL_RESPONSE ? local_response_data : local_rdata;
+    // Only the sampled local payload drives the engine data path. Outside
+    // a valid reply the data is ignored, including on a rejected command.
+    assign rsp_data = state == RAM ? ram_rdata : local_response_data;
 
     always @(posedge clk) begin
         if (reset) begin

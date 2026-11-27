@@ -1,0 +1,539 @@
+diff --git a/rtl/ngage_mmc_host.v b/rtl/ngage_mmc_host.v
+index d6a7913eeea75fa44acd85fa3e0e1b00ad0b9f09..bb2247c3f0fe40b14a7ff2f7e8c7a46b50f19652 100644
+--- a/rtl/ngage_mmc_host.v
++++ b/rtl/ngage_mmc_host.v
+@@ -217,19 +217,14 @@ module ngage_mmc_host #(
+     reg [3:0] dstate;
+ 
+     // ------------------------------------------------------------------
+-    // FIFO, FIFO_DEPTH bytes in registers
++    // FIFO bookkeeping
+     // ------------------------------------------------------------------
+-    reg [7:0] fmem[0:FIFO_DEPTH-1];
++    wire [31:0] fifo_bytes;
+     reg [FAW-1:0] fwp, frp;
+     reg [FAW:0] fcnt;
+ 
+-    integer       nbe_index;
+-    reg     [2:0] nbe;  // bytes the access moves
+-    always @* begin
+-        nbe = 3'd0;
+-        for (nbe_index = 0; nbe_index < 4; nbe_index = nbe_index + 1)
+-        nbe = nbe + {2'd0, be[nbe_index]};
+-    end
++    // Number of bytes requested in guest lane order.
++    wire [2:0] nbe = {2'b0, be[0]} + {2'b0, be[1]} + {2'b0, be[2]} + {2'b0, be[3]};
+ 
+     wire         rx_phase = dstate == D_RWAIT || dstate == D_RX || dstate == D_RDONE;
+     wire         rx_coming = dstate == D_RWAIT || dstate == D_RX;
+@@ -258,7 +253,7 @@ module ngage_mmc_host #(
+         for (fifo_index_lane = 0; fifo_index_lane < 4; fifo_index_lane = fifo_index_lane + 1) begin
+             if (be[fifo_index_lane]) begin
+                 if (fifo_lane < fifo_take)
+-                    fifo_word[8*fifo_index_lane+:8] = fmem[fifo_index(frp, fifo_lane)];
++                    fifo_word[8*fifo_index_lane+:8] = fifo_bytes[8*fifo_lane[1:0]+:8];
+                 fifo_lane = fifo_lane + 3'd1;
+             end
+         end
+@@ -336,7 +331,7 @@ module ngage_mmc_host #(
+     reg [3:0] dtail;
+     reg [1:0] gap;
+ 
+-    wire [7:0] fifo_head = fmem[frp];
++    wire [7:0] fifo_head = fifo_bytes[7:0];
+ 
+     // the start of a transfer at this edge
+     wire        start = wr && off == 6'h04 && wdata[0];
+@@ -356,16 +351,98 @@ module ngage_mmc_host #(
+                    (dstate == D_TX && dbit == 4'd0 && ntx < blen && fcnt == {(FAW+1){1'b0}});
+     end
+ 
++    // Sample the receive byte and the next transmit byte on the same
++    // clock edges as the serial engine below.
++    wire           serial_push = dstate == D_RX && rise && nrx < blen && dbit == 4'd7;
++    wire           serial_pop = dstate == D_TX && fall && ntx < blen && dbit == 4'd0;
++    wire           cpu_push = wr && fifo_wr && tx_phase;
++    wire           cpu_pop = rd && fifo_rd && rx_phase;
++    wire [    2:0] push_count = serial_push ? 3'd1 : cpu_push ? need : 3'd0;
++    wire [    2:0] pop_count = serial_pop ? 3'd1 : cpu_pop ? fifo_take : 3'd0;
++    wire [FAW-1:0] next_frp = reset || start ? {FAW{1'b0}} : fifo_index(frp, pop_count);
++    wire [    7:0] received_byte = {dsr[6:0], dat_i};
++
++    function [31:0] pack_bytes;
++        input [3:0] lanes;
++        input [31:0] data;
++        integer       lane;
++        reg     [1:0] position;
++        begin
++            pack_bytes = 0;
++            position   = 0;
++            for (lane = 0; lane < 4; lane = lane + 1) begin
++                if (lanes[lane]) begin
++                    pack_bytes[8*position+:8] = data[8*lane+:8];
++                    position                  = position + 1'b1;
++                end
++            end
++        end
++    endfunction
++
++    wire [31:0] pushed_bytes = serial_push ? {24'b0, received_byte} : pack_bytes(be, wdata);
++    generate
++        if (FIFO_DEPTH == 16) begin : banked_fifo
++            wire [31:0] bank_bytes;
++            wire [63:0] bank_window = {bank_bytes, bank_bytes};
++            genvar bank;
++            for (bank = 0; bank < 4; bank = bank + 1) begin : byte_bank
++                localparam [1:0] LANE = bank;
++                // The FIFO's four consecutive positions visit each bank
++                // once. Select the row for the new head before updating frp.
++                wire [1:0] read_row = next_frp[3:2] + {1'b0, LANE < next_frp[1:0]};
++                wire [1:0] write_row = fwp[3:2] + {1'b0, LANE < fwp[1:0]};
++                wire [1:0] write_offset = LANE - fwp[1:0];
++                wire       write_byte = {1'b0, write_offset} < push_count;
++                wire [7:0] write_data = pushed_bytes[8*write_offset+:8];
++                wire [7:0] read_data;
++                reg        forward_byte;
++                reg  [7:0] forwarded_data;
++
++                ngage_bram #(
++                    .AW         (2),
++                    .DW         (8),
++                    .READ_ONLY_B(1)
++                ) payload (
++                    .clk   (clk),
++                    .addr_a(write_row),
++                    .data_a(write_data),
++                    .we_a  (write_byte),
++                    .q_a   (),
++                    .addr_b(read_row),
++                    .data_b(8'b0),
++                    .we_b  (1'b0),
++                    .q_b   (read_data)
++                );
++
++                // Mixed-port data is undefined on a write collision. The
++                // write is part of the next head's view on this same edge.
++                always @(posedge clk) begin
++                    forward_byte <= write_byte && write_row == read_row;
++                    if (write_byte) forwarded_data <= write_data;
++                end
++
++                assign bank_bytes[8*bank+:8] = forward_byte ? forwarded_data : read_data;
++            end
++            assign fifo_bytes = bank_window[{frp[1:0], 3'b0}+:32];
++        end else begin : register_fifo
++            reg     [7:0] fmem       [0:FIFO_DEPTH-1];
++            integer       byte_index;
++            always @(posedge clk) begin
++                for (byte_index = 0; byte_index < 4; byte_index = byte_index + 1)
++                if ({29'b0, push_count} > byte_index)
++                    fmem[fifo_index(fwp, byte_index[2:0])] <= pushed_bytes[8*byte_index+:8];
++            end
++            genvar byte_lane;
++            for (byte_lane = 0; byte_lane < 4; byte_lane = byte_lane + 1) begin : fifo_lane_data
++                localparam [2:0] OFFSET = byte_lane;
++                assign fifo_bytes[8*byte_lane+:8] = fmem[fifo_index(frp, OFFSET)];
++            end
++        end
++    endgenerate
++
+     // Verilog-2001 named-block locals retain the donor's private temporaries.
+     always @(posedge clk) begin : engine_step
+-        reg push1, pop1;
+-        reg [7:0] pbyte;
+-        reg [2:0] npush, npop, k;
+-        reg     [127:0] f;
+-        integer         write_lane;
+-        push1 = 1'b0;
+-        pop1  = 1'b0;
+-        pbyte = 8'd0;
++        reg [127:0] f;
+ 
+         // ---- the clock ----
+         if (run) ph <= (ph == LAST_PHASE[PHW-1:0] || (DIV == 2 && !fall)) ? {PHW{1'b0}} : ph + 1'd1;
+@@ -501,8 +578,6 @@ module ngage_mmc_host #(
+                     dsr  <= {dsr[6:0], dat_i};
+                     dcrc <= crc16_bit(dcrc, dat_i);
+                     if (dbit == 4'd7) begin
+-                        push1 = 1'b1;
+-                        pbyte = {dsr[6:0], dat_i};
+                         nrx  <= nrx + 13'd1;
+                         dbit <= 4'd0;
+                     end else begin
+@@ -553,7 +628,6 @@ module ngage_mmc_host #(
+                     dbit  <= dbit - 4'd1;
+                 end else if (ntx < blen) begin
+                     // the next byte (dat_hold stops the clock while there is none)
+-                    pop1 = 1'b1;
+                     dat_o <= fifo_head[7];
+                     dcrc  <= crc16_bit(dcrc, fifo_head[7]);
+                     dsr   <= {fifo_head[6:0], 1'b0};
+@@ -616,31 +690,11 @@ module ngage_mmc_host #(
+         endcase
+ 
+         // ---- the FIFO ----
+-        npush = 3'd0;
+-        npop  = 3'd0;
+-        if (rd && fifo_rd && rx_phase) begin
+-            npop = fifo_take;
+-            nfifo <= nfifo + {10'd0, fifo_take};
+-        end
+-        if (wr && fifo_wr && tx_phase) begin
+-            k = 3'd0;
+-            for (write_lane = 0; write_lane < 4; write_lane = write_lane + 1) begin
+-                if (be[write_lane] && {10'd0, k} < rem) begin
+-                    fmem[fifo_index(fwp, k)] <= wdata[8*write_lane+:8];
+-                    k = k + 3'd1;
+-                end
+-            end
+-            npush = k;
+-            nfifo <= nfifo + {10'd0, k};
+-        end
+-        if (push1) begin
+-            fmem[fwp] <= pbyte;
+-            npush = 3'd1;
+-        end
+-        if (pop1) npop = 3'd1;
+-        fwp  <= fifo_index(fwp, npush);
+-        frp  <= fifo_index(frp, npop);
+-        fcnt <= fcnt + fifo_count_value(npush) - fifo_count_value(npop);
++        if (cpu_pop) nfifo <= nfifo + {10'd0, fifo_take};
++        if (cpu_push) nfifo <= nfifo + {10'd0, need};
++        fwp  <= fifo_index(fwp, push_count);
++        frp  <= next_frp;
++        fcnt <= fcnt + fifo_count_value(push_count) - fifo_count_value(pop_count);
+ 
+         // ---- a new transfer ----
+         if (start) begin
+@@ -655,7 +709,6 @@ module ngage_mmc_host #(
+             cmd_oe     <= 1'b0;
+             dat_oe     <= 1'b0;
+             fwp        <= {FAW{1'b0}};
+-            frp        <= {FAW{1'b0}};
+             fcnt       <= {(FAW + 1) {1'b0}};
+             nfifo      <= 13'd0;
+             nrx        <= 13'd0;
+@@ -701,7 +754,6 @@ module ngage_mmc_host #(
+             dat_oe     <= 1'b0;
+             dat_o      <= 1'b1;
+             fwp        <= {FAW{1'b0}};
+-            frp        <= {FAW{1'b0}};
+             fcnt       <= {(FAW + 1) {1'b0}};
+             nfifo      <= 13'd0;
+             nrx        <= 13'd0;
+diff --git a/tests/phone/direct_sdram/run-route.sh b/tests/phone/direct_sdram/run-route.sh
+index aef78bf7d4737ebf5ef21723a5ced53b853e6d80..437ac90cd2bf7e5edd0f47f48ae0759275e1a4ef 100644
+--- a/tests/phone/direct_sdram/run-route.sh
++++ b/tests/phone/direct_sdram/run-route.sh
+@@ -1,5 +1,5 @@
+ #!/bin/sh
+ set -eu
+ mkdir -p build/sim/unit-direct-sdram
+-iverilog -g2005 -s route_tb -o build/sim/unit-direct-sdram/route rtl/ngage_mmc_host.v rtl/ngage_mmc_card.v rtl/ngage_mmc_dpram.v rtl/ngage_upp.v tests/phone/direct_sdram/route_tb.v
++iverilog -g2005 -s route_tb -o build/sim/unit-direct-sdram/route rtl/ngage_bram.v rtl/ngage_mmc_host.v rtl/ngage_mmc_card.v rtl/ngage_mmc_dpram.v rtl/ngage_upp.v tests/phone/direct_sdram/route_tb.v
+ vvp build/sim/unit-direct-sdram/route
+diff --git a/tests/phone/mmc_host/README.md b/tests/phone/mmc_host/README.md
+index fbb343729dbbb33c57f84cb7b31bf78b3fc33dcd..ca589c7a73516a17096df284ed54daf51da80705 100644
+--- a/tests/phone/mmc_host/README.md
++++ b/tests/phone/mmc_host/README.md
+@@ -93,3 +93,17 @@ idle before reading all four. Two added probes verify R2 CRC errors and missing
+ responses release busy and leave the accepted CMD16 length intact. The33
+ cache probes pass126430clocks; both28-case data suites retain82004/244751clocks.
+ The separate native_mmc test reproduces the original driver failure and fix.
++
++## Production FIFO banks
++
++The 16-byte host FIFO uses four 4×8 M10Ks. Each bank samples the row for
++the next FIFO head on the existing dequeue edge. A per-bank forwarding
++register supplies a byte written on that same edge, including when the
++FIFO crosses a row boundary or wraps. Other FIFO depths use the
++register-backed implementation.
++
++Run `sh tests/phone/mmc_host/run-fifo.sh` for pin and register lockstep
++against `739d3bd` at dividers 2, 3, 4 and 12. A directed check covers all
++16 guest byte masks, wrap, concurrent CPU and serial transfers, and
++forces unknown RAM data on mixed-port collisions. The tests compare
++live bytes and the bus and serial output on every clock.
+diff --git a/tests/phone/mmc_host/fifo_banks_tb.sv b/tests/phone/mmc_host/fifo_banks_tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..07b102fef6f49a5310597aa3d88ac02464971e33
+--- /dev/null
++++ b/tests/phone/mmc_host/fifo_banks_tb.sv
+@@ -0,0 +1,149 @@
++`timescale 1ns / 1ps
++
++// Drive full-rate edges at the FIFO boundary. The public serial test uses
++// ordinary commands and pin timing, including stalls and completion order.
++module fifo_banks_tb;
++  localparam DIV = 3, FIFO_DEPTH = 16;
++  reg clk = 0, reset = 1;
++  always #5 clk = !clk;
++
++  reg acc = 1, we = 0, wr = 0, rd = 0;
++  reg [ 5:0] off = 'h24;
++  reg [ 3:0] be = 0;
++  reg [31:0] wdata = 0;
++  wire [31:0] rmask, rdata;
++  wire busy, rx_ready, tx_ready;
++  wire [3:0] irq;
++  wire mmc_clk, cmd_o, cmd_oe, dat_o, dat_oe;
++  wire cmd_i = 1;
++  reg  dat_i = 0;
++  ngage_mmc_host #(
++      .DIV(DIV),
++      .RESP_WAIT(12),
++      .TIMEOUT_LOG2(10),
++      .FIFO_DEPTH(FIFO_DEPTH)
++  ) dut (
++      .clk(clk),
++      .reset(reset),
++      .acc(acc),
++      .we(we),
++      .wr(wr),
++      .rd(rd),
++      .off(off),
++      .be(be),
++      .wdata(wdata),
++      .rmask(rmask),
++      .rdata(rdata),
++      .busy(busy),
++      .rx_ready(rx_ready),
++      .tx_ready(tx_ready),
++      .irq(irq),
++      .mmc_clk(mmc_clk),
++      .cmd_o(cmd_o),
++      .cmd_oe(cmd_oe),
++      .cmd_i(cmd_i),
++      .dat_o(dat_o),
++      .dat_oe(dat_oe),
++      .dat_i(dat_i)
++  );
++  `include "fifo_reference.vh"
++
++  reg [31:0] random_bits = 32'h5d492aab;
++  reg pulse = 0;
++  reg [15:0] write_masks = 0, read_masks = 0;
++  integer writes_and_pops = 0, reads_and_pushes = 0, wraps = 0, forwards = 0;
++  wire [3:0] bank_forward = {
++    dut.banked_fifo.byte_bank[3].forward_byte,
++    dut.banked_fifo.byte_bank[2].forward_byte,
++    dut.banked_fifo.byte_bank[1].forward_byte,
++    dut.banked_fifo.byte_bank[0].forward_byte
++  };
++  always @(posedge clk)
++    if (!reset) begin
++      // The old array is the oracle for every live byte, including the
++      // serializer head when the CPU endpoint is looking elsewhere.
++      for (integer i = 0; i < 4; i++)
++      if (i < reference.fcnt &&
++                    dut.fifo_bytes[i*8+:8] !== reference.fmem[(int'(reference.frp) + i) & 15])
++        $fatal(1, "MMC bank returned the wrong byte at head offset %0d", i);
++      if (wr) write_masks[be] <= 1;
++      if (rd) read_masks[be] <= 1;
++      if (wr && pulse) writes_and_pops <= writes_and_pops + 1;
++      if (rd && pulse) reads_and_pushes <= reads_and_pushes + 1;
++      if (reference.frp + int'(dut.pop_count) >= 16 || reference.fwp + int'(dut.push_count) >= 16)
++        wraps <= wraps + 1;
++      if (|bank_forward) forwards <= forwards + 1;
++    end
++
++  task automatic step_random;
++    @(negedge clk);
++    random_bits = {
++      random_bits[30:0], random_bits[31] ^ random_bits[21] ^ random_bits[1] ^ random_bits[0]
++    };
++    be = random_bits[3:0];
++    wdata = random_bits;
++    dat_i = random_bits[15];
++    if (we) begin
++      wr = (16 - dut.fcnt >= $countones(be)) && random_bits[17];
++      pulse = dut.fcnt != 0 && random_bits[30];
++    end else begin
++      rd = (dut.fcnt >= $countones(be)) && random_bits[17];
++      pulse = dut.fcnt != 16 && random_bits[30];
++    end
++  endtask
++
++  initial begin
++    #1;
++    be = 15;
++    #1;
++    be = 0;
++    repeat (4) @(negedge clk);
++    force dut.blen = 4096;
++    force reference.blen = 4096;
++    force dut.rise = 0;
++    force reference.rise = 0;
++    force dut.fall = pulse;
++    force reference.fall = pulse;
++    force dut.dbit = 0;
++    force reference.dbit = 0;
++    force dut.dstate = 5;
++    force reference.dstate = 5;
++    we = 1;
++    reset = 0;
++    repeat (2048) step_random();
++
++    @(negedge clk);
++    reset = 1;
++    wr = 0;
++    pulse = 0;
++    repeat (2) @(negedge clk);
++    force dut.rise = pulse;
++    force reference.rise = pulse;
++    force dut.fall = 0;
++    force reference.fall = 0;
++    force dut.dbit = 7;
++    force reference.dbit = 7;
++    force dut.dstate = 2;
++    force reference.dstate = 2;
++    we = 0;
++    reset = 0;
++    repeat (2048) step_random();
++
++    @(negedge clk);
++    if (write_masks != 16'hffff || read_masks != 16'hffff ||
++            !wraps || !forwards || !writes_and_pops || !reads_and_pushes)
++      $fatal(
++          1,
++          "incomplete MMC FIFO coverage w=%04x r=%04x wrap=%0d fwd=%0d tx=%0d rx=%0d",
++          write_masks,
++          read_masks,
++          wraps,
++          forwards,
++          writes_and_pops,
++          reads_and_pushes
++      );
++    $display("PASS MMC FIFO all masks, wrap=%0d forwarded=%0d simultaneous TX=%0d RX=%0d", wraps,
++             forwards, writes_and_pops, reads_and_pushes);
++    $finish;
++  end
++endmodule
+diff --git a/tests/phone/mmc_host/fifo_reference.vh b/tests/phone/mmc_host/fifo_reference.vh
+new file mode 100644
+index 0000000000000000000000000000000000000000..0e45397874075e26042b4bc17ca406acc5dde21e
+--- /dev/null
++++ b/tests/phone/mmc_host/fifo_reference.vh
+@@ -0,0 +1,21 @@
++// Included by the pin peer and directed FIFO schedule.
++wire [31:0] reference_mask, reference_data;
++wire reference_busy, reference_rx_ready, reference_tx_ready;
++wire [3:0] reference_irq;
++wire reference_clk, reference_cmd, reference_cmd_oe, reference_dat, reference_dat_oe;
++mmc_host_fifo_reference #(.DIV(DIV), .RESP_WAIT(12), .TIMEOUT_LOG2(10), .FIFO_DEPTH(FIFO_DEPTH)) reference (
++    .clk(clk), .reset(reset), .acc(acc), .we(we), .wr(wr), .rd(rd), .off(off), .be(be), .wdata(wdata),
++    .rmask(reference_mask), .rdata(reference_data), .busy(reference_busy),
++    .rx_ready(reference_rx_ready), .tx_ready(reference_tx_ready), .irq(reference_irq),
++    .mmc_clk(reference_clk), .cmd_o(reference_cmd), .cmd_oe(reference_cmd_oe), .cmd_i(cmd_i),
++    .dat_o(reference_dat), .dat_oe(reference_dat_oe), .dat_i(dat_i)
++);
++
++always @(posedge clk) begin
++    if (!reset && ({rmask, rdata, busy, rx_ready, tx_ready, irq, mmc_clk, cmd_oe, dat_oe} !==
++            {reference_mask, reference_data, reference_busy, reference_rx_ready, reference_tx_ready,
++             reference_irq, reference_clk, reference_cmd_oe, reference_dat_oe} ||
++            (cmd_oe && cmd_o !== reference_cmd) || (dat_oe && dat_o !== reference_dat)))
++        $fatal(1, "MMC FIFO diverged at %t data=%08x/%08x busy=%b/%b IRQ=%b/%b",
++            $time, rdata, reference_data, busy, reference_busy, irq, reference_irq);
++end
+diff --git a/tests/phone/mmc_host/run-fifo.sh b/tests/phone/mmc_host/run-fifo.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..f4afb50373d21124c1da30d7129585c1007b0968
+--- /dev/null
++++ b/tests/phone/mmc_host/run-fifo.sh
+@@ -0,0 +1,43 @@
++#!/bin/sh
++set -eu
++cd "$(dirname "$0")/../../.."
++out=${MMC_FIFO_OUT:-build/sim/mmc-host-fifo}
++mkdir -p "$out"
++git show 739d3bd:rtl/ngage_mmc_host.v > "$out/register-host.v"
++sed 's/^module ngage_mmc_host #(/module mmc_host_fifo_reference #(/' \
++    "$out/register-host.v" > "$out/reference.v"
++python3 - "$out" <<'PY'
++from pathlib import Path
++import sys
++
++source = Path("rtl/ngage_bram.v").read_text()
++old = "b_q[lane*BYTE_WIDTH+:BYTE_WIDTH] <= we_b[lane] ?"
++new = ("b_q[lane*BYTE_WIDTH+:BYTE_WIDTH] <= "
++       "(we_a[lane] && addr_a == addr_b) ? {BYTE_WIDTH{1'bx}} : we_b[lane] ?")
++assert source.count(old) == 1
++Path(sys.argv[1], "poison_bram.v").write_text(source.replace(old, new))
++
++# Add the comparator to a local copy of the ordinary data bench.
++source = Path("tests/phone/mmc_host/data_tb.v").read_text()
++anchor = "    always @(posedge clk)begin cycles<=cycles+1;"
++assert source.count(anchor) == 1
++monitor = '''    `include "fifo_reference.vh"
++    // Let the register model sample a mask transition before leaving reset.
++    initial begin #1; be = 0; #1; be = 15; end
++'''
++Path(sys.argv[1], "data_fifo_tb.v").write_text(source.replace(anchor, monitor + anchor))
++
++PY
++for config in '2 16' '3 16' '4 16' '12 8'; do
++    set -- $config
++    exe="$out/data-$1-$2"
++    iverilog -g2012 -Itests/phone/mmc_host -s tb \
++        -Ptb.DIV="$1" -Ptb.FIFO_DEPTH="$2" -o "$exe" \
++        rtl/ngage_mmc_host.v "$out/reference.v" "$out/poison_bram.v" "$out/data_fifo_tb.v"
++    vvp "$exe" > "$exe.log"
++    grep '^PASS MMC host data ' "$exe.log"
++done
++iverilog -g2012 -Itests/phone/mmc_host -s fifo_banks_tb -o "$out/banks" \
++    rtl/ngage_mmc_host.v "$out/reference.v" "$out/poison_bram.v" tests/phone/mmc_host/fifo_banks_tb.sv
++vvp "$out/banks" > "$out/banks.log"
++grep '^PASS MMC FIFO ' "$out/banks.log"
+diff --git a/tests/phone/mmc_host/run-pinned.sh b/tests/phone/mmc_host/run-pinned.sh
+index 635890cbee9e1cc9d16797e3cc9590a9bd4097a5..1cd3b627c0a51a1764a2431054b26a554b72df2a 100644
+--- a/tests/phone/mmc_host/run-pinned.sh
++++ b/tests/phone/mmc_host/run-pinned.sh
+@@ -5,5 +5,5 @@ docker run --rm --pull=never --network none --platform linux/arm64 \
+ set -eu
+ sh tests/phone/mmc_host/run.sh
+ python3 tools/format_phone_rtl.py --formatter scratch/ngage2-integration/tools/verible-verilog-format --check rtl/ngage_mmc_host.v
+-verilator --lint-only --language 1364-2001 --top-module ngage_mmc_host -Wall -Wno-fatal rtl/ngage_mmc_host.v > build/sim/unit-mmc-host/verilator-lint.log 2>&1
++verilator --lint-only --language 1364-2001 --top-module ngage_mmc_host -Wall -Wno-fatal rtl/ngage_bram.v rtl/ngage_mmc_host.v > build/sim/unit-mmc-host/verilator-lint.log 2>&1
+ '
+diff --git a/tests/phone/mmc_host/run.sh b/tests/phone/mmc_host/run.sh
+index 45562c262bccebba6028e161a91a4c5efb76d079..a670e1ecc7a040c2fb4cf8108082ed707fbc69aa 100644
+--- a/tests/phone/mmc_host/run.sh
++++ b/tests/phone/mmc_host/run.sh
+@@ -2,12 +2,12 @@
+ set -eu
+ out=build/sim/unit-mmc-host
+ mkdir -p "$out"
+-iverilog -g2001 -Wall -s ngage_mmc_host -o "$out/strict" rtl/ngage_mmc_host.v > "$out/strict.log" 2>&1
+-iverilog -g2001 -s tb -o "$out/cmd16" rtl/ngage_mmc_host.v tests/phone/mmc_host/cmd16_tb.v > "$out/cmd16-build.log" 2>&1
++iverilog -g2001 -Wall -s ngage_mmc_host -o "$out/strict" rtl/ngage_bram.v rtl/ngage_mmc_host.v > "$out/strict.log" 2>&1
++iverilog -g2001 -s tb -o "$out/cmd16" rtl/ngage_bram.v rtl/ngage_mmc_host.v tests/phone/mmc_host/cmd16_tb.v > "$out/cmd16-build.log" 2>&1
+ vvp "$out/cmd16" > "$out/cmd16.log" 2>&1
+ grep '^PASS CMD16 ' "$out/cmd16.log"
+ iverilog -g2001 -s integer_clock_tb -o "$out/integer-clock" \
+-    rtl/ngage_mmc_host.v tests/phone/mmc_host/integer_clock_tb.v
++    rtl/ngage_bram.v rtl/ngage_mmc_host.v tests/phone/mmc_host/integer_clock_tb.v
+ vvp "$out/integer-clock" > "$out/integer-clock.log" 2>&1
+ grep '^PASS MMC integer ' "$out/integer-clock.log"
+ for config in '4 16' '3 16' '12 8'; do
+@@ -16,7 +16,7 @@ for config in '4 16' '3 16' '12 8'; do
+     depth=$2
+     stem="$out/data-$divider-$depth"
+     iverilog -g2001 -s tb -Ptb.DIV="$divider" -Ptb.FIFO_DEPTH="$depth" -o "$stem" \
+-        rtl/ngage_mmc_host.v tests/phone/mmc_host/data_tb.v > "$stem-build.log" 2>&1
++        rtl/ngage_bram.v rtl/ngage_mmc_host.v tests/phone/mmc_host/data_tb.v > "$stem-build.log" 2>&1
+     vvp "$stem" > "$stem.log" 2>&1
+     grep '^PASS MMC host data ' "$stem.log"
+ done
+diff --git a/tests/phone/upp_bus_bridge/run.sh b/tests/phone/upp_bus_bridge/run.sh
+index 4a207a5c68b787b003fe51167c86ed7a7b6fc835..18eda4d4c236828d2a900ef6b56c3e020de76801 100644
+--- a/tests/phone/upp_bus_bridge/run.sh
++++ b/tests/phone/upp_bus_bridge/run.sh
+@@ -2,6 +2,6 @@
+ set -eu
+ mkdir -p build/sim/unit-upp-bus-bridge
+ for mode in 0 1; do
+-    iverilog -g2005 -s tb -Ptb.REGISTERED_MASTER="$mode" -o build/sim/unit-upp-bus-bridge/test rtl/ngage_mmc_host.v rtl/ngage_mmc_card.v rtl/ngage_mmc_dpram.v rtl/ngage_upp.v tests/phone/upp_bus_bridge/tb.v
++    iverilog -g2005 -s tb -Ptb.REGISTERED_MASTER="$mode" -o build/sim/unit-upp-bus-bridge/test rtl/ngage_bram.v rtl/ngage_mmc_host.v rtl/ngage_mmc_card.v rtl/ngage_mmc_dpram.v rtl/ngage_upp.v tests/phone/upp_bus_bridge/tb.v
+     vvp build/sim/unit-upp-bus-bridge/test
+ done

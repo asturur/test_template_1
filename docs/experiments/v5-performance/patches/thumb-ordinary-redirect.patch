@@ -1,0 +1,341 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index 8cb27af75121f038cc85f1171753ccc0d9d5e566..c14bdcc5cadcd342eef81aa1371f05845e035503 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -4506,8 +4506,23 @@ module ngage2_arm9v2_fetch (
+                            i_redirect_action == 0 && advance && !killed &&
+                            !i_reset && !recovery_blocked && saved_fall_valid &&
+                            i_redirect_target[1] && i_redirect_target[31:2] == saved_fall_word;
+-    wire [31:0] repair_fetch_pc = reuse_fall_half ? redirect_next :
+-                                {i_redirect_target[31:1], 1'b0};
++    wire [31:0] repair_fetch_pc = {i_redirect_target[31:1], 1'b0};
++    (* dont_retime *) reg duplicate_f1, duplicate_f2;
++    wire duplicate_response = duplicate_f2 && f2[35] && f2[33-:2] == epoch;
++
++    // The saved halfword is already checked. The redundant request owns
++    // neither another instruction nor any prediction and retry effects.
++    // Carry ownership with the exact request, including across fetch hold.
++    // An exception or redirect starts a different epoch even at the same PC.
++    always @(posedge i_clk) begin
++        if (i_reset || i_redirect || retry || (advance && killed)) begin
++            duplicate_f1 <= !i_reset && i_redirect && reuse_fall_half;
++            duplicate_f2 <= 0;
++        end else if (advance) begin
++            duplicate_f1 <= 0;
++            duplicate_f2 <= duplicate_f1;
++        end
++    end
+ 
+     always @(posedge i_clk) begin
+         // Redirect and retry discard the saved candidate explicitly.
+@@ -4524,7 +4539,7 @@ module ngage2_arm9v2_fetch (
+     end
+     wire unused;
+ 	assign unused = &{1'b0, i_redirect_target[0], i_redirect_pointer, i_redirect_count, i_redirect_action, i_redirect_link, i_predictor_clear, i_update, i_update_pc, i_update_target, i_update_thumb, i_update_taken, i_update_hit, i_update_state, i_update_kind};
+-	assign predicted = (((PREDICTOR && prediction[44]) && f1[35]) && (f1[33-:2] == epoch)) && !killed;
++	assign predicted = (((PREDICTOR && prediction[44]) && f1[35]) && (f1[33-:2] == epoch)) && !killed && !duplicate_f1;
+ 	assign launch_pc = (i_redirect ? repair_fetch_pc : (predicted ? {prediction[42:12], 1'b0} : sequential_pc));
+ 	assign launch_thumb = (i_redirect ? i_redirect_thumb : (predicted ? prediction[11] : sequential_thumb));
+ 	assign o_address_nxt = launch_pc;
+@@ -4534,8 +4549,8 @@ module ngage2_arm9v2_fetch (
+ 	assign o_stall = ((count == 8) && !killed) || (f2[35] && !i_ack);
+ 	assign o_dbg_fetch = {f2[35] && !i_ack, (count == 8) && !killed};
+ 	assign advance = !o_stall;
+-	assign retry = (((f2[35] && i_ack) && i_retry) && !killed) && !i_redirect;
+-	assign push = (((((f2[35] && i_ack) && !i_retry) && advance) && !killed) && !i_redirect) && (f2[33-:2] == epoch);
++	assign retry = (((f2[35] && i_ack) && i_retry) && !killed) && !i_redirect && !duplicate_response;
++	assign push = (((((f2[35] && i_ack) && !i_retry) && advance) && !killed) && !i_redirect) && (f2[33-:2] == epoch) && !duplicate_response;
+     reg [113:0] pushed;
+     reg [113:0] head_next;
+     (* dont_retime *) reg [113:0] head_ff;
+@@ -4673,7 +4688,7 @@ module ngage2_arm9v2_fetch (
+ 				.i_pc_sequential(sequential_pc),
+ 				.i_sel_redirect(i_redirect),
+ 				.i_sel_predicted(predicted),
+-				.i_accept((((advance && f1[35]) && !i_redirect) && !retry) && !killed),
++				.i_accept((((advance && f1[35]) && !i_redirect) && !retry) && !killed && !duplicate_f1),
+ 				.i_update(i_update),
+ 				.i_update_pc(i_update_pc),
+ 				.i_update_target(i_update_target),
+@@ -4742,7 +4757,7 @@ module ngage2_arm9v2_fetch (
+ 				if (i_redirect) begin
+ 					f1 <= {1'b1, i_redirect_thumb, epoch + 2'd1, repair_fetch_pc};
+ 					f2[35] <= 0;
+-					sequential_pc <= reuse_fall_half ? redirect_next + 32'd2 : redirect_next;
++					sequential_pc <= redirect_next;
+ 					sequential_thumb <= i_redirect_thumb;
+ 				end
+ 			end
+diff --git a/tests/cpu/arm9v2_board/thumb_recovery_tb.sv b/tests/cpu/arm9v2_board/thumb_recovery_tb.sv
+index addbb785b644c491bcf08f91b7d4e26088402835..e0bcfdf31383aab3978f652741ffdc72932ae2e0 100644
+--- a/tests/cpu/arm9v2_board/thumb_recovery_tb.sv
++++ b/tests/cpu/arm9v2_board/thumb_recovery_tb.sv
+@@ -5,6 +5,8 @@ module recovery_tb;
+   reg clk, reset, redirect, thumb = 1, fall_repair, ram_hit = 1, barrier;
+   reg clear_predictor, ack = 1, err, retry, pending, fill_done, fill_fault;
+   reg update, ready = 1;
++  reg [31:0] update_pc = BRANCH, update_target = 32'h0010_01c1;
++  reg [ 1:0] update_kind = 0;
+   reg [31:0] target = BRANCH;
+   reg [ 1:0] action;
+   reg [15:0] high = 16'h2407;
+@@ -13,6 +15,7 @@ module recovery_tb;
+   wire valid, fault, predicted, hit;
+   wire [2:0] pointer;
+   wire [3:0] count;
++  wire request;
+ 
+   ngage2_arm9v2_fetch dut (
+       .i_clk(clk),
+@@ -26,13 +29,13 @@ module recovery_tb;
+       .i_redirect_link(32'h7789),
+       .i_predictor_clear(clear_predictor),
+       .i_update(update),
+-      .i_update_pc(BRANCH),
+-      .i_update_target(32'h0010_01c1),
++      .i_update_pc(update_pc),
++      .i_update_target(update_target),
+       .i_update_thumb(1'b1),
+       .i_update_taken(1'b1),
+       .i_update_hit(1'b1),
+       .i_update_state(2'd3),
+-      .i_update_kind(2'd0),
++      .i_update_kind(update_kind),
+       .i_data(data),
+       .i_ack(ack),
+       .i_error(err),
+@@ -47,7 +50,7 @@ module recovery_tb;
+       .o_address_nxt(next_addr),
+       .o_address_check(check_addr),
+       .o_address(req_addr),
+-      .o_request(),
++      .o_request(request),
+       .o_stall(),
+       .o_dbg_fetch(),
+       .o_valid(valid),
+@@ -87,6 +90,9 @@ module recovery_tb;
+     fill_done = 0;
+     fill_fault = 0;
+     update = 0;
++    update_pc = BRANCH;
++    update_target = 32'h0010_01c1;
++    update_kind = 0;
+     ready = 1;
+     ram_hit = cache;
+     action = 0;
+@@ -123,15 +129,16 @@ module recovery_tb;
+     #1;
+     if (dut.reuse_fall_half !== expected)
+       $fatal(1, "Fall-through eligibility mismatch at cycle %0d", cycles);
+-    if (expected && next_addr != BRANCH + 4)
+-      $fatal(1, "Recovery did not launch the instruction after the saved packet");
++    if (next_addr !== {repair_pc[31:1], 1'b0} ||
++        dut.g_predictor.u_predict.i_pc_redirect !== {repair_pc[31:1], 1'b0})
++      $fatal(1, "Recovery changed the ordinary redirect or BTB address");
+     tick();
+     redirect = 0;
+     fall_repair = 0;
+     if (expected) begin
+       expected_success++;
+       if (!valid || fault || pc != BRANCH + 2 || word != {16'd0, high} ||
+-                predicted || hit || pointer != 3 || count != 3 || check_addr != BRANCH + 4)
++                predicted || hit || pointer != 3 || count != 3 || check_addr != BRANCH + 2)
+         $fatal(1, "Malformed recovered packet");
+       tick();
+       if (valid && pc == BRANCH + 2) $fatal(1, "Duplicated recovered packet");
+@@ -142,6 +149,125 @@ module recovery_tb;
+     end
+   endtask
+ 
++  task start_recovery_held;
++    ready = 0;
++    target = BRANCH + 2;
++    redirect = 1;
++    fall_repair = 1;
++    #1;
++    if (!dut.reuse_fall_half || next_addr !== BRANCH + 2)
++      $fatal(1, "Expected injection on the ordinary upper-half redirect");
++    tick();
++    redirect = 0;
++    fall_repair = 0;
++    #1;
++    if (!valid || pc != BRANCH + 2 || !dut.duplicate_f1)
++      $fatal(1, "Saved instruction or duplicate identity missing");
++  endtask
++
++  task duplicate_then_real_fault;
++    seed(1, 0, 0, 0, 0, 16'h2407);
++    update = 1;
++    update_pc = BRANCH + 2;
++    update_target = 32'h0010_0901;
++    update_kind = 1;
++    start_recovery_held();
++    update = 0;
++    #1;
++    if (!dut.prediction[44] || dut.predicted || dut.g_predictor.u_predict.i_accept ||
++        next_addr !== BRANCH + 4)
++      $fatal(1, "Stale duplicate BTB call steered fetch or consumed RAS");
++    tick();
++    if (pointer != 3 || count != 3) $fatal(1, "Duplicate changed the RAS");
++    ack = 0;
++    repeat (3) begin
++      tick();
++      if (!request || !dut.duplicate_response || req_addr != BRANCH + 2 ||
++          !valid || pc != BRANCH + 2 || word != 32'h2407 || fault)
++        $fatal(1, "Held identity or checked packet changed");
++    end
++    // This response belongs to the redundant access. Its payload and
++    // status cannot replace the checked entry, even when the I$ retries.
++    ack = 1;
++    err = 1;
++    retry = 1;
++    pending = 1;
++    #1;
++    if (dut.push || dut.retry) $fatal(1, "Redundant response affected fetch");
++    tick();
++    err = 0;
++    pending = 0;
++    ready = 1;
++    #1;
++    if (dut.duplicate_response || !request || req_addr != BRANCH + 4 || !dut.retry)
++      $fatal(1, "Real successor retry did not retain its identity");
++    tick();
++    retry = 0;
++    repeat (2) tick();
++    if (!request || req_addr != BRANCH + 4) $fatal(1, "Wrong retry PC");
++    err = 1;
++    tick();
++    err = 0;
++    if (!valid || pc != BRANCH + 4 || !fault) $fatal(1, "Lost the real prefetch abort");
++    expected_success++;
++  endtask
++
++  task redirect_away_from_duplicate;
++    seed(1, 0, 0, 0, 0, 16'h2407);
++    start_recovery_held();
++    tick();
++    ack = 0;
++    redirect = 1;
++    // A fresh owner at the same address must have no duplicate status.
++    tick();
++    redirect = 0;
++    ack = 1;
++    ready = 1;
++    if (valid || dut.duplicate_f1 || dut.duplicate_f2) $fatal(1, "Killed duplicate leaked epoch");
++    repeat (3) tick();
++    if (!request || req_addr != BRANCH + 2 || dut.duplicate_response)
++      $fatal(1, "New owner inherited duplicate state");
++    err = 1;
++    tick();
++    err = 0;
++    if (!valid || pc != BRANCH + 2 || !fault) $fatal(1, "New owner's abort was suppressed");
++    expected_success++;
++  endtask
++
++  task reset_with_duplicate;
++    seed(1, 0, 0, 0, 0, 16'h2407);
++    start_recovery_held();
++    tick();
++    ack = 0;
++    tick();
++    if (!dut.duplicate_response || !request) $fatal(1, "No duplicate pending at reset");
++    reset = 1;
++    tick();
++    if (valid || request || dut.duplicate_f1 || dut.duplicate_f2)
++      $fatal(1, "Reset did not clear the pending duplicate");
++    expected_success++;
++  endtask
++
++  task full_queue_blocks_recovery;
++    seed(1, 0, 0, 0, 0, 16'h2407);
++    ready = 0;
++    repeat (12) tick();
++    if (dut.count != 8 || !dut.saved_fall_valid)
++      $fatal(1, "Expected full queue and saved halfword");
++    redirect = 1;
++    target = BRANCH + 2;
++    fall_repair = 1;
++    #1;
++    if (dut.reuse_fall_half || next_addr !== BRANCH + 2)
++      $fatal(1, "Full queue changed redirect or admitted recovery");
++    tick();
++    if (valid || dut.duplicate_f1 || dut.duplicate_f2)
++      $fatal(1, "Blocked redirect inserted a packet");
++    redirect = 0;
++    fall_repair = 0;
++    expected_reject++;
++  endtask
++
+   initial begin
+     seed(1, 0, 0, 0, 0, 16'h2407);
+     repair(1);
+@@ -169,6 +295,10 @@ module recovery_tb;
+     tick();
+     if (!valid || pc != BRANCH + 4) $fatal(1, "Wrong queued successor after recovery");
+     expected_success++;
++    duplicate_then_real_fault();
++    redirect_away_from_duplicate();
++    reset_with_duplicate();
++    full_queue_blocks_recovery();
+     seed(0, 0, 0, 0, 0, 16'h2407);
+     repair(0);
+     seed(1, 1, 0, 0, 0, 16'h2407);
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index 47c32fbd769d2e039168fcbc3818e74acd63978c..c4e4ff481cac4d207da0c34f49e1de914ebffd05 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -1197,6 +1197,46 @@ def recover_thumb_fallthrough(phone):
+     return header + ''.join(modules)
+ 
+ 
++def separate_thumb_recovery_redirect(phone):
++    """Launch the normal redirect and discard the tagged duplicate fetch."""
++    start = phone.index('module ngage2_arm9v2_fetch (')
++    end = phone.index('\nendmodule', start)
++    fetch = phone[start:end]
++    fetch = edit(fetch, """\
++    wire [31:0] repair_fetch_pc = reuse_fall_half ? redirect_next :
++                                {i_redirect_target[31:1], 1'b0};
++""", """\
++    wire [31:0] repair_fetch_pc = {i_redirect_target[31:1], 1'b0};
++    (* dont_retime *) reg duplicate_f1, duplicate_f2;
++    wire duplicate_response = duplicate_f2 && f2[35] && f2[33-:2] == epoch;
++
++    // The saved halfword is already checked. The redundant request owns
++    // neither another instruction nor any prediction and retry effects.
++    // Carry ownership with the exact request, including across fetch hold.
++    // An exception or redirect starts a different epoch even at the same PC.
++    always @(posedge i_clk) begin
++        if (i_reset || i_redirect || retry || (advance && killed)) begin
++            duplicate_f1 <= !i_reset && i_redirect && reuse_fall_half;
++            duplicate_f2 <= 0;
++        end else if (advance) begin
++            duplicate_f1 <= 0;
++            duplicate_f2 <= duplicate_f1;
++        end
++    end
++""")
++    fetch = edit(fetch, '&& (f1[33-:2] == epoch)) && !killed;',
++                 '&& (f1[33-:2] == epoch)) && !killed && !duplicate_f1;')
++    fetch = edit(fetch, '&& !killed) && !i_redirect;\n\tassign push',
++                 '&& !killed) && !i_redirect && !duplicate_response;\n\tassign push')
++    fetch = edit(fetch, '&& (f2[33-:2] == epoch);\n    reg [113:0] pushed;',
++                 '&& (f2[33-:2] == epoch) && !duplicate_response;\n    reg [113:0] pushed;')
++    fetch = edit(fetch, '.i_accept((((advance && f1[35]) && !i_redirect) && !retry) && !killed),',
++                 '.i_accept((((advance && f1[35]) && !i_redirect) && !retry) && !killed && !duplicate_f1),')
++    fetch = edit(fetch, "sequential_pc <= reuse_fall_half ? redirect_next + 32'd2 : redirect_next;",
++                 "sequential_pc <= redirect_next;")
++    return phone[:start] + fetch + phone[end:]
++
++
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
+@@ -1231,6 +1271,7 @@ def main():
+     generated = resolve_execute_forward_candidates(generated)
+     generated = move_fetch_payload_to_ram(generated)
+     generated = recover_thumb_fallthrough(generated)
++    generated = separate_thumb_recovery_redirect(generated)
+     if args.hinted_ldm:
+         generated = issue_hinted_ldm(generated, edit)
+     generated = keep_wishbone_request_boundary(generated)

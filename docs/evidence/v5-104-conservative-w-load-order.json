@@ -1,0 +1,1412 @@
+{
+  "status": "PASS",
+  "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+  "base_tree": "8406276acdc60d658e189d09d31b0699217717ba",
+  "patch_sha256": "a4717b4af199e9e8bbc901a195e62a2bce1ef963ded46a89e2d68894becc27c1",
+  "fixture_sha256": "a40dfa9d672257d439518990021034b3a9cd770a790ac1b3ab1e668663ddb54e",
+  "source_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "a060b789a1eaec4977a7fd0d18021549654453181aeebd774dac0a76ed9f8221",
+    "tools/gen_arm9v2_phone.py": "819d1cd5634983b87633f771629888f9762c391a3938b762159026521a7207db"
+  },
+  "simulator": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "guard": {
+    "vectors": 128,
+    "same_destination_fault_cases": 32,
+    "changed_vectors": 1,
+    "no_writer_cases": 64
+  },
+  "board_profiles": [
+    {
+      "burst": 0,
+      "wait": 0,
+      "trace_sha256": "5eb36a2549bc68ac5e750b70d2e5ddb95e97900ce3d5a39ecfa59971bdc46c57",
+      "clocks": 33464
+    },
+    {
+      "burst": 0,
+      "wait": 5,
+      "trace_sha256": "6d7c90428c2072dcba11c44b696e1e2d19b8d6f46f38973b840f09f1ecfed809",
+      "clocks": 67865
+    },
+    {
+      "burst": 1,
+      "wait": 0,
+      "trace_sha256": "31cd1b51eb82c54931c436fcfa8b933f8fba7b6dcac00d9bb26f3df437b0f2ee",
+      "clocks": 28464
+    },
+    {
+      "burst": 1,
+      "wait": 5,
+      "trace_sha256": "12349a2fe3c61600eb64ba3f1214fbdc25324d5fb59e6f5a90e96511eb6d26f4",
+      "clocks": 42543
+    }
+  ],
+  "directed_waw": [
+    {
+      "burst": 0,
+      "wait": 0,
+      "ordered_retire_sha256": "520d67e8e3d870a0713daba050de0f1638bc4a5f3b4936c1c98eb8e33278a032",
+      "retained": {
+        "clocks": 219,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 56,
+        "stalls": 0,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "candidate": {
+        "clocks": 254,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 62,
+        "stalls": 62,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "clock_delta": 35
+    },
+    {
+      "burst": 0,
+      "wait": 5,
+      "ordered_retire_sha256": "520d67e8e3d870a0713daba050de0f1638bc4a5f3b4936c1c98eb8e33278a032",
+      "retained": {
+        "clocks": 499,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 55,
+        "stalls": 0,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "candidate": {
+        "clocks": 503,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 55,
+        "stalls": 55,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "clock_delta": 4
+    },
+    {
+      "burst": 1,
+      "wait": 0,
+      "ordered_retire_sha256": "520d67e8e3d870a0713daba050de0f1638bc4a5f3b4936c1c98eb8e33278a032",
+      "retained": {
+        "clocks": 192,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 62,
+        "stalls": 0,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "candidate": {
+        "clocks": 254,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 62,
+        "stalls": 62,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "clock_delta": 62
+    },
+    {
+      "burst": 1,
+      "wait": 5,
+      "ordered_retire_sha256": "520d67e8e3d870a0713daba050de0f1638bc4a5f3b4936c1c98eb8e33278a032",
+      "retained": {
+        "clocks": 192,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 62,
+        "stalls": 0,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "candidate": {
+        "clocks": 254,
+        "issued": 64,
+        "retired": 64,
+        "opportunities": 62,
+        "stalls": 62,
+        "fault": 1,
+        "fault_same_order": 0,
+        "follower": 1
+      },
+      "clock_delta": 62
+    }
+  ],
+  "fixed": {
+    "measured_windows": 105,
+    "retained_receipt_sha256": "b3d679bf2bf550f6cc713cd21a026259a3520627e929f31fd894779ba444e757",
+    "candidate_receipt_sha256": "aa882e7261a4bd59e0260b1d9eeba4e92dde4e35c7ee66784045c761452ad697",
+    "rows": [
+      {
+        "case": "sega-scan",
+        "retained_cycles": [
+          2396210,
+          2395853,
+          2395905,
+          2395767,
+          2395767,
+          2395767,
+          2395767
+        ],
+        "candidate_cycles": [
+          2396210,
+          2395853,
+          2395905,
+          2395767,
+          2395767,
+          2395767,
+          2395767
+        ],
+        "clock_delta": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median_delta": 0,
+        "retained_median": 2395767,
+        "candidate_median": 2395767,
+        "eligible_retained": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "held_candidate": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_counts": [
+          3358,
+          3358,
+          3358,
+          3358,
+          3358,
+          3358,
+          3358
+        ],
+        "ordered_write_hashes": [
+          "34016cbfad091684",
+          "34016cbfad091684",
+          "34016cbfad091684",
+          "34016cbfad091684",
+          "34016cbfad091684",
+          "34016cbfad091684",
+          "34016cbfad091684"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "matrix4",
+        "retained_cycles": [
+          17981,
+          16937,
+          16937,
+          16937,
+          16949,
+          16946,
+          16952
+        ],
+        "candidate_cycles": [
+          17981,
+          16937,
+          16937,
+          16937,
+          16949,
+          16946,
+          16952
+        ],
+        "clock_delta": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median_delta": 0,
+        "retained_median": 16946,
+        "candidate_median": 16946,
+        "eligible_retained": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "held_candidate": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_hashes": [
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "transpose4",
+        "retained_cycles": [
+          3055,
+          2964,
+          2964,
+          2976,
+          2976,
+          2979,
+          2976
+        ],
+        "candidate_cycles": [
+          3055,
+          2964,
+          2964,
+          2976,
+          2976,
+          2979,
+          2976
+        ],
+        "clock_delta": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median_delta": 0,
+        "retained_median": 2976,
+        "candidate_median": 2976,
+        "eligible_retained": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "held_candidate": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_hashes": [
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "triangle_edges",
+        "retained_cycles": [
+          13136,
+          12220,
+          12226,
+          12262,
+          12253,
+          12220,
+          12220
+        ],
+        "candidate_cycles": [
+          13151,
+          12251,
+          12275,
+          12260,
+          12236,
+          12236,
+          12236
+        ],
+        "clock_delta": [
+          15,
+          31,
+          49,
+          -2,
+          -17,
+          16,
+          16
+        ],
+        "median_delta": 10,
+        "retained_median": 12226,
+        "candidate_median": 12236,
+        "eligible_retained": [
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16
+        ],
+        "held_candidate": [
+          16,
+          16,
+          16,
+          16,
+          16,
+          16,
+          16
+        ],
+        "ordered_write_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_hashes": [
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "fill16_frame",
+        "retained_cycles": [
+          122534,
+          122402,
+          122402,
+          122402,
+          122402,
+          122402,
+          122402
+        ],
+        "candidate_cycles": [
+          122534,
+          122402,
+          122402,
+          122402,
+          122402,
+          122402,
+          122402
+        ],
+        "clock_delta": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median_delta": 0,
+        "retained_median": 122402,
+        "candidate_median": 122402,
+        "eligible_retained": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "held_candidate": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_counts": [
+          4063,
+          4063,
+          4063,
+          4063,
+          4063,
+          4063,
+          4063
+        ],
+        "ordered_write_hashes": [
+          "4de7a1804491681c",
+          "4de7a1804491681c",
+          "4de7a1804491681c",
+          "4de7a1804491681c",
+          "4de7a1804491681c",
+          "4de7a1804491681c",
+          "4de7a1804491681c"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "fill16_tail",
+        "retained_cycles": [
+          876,
+          725,
+          725,
+          728,
+          725,
+          725,
+          725
+        ],
+        "candidate_cycles": [
+          876,
+          725,
+          725,
+          728,
+          725,
+          725,
+          725
+        ],
+        "clock_delta": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median_delta": 0,
+        "retained_median": 725,
+        "candidate_median": 725,
+        "eligible_retained": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "held_candidate": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_hashes": [
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "fill8_tail",
+        "retained_cycles": [
+          903,
+          753,
+          753,
+          753,
+          753,
+          753,
+          753
+        ],
+        "candidate_cycles": [
+          903,
+          753,
+          753,
+          753,
+          753,
+          753,
+          753
+        ],
+        "clock_delta": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median_delta": 0,
+        "retained_median": 753,
+        "candidate_median": 753,
+        "eligible_retained": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "held_candidate": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_hashes": [
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "monkey-forward",
+        "retained_cycles": [
+          16021,
+          15937,
+          15940,
+          15940,
+          15949,
+          15937,
+          15940
+        ],
+        "candidate_cycles": [
+          16021,
+          15937,
+          15940,
+          15940,
+          15949,
+          15937,
+          15940
+        ],
+        "clock_delta": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median_delta": 0,
+        "retained_median": 15940,
+        "candidate_median": 15940,
+        "eligible_retained": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "held_candidate": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_hashes": [
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "monkey-reverse",
+        "retained_cycles": [
+          16021,
+          15937,
+          15940,
+          15940,
+          15949,
+          15937,
+          15940
+        ],
+        "candidate_cycles": [
+          16021,
+          15937,
+          15940,
+          15940,
+          15949,
+          15937,
+          15940
+        ],
+        "clock_delta": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median_delta": 0,
+        "retained_median": 15940,
+        "candidate_median": 15940,
+        "eligible_retained": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "held_candidate": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_hashes": [
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "sega-span",
+        "retained_cycles": [
+          15585,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430
+        ],
+        "candidate_cycles": [
+          15585,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430
+        ],
+        "clock_delta": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median_delta": 0,
+        "retained_median": 15430,
+        "candidate_median": 15430,
+        "eligible_retained": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "held_candidate": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_hashes": [
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "sega-fill",
+        "retained_cycles": [
+          2757,
+          2628,
+          2628,
+          2628,
+          2628,
+          2628,
+          2628
+        ],
+        "candidate_cycles": [
+          2757,
+          2628,
+          2628,
+          2628,
+          2628,
+          2628,
+          2628
+        ],
+        "clock_delta": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median_delta": 0,
+        "retained_median": 2628,
+        "candidate_median": 2628,
+        "eligible_retained": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "held_candidate": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_hashes": [
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "asphalt-table",
+        "retained_cycles": [
+          21328,
+          21155,
+          21160,
+          21152,
+          21168,
+          21163,
+          21171
+        ],
+        "candidate_cycles": [
+          21589,
+          21414,
+          21414,
+          21411,
+          21411,
+          21414,
+          21415
+        ],
+        "clock_delta": [
+          261,
+          259,
+          254,
+          259,
+          243,
+          251,
+          244
+        ],
+        "median_delta": 251,
+        "retained_median": 21163,
+        "candidate_median": 21414,
+        "eligible_retained": [
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256
+        ],
+        "held_candidate": [
+          256,
+          256,
+          256,
+          256,
+          256,
+          256,
+          256
+        ],
+        "ordered_write_counts": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        "ordered_write_hashes": [
+          "87a794f97b780221",
+          "87a794f97b780221",
+          "87a794f97b780221",
+          "87a794f97b780221",
+          "87a794f97b780221",
+          "87a794f97b780221",
+          "87a794f97b780221"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "asphalt-double",
+        "retained_cycles": [
+          12140,
+          11974,
+          11982,
+          11974,
+          11977,
+          11974,
+          11974
+        ],
+        "candidate_cycles": [
+          12140,
+          11974,
+          11982,
+          11974,
+          11977,
+          11974,
+          11974
+        ],
+        "clock_delta": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median_delta": 0,
+        "retained_median": 11974,
+        "candidate_median": 11974,
+        "eligible_retained": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "held_candidate": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_counts": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        "ordered_write_hashes": [
+          "1441672fc36d6835",
+          "1441672fc36d6835",
+          "1441672fc36d6835",
+          "1441672fc36d6835",
+          "1441672fc36d6835",
+          "1441672fc36d6835",
+          "1441672fc36d6835"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "asphalt-single",
+        "retained_cycles": [
+          7933,
+          7753,
+          7753,
+          7762,
+          7753,
+          7753,
+          7753
+        ],
+        "candidate_cycles": [
+          7933,
+          7753,
+          7753,
+          7762,
+          7753,
+          7753,
+          7753
+        ],
+        "clock_delta": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "median_delta": 0,
+        "retained_median": 7753,
+        "candidate_median": 7753,
+        "eligible_retained": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "held_candidate": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_hashes": [
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      },
+      {
+        "case": "diffuse_m10_8x8_jpeg",
+        "retained_cycles": [
+          36331,
+          35324,
+          35324,
+          35324,
+          35324,
+          35324,
+          35324
+        ],
+        "candidate_cycles": [
+          36532,
+          35524,
+          35524,
+          35524,
+          35524,
+          35524,
+          35524
+        ],
+        "clock_delta": [
+          201,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "median_delta": 200,
+        "retained_median": 35324,
+        "candidate_median": 35524,
+        "eligible_retained": [
+          199,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "held_candidate": [
+          199,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ],
+        "ordered_write_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "ordered_write_hashes": [
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325",
+          "cbf29ce484222325"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          true,
+          true,
+          true,
+          true,
+          true,
+          true,
+          true
+        ],
+        "wrong_output_rejected": true
+      }
+    ]
+  },
+  "native": {
+    "measured_windows": 4,
+    "retained_receipt_sha256": "25643676acb05be1e0799eb557602aca543b6aa8e61b143552e5c7a462a4584c",
+    "candidate_receipt_sha256": "fe36fe2ecba41fcf7c6df88a3df92aa0d01a4c63dc542a980fff1109ee30a743",
+    "rows": [
+      {
+        "case": "native",
+        "retained_cycles": [
+          14391395,
+          14467552,
+          14346201,
+          14303223
+        ],
+        "candidate_cycles": [
+          14404981,
+          14482482,
+          14361189,
+          14317869
+        ],
+        "clock_delta": [
+          13586,
+          14930,
+          14988,
+          14646
+        ],
+        "median_delta": 14988,
+        "retained_median": 14346201,
+        "candidate_median": 14361189,
+        "eligible_retained": [
+          14859,
+          15009,
+          14999,
+          14999
+        ],
+        "held_candidate": [
+          14859,
+          15009,
+          14999,
+          14999
+        ],
+        "ordered_write_counts": [
+          70094,
+          69432,
+          69066,
+          69573
+        ],
+        "ordered_write_hashes": [
+          "ff5490ae4b26bc03",
+          "f8bd971138bdf010",
+          "a21fd611b20d99b8",
+          "46c35c3e215261bc"
+        ],
+        "cycle_stamped_write_hash_matches": [
+          false,
+          false,
+          false,
+          false
+        ],
+        "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+        "total_delta": 58150,
+        "delta_pct": 0.10111571409317088
+      }
+    ]
+  },
+  "mixed": {
+    "events": 171496,
+    "clocks": 1201547,
+    "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+    "source_count": 114
+  }
+}

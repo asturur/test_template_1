@@ -264,8 +264,8 @@ module tb;
 
     reg [4095:0] program_path, app_path;
     initial begin
-        program_path = "build/sim/phone-tests/p2/original/program.hex";
-        app_path     = "build/sim/phone-tests/p2/original/app.hex";
+        program_path = "scratch/ngage2-integration/p2/original/program.hex";
+        app_path     = "scratch/ngage2-integration/p2/original/app.hex";
         if ($value$plusargs("program=%s", program_path)) begin
         end
         if ($value$plusargs("app=%s", app_path)) begin

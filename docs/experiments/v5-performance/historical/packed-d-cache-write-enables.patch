@@ -1,0 +1,394 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index 57cd0dbc81ac8a73e6497d6e14bd0ab1576d7926..f765d4ace438e2b033d1f7b17632f296449ff19d 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -9471,6 +9471,7 @@ module ngage2_zap_dcache_fsm (
+ 	o_cache_tag_wr_en,
+ 	o_cache_line,
+ 	o_cache_line_ben,
++	o_cache_line_write,
+ 	o_cache_clean_req,
+ 	i_cache_clean_done,
+ 	o_cache_inv_req,
+@@ -9595,6 +9596,7 @@ module ngage2_zap_dcache_fsm (
+ 	output wire o_cache_tag_wr_en;
+ 	output wire [(CACHE_LINE * 8) - 1:0] o_cache_line;
+ 	output wire [CACHE_LINE - 1:0] o_cache_line_ben;
++	output wire o_cache_line_write;
+ 	output wire o_cache_clean_req;
+ 	input wire i_cache_clean_done;
+ 	output wire o_cache_inv_req;
+@@ -10462,6 +10464,9 @@ module ngage2_zap_dcache_fsm (
+ 			ben_comp = {{CACHE_LINE - 32'd4 {1'd0}}, bv} << shamt;
+ 		end
+ 	endfunction
++    // A word lane shift within a power-of-two line preserves a nonempty mask.
++    assign o_cache_line_write = fill_write || (live_write && (|i_ben)) ||
++                                (saved_write && (|ben));
+ 	assign o_cache_line_ben = ((ben_comp(i_address[$clog2(CACHE_LINE) - 1:2], i_ben) & {CACHE_LINE {live_write}}) | (ben_comp(address[$clog2(CACHE_LINE) - 1:2], ben) & {CACHE_LINE {saved_write}})) | {CACHE_LINE {fill_write}};
+ 	always @(posedge i_clk) o_idle <= state_nxt[IDLE];
+ 	localparam integer EVICT_INDEX_BITS = $clog2(CACHE_LINE / 4) + 1;
+@@ -11294,6 +11299,7 @@ module ngage2_zap_dcache (
+ 	(* dont_retime *) reg [31:0] tr_cache_word;
+ 	wire [(CACHE_LINE * 8) - 1:0] cf_cache_line;
+ 	wire [CACHE_LINE - 1:0] cf_cache_line_ben;
++	wire cf_cache_line_write;
+ 	wire cf_cache_tag_wr_en;
+ 	reg [((31 - $clog2(CACHE_LINE)) + (((31 - $clog2(CACHE_LINE)) - $clog2((CACHE_SIZE / WAYS) / CACHE_LINE)) + 1)) + 0:0] tr_cache_tag;
+ 	wire [((31 - $clog2(CACHE_LINE)) + (((31 - $clog2(CACHE_LINE)) - $clog2((CACHE_SIZE / WAYS) / CACHE_LINE)) + 1)) + 0:0] cf_cache_tag;
+@@ -11439,6 +11445,7 @@ module ngage2_zap_dcache (
+ 		.o_cache_tag_wr_en(cf_cache_tag_wr_en),
+ 		.o_cache_line(cf_cache_line),
+ 		.o_cache_line_ben(cf_cache_line_ben),
++		.o_cache_line_write(cf_cache_line_write),
+ 		.o_cache_clean_req(cf_cache_clean_req),
+ 		.i_cache_clean_done(tr_cache_clean_done),
+ 		.o_cache_inv_req(cf_cache_inv_req),
+@@ -11550,6 +11557,7 @@ module ngage2_zap_dcache (
+ 		.o_cache_words(raw_cache_words),
+ 		.o_cache_word_sel(raw_cache_word_sel),
+ 		.i_cache_line_ben(cf_cache_line_ben & {CACHE_LINE {ram_write}}),
++		.i_cache_line_write(cf_cache_line_write && ram_write),
+ 		.i_cache_tag_wr_en(cf_cache_tag_wr_en && ram_write),
+ 		.i_cache_tag(cf_cache_tag),
+ 		.i_cache_tag_dirty(cf_cache_tag_dirty),
+@@ -12675,10 +12683,13 @@ module ngage2_zap_ram_bytes (
+ 	i_wr_data,
+ 	i_wr_addr,
+ 	i_rd_addr,
+-	o_rd_data
++	o_rd_data,
++	i_write_enable
+ );
++	input wire i_write_enable;
+ 	parameter integer BYTES = 16;
+ 	parameter integer DEPTH = 32;
++	parameter EXPLICIT_WRITE_ENABLE = 0;
+ 	input wire i_clk;
+ 	input wire i_clken;
+ 	input wire [BYTES - 1:0] i_wr_en;
+@@ -12715,7 +12726,7 @@ module ngage2_zap_ram_bytes (
+ 	) u_ram(
+ 		.clock0(i_clk),
+ 		.clocken0(i_clken),
+-		.wren_a(|i_wr_en),
++		.wren_a(EXPLICIT_WRITE_ENABLE ? i_write_enable : |i_wr_en),
+ 		.address_a(i_wr_addr_x),
+ 		.data_a(i_wr_data),
+ 		.byteena_a(i_wr_en),
+@@ -12723,6 +12734,11 @@ module ngage2_zap_ram_bytes (
+ 		.rden_b(1'b1),
+ 		.q_b(o_rd_data)
+ 	);
++    // synthesis translate_off
++    always @(posedge i_clk)
++        if (EXPLICIT_WRITE_ENABLE && i_clken && i_write_enable !== (|i_wr_en))
++            $fatal(1, "Packed D-cache write enable differs from the byte mask");
++    // synthesis translate_on
+ endmodule
+ module ngage2_zap_register_file (
+ 	i_clk,
+@@ -17004,6 +17020,7 @@ module ngage2_zap_dcache_half_tag_ram (
+ 	i_cache_en,
+ 	i_cache_line,
+ 	i_cache_line_ben,
++	i_cache_line_write,
+ 	o_cache_line,
+ 	o_cache_words,
+ 	o_cache_word_sel,
+@@ -17076,6 +17093,7 @@ module ngage2_zap_dcache_half_tag_ram (
+ 	input wire i_cache_en;
+ 	input wire [(CACHE_LINE * 8) - 1:0] i_cache_line;
+ 	input wire [CACHE_LINE - 1:0] i_cache_line_ben;
++	input wire i_cache_line_write;
+ 	output reg [(CACHE_LINE * 8) - 1:0] o_cache_line;
+ 	output reg [(WAYS * 32) - 1:0] o_cache_words;
+ 	output wire [(WAYS > 1 ? $clog2(WAYS) : 1) - 1:0] o_cache_word_sel;
+@@ -17569,11 +17587,13 @@ module ngage2_zap_dcache_half_tag_ram (
+ 				if (DATA_PACK) begin : g_packed_data
+ 					ngage2_zap_ram_bytes #(
+ 						.BYTES(CACHE_LINE),
+-						.DEPTH(LINES)
++						.DEPTH(LINES),
++						.EXPLICIT_WRITE_ENABLE((CACHE_LINE & (CACHE_LINE - 1)) == 0)
+ 					) u_data(
+ 						.i_clk(i_clk),
+ 						.i_clken(!i_hold),
+ 						.i_wr_en(i_cache_line_ben & {CACHE_LINE {wr_sel[w]}}),
++						.i_write_enable(i_cache_line_write && wr_sel[w]),
+ 						.i_wr_data(i_cache_line),
+ 						.i_wr_addr(tag_ram_wr_addr),
+ 						.i_rd_addr(rd_set),
+diff --git a/tests/cpu/arm9v2_board/README.md b/tests/cpu/arm9v2_board/README.md
+index 2a48a1474d5161d1a5bc4405ebcc347bfd0c7e26..ca10e644579f213d54340ba94f512689c6fe990c 100644
+--- a/tests/cpu/arm9v2_board/README.md
++++ b/tests/cpu/arm9v2_board/README.md
+@@ -97,6 +97,18 @@ the captured victim buffer. The runner counts these separately from scalar
+ writes. The existing SDRAM scheduler drives eight single-location WRITE
+ commands per block. Explicit cache maintenance uses its existing path.
+ 
++### Packed D-cache write enables
++
++The packed way's M10K write enable comes from the selected way and write
++operation. Live and saved stores test their four byte enables before the
++word-lane shift. A refill writes the entire line. The original byte mask,
++mixed-port `OLD_DATA` setting and forwarding remain in use.
++
++Run `sh tests/cpu/arm9v2_board/run-packed-write-enable.sh` inside the
++installed simulator image. It compares the generated controller and RAM
++against the original mask-derived enable and a byte-by-byte oracle. The
++16- and 32-byte tests cover 163,848 cases and 47,352 read/write collisions.
++
+ To compare true half-line dirty tracking, generate the two-way netlist
+ with `sv2v` on `PATH` and add it to the block-writeback run. Use `--dirty
+ packed` for the matched metadata control, which writes both halves.
+diff --git a/tests/cpu/arm9v2_board/packed_write_enable_tb.v b/tests/cpu/arm9v2_board/packed_write_enable_tb.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..a160352670b6d861cd0ea22622ec65f8ed3de263
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/packed_write_enable_tb.v
+@@ -0,0 +1,147 @@
++`timescale 1ns / 1ps
++module packed_write_enable_tb;
++  parameter integer LINE_BYTES = 32;
++  localparam integer DATA_BITS = 8 * LINE_BYTES;
++  localparam integer WORDS = LINE_BYTES / 4;
++  reg clk = 0, clken = 1, commit = 1;
++  reg live = 0, saved = 0, fill = 0;
++  reg [1:0] way_select = 2'b11;
++  reg [31:0] live_address = 0, saved_address = 0;
++  reg [3:0] live_mask = 0, saved_mask = 0;
++  reg read_row = 0, write_row = 0;
++  reg [DATA_BITS-1:0] data = 0;
++  wire [LINE_BYTES-1:0] mask;
++  wire write_enable;
++
++  // Enumerate the write-operation truth table of the generated controller.
++  // The CPU contract exercises which operation can occur in each state.
++  ngage2_zap_dcache_fsm #(
++      .CACHE_LINE(LINE_BYTES)
++  ) fsm (
++      .i_clk(clk),
++      .i_reset(1'b1),
++      .i_address(live_address),
++      .i_ben(live_mask),
++      .o_cache_line_ben(mask),
++      .o_cache_line_write(write_enable)
++  );
++
++  wire [DATA_BITS-1:0] reference_q[0:1];
++  wire [DATA_BITS-1:0] candidate_q[0:1];
++  genvar w;
++  generate
++    for (w = 0; w < 2; w = w + 1) begin : way
++      wire commit_way = commit && way_select[w];
++      wire [LINE_BYTES-1:0] way_mask = mask & {LINE_BYTES{commit_way}};
++      ngage2_zap_ram_bytes #(
++          .BYTES(LINE_BYTES),
++          .DEPTH(256)
++      ) reference (
++          .i_clk(clk),
++          .i_clken(clken),
++          .i_wr_en(way_mask),
++          .i_wr_data(data),
++          .i_wr_addr({7'b0, write_row}),
++          .i_rd_addr({7'b0, read_row}),
++          .o_rd_data(reference_q[w])
++      );
++      ngage2_zap_ram_bytes #(
++          .BYTES(LINE_BYTES),
++          .DEPTH(256),
++          .EXPLICIT_WRITE_ENABLE(1)
++      ) candidate (
++          .i_clk(clk),
++          .i_clken(clken),
++          .i_wr_en(way_mask),
++          .i_wr_data(data),
++          .i_wr_addr({7'b0, write_row}),
++          .i_rd_addr({7'b0, read_row}),
++          .o_rd_data(candidate_q[w]),
++          .i_write_enable(commit_way && write_enable)
++      );
++    end
++  endgenerate
++
++  reg [DATA_BITS-1:0] expected_data[0:1][0:1];
++  reg [DATA_BITS-1:0] expected_q[0:1];
++  reg [LINE_BYTES-1:0] expected_mask;
++  integer cases = 0, collisions = 0, live_word, saved_word, live_lanes, saved_lanes, operations, i;
++
++  task step;
++    integer way_index, lane;
++    begin
++      #1;
++      expected_mask = 0;
++      if (live) expected_mask[live_address[$clog2(LINE_BYTES)-1:0]+:4] = live_mask;
++      if (saved)
++        expected_mask[saved_address[$clog2(
++            LINE_BYTES
++        )-1:0]+:4] = expected_mask[saved_address[$clog2(
++            LINE_BYTES
++        )-1:0]+:4] | saved_mask;
++      if (fill) expected_mask = {LINE_BYTES{1'b1}};
++      if (mask !== expected_mask || write_enable !== (|expected_mask))
++        $fatal(1, "Controller byte or word enable mismatch at case %0d", cases);
++      if (clken) begin
++        for (way_index = 0; way_index < 2; way_index = way_index + 1) begin
++          expected_q[way_index] = expected_data[way_index][read_row];
++          if (commit && way_select[way_index]) begin
++            if (read_row == write_row && write_enable) collisions = collisions + 1;
++            for (lane = 0; lane < LINE_BYTES; lane = lane + 1)
++            if (expected_mask[lane])
++              expected_data[way_index][write_row][lane*8+:8] = data[lane*8+:8];
++          end
++        end
++      end
++      clk = 1;
++      #1;
++      for (way_index = 0; way_index < 2; way_index = way_index + 1)
++      if (reference_q[way_index] !== expected_q[way_index] ||
++                    candidate_q[way_index] !== expected_q[way_index])
++        $fatal(1, "Byte lane or OLD_DATA mismatch at case %0d way %0d", cases, way_index);
++      clk   = 0;
++      cases = cases + 1;
++    end
++  endtask
++
++  initial begin
++    force fsm.live_write = live;
++    force fsm.saved_write = saved;
++    force fsm.fill_write = fill;
++    force fsm.address = saved_address;
++    force fsm.ben = saved_mask;
++    fill = 1;
++    step;
++    write_row = 1;
++    read_row  = 1;
++    step;
++    for (live_word = 0; live_word < WORDS; live_word = live_word + 1)
++    for (saved_word = 0; saved_word < WORDS; saved_word = saved_word + 1)
++    for (live_lanes = 0; live_lanes < 16; live_lanes = live_lanes + 1)
++    for (saved_lanes = 0; saved_lanes < 16; saved_lanes = saved_lanes + 1)
++    for (operations = 0; operations < 8; operations = operations + 1) begin
++      {fill, saved, live} = operations[2:0];
++      live_address = live_word * 4;
++      saved_address = saved_word * 4;
++      live_mask = live_lanes[3:0];
++      saved_mask = saved_lanes[3:0];
++      clken = cases % 7 != 0;
++      commit = cases % 5 != 0;
++      way_select = (cases ^ (cases >> 7)) & 3;
++      write_row = cases[0];
++      read_row = cases[0] ^ cases[3];
++      for (i = 0; i < LINE_BYTES; i = i + 1) data[i*8+:8] = (cases >> 4) ^ (cases * 31) ^ (17 * i);
++      step;
++    end
++    commit = 0;
++    clken = 1;
++    read_row = 0;
++    step;
++    read_row = 1;
++    step;
++    if (!collisions) $fatal(1, "No mixed-port write/read collision exercised");
++    $display("PASS packed cache WREN line_bytes=%0d cases=%0d collisions=%0d", LINE_BYTES, cases,
++             collisions);
++    $finish;
++  end
++endmodule
+diff --git a/tests/cpu/arm9v2_board/run-packed-write-enable.sh b/tests/cpu/arm9v2_board/run-packed-write-enable.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..2728e68375106e8888b849ab11d85b92c2901f42
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/run-packed-write-enable.sh
+@@ -0,0 +1,13 @@
++#!/bin/sh
++# Run inside the installed jotego/simulator:arm64 image.
++set -eu
++out=${CACHE_WREN_OUT:-build/sim/unit-arm9v2-packed-write-enable}
++mkdir -p "$out"
++for bytes in 16 32; do
++    iverilog -g2012 -s packed_write_enable_tb -Ppacked_write_enable_tb.LINE_BYTES="$bytes" \
++        -o "$out/test-$bytes" rtl/arm9v2/arm925t_phone.v rtl/arm9v2/upstream/sim/stubs/altsyncram.sv \
++        tests/cpu/arm9v2_board/packed_write_enable_tb.v
++    vvp "$out/test-$bytes" > "$out/run-$bytes.log"
++    cat "$out/run-$bytes.log"
++    grep -q '^PASS packed cache WREN ' "$out/run-$bytes.log"
++done
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index e6465777c7a40e4fa41e0a128b4dc96efc9dca4e..2bcf8e864c3f36eb0e67139e582916acc1ce666c 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -627,6 +627,65 @@ def keep_wishbone_request_boundary(phone):
+     return phone[:start] + merger + phone[end:]
+ 
+ 
++def predecode_dcache_write_enable(phone):
++    """Drive packed data RAM WREN independently of the byte lane shifter."""
++    parts = re.split(r'(?=^module )', phone, flags=re.M)
++    index = {part.split()[1]: i for i, part in enumerate(parts) if part.startswith('module ')}
++
++    fsm = index['ngage2_zap_dcache_fsm']
++    parts[fsm] = edit(parts[fsm], '\to_cache_line_ben,\n',
++                      '\to_cache_line_ben,\n\to_cache_line_write,\n')
++    parts[fsm] = edit(parts[fsm], '\toutput wire [CACHE_LINE - 1:0] o_cache_line_ben;\n',
++                      '\toutput wire [CACHE_LINE - 1:0] o_cache_line_ben;\n'
++                      '\toutput wire o_cache_line_write;\n')
++    parts[fsm] = edit(parts[fsm], '\tassign o_cache_line_ben =', '''
++    // A word lane shift within a power-of-two line preserves a nonempty mask.
++    assign o_cache_line_write = fill_write || (live_write && (|i_ben)) ||
++                                (saved_write && (|ben));
++\tassign o_cache_line_ben ='''.lstrip('\n'))
++
++    cache = index['ngage2_zap_dcache']
++    parts[cache] = edit(parts[cache], '\twire [CACHE_LINE - 1:0] cf_cache_line_ben;\n',
++                        '\twire [CACHE_LINE - 1:0] cf_cache_line_ben;\n'
++                        '\twire cf_cache_line_write;\n')
++    parts[cache] = edit(parts[cache], '\t\t.o_cache_line_ben(cf_cache_line_ben),\n',
++                        '\t\t.o_cache_line_ben(cf_cache_line_ben),\n'
++                        '\t\t.o_cache_line_write(cf_cache_line_write),\n')
++    parts[cache] = edit(parts[cache], '\t\t.i_cache_line_ben(cf_cache_line_ben & {CACHE_LINE {ram_write}}),\n',
++                        '\t\t.i_cache_line_ben(cf_cache_line_ben & {CACHE_LINE {ram_write}}),\n'
++                        '\t\t.i_cache_line_write(cf_cache_line_write && ram_write),\n')
++
++    tag = index['ngage2_zap_dcache_half_tag_ram']
++    parts[tag] = edit(parts[tag], '\ti_cache_line_ben,\n',
++                      '\ti_cache_line_ben,\n\ti_cache_line_write,\n')
++    parts[tag] = edit(parts[tag], '\tinput wire [CACHE_LINE - 1:0] i_cache_line_ben;\n',
++                      '\tinput wire [CACHE_LINE - 1:0] i_cache_line_ben;\n'
++                      '\tinput wire i_cache_line_write;\n')
++    parts[tag] = edit(parts[tag], '\t\t\t\t\t\t.BYTES(CACHE_LINE),\n\t\t\t\t\t\t.DEPTH(LINES)\n',
++                      '\t\t\t\t\t\t.BYTES(CACHE_LINE),\n\t\t\t\t\t\t.DEPTH(LINES),\n'
++                      '\t\t\t\t\t\t.EXPLICIT_WRITE_ENABLE((CACHE_LINE & (CACHE_LINE - 1)) == 0)\n')
++    parts[tag] = edit(parts[tag], '\t\t\t\t\t\t.i_wr_en(i_cache_line_ben & {CACHE_LINE {wr_sel[w]}}),\n',
++                      '\t\t\t\t\t\t.i_wr_en(i_cache_line_ben & {CACHE_LINE {wr_sel[w]}}),\n'
++                      '\t\t\t\t\t\t.i_write_enable(i_cache_line_write && wr_sel[w]),\n')
++
++    ram = index['ngage2_zap_ram_bytes']
++    parts[ram] = ports(parts[ram], 'o_rd_data', ['input wire i_write_enable'])
++    parts[ram] = edit(parts[ram], '\tparameter integer DEPTH = 32;\n',
++                      '\tparameter integer DEPTH = 32;\n'
++                      '\tparameter EXPLICIT_WRITE_ENABLE = 0;\n')
++    parts[ram] = edit(parts[ram], '\t\t.wren_a(|i_wr_en),',
++                      '\t\t.wren_a(EXPLICIT_WRITE_ENABLE ? i_write_enable : |i_wr_en),')
++    parts[ram] = edit(parts[ram], 'endmodule\n', '''
++    // synthesis translate_off
++    always @(posedge i_clk)
++        if (EXPLICIT_WRITE_ENABLE && i_clken && i_write_enable !== (|i_wr_en))
++            $fatal(1, "Packed D-cache write enable differs from the byte mask");
++    // synthesis translate_on
++endmodule
++'''.lstrip('\n'))
++    return ''.join(parts)
++
++
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
+@@ -655,6 +714,7 @@ def main():
+     generated = load_waw_overlay(generated)
+     generated = predicate_block(generated)
+     generated = predecode_refill_candidates(half_dirty_writeback(generated))
++    generated = predecode_dcache_write_enable(generated)
+     if args.hinted_ldm:
+         generated = issue_hinted_ldm(generated, edit)
+     generated = keep_wishbone_request_boundary(generated)

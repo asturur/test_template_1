@@ -1,0 +1,255 @@
+diff --git a/rtl/ngage_dma_route.v b/rtl/ngage_dma_route.v
+index 8864b7159545121d4a0c3dbfb43fb77f81c2b81f..592ef35065b66f73a82c6ea13c6de1330927b3fc 100644
+--- a/rtl/ngage_dma_route.v
++++ b/rtl/ngage_dma_route.v
+@@ -58,16 +58,18 @@ module ngage_dma_route #(
+     assign local_be    = live_mmc ? cmd_be : held_be;
+     wire local_hit = LOCAL_ENABLE && (chip_ram_hit || (lcd_hit && cmd_write && cmd_be == 4'hf));
+ 
+-    assign cmd_ready = !reset && !cpu_lock && state == IDLE && (!mmc_offer || local_ready);
++    wire route_available = !reset && !cpu_lock && state == IDLE;
++    assign cmd_ready = route_available && (!mmc_offer || local_ready);
+     wire accept = cmd_valid && cmd_ready;
+-    // Launch on the capture edge to keep the existing LCD read latency.
+-    // A grant that waits for the outer SDRAM arbiter uses the held packet.
+-    wire start_ram = accept && legal_word && ram_hit;
++    // RAM never uses local_ready. It can launch on the capture edge, with
++    // the route's held packet supplying any later grant.
++    wire start_ram = route_available && cmd_valid && legal_word && ram_hit;
++    wire ram_owned = state == RAM;
+     assign ram_req   = !reset && (start_ram || state == RAM);
+-    assign ram_write = start_ram ? cmd_write : local_write;
+-    assign ram_addr  = start_ram ? cmd_addr[24:0] : local_addr[24:0];
+-    assign ram_data  = start_ram ? cmd_data : local_data;
+-    assign ram_be    = start_ram ? cmd_be : local_be;
++    assign ram_write = ram_owned ? held_write : cmd_write;
++    assign ram_addr  = ram_owned ? held_addr[24:0] : cmd_addr[24:0];
++    assign ram_data  = ram_owned ? held_data : cmd_data;
++    assign ram_be    = ram_owned ? held_be : cmd_be;
+ 
+     assign local_valid   = !reset && !cpu_lock && (state == LOCAL_WAIT || (live_mmc && cmd_valid));
+     // Generic local admission derives only from the captured request state.
+diff --git a/rtl/ngage_mister.v b/rtl/ngage_mister.v
+index a720c3fc3552750df43901a0321acea27f015e94..c20ced8d480a241fcba141e02872d0c7f48e7399 100644
+--- a/rtl/ngage_mister.v
++++ b/rtl/ngage_mister.v
+@@ -616,7 +616,7 @@ module ngage_mister #(
+     // arbiter cannot take it on that edge.
+     wire ram_line_preview = RAM_LINE_EARLY && line_req && line_ready && line_ram_eligible;
+     assign ram_line_req = !core_reset && (line_state == LINE_RAM_ISSUE || ram_line_preview);
+-    assign ram_line_addr = ram_line_preview ? line_addr[24:0] : line_ram_address;
++    assign ram_line_addr = line_state == LINE_RAM_ISSUE ? line_ram_address : line_addr[24:0];
+     assign line_valid = !core_reset && ((line_state==LINE_ROM_WAIT && ddram_beat_valid) ||
+                                        (line_state==LINE_RAM_WAIT && ram_line_valid));
+     assign line_data = line_state==LINE_RAM_WAIT ? {48'b0,ram_line_data} : {line_decoded_high,line_decoded_low};
+diff --git a/rtl/ngage_sdram_stream.v b/rtl/ngage_sdram_stream.v
+index 64bf37da0b80ab23b3d3f1ab2fe3427cea2274ac..9e7c339e59fe1cd17e407d27f983f43116e6bb0c 100644
+--- a/rtl/ngage_sdram_stream.v
++++ b/rtl/ngage_sdram_stream.v
+@@ -62,7 +62,8 @@ module ngage_sdram_stream #(
+     reg  [24:0] scrub_address = 0;
+     reg         scrub_last_issued = 0;
+     // Scrub the full guest RAM while the phone is still held in reset.
+-    wire        scrub = mem_ready && !cold && !scrub_last_issued && mem_cmd_ready;
++    wire        scrub_packet = !scrub_last_issued;
++    wire        scrub = mem_ready && !cold && scrub_packet && mem_cmd_ready;
+ 
+     assign owner_ready = scrub_done && mem_ready && !cold && !phone_reset && !discard;
+     wire idle = state == IDLE && owner_ready;
+@@ -74,30 +75,35 @@ module ngage_sdram_stream #(
+     wire lock_write = scalar && we && lock && !pending && mem_cmd_ready;
+     // A scalar reply retires to the held arbiter owner while an independent
+     // line can take the command slot. The scalar grant still waits for !req.
+-    assign line_ready = idle && (!req || read_reply) && !pending && mem_cmd_ready;
++    wire scalar_port_free = !req || read_reply;
++    assign line_ready = idle && scalar_port_free && !pending && mem_cmd_ready;
+     wire first_line = line_req && line_ready;
+     // The arbiter captures the owner on this same edge. If a line or an
+     // older packet owns the slot, the arbiter's held read can issue later.
+     wire grant_read_word = idle && !req && !pending && mem_cmd_ready && grant_read && !first_line;
+     wire read_word = scalar_read || grant_read_word;
+-    wire line_follow = state == LINE && second_line && mem_cmd_ready;
++    wire line_owned = state == LINE;
++    wire line_follow = line_owned && second_line && mem_cmd_ready;
+ 
+     assign mem_req = scrub || take_pending || direct_post || read_word || lock_write || first_line || line_follow;
+     assign mem_we = scrub || take_pending || direct_post || lock_write;
+-    wire block_write = take_pending ? pending_block : (direct_post || lock_write) && write_block;
+-    assign mem_line  = scrub || first_line || line_follow || block_write;
++    wire write_is_block = pending ? pending_block : write_block;
++    assign mem_line  = scrub || first_line || line_follow || (mem_we && write_is_block);
+     assign mem_short = first_line && line_short;
++    // Select packet fields from their owner while arbitration decides
++    // whether they can be captured. A read address never selects write lanes.
+     wire [24:2] first_addr = line_short ? {line_addr[24:4], 2'b00} : {line_addr[24:5], 3'b000};
+-    assign mem_addr = scrub ? scrub_address[24:2] :
+-                      take_pending ? pending_addr :
+-                      first_line ? first_addr :
+-                      line_follow ? {saved_line, 3'b100} :
+-                      grant_read_word ? grant_addr[24:2] : addr[24:2];
+-    assign mem_wdata = scrub ? 128'b0 :
+-                       block_write ? (take_pending ? pending_block_data : block_data) :
+-                       {4{take_pending ? pending_data : din}};
+-    wire [3:0] write_mask = take_pending ? pending_be : be;
+-    assign mem_wbe = (scrub || block_write) ? 16'hffff : {12'b0, write_mask} << {mem_addr[3:2], 2'b00};
++    assign mem_addr = scrub_packet ? scrub_address[24:2] :
++                      pending ? pending_addr :
++                      line_owned ? {saved_line, 3'b100} :
++                      (scalar_port_free && line_req) ? first_addr :
++                      req ? addr[24:2] : grant_addr[24:2];
++    wire [ 31:0] word_data = pending ? pending_data : din;
++    wire [127:0] line_write_data = pending ? pending_block_data : block_data;
++    assign mem_wdata = scrub_packet ? 128'b0 : write_is_block ? line_write_data : {4{word_data}};
++    wire [3:0] write_mask = pending ? pending_be : be;
++    wire [1:0] write_lane = pending ? pending_addr[3:2] : addr[3:2];
++    assign mem_wbe = (scrub_packet || write_is_block) ? 16'hffff : {12'b0, write_mask} << {write_lane, 2'b00};
+ 
+     assign dout = read_data;
+     wire word_done = state == READ_WORD && mem_valid;
+diff --git a/rtl/sdram/ngage_sdram_scheduler.v b/rtl/sdram/ngage_sdram_scheduler.v
+index eaad23c5f08953e772558d8467fc50ee7af8d5d0..85f90b264945905af271e50a9fa00df34d259231 100644
+--- a/rtl/sdram/ngage_sdram_scheduler.v
++++ b/rtl/sdram/ngage_sdram_scheduler.v
+@@ -293,20 +293,26 @@ module ngage_sdram_scheduler #(
+     wire refresh_done = (state == REF_WAIT && t == access_counter(RFC - 1)) ||
+                         (RFC == 1 && state == REF_RP && t == access_counter(RP));
+ 
++    // The empty slot can sample a tentative packet. Only admission makes
++    // it valid, and it stays immutable until the scheduler consumes it.
++    always @(posedge clk) begin
++        if (!cmd_valid) begin
++            cmd_addr  <= addr;
++            cmd_we    <= we;
++            cmd_line  <= line;
++            cmd_short <= read_short;
++            cmd_data  <= wdata;
++            cmd_be    <= wbe;
++        end
++    end
++
+     always @(posedge clk) begin
+         if (init) begin
+             cmd_valid <= 0;
+             active <= 0;
+         end else begin
+-            if (req && cmd_ready) begin
+-                cmd_valid <= 1;
+-                cmd_addr <= addr;
+-                cmd_we <= we;
+-                cmd_line <= line;
+-                cmd_short <= read_short;
+-                cmd_data <= wdata;
+-                cmd_be <= wbe;
+-            end else if (take) cmd_valid <= 0;
++            if (req && cmd_ready) cmd_valid <= 1;
++            else if (take) cmd_valid <= 0;
+ 
+             // Advance the activity bit on the edge entering the first
+             // available cycle. Do not export the live timing comparison.
+diff --git a/tests/phone/dma_route/ram_admission_tb.v b/tests/phone/dma_route/ram_admission_tb.v
+new file mode 100644
+index 0000000000000000000000000000000000000000..e0774b2ae9bc7f47dfc1d41fdf165e785956b9eb
+--- /dev/null
++++ b/tests/phone/dma_route/ram_admission_tb.v
+@@ -0,0 +1,87 @@
++`timescale 1ns / 1ps
++
++module ram_admission_tb;
++  reg clk = 0, reset = 1, lock = 0, valid = 0, write = 0;
++  reg local_ready = 0, ram_ack = 0;
++  reg [31:0] address = 0, data = 0;
++  reg [3:0] mask = 0;
++  wire ready, response, error, local_valid, ram_req, ram_write;
++  wire [31:0] ram_data, response_data;
++  wire [24:0] ram_addr;
++  wire [ 3:0] ram_be;
++
++  always #5 clk = ~clk;
++  ngage_dma_route dut (
++      .clk(clk),
++      .reset(reset),
++      .cpu_lock(lock),
++      .cmd_valid(valid),
++      .cmd_ready(ready),
++      .cmd_write(write),
++      .cmd_addr(address),
++      .cmd_data(data),
++      .cmd_be(mask),
++      .rsp_valid(response),
++      .rsp_error(error),
++      .rsp_data(response_data),
++      .ram_req(ram_req),
++      .ram_write(ram_write),
++      .ram_addr(ram_addr),
++      .ram_data(ram_data),
++      .ram_be(ram_be),
++      .ram_ack(ram_ack),
++      .ram_rdata(32'h12345678),
++      .local_valid(local_valid),
++      .local_ready(local_ready),
++      .local_done(1'b0),
++      .local_error(1'b0),
++      .local_rdata(32'b0)
++  );
++
++  task check_ram_packet;
++    if ({ram_req, ram_write, ram_addr, ram_data, ram_be} !==
++            {1'b1, 1'b1, 25'h123454, 32'hfeed7654, 4'b1010})
++      $fatal(1, "Wrong RAM command fields");
++  endtask
++
++  initial begin
++    @(negedge clk);
++    reset = 0;
++    address = 32'h0a123454;
++    data = 32'hfeed7654;
++    mask = 4'b1010;
++    write = 1;
++    valid = 1;
++    #1;
++    if (!ready || local_valid) $fatal(1, "Local readiness blocked RAM admission");
++    check_ram_packet();
++
++    // A different command and a younger CPU lock cannot change the owned RAM word.
++    @(negedge clk);
++    address = 32'h10120624;
++    data = 32'h01020304;
++    mask = 1;
++    write = 0;
++    local_ready = 1;
++    lock = 1;
++    #1;
++    if (ready || response || local_valid) $fatal(1, "RAM command lost ownership");
++    check_ram_packet();
++
++    @(negedge clk);
++    ram_ack = 1;
++    #1;
++    if (!response || error || response_data !== 32'h12345678)
++      $fatal(1, "RAM reply did not retire on the original edge");
++    @(negedge clk);
++    ram_ack = 0;
++    lock = 0;
++    local_ready = 0;
++    #1;
++    if (ready || response || ram_req || !local_valid)
++      $fatal(1, "MMC offer did not wait for local readiness after RAM completion");
++    $display(
++        "PASS DMA RAM admission independent of MMC readiness, with exact held packet and reply");
++    $finish;
++  end
++endmodule
+diff --git a/tests/phone/dma_route/run.sh b/tests/phone/dma_route/run.sh
+index fe5e3db26f28995cb8be860f3d276f48e80b8ca6..42cacce00982d7295a698fa7d098b7db3c08e427 100755
+--- a/tests/phone/dma_route/run.sh
++++ b/tests/phone/dma_route/run.sh
+@@ -12,3 +12,9 @@ iverilog -g2001 -s response_tb -o "$out/response" rtl/ngage_dma_route.v tests/ph
+ vvp "$out/response" > "$out/response.log"
+ cat "$out/response.log"
+ grep -q '^PASS local DMA registered response' "$out/response.log"
++
++iverilog -g2001 -s ram_admission_tb -o "$out/ram-admission" \
++    rtl/ngage_dma_route.v tests/phone/dma_route/ram_admission_tb.v
++vvp "$out/ram-admission" > "$out/ram-admission.log"
++cat "$out/ram-admission.log"
++grep -q '^PASS DMA RAM admission' "$out/ram-admission.log"

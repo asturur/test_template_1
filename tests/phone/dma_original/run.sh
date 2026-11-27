@@ -1,7 +1,7 @@
 #!/bin/sh
 # Run unmodified private original instructions against the candidate DMA model.
 set -eu
-out=${PHONE_TEST_OUT:-build/sim/phone-tests/p2/original}
+out=${PHONE_TEST_OUT:-scratch/ngage2-integration/p2/original}
 mkdir -p "$out"
 arm-none-eabi-gcc -c -mcpu=arm920t -marm tests/phone/dma_original/program.S -o "$out/program.o"
 arm-none-eabi-ld -T sim/programs/link.ld "$out/program.o" -o "$out/program.elf"

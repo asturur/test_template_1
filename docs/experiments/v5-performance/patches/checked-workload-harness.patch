@@ -1,0 +1,2426 @@
+--- a/tests/cpu/arm9v2_board/payload_clocks.py
++++ b/tests/cpu/arm9v2_board/payload_clocks.py
+@@ -34,7 +34,7 @@
+ 
+ 
+ def record(line):
+-    return {key: int(value) for key, value in re.findall(r'(\w+)=(\d+)', line)}
++    return {key: int(value) for key, value in re.findall(r'(\w+)=(-?\d+)', line)}
+ 
+ 
+ def find(path, prefix):
+@@ -121,13 +121,16 @@
+         f.write(case['payload'])
+ 
+ 
+-def compile_phone(out, divider, hz, arm9v2_netlist, flash_cache_bytes, sdram_model, cpu_wrapper, posted_writes, interleave, pin_waits, handoff, donor_sdram, stream_sdram, block_writeback, *, sys_clk_hz=78_000_000):
++def compile_phone(out, divider, hz, arm9v2_netlist, flash_cache_bytes, sdram_model, cpu_wrapper, posted_writes, interleave, pin_waits, handoff, donor_sdram, stream_sdram, block_writeback, board_overlay=None, *, sys_clk_hz=78_000_000):
+     source = ROOT / 'tests/phone/hardware_boot/run.sh'
+     raw = source.read_text().split('--Mdir build/sim/unit-hardware-boot/obj ', 1)[1].split(' > build/', 1)[0]
+     rtl = [name for pattern in raw.split() for name in sorted(glob.glob(pattern))
+            if not name.startswith(('rtl/arm/', 'rtl/arm920/')) and name != 'tests/phone/hardware_boot/tb.v']
+     if cpu_wrapper:
+         rtl[rtl.index('rtl/ngage_cpu.sv')] = container_path(cpu_wrapper)
++    if board_overlay:
++        for filename in ('ngage_mister.v', 'ngage_board.v', 'ngage_upp.v'):
++            rtl[rtl.index(f'rtl/{filename}')] = container_path(board_overlay / filename)
+     rtl += [container_path(arm9v2_netlist), *sorted(glob.glob('rtl/arm9v2/upstream/sim/stubs/*.sv')),
+             'rtl/ngage_ddr_flash_adapter.v', 'rtl/ngage_ddr_flash_cache.v',
+             'rtl/ngage_game_pcm.v', 'rtl/ngage_upp_dsp_pcm.v', container_path(out / 'tb.v')]
+@@ -193,8 +196,36 @@
+     for rec, expected in zip(windows, case['windows']):
+         assert rec['payload_ops'] == expected['payload_retire_proxy'], (log_path, rec, expected)
+         assert rec['helper_ops'] == expected['helper_retire_proxy'], (log_path, rec, expected)
+-    return dict(windows=windows, memory_windows=find(log_path, 'V5_MEMORY_WINDOW '),
+-                total=passed, median_clocks=statistics.median(r['cycles'] for r in windows[2:]))
++    result = dict(windows=windows, memory_windows=find(log_path, 'V5_MEMORY_WINDOW '),
++                  total=passed, median_clocks=statistics.median(r['cycles'] for r in windows[2:]))
++    predicates = find(log_path, 'PREDICATE_BLOCK ')
++    if predicates:
++        assert [row['window'] for row in predicates] == list(range(7))
++        result['predicate_blocks'] = predicates
++    accumulates = find(log_path, 'PAYLOAD_ACCUMULATE ')
++    if accumulates:
++        assert [row['window'] for row in accumulates] == list(range(7))
++        result['accumulates'] = accumulates
++    waw = find(log_path, 'LOAD_WAW ')
++    if waw:
++        assert [row['window'] for row in waw] == list(range(7))
++        result['load_waw'] = waw
++    stores = find(log_path, 'STORE_LIST ')
++    if stores:
++        assert [row['window'] for row in stores] == list(range(7))
++        result['store_list'] = stores
++    hum = find(log_path, 'HUM_WINDOW ')
++    if hum:
++        assert [row['window'] for row in hum] == list(range(7))
++        result['icache_hum'] = hum
++    fills = find(log_path, 'ICR_BUCKET ')
++    if fills:
++        result['icache_restart'] = fills
++    flow = find(log_path, 'FLOW_WINDOW ')
++    if flow:
++        assert [row['window'] for row in flow] == list(range(7))
++        result['control_flow'] = dict(windows=flow, buckets=find(log_path, 'FLOW_BUCKET '))
++    return result
+ 
+ 
+ def delay_pin_service(bench, posted):
+@@ -243,6 +274,14 @@
+     parser.add_argument('--donor-wide', action='store_true', help='stream both BL8 reads in one donor request')
+     parser.add_argument('--stream-sdram', action='store_true', help='test the v5 streaming controller sources')
+     parser.add_argument('--block-writeback', action='store_true', help='send v5 dirty victims as two 16-byte writes in simulation')
++    parser.add_argument('--predicate-block-counts', action='store_true', help='count issued and failed register-list packets')
++    parser.add_argument('--accumulate-counts', action='store_true', help='count retired taken multiply-accumulates')
++    parser.add_argument('--load-waw-counts', action='store_true', help='count repeated scalar-load destination interlocks')
++    parser.add_argument('--board-overlay', type=Path, help='alternate line-guarantee integration files')
++    parser.add_argument('--icache-hum-counts', action='store_true')
++    parser.add_argument('--icache-restart-counts', action='store_true')
++    parser.add_argument('--control-flow-counts', action='store_true', help='measure branch-to-successor issue clocks')
++    parser.add_argument('--store-list-counts', action='store_true', help='count passed store words and resident pairs')
+     args = parser.parse_args()
+     if args.donor_wide or args.stream_sdram:
+         args.donor_sdram = True
+@@ -314,10 +353,25 @@
+     assert text.count('if(cycles==BOUNDED_CYCLES)begin') == 1
+     text = text.replace('if(cycles==BOUNDED_CYCLES)begin', 'if(cycles==BOUNDED_CYCLES) $fatal(1,"Payload timeout PC=%h", fetch_pc);\n   if(1\'b0) begin')
+     observe = (HERE / 'payload_clock_observe.vh').read_text()
++    if args.icache_hum_counts:
++        observe = '`define NGAGE_IC_HUM\n' + (HERE / 'icache_hum_observe.vh').read_text() + observe
++    if args.icache_restart_counts:
++        observe = '`define NGAGE_IC_RESTART\n' + (HERE / 'icache_restart_observe.vh').read_text() + observe
++    if args.control_flow_counts:
++        observe = '`define NGAGE_CONTROL_FLOW\n' + (HERE / 'control_flow_observe.vh').read_text() + observe
++    if args.store_list_counts:
++        observe = '`define NGAGE_COUNT_STORE_LIST\n' + (HERE / 'store_list_observe.vh').read_text() + observe
++    if args.load_waw_counts:
++        observe = '`define NGAGE_COUNT_LOAD_WAW\n' + (HERE / 'waw_load_observe.vh').read_text() + observe
++    if args.accumulate_counts:
++        observe = '`define NGAGE_COUNT_ACCUMULATES\n' + observe
++    if args.predicate_block_counts:
++        observe = ('`define NGAGE_COUNT_PREDICATE_BLOCKS\n' +
++                   (HERE / 'predicate_block_observe.vh').read_text() + observe)
+     (out / 'tb.v').write_text(text.rsplit('endmodule', 1)[0] + '\n' + observe + '\nendmodule\n')
+     with ThreadPoolExecutor(max_workers=4) as pool:
+         compiles = {(div, hz): pool.submit(compile_phone, out, div, hz, frozen_netlist,
+-                                           args.flash_cache_bytes, sdram_model, cpu_wrapper, args.posted_writes, args.interleave, args.pin_waits, args.handoff, args.donor_sdram, args.stream_sdram, args.block_writeback,
++                                           args.flash_cache_bytes, sdram_model, cpu_wrapper, args.posted_writes, args.interleave, args.pin_waits, args.handoff, args.donor_sdram, args.stream_sdram, args.block_writeback, args.board_overlay.resolve() if args.board_overlay else None,
+                                            sys_clk_hz=args.sys_clk_hz)
+                     for div, hz in profile}
+         rule = rules()
+--- a/tests/cpu/arm9v2_board/payload_clock_observe.vh
++++ b/tests/cpu/arm9v2_board/payload_clock_observe.vh
+@@ -4,6 +4,10 @@
+ integer nos_ticks = 0, nos_matches = 0, mmc_bits = 0, irq_clocks = 0;
+ integer window_nos, window_mmc, window_irq, window_ddr;
+ reg previous_mmc_bit = 0;
++`ifdef NGAGE_COUNT_ACCUMULATES
++`define MAC_CORE dut.board.upp.cpu_inside.cpu.u_arm925t.u_zap.g_arm9.u_arm9_core
++integer window_mla, window_smlal, window_umlal;
++`endif
+ `ifdef NGAGE_REAL_SDRAM
+ `define FRAME_CPU dut.board.upp.cpu_inside.cpu.u_arm925t
+ `ifdef NGAGE_FRAME_GAP_POSTED
+@@ -60,6 +64,15 @@
+ end
+ 
+ always @(posedge clk) if (!reset) begin
++`ifdef NGAGE_IC_HUM
++    observe_icache_hum(int'(cycles));
++`endif
++`ifdef NGAGE_IC_RESTART
++    observe_icache_restart(int'(cycles));
++`endif
++`ifdef NGAGE_CONTROL_FLOW
++    observe_control_flow(cycles);
++`endif
+     previous_mmc_bit <= dut.board.mmc_clk;
+     if (dut.board.mmc_clk && (MMC_CLK_DIV == 1 || !previous_mmc_bit)) mmc_bits = mmc_bits + 1;
+     if (dut.board.upp.peripherals.nos_tick) nos_ticks = nos_ticks + 1;
+@@ -78,6 +91,29 @@
+         window_mmc = mmc_bits;
+         window_irq = irq_clocks;
+         window_ddr = d2_reads;
++`ifdef NGAGE_IC_HUM
++        reset_icache_hum();
++`endif
++`ifdef NGAGE_IC_RESTART
++        reset_icache_restart();
++`endif
++`ifdef NGAGE_CONTROL_FLOW
++        reset_control_flow();
++`endif
++`ifdef NGAGE_COUNT_STORE_LIST
++        reset_store_list();
++`endif
++`ifdef NGAGE_COUNT_LOAD_WAW
++        reset_load_waw();
++`endif
++`ifdef NGAGE_COUNT_ACCUMULATES
++        window_mla = 0;
++        window_smlal = 0;
++        window_umlal = 0;
++`endif
++`ifdef NGAGE_COUNT_PREDICATE_BLOCKS
++        reset_predicate_counts();
++`endif
+ `ifdef NGAGE_REAL_SDRAM
+         window_read = 0; window_write = 0; window_read_line = 0; window_scalar_wait = 0; window_blocks = 0;
+         window_itlb = 0; window_dtlb = 0; window_ifill = 0; window_dfill = 0;
+@@ -110,10 +146,50 @@
+         end
+     end
+ `endif
++`ifdef NGAGE_COUNT_PREDICATE_BLOCKS
++    if (first_clock >= 0) count_predicate_blocks();
++`endif
++`ifdef NGAGE_COUNT_LOAD_WAW
++    if (first_clock >= 0) observe_load_waw();
++`endif
++`ifdef NGAGE_COUNT_STORE_LIST
++    if (first_clock >= 0) observe_store_list(cycles);
++`endif
+     if (retire && first_clock >= 0) begin
++`ifdef NGAGE_COUNT_ACCUMULATES
++        if (`MAC_CORE.w[540] && `MAC_CORE.w[484]) begin
++            if (`MAC_CORE.w[8:5] == 4'd13) window_mla += 1;
++            if (`MAC_CORE.w[8:5] == 4'd14) begin
++                if (`MAC_CORE.w[485]) window_smlal += 1;
++                else window_umlal += 1;
++            end
++        end
++`endif
+         if (retire_pc[31:20] == payload_base[31:20]) payload_ops = payload_ops + 1;
+         if (retire_pc[31:20] == helper_base[31:20]) helper_ops = helper_ops + 1;
+         if (retire_pc == payload_end) begin
++`ifdef NGAGE_IC_HUM
++            report_icache_hum(window);
++`endif
++`ifdef NGAGE_IC_RESTART
++            report_icache_restart(window);
++`endif
++`ifdef NGAGE_CONTROL_FLOW
++            report_control_flow(window);
++`endif
++`ifdef NGAGE_COUNT_STORE_LIST
++            report_store_list(window);
++`endif
++`ifdef NGAGE_COUNT_LOAD_WAW
++            report_load_waw(window);
++`endif
++`ifdef NGAGE_COUNT_ACCUMULATES
++            $display("PAYLOAD_ACCUMULATE window=%0d mla=%0d smlal=%0d umlal=%0d",
++                     window, window_mla, window_smlal, window_umlal);
++`endif
++`ifdef NGAGE_COUNT_PREDICATE_BLOCKS
++            report_predicate_counts(window);
++`endif
+ `ifdef NGAGE_REAL_SDRAM
+             $display("V5_MEMORY_WINDOW window=%0d reads=%0d writes=%0d blocks=%0d lines=%0d wait=%0d itlb=%0d dtlb=%0d ifills=%0d dfills=%0d act=%0d pre=%0d refresh=%0d",
+                      window, window_read, window_write, window_blocks, window_read_line, window_scalar_wait,
+@@ -148,6 +224,9 @@
+         $finish;
+     end
+ end
++`ifdef NGAGE_COUNT_ACCUMULATES
++`undef MAC_CORE
++`endif
+ `ifdef NGAGE_REAL_SDRAM
+ `undef FRAME_CPU
+ `undef FRAME_RAM_REQ
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/store_list_observe.vh
+@@ -0,0 +1,120 @@
++`ifdef NGAGE_STORE_LIST_CONTRACT
++`define STORE_CPU cpu.u_arm925t
++`else
++`define STORE_CPU dut.board.upp.cpu_inside.cpu.u_arm925t
++`endif
++`define STORE_CORE `STORE_CPU.u_zap.g_arm9.u_arm9_core
++`define STORE_CACHE `STORE_CPU.u_zap.l_generate_with_cache_mmu.u_data_cache
++
++integer store_scalar, store_scalar_word, store_scalar_hit, store_list_words, store_lists;
++integer store_two_lists, store_long_lists, store_wb_lists, store_thumb_lists, store_stack_lists;
++integer store_list_hit, store_adjacent, store_pair_hit, store_pair_contiguous;
++integer store_pair_two, store_pair_two_no_wb, store_pair_long, store_pair_wb, store_pair_thumb, store_pair_stack;
++integer store_pair_plain, store_pair_stmia2, store_cross_line, store_pair_seen;
++integer store_previous_cycle, store_index, store_max_list;
++reg [31:0] store_previous_address;
++reg store_pending_hit;
++wire [31:0] store_instruction = `STORE_CORE.w[494:463];
++wire [31:0] store_address = `STORE_CORE.w[398:367];
++wire store_accepted = `STORE_CORE.wb_valid && !`STORE_CORE.wb_restore &&
++    `STORE_CORE.w[535] && `STORE_CORE.w[534] && `STORE_CORE.request_done && !`STORE_CORE.retry && !`STORE_CORE.resp_err;
++wire store_writable_hit = `STORE_CACHE.live_lookup && `STORE_CACHE.live_trust &&
++    `STORE_CACHE.o_short_hit && !`STORE_CACHE.tlb_wt && `STORE_CACHE.cf_cache_tag_wr_en &&
++    `STORE_CACHE.ram_write && !`STORE_CORE.i_dc_lock_any && !`STORE_CORE.w[529];
++wire store_stack = store_instruction[19:16] == 4'd13 && store_instruction[24:21] == 4'b1001;
++wire store_thumb = `STORE_CORE.w[539];
++wire store_ordinary = !store_instruction[22] && !store_instruction[15] &&
++    store_instruction[19:16] != 15 && !store_instruction[{1'b0, store_instruction[19:16]}] &&
++    (`STORE_CORE.w[435:431] == 5'h10 || `STORE_CORE.w[435:431] == 5'h1f ||
++     (`STORE_CORE.w[435:431] != 5'h11 && !(|store_instruction[14:13])) || !(|store_instruction[14:8]));
++
++function automatic integer store_list_length(input [15:0] list);
++    begin
++        store_list_length = 0;
++        for (integer bit_index = 0; bit_index < 16; bit_index += 1)
++            store_list_length += int'(list[bit_index]);
++    end
++endfunction
++
++task reset_store_list;
++    begin
++        store_scalar = 0; store_scalar_word = 0; store_scalar_hit = 0;
++        store_list_words = 0; store_lists = 0; store_two_lists = 0; store_long_lists = 0;
++        store_wb_lists = 0; store_thumb_lists = 0; store_stack_lists = 0;
++        store_list_hit = 0; store_adjacent = 0; store_pair_hit = 0; store_pair_contiguous = 0;
++        store_pair_two = 0; store_pair_two_no_wb = 0; store_pair_long = 0;
++        store_pair_wb = 0; store_pair_thumb = 0; store_pair_stack = 0;
++        store_pair_plain = 0; store_pair_stmia2 = 0; store_cross_line = 0; store_pair_seen = 0;
++        store_previous_cycle = -1; store_index = 0; store_max_list = 0; store_previous_address = 0;
++        store_pending_hit = 0;
++    end
++endtask
++
++task observe_store_list(input integer tick);
++    integer count;
++    begin
++        if (store_accepted) begin
++            if (`STORE_CORE.w[8:5] == 4'd5) begin
++                store_scalar += 1;
++                if (`STORE_CORE.w[19:16] == 4'b1111) store_scalar_word += 1;
++                if (store_writable_hit) store_scalar_hit += 1;
++            end
++            if (`STORE_CORE.w[8:5] == 4'd6) begin
++                count = store_list_length(store_instruction[15:0]);
++                store_list_words += 1;
++                if (`STORE_CORE.w[537]) begin
++                    store_lists += 1;
++                    if (count == 2) store_two_lists += 1;
++                    if (count > 2) store_long_lists += 1;
++                    if (count > store_max_list) store_max_list = count;
++                    if (store_instruction[21]) store_wb_lists += 1;
++                    if (store_thumb) store_thumb_lists += 1;
++                    if (store_stack) store_stack_lists += 1;
++                    store_pending_hit = 0;
++                    store_index = 0;
++                end
++                if (store_writable_hit) store_list_hit += 1;
++                if (store_index > 0 && store_previous_cycle + 1 == tick) store_adjacent += 1;
++                // Fixed disjoint pairs by transfer number. A pair cannot
++                // skip a word or use cacheability inferred from an address.
++                if ((store_index & 1) != 0) begin
++                    store_pair_seen += 1;
++                    if (store_previous_address[31:5] != store_address[31:5]) store_cross_line += 1;
++                    if (store_pending_hit && store_writable_hit && store_previous_address[31:5] == store_address[31:5] &&
++                        store_previous_address + 32'd4 == store_address && store_address[1:0] == 0) begin
++                        store_pair_hit += 1;
++                        if (store_previous_cycle + 1 == tick) store_pair_contiguous += 1;
++                        if (count == 2) store_pair_two += 1;
++                        if (count == 2 && !store_instruction[21]) store_pair_two_no_wb += 1;
++                        if (count > 2) store_pair_long += 1;
++                        if (store_instruction[21]) store_pair_wb += 1;
++                        if (store_thumb) store_pair_thumb += 1;
++                        if (store_stack) store_pair_stack += 1;
++                        if (store_ordinary) begin
++                            store_pair_plain += 1;
++                            if (count == 2 && !store_thumb && store_instruction[24:20] == 5'b01000)
++                                store_pair_stmia2 += 1;
++                        end
++                    end
++                end
++                store_pending_hit = store_writable_hit;
++                store_previous_cycle = tick;
++                store_previous_address = store_address;
++                store_index += 1;
++            end
++        end
++    end
++endtask
++
++task report_store_list(input integer window);
++    $display("STORE_LIST window=%0d scalar=%0d scalar_word=%0d scalar_hit=%0d list_words=%0d lists=%0d two=%0d long=%0d wb=%0d thumb=%0d stack=%0d list_hit=%0d adjacent=%0d pairs=%0d cross=%0d pair_hit=%0d pair_adjacent=%0d pair_two=%0d pair_two_no_wb=%0d pair_long=%0d pair_wb=%0d pair_thumb=%0d pair_stack=%0d pair_plain=%0d stmia2=%0d longest=%0d",
++             window, store_scalar, store_scalar_word, store_scalar_hit, store_list_words, store_lists,
++             store_two_lists, store_long_lists, store_wb_lists, store_thumb_lists, store_stack_lists,
++             store_list_hit, store_adjacent, store_pair_seen, store_cross_line, store_pair_hit,
++             store_pair_contiguous, store_pair_two, store_pair_two_no_wb, store_pair_long, store_pair_wb, store_pair_thumb,
++             store_pair_stack, store_pair_plain, store_pair_stmia2, store_max_list);
++endtask
++
++`undef STORE_CACHE
++`undef STORE_CORE
++`undef STORE_CPU
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/control_flow_observe.vh
+@@ -0,0 +1,298 @@
++// Simulation-only timestamps follow the A/M/W/skid packets. Verify the
++// successor at retirement, then use its earlier S->A timestamp. This excludes
++// wrong-path acceptances while retaining useful issue before W resolution.
++`ifdef NGAGE_CONTROL_FLOW_CONTRACT
++`define FLOW_CPU cpu.u_arm925t
++`else
++`define FLOW_CPU dut.board.upp.cpu_inside.cpu.u_arm925t
++`endif
++`define FLOW_ZAP `FLOW_CPU.u_zap
++`define FLOW_CORE `FLOW_ZAP.g_arm9.u_arm9_core
++`define FLOW_A `FLOW_CORE.u_execute
++`define FLOW_F `FLOW_CORE.u_front_decode.u_fetch
++`define FLOW_TLB `FLOW_IC.u_zap_tlb.u_zap_tlb_fsm
++`define FLOW_IC `FLOW_ZAP.l_generate_with_cache_mmu.u_code_cache
++
++typedef struct packed {
++    integer issued;
++    integer resolved;
++    reg [31:0] pc, ins, target;
++    reg thumb, target_thumb, direct, redirect;
++    integer issued_total, refill_total, walk_total, backend_total, front_total;
++    integer preceding_refill, preceding_walk;
++    reg [31:5] refill_line;
++    reg [31:10] walk_page;
++    reg mixed_refill, mixed_walk;
++} flow_stamp;
++
++flow_stamp flow_a, flow_m, flow_w, flow_skid, flow_branch;
++integer flow_issue_total = 0, flow_refill_total = 0, flow_walk_total = 0;
++integer flow_backend_total = 0, flow_front_total = 0;
++integer flow_gap_refill = 0, flow_gap_walk = 0;
++reg [31:5] flow_refill_line;
++reg [31:10] flow_walk_page;
++reg flow_mixed_refill = 0, flow_mixed_walk = 0;
++
++integer flow_kind, flow_pred, flow_events;
++integer flow_canceled, flow_matches;
++reg flow_active = 0, flow_pending = 0, flow_w_redirect;
++reg flow_trace, flow_trace_stages;
++integer flow_samples = 0;
++initial begin
++    flow_trace = $test$plusargs("flow-trace");
++    flow_trace_stages = $test$plusargs("flow-stages");
++end
++
++// Categories are independent of the score window and encoding mode.
++localparam integer FLOW_TAKEN = 0, FLOW_FALL = 1, FLOW_CALL = 2, FLOW_B = 3,
++                   FLOW_BX = 4, FLOW_BX_LR = 5, FLOW_MOV_LR = 6, FLOW_LDM_PC = 7,
++                   FLOW_T_BL = 8, FLOW_T_BX_LR = 9, FLOW_T_POP_PC = 10,
++                   FLOW_OTHER_PC = 11, FLOW_BX_FALL = 12, FLOW_KINDS = 13;
++localparam integer FLOW_CORRECT = 0, FLOW_WRONG = 1, FLOW_TARGET_MISS = 2, FLOW_NO_TAG_FALL = 3;
++localparam integer FLOW_BUCKETS = FLOW_KINDS * 4;
++
++integer flow_count[0:FLOW_BUCKETS-1], flow_next[0:FLOW_BUCKETS-1];
++integer flow_issue_sum[0:FLOW_BUCKETS-1], flow_resolve_sum[0:FLOW_BUCKETS-1];
++integer flow_issue_max[0:FLOW_BUCKETS-1], flow_a_redirects[0:FLOW_BUCKETS-1];
++integer flow_w_redirects[0:FLOW_BUCKETS-1], flow_refill[0:FLOW_BUCKETS-1];
++integer flow_walk[0:FLOW_BUCKETS-1], flow_backend[0:FLOW_BUCKETS-1];
++integer flow_front[0:FLOW_BUCKETS-1], flow_other_issue[0:FLOW_BUCKETS-1];
++integer flow_target_fill[0:FLOW_BUCKETS-1], flow_target_walk[0:FLOW_BUCKETS-1];
++integer flow_no_fetch_ready[0:FLOW_BUCKETS-1], flow_direct[0:FLOW_BUCKETS-1];
++integer flow_no_i_wait[0:FLOW_BUCKETS-1], flow_no_i_wait_sum[0:FLOW_BUCKETS-1];
++
++task automatic reset_control_flow();
++    flow_active = 1;
++    flow_pending = 0;
++    flow_events = 0;
++    flow_matches = 0;
++    flow_canceled = 0;
++    foreach (flow_count[i]) begin
++        flow_count[i] = 0; flow_next[i] = 0;
++        flow_issue_sum[i] = 0; flow_resolve_sum[i] = 0; flow_issue_max[i] = 0;
++        flow_a_redirects[i] = 0; flow_w_redirects[i] = 0; flow_direct[i] = 0;
++        flow_refill[i] = 0; flow_walk[i] = 0; flow_backend[i] = 0;
++        flow_front[i] = 0; flow_other_issue[i] = 0;
++        flow_target_fill[i] = 0; flow_target_walk[i] = 0;
++        flow_no_fetch_ready[i] = 0;
++        flow_no_i_wait[i] = 0; flow_no_i_wait_sum[i] = 0;
++    end
++endtask
++
++task automatic finish_control_flow(input flow_stamp successor);
++    integer bucket, elapsed, refill, walk, issued, backend, front;
++    reg [31:0] va;
++    bucket = flow_kind * 4 + flow_pred;
++    elapsed = successor.issued - flow_branch.issued;
++    issued = successor.issued_total - flow_branch.issued_total - 1;
++    refill = successor.refill_total - flow_branch.refill_total;
++    walk = successor.walk_total - flow_branch.walk_total;
++    backend = successor.backend_total - flow_branch.backend_total;
++    front = successor.front_total - flow_branch.front_total;
++    va = `FLOW_CORE.fcse(flow_branch.target);
++    if (successor.pc != flow_branch.target || successor.thumb != flow_branch.target_thumb ||
++        elapsed < 1 || issued + refill + walk + backend + front != elapsed - 1)
++        $fatal(1, "Control-flow ownership pc=%h mode=%b expected=%h/%b observed=%h/%b cycles=%0d:%0d",
++               flow_branch.pc, flow_branch.thumb, flow_branch.target, flow_branch.target_thumb,
++               successor.pc, successor.thumb, flow_branch.issued, successor.issued);
++    flow_matches += 1;
++    flow_count[bucket] += 1;
++    flow_next[bucket] += int'(elapsed == 1);
++    flow_issue_sum[bucket] += elapsed;
++    flow_resolve_sum[bucket] += successor.issued - flow_branch.resolved;
++    if (elapsed > flow_issue_max[bucket]) flow_issue_max[bucket] = elapsed;
++    flow_a_redirects[bucket] += int'(flow_branch.redirect);
++    flow_w_redirects[bucket] += int'(flow_w_redirect);
++    flow_direct[bucket] += int'(flow_branch.direct);
++    flow_refill[bucket] += refill; flow_walk[bucket] += walk;
++    flow_backend[bucket] += backend; flow_front[bucket] += front;
++    flow_other_issue[bucket] += issued;
++    // Attribute only a contiguous final no-issue interval with an
++    // unambiguous virtual line owner to this target.
++    if (!successor.mixed_refill && successor.refill_line == va[31:5])
++        flow_target_fill[bucket] += successor.preceding_refill;
++    if (!successor.mixed_walk && successor.walk_page == va[31:10])
++        flow_target_walk[bucket] += successor.preceding_walk;
++    if (refill + walk == 0) begin
++        flow_no_i_wait[bucket] += 1;
++        flow_no_i_wait_sum[bucket] += elapsed;
++    end
++    if (refill + walk + backend == 0 && front > 0)
++        flow_no_fetch_ready[bucket] += 1;
++    if (flow_pred == FLOW_CORRECT && front == elapsed - 1 && elapsed > 1 &&
++        flow_kind != FLOW_TAKEN && flow_kind != FLOW_FALL && flow_samples < 24) begin
++        flow_samples += 1;
++        $display("FLOW_DELAYED pc=%h target=%h kind=%0d direct=%b clocks=%0d", flow_branch.pc,
++                 successor.pc, flow_kind, flow_branch.direct, elapsed);
++    end
++    if (flow_trace)
++        $display("FLOW_EVENT pc=%h ins=%h thumb=%b target=%h target_thumb=%b kind=%0d pred=%0d issue=%0d resolve=%0d arrives=%0d a_redirect=%b w_redirect=%b direct=%b refill=%0d walk=%0d backend=%0d front=%0d speculative=%0d",
++                 flow_branch.pc, flow_branch.ins, flow_branch.thumb, successor.pc, successor.thumb,
++                 flow_kind, flow_pred, flow_branch.issued, flow_branch.resolved, successor.issued,
++                 flow_branch.redirect, flow_w_redirect, flow_branch.direct, refill, walk, backend,
++                 front, issued);
++    flow_pending = 0;
++endtask
++
++task automatic observe_control_flow(input integer clock);
++    flow_stamp retiring;
++    reg branch, late_target, taken, predicted, hit;
++    reg [31:0] pred_target;
++    reg [31:5] fill_owner;
++    reg [31:10] walk_owner;
++    reg refill_busy, walk_busy;
++    refill_busy = `FLOW_IC.o_fill_pending || `FLOW_IC.o_fill_done ||
++                  `FLOW_IC.u_zap_cache_fsm.state_ff == `FLOW_IC.u_zap_cache_fsm.UNCACHEABLE;
++    walk_busy = `FLOW_IC.tlb_busy;
++    fill_owner = `FLOW_IC.u_zap_cache_fsm.address[31:5];
++    walk_owner = `FLOW_TLB.address[31:10];
++    if (flow_active && flow_trace_stages)
++        $display("FLOW_STAGE c=%0d f1=%h f2=%h q=%h qv=%b push=%b fpop=%b d2v=%b s=%h sv=%b accept=%b finish=%b backend=%b dec_redirect=%b a_redirect=%b w_redirect=%b fill=%b fill_line=%h walk=%b walk_page=%h",
++                 clock, `FLOW_F.f1[31:0], `FLOW_F.f2[31:0], `FLOW_F.o_pc, `FLOW_F.o_valid,
++                 `FLOW_F.push, `FLOW_F.pop, `FLOW_CORE.u_front_decode.u_decode.d2_valid,
++                 `FLOW_CORE.d_pc, `FLOW_CORE.d_valid, `FLOW_A.accept, `FLOW_A.finish,
++                 !`FLOW_CORE.backend_ready, `FLOW_CORE.u_front_decode.o_redirect,
++                 `FLOW_CORE.a_redirect, `FLOW_CORE.wb_redirect, refill_busy, {fill_owner,5'b0},
++                 walk_busy, {walk_owner,10'b0});
++    if (`FLOW_CORE.wb_complete && flow_active) begin
++        if (`FLOW_CORE.wb_exception) begin
++            flow_canceled += int'(flow_pending);
++            flow_pending = 0;
++        end else begin
++            retiring = flow_w;
++            if (retiring.pc != `FLOW_CORE.w[526:495] || retiring.ins != `FLOW_CORE.w[494:463] ||
++                retiring.thumb != `FLOW_CORE.w[539] || retiring.issued >= clock)
++                $fatal(1, "Control-flow shadow mismatch at %h cycle=%0d", `FLOW_CORE.w[526:495], clock);
++            if (flow_pending) finish_control_flow(retiring);
++            branch = 0;
++            taken = `FLOW_CORE.w[540];
++            late_target = `FLOW_CORE.return_event;
++            case (`FLOW_CORE.w[8:5])
++                4'd3: begin
++                    branch = 1;
++                    if (!taken) flow_kind = FLOW_FALL;
++                    else if (!retiring.thumb && retiring.ins[24]) flow_kind = FLOW_CALL;
++                    else flow_kind = (retiring.ins[31:28] == 4'he ? FLOW_B : FLOW_TAKEN);
++                end
++                4'd4: begin
++                    branch = 1;
++                    if (!taken) flow_kind = FLOW_BX_FALL;
++                    else if (retiring.ins[3:0] != 14) flow_kind = FLOW_BX;
++                    else flow_kind = (retiring.thumb ? FLOW_T_BX_LR : FLOW_BX_LR);
++                end
++                4'd11: begin
++                    branch = 1;
++                    flow_kind = FLOW_T_BL;
++                end
++                default: if (late_target) begin
++                    branch = 1;
++                    if (`FLOW_CORE.w[8:5] == 6)
++                        flow_kind = (retiring.thumb ? FLOW_T_POP_PC : FLOW_LDM_PC);
++                    else if ((retiring.ins & 32'h0fffffff) == 32'h01a0f00e)
++                        flow_kind = FLOW_MOV_LR;
++                    else flow_kind = FLOW_OTHER_PC;
++                end
++            endcase
++            if (branch && `FLOW_CORE.w[536]) begin
++                flow_events += 1;
++                flow_w_redirect = `FLOW_CORE.wb_redirect;
++                if (late_target) begin
++                    retiring.target = `FLOW_CORE.return_target;
++                    retiring.target_thumb = `FLOW_CORE.return_thumb;
++                    retiring.resolved = clock;
++                end
++                if (!taken) begin
++                    retiring.target = `FLOW_CORE.w[206:175];
++                    retiring.target_thumb = retiring.thumb;
++                end
++                hit = `FLOW_CORE.w[4];
++                predicted = `FLOW_CORE.w[532];
++                pred_target = `FLOW_CORE.w[174:143];
++                if (taken && predicted && pred_target == {retiring.target[31:1], retiring.target_thumb})
++                    flow_pred = FLOW_CORRECT;
++                else if (!taken && !predicted)
++                    flow_pred = (hit ? FLOW_CORRECT : FLOW_NO_TAG_FALL);
++                else
++                    flow_pred = ((hit || predicted) ? FLOW_WRONG : FLOW_TARGET_MISS);
++                flow_pending = 1;
++                flow_branch = retiring;
++            end
++        end
++    end
++
++    if (`FLOW_A.finish) begin
++        flow_a.resolved = clock;
++        flow_a.direct = `FLOW_A.a[315];
++        flow_a.redirect = `FLOW_A.wrong_prediction;
++        flow_a.target = (`FLOW_CORE.a_kind == 11 && flow_a.direct) ?
++                        `FLOW_A.a[419:388] : `FLOW_A.actual_target;
++        flow_a.target_thumb = `FLOW_A.actual_thumb;
++    end
++    if (`FLOW_CORE.memory_state == 0 && `FLOW_CORE.done ||
++        `FLOW_CORE.memory_state == 3 ||
++        `FLOW_CORE.memory_state == 1 && `FLOW_CORE.done && `FLOW_CORE.quick_reload) begin
++        flow_w = flow_m;
++        flow_m = (`FLOW_CORE.memory_state == 0) ? flow_a : flow_skid;
++    end else if (`FLOW_CORE.memory_state == 0)
++        flow_skid = flow_a;
++
++    if (`FLOW_A.accept) begin
++        flow_a = '0;
++        flow_a.issued = clock;
++        flow_a.pc = `FLOW_CORE.d_pc;
++        flow_a.ins = `FLOW_CORE.d_instruction;
++        flow_a.thumb = `FLOW_CORE.d_thumb;
++        flow_a.issued_total = flow_issue_total;
++        flow_a.refill_total = flow_refill_total;
++        flow_a.walk_total = flow_walk_total;
++        flow_a.backend_total = flow_backend_total;
++        flow_a.front_total = flow_front_total;
++        flow_a.preceding_refill = flow_gap_refill;
++        flow_a.preceding_walk = flow_gap_walk;
++        flow_a.refill_line = flow_refill_line;
++        flow_a.walk_page = flow_walk_page;
++        flow_a.mixed_refill = flow_mixed_refill;
++        flow_a.mixed_walk = flow_mixed_walk;
++        flow_issue_total += 1;
++        flow_gap_refill = 0; flow_gap_walk = 0;
++        flow_mixed_refill = 0; flow_mixed_walk = 0;
++    end else if (`FLOW_CORE.request || `FLOW_CORE.memory_state != 0 ||
++                 `FLOW_CORE.a_a_valid && !`FLOW_A.finish ||
++                 `FLOW_CORE.d_valid && !`FLOW_A.o_ready_payload || `FLOW_CORE.d_hazard) begin
++        flow_backend_total += 1;
++    end else if (walk_busy) begin
++        flow_mixed_walk |= flow_gap_walk != 0 && flow_walk_page != walk_owner;
++        flow_walk_page = walk_owner;
++        flow_gap_walk += 1;
++        flow_walk_total += 1;
++    end else if (refill_busy) begin
++        flow_mixed_refill |= flow_gap_refill != 0 && flow_refill_line != fill_owner;
++        flow_refill_line = fill_owner;
++        flow_gap_refill += 1;
++        flow_refill_total += 1;
++    end else
++        flow_front_total += 1;
++endtask
++
++task automatic report_control_flow(input integer window);
++    $display("FLOW_WINDOW window=%0d events=%0d matched=%0d canceled=%0d pending=%0d",
++             window, flow_events, flow_matches, flow_canceled, int'(flow_pending));
++    if (flow_events != flow_matches + flow_canceled + int'(flow_pending))
++        $fatal(1, "Incomplete control-flow accounting");
++    foreach (flow_count[i]) if (flow_count[i] != 0)
++        $display("FLOW_BUCKET window=%0d kind=%0d pred=%0d n=%0d next=%0d issue_sum=%0d resolve_sum=%0d issue_max=%0d a_redirect=%0d w_redirect=%0d direct=%0d refill=%0d walk=%0d backend=%0d front=%0d other_issue=%0d target_refill=%0d target_walk=%0d front_only=%0d no_i_wait=%0d no_i_wait_sum=%0d",
++                 window, i / 4, i % 4, flow_count[i], flow_next[i], flow_issue_sum[i],
++                 flow_resolve_sum[i], flow_issue_max[i], flow_a_redirects[i], flow_w_redirects[i],
++                 flow_direct[i], flow_refill[i], flow_walk[i], flow_backend[i], flow_front[i],
++                 flow_other_issue[i], flow_target_fill[i], flow_target_walk[i],
++                 flow_no_fetch_ready[i], flow_no_i_wait[i], flow_no_i_wait_sum[i]);
++    flow_active = 0;
++endtask
++
++`undef FLOW_TLB
++`undef FLOW_F
++`undef FLOW_IC
++`undef FLOW_A
++`undef FLOW_CORE
++`undef FLOW_ZAP
++`undef FLOW_CPU
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/icache_hum_observe.vh
+@@ -0,0 +1,152 @@
++// Simulation-only readout of resident tags and current section translations.
++`ifdef NGAGE_IC_RESTART_CONTRACT
++`define HUM_CPU cpu
++`else
++`define HUM_CPU dut.board.upp.cpu_inside.cpu
++`endif
++`define HUM_ZAP `HUM_CPU.u_arm925t.u_zap
++`define HUM_IC `HUM_ZAP.l_generate_with_cache_mmu.u_code_cache
++`define HUM_FSM `HUM_IC.u_zap_cache_fsm
++`define HUM_TAG `HUM_IC.u_zap_cache_tag_ram
++`define HUM_TLB `HUM_IC.u_zap_tlb
++`define HUM_SECTION `HUM_TLB.u_section_tlb.g_short
++`define HUM_CORE `HUM_ZAP.g_arm9.u_arm9_core
++`define HUM_FETCH `HUM_CORE.u_front_decode.u_fetch
++`define HUM_A `HUM_CORE.u_execute
++
++// 16 KiB / (2 * 32 bytes) sets. The shadow observes the actual write port.
++reg [45:0] hum_tag[2][256];
++reg [255:0] hum_valid[2];
++reg hum_monitor = 0, hum_redirect = 0, hum_trace;
++reg [31:0] hum_redirect_pc;
++reg hum_redirect_thumb;
++integer hum_fill, hum_diff, hum_trans, hum_miss, hum_victim;
++integer hum_hit, hum_same_set, hum_exposed, hum_overlap, hum_push;
++integer hum_pending, hum_pending_exposed;
++
++// Section translation is exact for these replays. A page or unavailable
++// translation stays in the unverified bucket.
++localparam integer HUM_SEC_W = 6;
++initial if (`HUM_TLB.SECTION_TLB_ENTRIES != 64 || `HUM_TAG.LINES != 256 || `HUM_TAG.WAYS != 2)
++    $fatal(1, "Unexpected TLB or cache geometry in hit-under-miss observer");
++initial hum_trace = $test$plusargs("hum-trace");
++
++task automatic reset_icache_hum();
++    hum_monitor = 1;
++    hum_fill = 0; hum_diff = 0; hum_trans = 0; hum_miss = 0; hum_victim = 0;
++    hum_hit = 0; hum_same_set = 0; hum_exposed = 0; hum_overlap = 0; hum_push = 0;
++    hum_pending = 0; hum_pending_exposed = 0;
++endtask
++
++task automatic observe_icache_hum(input integer clock);
++    reg active, demand, is_pending, backend, translated;
++    reg [31:0] wanted_pc, va, pa, descriptor;
++    reg [HUM_SEC_W-1:0] sec;
++    reg [11-HUM_SEC_W:0] sec_tag;
++    reg [7:0] set_index;
++    integer disposition, way;
++    if (!`HUM_IC.i_cache_en || `HUM_TAG.tag_ram_clear) begin
++        hum_valid[0] = '0;
++        hum_valid[1] = '0;
++    end else begin
++        if (`HUM_TAG.line_clear)
++            hum_valid[`HUM_TAG.rd_way][`HUM_TAG.rd_set] = 0;
++        if (`HUM_TAG.tag_ram_wr_en && !`HUM_TAG.i_hold)
++            for (integer w = 0; w < 2; w++)
++                if (`HUM_TAG.wr_sel[w]) begin
++                    hum_tag[w][`HUM_TAG.tag_ram_wr_addr] = `HUM_TAG.tag_ram_wr_data;
++                    hum_valid[w][`HUM_TAG.tag_ram_wr_addr] = 1;
++                end
++    end
++    active = `HUM_FSM.state_ff == `HUM_FSM.FETCH_SINGLE && `HUM_FSM.fill_no_late_error_ff &&
++             !`HUM_FSM.fill_fault_ff && !`HUM_IC.i_tlb_inv &&
++             !`HUM_IC.i_cache_inv_req && !`HUM_IC.i_cache_clean_req && `HUM_IC.i_cache_en;
++    if (!active) hum_redirect = 0;
++    if (active && `HUM_FETCH.i_redirect) begin
++        hum_redirect = 1;
++        hum_redirect_pc = `HUM_FETCH.i_redirect_target & 32'hfffffffe;
++        hum_redirect_thumb = `HUM_FETCH.i_redirect_thumb;
++    end
++    if (hum_redirect && `HUM_IC.i_rd && `HUM_FETCH.f2[31:0] == hum_redirect_pc &&
++        `HUM_FETCH.f2[34] == hum_redirect_thumb)
++        hum_redirect = 0;
++    demand = `HUM_IC.i_rd || hum_redirect;
++    is_pending = hum_redirect && !`HUM_IC.i_rd;
++    wanted_pc = is_pending ? hum_redirect_pc : `HUM_FETCH.f2[31:0];
++    va = `HUM_CORE.fcse(wanted_pc) & 32'hfffffffc;
++    if (hum_monitor && active) begin
++        hum_fill += 1;
++        if (demand && va[31:5] != `HUM_FSM.address[31:5]) begin
++            hum_diff += 1;
++            set_index = va[12:5];
++            sec = `HUM_TLB.section_index(va[31:20]);
++            {sec_tag, descriptor} = `HUM_SECTION.u_ram.g_short.mem[sec];
++            pa = `HUM_IC.i_mmu_en ? {descriptor[31:20],va[19:0]} : va;
++            translated = !`HUM_IC.i_mmu_en ||
++                         (`HUM_SECTION.u_gen.g_short.mem[sec] == {1'b1,`HUM_SECTION.gen} &&
++                          va[31:20+HUM_SEC_W] == sec_tag && descriptor[3] &&
++                          `HUM_TLB.u_zap_tlb_check.get_fsr_section(`HUM_IC.i_cpsr == 5'h10, 1'b1, 1'b0,
++                                      `HUM_IC.i_sr, `HUM_IC.i_dac_reg, descriptor[19:0]) == 0);
++            way = -1;
++            if (translated)
++                for (integer w = 0; w < 2; w++)
++                    if (hum_valid[w][set_index] && hum_tag[w][set_index] == {pa[31:5],va[31:13]})
++                        way = w;
++            backend = `HUM_A.accept || `HUM_CORE.request || `HUM_CORE.memory_state != 0 ||
++                      (`HUM_CORE.a_a_valid && !`HUM_A.finish) ||
++                      (`HUM_CORE.d_valid && !`HUM_A.o_ready_payload) || `HUM_CORE.d_hazard;
++            if (!translated) begin
++                hum_trans += 1;
++                disposition = 0;
++            end else if (way < 0) begin
++                hum_miss += 1;
++                disposition = 1;
++            end else if (set_index == `HUM_FSM.address[12:5] && way == int'(`HUM_FSM.way)) begin
++                hum_victim += 1;
++                disposition = 2;
++            end else begin
++                hum_hit += 1;
++                disposition = 3;
++                if (set_index == `HUM_FSM.address[12:5]) hum_same_set += 1;
++                if (backend || `HUM_FETCH.o_valid) hum_overlap += 1;
++                else hum_exposed += 1;
++                if (is_pending) begin
++                    hum_pending += 1;
++                    if (!backend && !`HUM_FETCH.o_valid) hum_pending_exposed += 1;
++                end
++            end
++            if (`HUM_FETCH.push && `HUM_IC.i_rd) begin
++                hum_push += 1;
++                if (translated && disposition != 3)
++                    $fatal(1, "Different-line fetch without a safe resident source");
++            end
++            if (hum_trace)
++                $display("HUM_DEMAND c=%0d pc=%h pa=%h way=%0d class=%0d pending=%b tlb=%b ack=%b push=%b backend=%b fill=%h fillway=%b beat=%b bankread=%h",
++                         clock, wanted_pc, pa, way, disposition, is_pending, translated,
++                         `HUM_IC.o_ack, `HUM_FETCH.push, backend, `HUM_FSM.address,
++                         `HUM_FSM.way, `HUM_FSM.take, `HUM_TAG.rd_set);
++        end
++    end
++endtask
++
++task automatic report_icache_hum(input integer window);
++    if (hum_diff != hum_trans + hum_miss + hum_victim + hum_hit ||
++        hum_hit != hum_exposed + hum_overlap)
++        $fatal(1, "Incomplete hit-under-miss ledger");
++    $display("HUM_WINDOW window=%0d fill=%0d different=%0d translation=%0d miss=%0d victim=%0d resident=%0d same_set=%0d exposed=%0d overlap=%0d push=%0d pending=%0d pending_exposed=%0d",
++             window, hum_fill, hum_diff, hum_trans, hum_miss, hum_victim,
++             hum_hit, hum_same_set, hum_exposed, hum_overlap, hum_push, hum_pending,
++             hum_pending_exposed);
++    hum_monitor = 0;
++endtask
++
++`undef HUM_A
++`undef HUM_FETCH
++`undef HUM_CORE
++`undef HUM_SECTION
++`undef HUM_TLB
++`undef HUM_TAG
++`undef HUM_FSM
++`undef HUM_IC
++`undef HUM_ZAP
++`undef HUM_CPU
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/icache_restart_observe.vh
+@@ -0,0 +1,152 @@
++// Count only I-cache fills. The bridge and I-cache return words in order.
++`ifdef NGAGE_IC_RESTART_CONTRACT
++`define ICR_CPU cpu
++`else
++`define ICR_CPU dut.board.upp.cpu_inside.cpu
++`endif
++`define ICR_ZAP `ICR_CPU.u_arm925t.u_zap
++`define ICR_IC `ICR_ZAP.l_generate_with_cache_mmu.u_code_cache
++`define ICR_FSM `ICR_IC.u_zap_cache_fsm
++`define ICR_CORE `ICR_ZAP.g_arm9.u_arm9_core
++`define ICR_FETCH `ICR_CORE.u_front_decode.u_fetch
++`define ICR_A `ICR_CORE.u_execute
++
++reg icr_active = 0, icr_tracing = 0, icr_live = 0;
++reg [31:0] icr_pc, icr_phys;
++reg [1:0] icr_epoch;
++reg icr_killed;
++integer icr_start, icr_offer, icr_word, icr_ack, icr_push, icr_pop;
++integer icr_port, icr_tail;
++integer icr_exposed, icr_overlap, icr_tlb, icr_other, icr_released;
++integer icr_fills[24], icr_canceled[24], icr_early[24], icr_word_to_end[24];
++integer icr_wait_word[24], icr_exposed_tail[24], icr_overlap_tail[24], icr_tlb_tail[24];
++integer icr_other_tail[24], icr_released_tail[24], icr_board_to_cpu[24], icr_before_req[24];
++integer icr_board_to_push[24], icr_matched_pushes[24];
++
++initial icr_tracing = $test$plusargs("ic-trace");
++
++task automatic reset_icache_restart();
++    icr_active = 1;
++    icr_live = 0;
++    foreach (icr_fills[i]) begin
++        icr_fills[i] = 0; icr_canceled[i] = 0; icr_early[i] = 0;
++        icr_word_to_end[i] = 0; icr_wait_word[i] = 0; icr_exposed_tail[i] = 0;
++        icr_overlap_tail[i] = 0; icr_tlb_tail[i] = 0; icr_other_tail[i] = 0;
++        icr_released_tail[i] = 0; icr_board_to_cpu[i] = 0; icr_before_req[i] = 0;
++        icr_board_to_push[i] = 0; icr_matched_pushes[i] = 0;
++    end
++endtask
++
++task automatic observe_icache_restart(input integer clock);
++    integer bucket;
++    reg same_owner, pending_head, waiting_for_word, backend;
++    if (icr_active) begin
++        if (`ICR_FSM.state_ff == `ICR_FSM.IDLE &&
++            `ICR_FSM.state_nxt == `ICR_FSM.FETCH_SINGLE) begin
++            icr_live = 1;
++            icr_pc = `ICR_FETCH.f2[31:0];
++            icr_phys = `ICR_FSM.i_phy_addr;
++            icr_epoch = `ICR_FETCH.f2[33:32];
++            icr_killed = 0;
++            icr_start = clock;
++            icr_offer = -1; icr_word = -1; icr_ack = -1; icr_push = -1; icr_pop = -1;
++            icr_port = 0; icr_tail = 0;
++            icr_exposed = 0; icr_overlap = 0; icr_tlb = 0; icr_other = 0; icr_released = 0;
++        end
++        if (icr_live) begin
++            same_owner = `ICR_CPU.wb_code && `ICR_CPU.wb_address[31:5] == icr_phys[31:5];
++            if (same_owner && icr_offer < 0 &&
++                (`ICR_CPU.line_req || `ICR_CPU.wb_cyc))
++                icr_offer = clock;
++            if (same_owner && `ICR_CPU.refill.state == 1 && `ICR_CPU.line_valid) begin
++                icr_port = `ICR_CPU.line_wide ? 2 : 1;
++                if (icr_word < 0 &&
++                    int'(`ICR_CPU.refill.received) + (`ICR_CPU.line_wide ? 4 : 1) >
++                    int'({icr_phys[4:2],1'b1}))
++                    icr_word = clock;
++            end
++            if (icr_ack < 0 && `ICR_FSM.take &&
++                `ICR_FSM.o_wb_adr_ff[4:2] == icr_phys[4:2]) begin
++                icr_ack = clock;
++                if (icr_word < 0) icr_word = clock;
++            end
++            if (`ICR_FETCH.epoch != icr_epoch || `ICR_FETCH.i_redirect)
++                icr_killed = 1;
++            if (icr_push < 0 && !icr_killed && `ICR_FETCH.push &&
++                `ICR_FETCH.f2[31:0] == icr_pc)
++                icr_push = clock;
++            if (icr_pop < 0 && !icr_killed && icr_push >= 0 && `ICR_FETCH.pop &&
++                `ICR_FETCH.o_pc == icr_pc)
++                icr_pop = clock;
++            if (icr_ack >= 0 && `ICR_FSM.state_ff == `ICR_FSM.FETCH_SINGLE) begin
++                // Disjoint ownership for the remaining fill clocks, including
++                // overlap with active issue or a blocked older instruction.
++                icr_tail += 1;
++                pending_head = `ICR_FETCH.count != 0 && `ICR_FETCH.head_packet[47] &&
++                               `ICR_FETCH.head_packet[81:55] == icr_pc[31:5];
++                waiting_for_word = `ICR_FETCH.f2[35] &&
++                                   `ICR_FETCH.f2[31:0] == icr_pc && icr_push < 0 && !icr_killed;
++                backend = `ICR_CORE.request || `ICR_CORE.memory_state != 0 ||
++                          (`ICR_CORE.a_a_valid && !`ICR_A.finish) ||
++                          (`ICR_CORE.d_valid && !`ICR_A.o_ready_payload) || `ICR_CORE.d_hazard;
++                if (`ICR_A.accept || backend) icr_overlap += 1;
++                else if (`ICR_IC.tlb_busy) icr_tlb += 1;
++                else if (pending_head || waiting_for_word) icr_exposed += 1;
++                else if (icr_push >= 0 && !`ICR_IC.o_fill_pending) icr_released += 1;
++                else icr_other += 1;
++            end
++            if (icr_tracing)
++                $display("ICR_TRACE c=%0d start=%0d pc=%h phys=%h port=%0d beat=%b word=%b ack=%b push=%b fq=%h pop=%b release=%b complete=%b redirect=%b accept=%b issue=%h thumb=%b",
++                         clock, icr_start, icr_pc, icr_phys, icr_port,
++                         same_owner && `ICR_CPU.line_valid, icr_word == clock, icr_ack == clock,
++                         icr_push == clock, `ICR_FETCH.o_pc, `ICR_FETCH.pop,
++                         !`ICR_IC.o_fill_pending, `ICR_IC.o_fill_done,
++                         `ICR_FETCH.i_redirect, `ICR_A.accept, `ICR_CORE.d_pc, `ICR_CORE.d_thumb);
++            if (`ICR_IC.o_fill_done) begin
++                bucket = icr_port * 8 + int'(icr_phys[4:2]);
++                icr_fills[bucket] += 1;
++                icr_canceled[bucket] += int'(icr_killed);
++                if (icr_tail != icr_overlap + icr_tlb + icr_exposed + icr_released + icr_other)
++                    $fatal(1, "Incomplete I-cache tail accounting");
++                if (!icr_killed && !`ICR_IC.o_fill_fault && icr_word >= 0) begin
++                    if (icr_offer >= 0) begin
++                        icr_before_req[bucket] += icr_offer - icr_start;
++                        icr_wait_word[bucket] += icr_word - icr_offer;
++                    end
++                    icr_board_to_cpu[bucket] += icr_ack - icr_word;
++                    icr_word_to_end[bucket] += clock - icr_ack;
++                    icr_early[bucket] += int'(icr_pop >= 0 && icr_pop < clock);
++                    if (icr_push >= 0) begin
++                        icr_matched_pushes[bucket] += 1;
++                        icr_board_to_push[bucket] += icr_push - icr_word;
++                    end
++                    icr_exposed_tail[bucket] += icr_exposed;
++                    icr_overlap_tail[bucket] += icr_overlap;
++                    icr_tlb_tail[bucket] += icr_tlb;
++                    icr_other_tail[bucket] += icr_other;
++                    icr_released_tail[bucket] += icr_released;
++                end
++                icr_live = 0;
++            end
++        end else if (icr_tracing && `ICR_A.accept)
++            $display("ICR_ISSUE c=%0d issue=%h thumb=%b", clock, `ICR_CORE.d_pc, `ICR_CORE.d_thumb);
++    end
++endtask
++
++task automatic report_icache_restart(input integer window);
++    foreach (icr_fills[i]) if (icr_fills[i] != 0)
++        $display("ICR_BUCKET window=%0d port=%0d offset=%0d fills=%0d canceled=%0d offer=%0d wait_word=%0d bridge=%0d tail=%0d pushes=%0d board_to_push=%0d precomplete_pop=%0d exposed=%0d overlap=%0d tlb=%0d released=%0d other=%0d",
++                 window, i / 8, i % 8, icr_fills[i], icr_canceled[i], icr_before_req[i],
++                 icr_wait_word[i], icr_board_to_cpu[i], icr_word_to_end[i], icr_matched_pushes[i],
++                 icr_board_to_push[i], icr_early[i], icr_exposed_tail[i], icr_overlap_tail[i],
++                 icr_tlb_tail[i], icr_released_tail[i], icr_other_tail[i]);
++    icr_active = 0;
++endtask
++
++`undef ICR_A
++`undef ICR_FETCH
++`undef ICR_CORE
++`undef ICR_FSM
++`undef ICR_IC
++`undef ICR_ZAP
++`undef ICR_CPU
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/waw_load_observe.vh
+@@ -0,0 +1,89 @@
++`define WAW_CORE dut.board.upp.cpu_inside.cpu.u_arm925t.u_zap.g_arm9.u_arm9_core
++`define WAW_DECODE `WAW_CORE.u_front_decode.u_decode
++`define WAW_CACHE dut.board.upp.cpu_inside.cpu.u_arm925t.u_zap.l_generate_with_cache_mmu.u_data_cache
++`define WAW_TLB `WAW_CACHE.u_zap_tlb.u_zap_tlb_check
++
++integer waw_seen, waw_sole, waw_busy, waw_raw, waw_other;
++integer waw_s, waw_a, waw_m, waw_w, waw_skid, waw_multiple, waw_m_precheck;
++wire [372:0] waw_d2 = `WAW_DECODE.d2;
++wire [5:0] waw_dst = waw_d2[80+:6];
++wire waw_scalar = waw_d2[131:128] == 4'd5 && waw_d2[329] &&
++                  waw_d2[78] && !waw_d2[149] && waw_dst != 15;
++wire [5:0] waw_older_scalar = {
++    `WAW_CORE.skid[8:5] == 4'd5, `WAW_CORE.w[8:5] == 4'd5,
++    `WAW_CORE.m[8:5] == 4'd5, 1'b0, `WAW_CORE.a_kind == 4'd5,
++    `WAW_CORE.d_kind == 4'd5
++};
++wire [5:0] waw_actual_hazards = `WAW_DECODE.producer_hazard;
++wire waw_seat = (!`WAW_DECODE.out_valid || `WAW_DECODE.i_ready) &&
++                !`WAW_DECODE.i_flush && (!`WAW_DECODE.redirect_ff[74] || `WAW_DECODE.redirect_in_d2);
++wire waw_m_cacheable = `WAW_CORE.o_data_wb_re_check && `WAW_CACHE.raw_cache_hit &&
++                       `WAW_TLB.cacheable_nxt && !`WAW_TLB.walk_nxt &&
++                       `WAW_TLB.fsr_nxt[3:0] == 0 && !`WAW_CORE.m[529] && !`WAW_CACHE.hold;
++
++task reset_load_waw;
++    begin
++        waw_seen = 0; waw_sole = 0; waw_busy = 0; waw_raw = 0; waw_other = 0;
++        waw_s = 0; waw_a = 0; waw_m = 0; waw_w = 0; waw_skid = 0; waw_multiple = 0; waw_m_precheck = 0;
++    end
++endtask
++
++task observe_load_waw;
++    reg [5:0] repeating, sources;
++    reg blocked_source, blocked_destination, same_read;
++    reg [5:0] tag;
++    begin
++        if (`WAW_DECODE.d2_valid && waw_scalar && |waw_actual_hazards) begin
++            repeating = 0;
++            sources = 0;
++            blocked_source = |`WAW_DECODE.early_hazard;
++            blocked_destination = (waw_d2[78] && `WAW_DECODE.i_locked[waw_dst]) ||
++                                  (waw_d2[79] && `WAW_DECODE.i_locked[waw_d2[86+:6]]);
++            for (integer src = 0; src < 4; src += 1)
++                if (waw_d2[96+src] && `WAW_DECODE.i_locked[waw_d2[100+6*src+:6]]) blocked_source = 1;
++            for (integer stage = 0; stage < 6; stage += 1) begin
++                same_read = 0;
++                tag = `WAW_DECODE.i_load_tag[6*stage+:6];
++                for (integer src = 0; src < 4; src += 1)
++                    if (waw_d2[96+src] && waw_d2[100+6*src+:6] == tag) same_read = 1;
++                sources[stage] = same_read && waw_actual_hazards[stage];
++                repeating[stage] = !same_read && tag == waw_dst && waw_older_scalar[stage] &&
++                                    waw_actual_hazards[stage];
++            end
++            if (|repeating) begin
++                if (!`WAW_DECODE.o_hazard || `WAW_DECODE.step)
++                    $fatal(1, "Expected the repeated-load writer to be interlocked");
++                waw_seen += 1;
++                if (!waw_seat) waw_busy += 1;
++                else if (blocked_source || |sources) waw_raw += 1;
++                else if (blocked_destination || `WAW_DECODE.fenced || |(waw_actual_hazards & ~repeating))
++                    waw_other += 1;
++                else begin
++                    waw_sole += 1;
++                    case (repeating)
++                        6'b000001: waw_s += 1;
++                        6'b000010: waw_a += 1;
++                        6'b001000: begin
++                            waw_m += 1;
++                            if (waw_m_cacheable) waw_m_precheck += 1;
++                        end
++                        6'b010000: waw_w += 1;
++                        6'b100000: waw_skid += 1;
++                        default: waw_multiple += 1;
++                    endcase
++                end
++            end
++        end
++    end
++endtask
++
++task report_load_waw(input integer window);
++    $display("LOAD_WAW window=%0d seen=%0d sole=%0d busy=%0d raw=%0d other=%0d s=%0d a=%0d m=%0d w=%0d skid=%0d multiple=%0d m_precheck=%0d",
++             window, waw_seen, waw_sole, waw_busy, waw_raw, waw_other, waw_s, waw_a,
++             waw_m, waw_w, waw_skid, waw_multiple, waw_m_precheck);
++endtask
++
++`undef WAW_TLB
++`undef WAW_CACHE
++`undef WAW_DECODE
++`undef WAW_CORE
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/predicate_block_observe.vh
+@@ -0,0 +1,35 @@
++`define PREDICATE_CORE dut.board.upp.cpu_inside.cpu.u_arm925t.u_zap.g_arm9.u_arm9_core
++`define PREDICATE_DECODE `PREDICATE_CORE.u_front_decode.u_decode
++
++integer block_issued, failed_block_first, failed_block_extra, failed_block_last;
++
++task reset_predicate_counts;
++    begin
++        block_issued = 0;
++        failed_block_first = 0;
++        failed_block_extra = 0;
++        failed_block_last = 0;
++    end
++endtask
++
++task count_predicate_blocks;
++    begin
++        if (`PREDICATE_DECODE.step && `PREDICATE_DECODE.d2[131:128] == 4'd6)
++            block_issued += 1;
++        if (`PREDICATE_CORE.wb_cfail && `PREDICATE_CORE.w[8:5] == 4'd6) begin
++            if (`PREDICATE_CORE.w[535] || `PREDICATE_CORE.request || |`PREDICATE_CORE.w[27:26])
++                $fatal(1, "Failed register list accessed data memory or wrote a register");
++            if (`PREDICATE_CORE.w[537]) failed_block_first += 1;
++            else failed_block_extra += 1;
++            if (`PREDICATE_CORE.wb_last) failed_block_last += 1;
++        end
++    end
++endtask
++
++task report_predicate_counts(input integer index);
++    $display("PREDICATE_BLOCK window=%0d issued=%0d first=%0d extra=%0d last=%0d",
++             index, block_issued, failed_block_first, failed_block_extra, failed_block_last);
++endtask
++
++`undef PREDICATE_DECODE
++`undef PREDICATE_CORE
+--- /dev/null
++++ b/tests/cpu/polycount_v5/capture.py
+@@ -0,0 +1,304 @@
++"""Capture the shipped SPMark04 v1.10 torus with the original GLES renderer."""
++
++import argparse
++from collections import Counter
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++from struct import iter_unpack, pack, unpack_from
++
++from unicorn import Uc, UC_ARCH_ARM, UC_MODE_ARM, UC_HOOK_CODE, UC_HOOK_INTR
++from unicorn.arm_const import UC_ARM_REG_LR, UC_ARM_REG_PC, UC_ARM_REG_R0, UC_ARM_REG_SP, UC_CPU_ARM_926
++
++
++APP = 0x10000000
++GLES = 0x10100000
++RAM = 0x20000000
++ROM = 0x50000000
++STOP = 0x21200000
++OBJECT = RAM + 0x200
++WIDTH, HEIGHT = 176, 208
++ROM_SHA = 'be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524'
++MODULE_SHA = {
++    'SPMark.app': 'f4d3819d0d7c21f6f669835d03cf9fd8c8b50aa3e0bac6975c4cbaccb09b3a4e',
++    '3DTEST.DLL': '5b918e3d10a8b4e91265325649c98c72fba7260be6cab37a102d7f50cd7eebef',
++    'libGLES_CM.dll': '3008a3900a91471200ea00b26733066aad288d589a7f48cefbfc0c6b62ebad2b',
++}
++
++
++def checked_input(path, expected):
++    data = path.read_bytes()
++    if sha256(data).hexdigest() != expected:
++        raise ValueError(f'Unexpected original input at {path}')
++    return data
++
++
++def u32(data, offset):
++    return unpack_from('<I', data, offset)[0]
++
++
++def exported_offset(data, ordinal):
++    assert 1 <= ordinal <= u32(data, 0x5c)
++    return u32(data, u32(data, 0x58) + (ordinal - 1) * 4)
++
++
++def import_slots(data):
++    imports = u32(data, 0x6c)
++    cursor = imports + 4
++    end_of_records = imports + u32(data, cursor)
++    slot = u32(data, 0x60)
++    while cursor < end_of_records:
++        name_offset, count = unpack_from('<II', data, cursor)
++        name = data[imports + name_offset:].split(b'\0', 1)[0].decode()
++        library, uid = name.split('[', 1)
++        cursor += 8
++        for _ in range(count):
++            yield library.upper(), int(uid.split(']')[0], 16), u32(data, cursor), slot
++            slot += 4
++            cursor += 4
++    assert cursor == end_of_records
++
++
++def linked_code(data, base):
++    code_start = u32(data, 0x64)
++    code_size = u32(data, 0x30)
++    image = bytearray(data[code_start:code_start + code_size])
++    assert len(image) == code_size
++    delta = base - APP
++    if delta:
++        relocation = u32(data, 0x70)
++        remaining = u32(data, relocation + 4)
++        cursor = relocation + 8
++        while remaining:
++            page, size = unpack_from('<II', data, cursor)
++            assert size >= 8 and size % 2 == 0
++            for entry, in iter_unpack('<H', data[cursor + 8:cursor + size]):
++                if entry:
++                    assert entry >> 12 in (1, 3)
++                    address = page + (entry & 0xfff)
++                    image[address:address + 4] = pack('<I', u32(image, address) + delta)
++                    remaining -= 1
++            assert remaining >= 0
++            cursor += size
++    return image
++
++
++def rom_export_table(rom, uid):
++    matches = [match.start() - 8 for match in re.finditer(re.escape(pack('<I', uid)), rom)
++               if match.start() >= 8 and u32(rom, match.start() - 8) == 0x10000079]
++    header, = matches
++    return u32(rom, header + 64) - ROM
++
++
++class Capture:
++    def __init__(self, app, gles, rom):
++        self.cpu = Uc(UC_ARCH_ARM, UC_MODE_ARM)
++        self.cpu.ctl_set_cpu_model(UC_CPU_ARM_926)
++        self.cpu.mem_map(ROM, 0x1400000)
++        self.cpu.mem_write(ROM, rom)
++        self.cpu.mem_map(APP, 0x200000)
++        self.cpu.mem_map(RAM, 0x200000)
++        self.cpu.mem_map(STOP, 0x10000)
++        self.gles = gles
++        self.code_sizes = {}
++        self.allocations = []
++        self.heap_top = RAM + 0x40000
++        self.tls = {}
++        self.services = {}
++        self.generated_code = []
++        self.draws = []
++        self.calls = Counter()
++        self.count_pcs = False
++        self.instructions = Counter()
++
++        # Emulate platform allocation and TLS. Geometry, GL state, memory
++        # routines, soft float, raster generation and drawing run as guest ARM.
++        services = {
++            ('EUSER', 35): self.allocate,
++            ('EUSER', 335): self.set_tls,
++            ('EUSER', 336): self.get_tls,
++            ('EUSER', 1650): self.sync_generated_code,
++            ('ESTLIB', 3): self.allocate,
++            ('ESTLIB', 6): lambda: 0,
++        }
++        tables = {}
++        for image, base in ((app, APP), (gles, GLES)):
++            linked = linked_code(image, base)
++            for library, uid, ordinal, slot in import_slots(image):
++                if library == 'LIBGLES_CM':
++                    address = GLES + exported_offset(gles, ordinal)
++                else:
++                    if uid not in tables:
++                        tables[uid] = rom_export_table(rom, uid)
++                    address = u32(rom, tables[uid] + 4 * (ordinal - 1))
++                    if (library, ordinal) in services:
++                        self.services[address & ~1] = services[library, ordinal]
++                linked[slot:slot + 4] = pack('<I', address)
++            self.cpu.mem_write(base, bytes(linked))
++            self.code_sizes[base] = len(linked)
++
++        self.draw_pc = GLES + exported_offset(gles, 55)
++        self.swap_pc = GLES + exported_offset(gles, 22)
++        self.cpu.hook_add(UC_HOOK_CODE, self.observe)
++        self.cpu.hook_add(UC_HOOK_INTR, self.unhandled_interrupt)
++
++    def reg(self, index):
++        return self.cpu.reg_read(UC_ARM_REG_R0 + index)
++
++    def read(self, address, size):
++        return bytes(self.cpu.mem_read(address, size))
++
++    def write_words(self, address, *words):
++        self.cpu.mem_write(address, pack(f'<{len(words)}I', *words))
++
++    def allocate(self):
++        size = self.reg(0)
++        address = self.heap_top
++        self.heap_top += (size + 7) & ~7
++        assert self.heap_top < RAM + 0x1c0000
++        self.cpu.mem_write(address, bytes(size))
++        self.allocations.append((address, size))
++        return address
++
++    def set_tls(self):
++        self.tls[self.reg(0)] = self.reg(1)
++        return 0
++
++    def get_tls(self):
++        return self.tls.get(self.reg(0), 0)
++
++    def sync_generated_code(self):
++        begin, end = self.reg(0), self.reg(1)
++        assert RAM <= begin < end < self.heap_top
++        self.generated_code.append((begin, end))
++        self.cpu.ctl_remove_cache(begin, end)
++        return 0
++
++    def observe(self, cpu, pc, _size, _data):
++        if self.count_pcs:
++            self.instructions[pc] += 1
++        if pc == self.draw_pc:
++            self.draws.append(tuple(self.reg(n) for n in range(4)))
++        if pc == self.swap_pc:
++            self.calls[pc] += 1
++        if pc in self.services:
++            self.calls[pc] += 1
++            cpu.reg_write(UC_ARM_REG_R0, self.services[pc]())
++            cpu.reg_write(UC_ARM_REG_PC, cpu.reg_read(UC_ARM_REG_LR))
++
++    def unhandled_interrupt(self, cpu, number, _data):
++        pc = cpu.reg_read(UC_ARM_REG_PC)
++        lr = cpu.reg_read(UC_ARM_REG_LR)
++        raise RuntimeError(f'Unhandled guest interrupt {number} at {pc:08x}, LR {lr:08x}')
++
++    def call(self, pc, *args):
++        for index, value in enumerate(args[:4]):
++            self.cpu.reg_write(UC_ARM_REG_R0 + index, value)
++        stack = RAM + 0x20000
++        self.cpu.reg_write(UC_ARM_REG_SP, stack)
++        if len(args) > 4:
++            self.write_words(stack, *args[4:])
++        self.cpu.reg_write(UC_ARM_REG_LR, STOP)
++        self.cpu.emu_start(pc, STOP, count=120_000_000)
++        assert self.cpu.reg_read(UC_ARM_REG_PC) == STOP
++        return self.reg(0)
++
++    def gl_call(self, ordinal, *args):
++        return self.call(GLES + exported_offset(self.gles, ordinal), *args)
++
++    def setup(self):
++        display = self.gl_call(14, 0)
++        assert display and self.gl_call(17, display, RAM, RAM + 4)
++        # Match the app's requested depth and the phone's 16-bit color.
++        # The EGL pbuffer bit replaces the native window surface.
++        self.write_words(RAM + 0x40, 0x3020, 0, 0x3025, 32, 0x3033, 1, 0x3038)
++        config = RAM + 0x100
++        assert self.gl_call(1, display, RAM + 0x40, config, 1, config + 4)
++        config_id, count = unpack_from('<II', self.read(config, 8))
++        assert config_id and count == 1
++        context = self.gl_call(3, display, config_id, 0, 0)
++        self.write_words(RAM + 0x80, 0x3057, WIDTH, 0x3056, HEIGHT, 0x3038)
++        surface = self.gl_call(4, display, config_id, RAM + 0x80)
++        assert context and surface and self.gl_call(18, display, surface, surface, context)
++        self.write_words(OBJECT + 36, display, surface)
++        self.write_words(OBJECT + 68, 0xb40000, 0)
++        self.call(APP + 0x10f4, OBJECT)
++        self.call(APP + 0x1390, OBJECT)
++        self.call(APP + 0x1bbc, OBJECT)
++        return config_id
++
++    def check_pixel_format(self, config):
++        display = u32(self.read(OBJECT + 36, 4), 0)
++        widths = []
++        for attribute in (0x3020, 0x3024, 0x3023, 0x3022, 0x3021, 0x3025):
++            assert self.gl_call(9, display, config, attribute, RAM + 0x140)
++            widths.append(u32(self.read(RAM + 0x140, 4), 0))
++        assert widths == [16, 4, 4, 4, 0, 32]
++        return dict(zip(('color_storage', 'red', 'green', 'blue', 'alpha', 'depth'), widths, strict=True))
++
++    def frame(self, index, out):
++        self.instructions.clear()
++        self.calls.clear()
++        self.draws.clear()
++        self.count_pcs = True
++        self.call(APP + 0x1e00, OBJECT, 0)
++        self.count_pcs = False
++        draw, = self.draws
++        assert draw[:3] == (4, 14400, 0x1403) and self.calls[self.swap_pc] == 1
++        object_data = self.read(OBJECT, 80)
++        assert unpack_from('<III', object_data, 56) == (2400, 14400, index + 1)
++        indices = self.read(draw[3], 14400 * 2)
++        buffers = []
++        for size, name in ((WIDTH * HEIGHT * 2, 'surface0'), (WIDTH * HEIGHT * 4, 'surface1')):
++            address, = [start for start, allocated in self.allocations if allocated == size]
++            data = self.read(address, size)
++            assert len(set(iter_unpack('<H', data))) > 1
++            buffers.append((hex(address), size, sha256(data).hexdigest()))
++            if index == 4:
++                (out / f'{name}.bin').write_bytes(data)
++        if index == 4:
++            (out / 'object.bin').write_bytes(object_data)
++            (out / 'indices.bin').write_bytes(indices)
++            check_torus(indices)
++        return dict(draw=draw, buffers=buffers, calls={hex(k): v for k, v in self.calls.items()},
++                    jit=self.generated_code.copy(), arm_instruction_callbacks=sum(self.instructions.values()),
++                    pc_with_counts=sorted(self.instructions.items()))
++
++
++def check_torus(indices):
++    vertices = [vertex for vertex, in iter_unpack('<H', indices)]
++    assert set(vertices) == set(range(2400))
++    triangles = list(zip(vertices[::3], vertices[1::3], vertices[2::3], strict=True))
++    assert len({tuple(sorted(face)) for face in triangles}) == 4800
++    edge_counts = Counter(tuple(sorted(edge)) for a, b, c in triangles for edge in ((a, b), (b, c), (c, a)))
++    assert len(edge_counts) == 7200 and set(edge_counts.values()) == {2}
++
++
++def main():
++    root = Path(__file__).resolve().parents[3]
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--payload-dir', type=Path, required=True)
++    parser.add_argument('--rom', type=Path, default=root / 'build/firmware/nem4-factory/core.bin')
++    parser.add_argument('--output', type=Path, required=True)
++    args = parser.parse_args()
++    modules = {name: checked_input(args.payload_dir / name, digest) for name, digest in MODULE_SHA.items()}
++    replay = Capture(modules['SPMark.app'], modules['libGLES_CM.dll'], checked_input(args.rom, ROM_SHA))
++    config = replay.setup()
++    args.output.mkdir(parents=True)
++    frames = []
++    for index in range(5):
++        if index == 1:
++            for name, base in (('app', APP), ('gles', GLES)):
++                (args.output / f'{name}.bin').write_bytes(replay.read(base, replay.code_sizes[base]))
++            (args.output / 'heap.bin').write_bytes(replay.read(RAM, replay.heap_top - RAM))
++        frames.append(replay.frame(index, args.output))
++        print(f"Frame {index} completed with {frames[-1]['arm_instruction_callbacks']:,} ARM callbacks", flush=True)
++    result = dict(frames=frames, config=config, pixel_format=replay.check_pixel_format(config),
++                  tls=replay.tls, allocations=replay.allocations,
++                  rom_sha=ROM_SHA, module_sha=MODULE_SHA)
++    (args.output / 'oracle.json').write_text(json.dumps(result) + '\n')
++
++
++if __name__ == '__main__':
++    main()
+--- /dev/null
++++ b/tests/cpu/polycount_v5/execute_overlay.py
+@@ -0,0 +1,20 @@
++"""Isolate execute scheduling experiments from the v5 production netlist."""
++
++from frame_gap_early import swap
++
++
++def direct_accumulate(source):
++    # The registered DSP product holds until the next multiply. Accumulate
++    # directly from it and remove the redundant product-copy clock.
++    start = source.index('module ngage2_arm9v2_execute (')
++    end = source.index('\nendmodule', start)
++    execute = source[start:end]
++    obsolete = ('reg multiply_accumulate;', 'reg [63:0] product_saved;', 'wire mac_phase;',
++                'assign mac_phase =', 'multiply_accumulate <= 0;', 'product_saved <= 0;')
++    execute = ''.join(line for line in execute.splitlines(keepends=True)
++                      if not any(removed in line for removed in obsolete))
++    execute = swap(execute, '\t\t\tif (mac_phase) begin\n\t\t\t\tproduct_saved <= product;\n'
++                   '\t\t\t\tmultiply_accumulate <= 1;\n\t\t\tend\n', '')
++    assert execute.count('product_saved') == 3 and execute.count('mac_phase') == 3
++    execute = execute.replace('product_saved', 'product').replace(' && !mac_phase', '').replace(' || mac_phase', '')
++    return source[:start] + execute + source[end:]
+--- /dev/null
++++ b/tests/cpu/polycount_v5/instructions.py
+@@ -0,0 +1,91 @@
++"""Classify the original instructions seen in a captured PolyCount frame."""
++
++import argparse
++from collections import Counter
++import json
++from pathlib import Path
++
++from capstone import CS_ARCH_ARM, CS_MODE_ARM, CS_MODE_THUMB, Cs
++from unicorn.arm_const import UC_ARM_REG_CPSR
++
++from capture import APP, GLES, MODULE_SHA, OBJECT, RAM, ROM_SHA, Capture, checked_input
++
++
++class InstructionCapture(Capture):
++    def __init__(self, app, gles, rom):
++        self.instruction_modes = {}
++        super().__init__(app, gles, rom)
++
++    def observe(self, cpu, pc, size, data):
++        if self.count_pcs and pc not in self.instruction_modes:
++            thumb = bool(cpu.reg_read(UC_ARM_REG_CPSR) & (1 << 5))
++            self.instruction_modes[pc] = (thumb, size)
++        super().observe(cpu, pc, size, data)
++
++
++def classify(replay):
++    arm, thumb = (Cs(CS_ARCH_ARM, mode) for mode in (CS_MODE_ARM, CS_MODE_THUMB))
++    histogram = Counter()
++    modes = Counter()
++    block_registers = {'load': Counter(), 'store': Counter()}
++    register_shifts = 0
++    instructions = []
++    for pc, count in replay.instructions.most_common():
++        is_thumb, size = replay.instruction_modes[pc]
++        decoder = thumb if is_thumb else arm
++        raw = replay.read(pc, size)
++        instruction, = decoder.disasm(raw, pc, count=1)
++        name = instruction.insn_name()
++        modes['thumb' if is_thumb else 'arm'] += count
++        histogram[name] += count
++        if name.startswith(('ldm', 'stm')) or name in ('push', 'pop'):
++            registers = instruction.op_str.split('{', 1)[1].split('}', 1)[0].split(',')
++            direction = 'load' if name.startswith('ldm') or name == 'pop' else 'store'
++            block_registers[direction][len(registers)] += count
++        if (not is_thumb and name in ('adc', 'add', 'and', 'asr', 'bic', 'cmn', 'cmp', 'eor', 'lsl', 'lsr',
++                                     'mov', 'mvn', 'orr', 'ror', 'rsb', 'rsc', 'sbc', 'sub', 'teq', 'tst')
++                and (int.from_bytes(raw, 'little') & 0x0e000090) == 0x10):
++            register_shifts += count
++        instructions.append(dict(pc=f'0x{pc:08x}', count=count, kind=name,
++                                 instruction=f'{instruction.mnemonic} {instruction.op_str}'.strip()))
++    return dict(histogram=dict(histogram.most_common()), modes=dict(modes), instructions=instructions,
++                register_shifts=register_shifts, block_registers=block_registers)
++
++
++def main():
++    root = Path(__file__).resolve().parents[3]
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--payload-dir', type=Path, required=True)
++    parser.add_argument('--rom', type=Path, default=root / 'build/firmware/nem4-factory/core.bin')
++    parser.add_argument('--capture', type=Path, required=True)
++    parser.add_argument('--output', type=Path, required=True)
++    args = parser.parse_args()
++
++    files = [checked_input(args.payload_dir / name, MODULE_SHA[name]) for name in ('SPMark.app', 'libGLES_CM.dll')]
++    replay = InstructionCapture(*files, checked_input(args.rom, ROM_SHA))
++    capture = args.capture
++    oracle = json.loads((capture / 'oracle.json').read_text())
++    assert oracle['module_sha'] == MODULE_SHA and oracle['rom_sha'] == ROM_SHA
++    replay.tls = {int(key): value for key, value in oracle['tls'].items()}
++    for name, address in [('app', APP), ('gles', GLES), ('heap', RAM)]:
++        replay.cpu.mem_write(address, (capture / f'{name}.bin').read_bytes())
++
++    # The snapshot follows frame 0. Advance to the same median-scored
++    # frame used in the RTL experiment, then decode the PCs in their ISA.
++    for _ in range(2):
++        replay.call(APP + 0x1e00, OBJECT, 0)
++    replay.count_pcs = True
++    replay.call(APP + 0x1e00, OBJECT, 0)
++    assert sorted(replay.instructions.items()) == [tuple(row) for row in oracle['frames'][3]['pc_with_counts']]
++    result = classify(replay)
++    result['capture_frame'] = 3
++    result['callbacks'] = sum(replay.instructions.values())
++    args.output.write_text(json.dumps(result, indent=2) + '\n')
++    print('Architectural encounters including failed conditions', result['callbacks'])
++    print('ISA', result['modes'])
++    print('Top 30 opcodes', list(result['histogram'].items())[:30])
++    print('Register-controlled shifts', result['register_shifts'])
++
++
++if __name__ == '__main__':
++    main()
+--- /dev/null
++++ b/tests/cpu/polycount_v5/issue_ldm.py
+@@ -0,0 +1,139 @@
++"""Issue a two-word LDM once, with a serial fallback in writeback."""
++
++from frame_gap_early import swap
++from paired_ldm import wire_paired_load_data
++
++
++def issue_paired_loads(source, one_cycle_split=False, address_hint=False):
++    source = wire_paired_load_data(source, issue_core_overlay)
++    if one_cycle_split:
++        source = swap(source, "w_cls_next = w_cls_of(w_next);\n            memory_state_next = 4'd4;",
++                      "w_cls_next = w_cls_of(w_next);\n            memory_state_next = 4'd5;")
++        source = swap(source, 'wire [31:2] lookup_address =', 'wire [31:2] nominal_lookup_address =')
++        source = swap(source, '\tassign o_data_wb_adr_nxt =', '''    // Point the D-cache RAM at the second word on the split edge. Its
++    // registered tag/data then align with the second request's check address.
++    wire [31:2] lookup_address = paired_ldm_split ? w[398:369] + 30'd1 : nominal_lookup_address;
++\tassign o_data_wb_adr_nxt =''')
++    start = source.index('module ngage2_arm9v2_decode (')
++    end = source.index('\nendmodule', start)
++    decode = issue_decode_overlay(source[start:end])
++    if address_hint:
++        decode = avoid_known_crossings(decode)
++    source = source[:start] + decode + source[end:]
++    start = source.index('module ngage2_arm9v2_front_decode (')
++    end = source.index('\nendmodule', start)
++    front = pair_dependency_port(source[start:end])
++    front = swap(front, '\t\t.i_locked(i_locked),', '\t\t.i_locked(i_locked),\n        .i_pair_dependencies(i_pair_dependencies),')
++    return source[:start] + front + source[end:]
++
++
++def pair_dependency_port(module):
++    module = swap(module, '\ti_locked,', '\ti_locked,\n    i_pair_dependencies,')
++    return swap(module, '\tinput wire [39:0] i_locked;', '\tinput wire [39:0] i_locked;\n    input wire [15:0] i_pair_dependencies;')
++
++
++def issue_decode_overlay(decode):
++    decode = pair_dependency_port(decode)
++    decode = swap(decode, '\t\t\t\tdecoded[42] = front[27-:5] == 1;', '''\t\t\t\tdecoded[42] = front[27-:5] == 1;
++                // ARM LDMIA with two ordinary destinations and no base writeback.
++                if (!front[18] && !front[17] && front[201:197] == 5'b01001 &&
++                    front[27-:5] == 2 && !front[64] && front[196:193] != 15 &&
++                    decoded[80+:6] < 15 && bank({1'b0, first16(front[47:33])}, transfer_mode) < 15) begin
++                    decoded[42] = 1;
++                    decoded[86+:6] = bank({1'b0, first16(front[47:33])}, transfer_mode);
++                end''')
++    label = '\t\t\tK_BLOCK: '
++    start = decode.index(label + 'decoded[79-:2] = ')
++    end = decode.index('\n', start)
++    decode = (decode[:start] + label + 'begin\n                ' + decode[start+len(label):end] + '''
++                if (decoded[42] && front[27-:5] == 2) decoded[79] = 1;
++            end''' + decode[end:])
++    return swap(decode, '\tassign o_hazard = d2_valid && ', '''    reg pair_dependency;
++    always @(*) begin
++        pair_dependency = 0;
++        for (integer src = 0; src < 4; src = src + 1)
++            if (d2[96+src] && d2[100+6*src+:6] < 16)
++                pair_dependency = pair_dependency | i_pair_dependencies[d2[100+6*src+:4]];
++    end
++\tassign o_hazard = d2_valid && (pair_dependency || ''').replace('|| |early_hazard);', '|| |early_hazard));')
++
++
++def avoid_known_crossings(decode):
++    return swap(decode, '\t\t\td2[372-:241] = d2_bank[d2_owner];', '''\t\t\td2[372-:241] = d2_bank[d2_owner];
++        // Use the low bits of the base available in decode as a hint only.
++        // W rechecks the effective address after operand forwarding.
++        if (d2[131-:4] == K_BLOCK && d2[43] && d2[42] && d2[40-:5] == 2 &&
++            d2[79] && (base_address_hint[1:0] != 0 || base_address_hint[4:2] == 7)) begin
++            d2[42] = 0;
++            d2[79] = 0;
++        end''').replace('reg [372:0] d2;', '''reg [372:0] d2;
++    wire [4:0] base_address_hint = i_wen && i_wr_pair && i_wr_tag_b == d2_q[100+:6] ? i_wr_data_b[4:0] :
++        i_wen && i_wr_tag_a == d2_q[100+:6] ? i_wr_data_a[4:0] : i_rf_value[4:0];''')
++
++
++def issue_core_overlay(core):
++    core = swap(core, '\ti_data_short_data,', '\ti_data_short_data,\n    i_data_short_next_word,\n    i_data_short_next_valid,')
++    core = swap(core, '\tinput wire [31:0] i_data_short_data;', '''\tinput wire [31:0] i_data_short_data;
++    input wire [31:0] i_data_short_next_word;
++    input wire i_data_short_next_valid;''')
++    core = swap(core, '\twire load_trust =', '''    localparam [3:0] LDM_PAIR = 4'd15;
++    wire paired_ldm_w = w[541] && w[8-:4] == LDM_PAIR;
++    wire paired_ldm_first = paired_ldm_w && w[537];
++    wire paired_ldm_response = paired_ldm_first && !wb_flush && !w_exception &&
++        request_done && !retry && !resp_err && (memory_state == 0 || memory_state == 1);
++    wire paired_ldm = paired_ldm_response && ack_now && w[336:335] == 0 &&
++        w[339:337] != 7 && w_load_hit && i_data_short_next_valid && !i_dc_lock_any;
++    wire paired_ldm_split = paired_ldm_response && !paired_ldm;
++    wire paired_ldm_shape = paired_ldm_first;
++    wire decoded_ldm_pair = d_valid && d_kind == BLOCK && d_first && d_last &&
++        d_reg_count == 2 && d_writes[1] && !d_instruction[21];
++    wire execute_ldm_pair = a_a_valid && a_kind == BLOCK && a_first && a_last &&
++        a_a_write[1] && !a_instruction[21];
++    function automatic [15:0] pair_destinations;
++        input valid;
++        input [11:0] tags;
++        begin
++            pair_destinations = valid ? (16'h1 << tags[5:0]) | (16'h1 << tags[11:6]) : 16'b0;
++        end
++    endfunction
++    // Keep dependent readers out of issue until both tags have data. A live
++    // paired completion can use the normal same-edge register write-through.
++    wire [15:0] pair_dependencies = pair_destinations(decoded_ldm_pair, d_dest) |
++        pair_destinations(execute_ldm_pair, a_a_dest) |
++        pair_destinations(m[541] && m[8-:4] == LDM_PAIR, m[103-:12]) |
++        pair_destinations(skid[541] && skid[8-:4] == LDM_PAIR, skid[103-:12]) |
++        pair_destinations(paired_ldm_w && !paired_ldm, w[103-:12]);
++\twire load_trust =''')
++    core = swap(core, '.i_locked(locked),', '.i_locked(locked),\n        .i_pair_dependencies(pair_dependencies),')
++    core = swap(core, 'input_record[8-:4] = a_kind;', '''input_record[8-:4] =
++            (a_kind == BLOCK && a_first && a_last && a_write[1] && !a_instruction[21]) ? 4'd15 : a_kind;''')
++    core = swap(core, 'assign mw_value[64+:64] = {w[60+:32],',
++                'assign mw_value[64+:64] = {paired_ldm ? i_data_short_next_word : w[60+:32],')
++    core = swap(core, 'if ((request_done && resp_err) && w_blkwb)\n\t\t\t\t\tcomplete_class[consumer] = 0;', '''if ((request_done && resp_err) && w_blkwb)
++                complete_class[consumer] = 0;
++            if (consumer != 0 && paired_ldm_split)
++                complete_class[consumer] = 0;''')
++    core = swap(core, '\t\tif (wb_flush) begin\n\t\t\tm_next[541] = 0;', '''        if (paired_ldm_split) begin
++            // The first request completed in order. Retain the instruction
++            // in W and use the ordinary memory path for the second address.
++            w_next = w;
++            w_next[366-:32] = w[366-:32] + 32'd4;
++            w_next[398-:32] = w[398-:32] + 32'd4;
++            w_next[92+:6] = w[98+:6];
++            w_next[98+:6] = 6'd16;
++            w_next[537] = 0;
++            w_next[27-:2] = 0;
++            w_cls_next = w_cls_of(w_next);
++            memory_state_next = 4'd4;
++        end
++\t\tif (wb_flush) begin
++\t\t\tm_next[541] = 0;''')
++    core = swap(core, 'wb_last = w[536] && !wb_restore;', 'wb_last = w[536] && !wb_restore && !paired_ldm_split;')
++    core = swap(core, '\t\tif ((w[8-:4] == BX) && w[540])', '''        if (paired_ldm_w) begin
++            wb_tag0 = paired_ldm ? w[98+:6] : 6'd16;
++            wb_data0 = i_data_short_next_word;
++        end
++\t\tif ((w[8-:4] == BX) && w[540])''')
++    return swap(core, '\t\t\tm <= m_next;', '''            if (paired_ldm_split)
++                w_load_select <= 64'd1 << w[98+:6];
++\t\t\tm <= m_next;''')
+--- /dev/null
++++ b/tests/cpu/polycount_v5/load_use.vh
+@@ -0,0 +1,50 @@
++// Original GLES index path. The halfword load's consumer is two instructions away.
++integer load_trace_lines = 0;
++integer load_retired[4], load_hit[4], load_same_cycle[4];
++wire [31:0] load_w_pc = `PCORE.w[526:495];
++wire [31:0] load_d2_pc = `PCORE.u_front_decode.u_decode.d2[372:341];
++
++function automatic [31:0] load_site(input integer slot);
++    case (slot)
++        0: load_site = 32'h10106c54;
++        1: load_site = 32'h10106c5c;
++        2: load_site = 32'h10106c60;
++        default: load_site = 32'h10106c6c;
++    endcase
++endfunction
++
++task reset_load_trace;
++    load_trace_lines = 0;
++    for (integer slot = 0; slot < 4; slot += 1) begin
++        load_retired[slot] = 0;
++        load_hit[slot] = 0;
++        load_same_cycle[slot] = 0;
++    end
++endtask
++
++task observe_load_trace;
++    if (load_trace_lines < 32 && `PCORE.u_front_decode.u_decode.d2_valid &&
++        load_d2_pc >= 32'h10106c54 && load_d2_pc <= 32'h10106c70) begin
++        $display("POLY_LOAD_TRACE frame=%0d cycle=%0d d2=%h hazard=%b s=%h s_valid=%b accept=%b a=%h a_valid=%b use=%b w=%h w_valid=%b hit=%b bypass=%b",
++            frame, cycles, load_d2_pc, `PCORE.d_hazard, `PCORE.d_pc, `PCORE.d_valid,
++            `PCORE.u_execute.accept, `PCORE.a_pc, `PCORE.a_a_valid, `PCORE.u_execute.finish,
++            load_w_pc, `PCORE.w[541], `PCORE.i_data_short_hit, `PCORE.w_load_hit);
++        load_trace_lines += 1;
++    end
++    for (integer slot = 0; slot < 4; slot += 1) begin
++        if (`PCORE.wb_valid && `PCORE.w[527] && load_w_pc == load_site(slot)) begin
++            load_retired[slot] += 1;
++            if (`PCORE.w_load_hit) begin
++                load_hit[slot] += 1;
++                if (`PCORE.u_execute.finish && `PCORE.a_pc == load_w_pc + (slot == 1 ? 32'd8 : 32'd4))
++                    load_same_cycle[slot] += 1;
++            end
++        end
++    end
++endtask
++
++task report_load_trace;
++    for (integer slot = 0; slot < 4; slot += 1)
++        $display("POLY_LOAD frame=%0d slot=%0d pc=%h loads=%0d hits=%0d same_cycle=%0d",
++                 frame, slot, load_site(slot), load_retired[slot], load_hit[slot], load_same_cycle[slot]);
++endtask
+--- /dev/null
++++ b/tests/cpu/polycount_v5/paired_ldm.py
+@@ -0,0 +1,94 @@
++"""Build a simulation overlay for two already-decoded resident LDM words."""
++
++from frame_gap_early import swap
++
++
++def pair_resident_loads(source):
++    return wire_paired_load_data(source, core_overlay)
++
++
++def wire_paired_load_data(source, transform_core):
++    start = source.index('module ngage2_arm9v2_core (')
++    end = source.index('\nendmodule', start)
++    source = source[:start] + transform_core(source[start:end]) + source[end:]
++    start = source.index('module ngage2_zap_dcache (')
++    end = source.index('\nendmodule', start)
++    source = source[:start] + cache_overlay(source[start:end]) + source[end:]
++    source = swap(source, '\twire [31:0] dc_short_data;', '''\twire [31:0] dc_short_data;
++    wire [31:0] dc_short_next_word;
++    wire dc_short_next_valid;''')
++    source = swap(source, '.i_data_short_data(dc_short_data),', '''.i_data_short_data(dc_short_data),
++                .i_data_short_next_word(dc_short_next_word),
++                .i_data_short_next_valid(dc_short_next_valid),''')
++    return swap(source, '.o_short_data(dc_short_data),', '''.o_short_data(dc_short_data),
++                .o_short_next_word(dc_short_next_word),
++                .o_short_next_valid(dc_short_next_valid),''')
++
++
++def core_overlay(core):
++    core = swap(core, '\ti_data_short_data,', '\ti_data_short_data,\n    i_data_short_next_word,\n    i_data_short_next_valid,')
++    core = swap(core, '\tinput wire [31:0] i_data_short_data;', '''\tinput wire [31:0] i_data_short_data;
++    input wire [31:0] i_data_short_next_word;
++    input wire i_data_short_next_valid;''')
++    core = swap(core, '\twire load_trust =', '''    // The decoder still emits both ordinary beats. Join them only once both
++    // are in order in W/M and the first would complete from a live D hit.
++    wire paired_ldm_shape = w[541] && m[541] && w[540] && m[540] &&
++        w[8-:4] == BLOCK && m[8-:4] == BLOCK && w[537] && !w[536] && !m[537] && m[536] &&
++        !w[539] && w[487:483] == 5'b01001 &&
++        w[526-:32] == m[526-:32] && w[494-:32] == m[494-:32] &&
++        w[92+:6] < 15 && m[92+:6] < 15 && w[92+:6] < m[92+:6];
++    wire paired_ldm_address = w[336:335] == 0 && w[339:337] != 7 &&
++        m[366-:32] == w[366-:32] + 32'd4;
++    wire paired_ldm = paired_ldm_shape && paired_ldm_address && memory_state == 0 &&
++        complete_class[0] && ack_now && !resp_err && !retry && !w_exception &&
++        !i_dc_lock_any && w_load_hit && i_data_short_next_valid;
++\twire load_trust =''')
++    core = swap(core, '\t\tnext_load_tag = {forward_tag[0+:6], a_a_dest[0+:6]};', '''        if (paired_ldm)
++            forward_load[1] = 0;
++\t\tnext_load_tag = {forward_tag[0+:6], a_a_dest[0+:6]};''')
++    core = swap(core, '\t\t\t\t\tw_cls_next = w_cls_of(m);\n\t\t\t\tend\n\t\t\t\telse begin', '''\t\t\t\t\tw_cls_next = w_cls_of(m);
++                    if (paired_ldm) begin
++                        // Keep the younger result visible on the normal W
++                        // forwarding lane for one clock. The beat already
++                        // committed, so it has no request or retire token.
++                        w_next[541] = 0;
++                        w_next[535] = 0;
++                        w_next[527] = 0;
++                        w_next[28+:32] = i_data_short_next_word;
++                        w_next[27-:2] = 2'b01;
++                        w_next[1:0] = 0;
++                        w_cls_next = 0;
++                    end
++\t\t\t\tend
++\t\t\t\telse begin''')
++    core = swap(core, 'wb_last = w[536] && !wb_restore;', 'wb_last = (w[536] || paired_ldm) && !wb_restore;')
++    return swap(core, '\t\tif ((w[8-:4] == BX) && w[540])', '''        if (paired_ldm) begin
++            wb_tag0 = m[92+:6];
++            wb_data0 = i_data_short_next_word;
++        end
++\t\tif ((w[8-:4] == BX) && w[540])''')
++
++
++def cache_overlay(cache):
++    cache = swap(cache, '\to_short_data,', '\to_short_data,\n    o_short_next_word,\n    o_short_next_valid,')
++    cache = swap(cache, '\toutput wire [31:0] o_short_data;', '''\toutput wire [31:0] o_short_data;
++    output reg [31:0] o_short_next_word;
++    output wire o_short_next_valid;''')
++    return swap(cache, '\tassign compare_address = i_address_check;', '''    localparam integer WORD_INDEX_WIDTH = LINE_W - 2;
++    wire [WORD_INDEX_WIDTH-1:0] next_word = compare_address[LINE_W-1:2] + 1'b1;
++    wire [CACHE_LINE*8-1:0] short_hit_line = raw_way_line[(raw_cache_word_sel && WAYS > 1) * CACHE_LINE*8 +: CACHE_LINE*8];
++    reg [31:0] short_next_word;
++    reg [31:0] short_pair_address;
++    always @(*) begin
++        short_next_word = short_hit_line[32*next_word +: 32];
++        if (forward_store && cache_write_way == (raw_cache_word_sel && WAYS > 1) &&
++            i_address[LINE_W-1:2] == next_word)
++            for (integer lane = 0; lane < 4; lane = lane + 1)
++                if (i_ben[lane]) short_next_word[8*lane +: 8] = i_dat[8*lane +: 8];
++    end
++    always @(posedge i_clk) if (!hold && !i_stall) begin
++        o_short_next_word <= short_next_word;
++        short_pair_address <= compare_address;
++    end
++    assign o_short_next_valid = o_short_hit && live_trust && short_pair_address == i_address;
++\tassign compare_address = i_address_check;''')
+--- /dev/null
++++ b/tests/cpu/polycount_v5/replay.S
+@@ -0,0 +1,52 @@
++.syntax unified
++.cpu arm920t
++.arm
++.section .vectors,"ax"
++.global _start, frame_begin, frame_end, finished, expected_tls
++_start:
++    b boot
++    b failed
++    b failed
++    b failed
++    b failed
++    b failed
++    b failed
++    b failed
++
++boot:
++    ldr r2,=0x0a020000
++    mcr p15,0,r2,c2,c0,0
++    mov r2,#1
++    mcr p15,0,r2,c3,c0,0
++    mcr p15,0,r2,c8,c7,0
++    mrc p15,0,r2,c1,c0,0
++    orr r2,r2,#0x1000
++    orr r2,r2,#0x000d
++    mcr p15,0,r2,c1,c0,0
++    nop
++    nop
++    nop
++    ldr sp,=0x20020000
++    mov r8,#4
++frame:
++    ldr r0,=0x20000200
++    mov r1,#0
++    ldr r12,=0x10001e00
++    mov lr,pc
++frame_begin:
++    bx r12
++frame_end:
++    subs r8,r8,#1
++    bne frame
++
++    mov r0,#0
++    mcr p15,0,r0,c7,c10,0
++    mcr p15,0,r0,c7,c10,4
++finished:
++    b finished
++failed:
++    b failed
++expected_tls:
++    ldr r0,=0x20040000
++    bx lr
++    .ltorg
+--- /dev/null
++++ b/tests/cpu/polycount_v5/replay.vh
+@@ -0,0 +1,254 @@
++`define PCPU dut.board.upp.cpu_inside.cpu.u_arm925t
++`define PZAP `PCPU.u_zap
++`define PCORE `PZAP.g_arm9.u_arm9_core
++`define PCOFF `PZAP.l_generate_with_cache_mmu.u_code_cache
++
++reg [7:0] snapshot[0:10485759];
++string snapshot_path, results_path;
++integer snapshot_fd, snapshot_size, offset;
++reg [23:0] cell_address;
++reg [31:0] probe_begin, probe_end, probe_done, probe_fail;
++reg [2:0] frame = 0;
++integer start_clock = -1, retired = 0, interior_uops = 0, draw_calls = 0, swaps = 0;
++integer instr_fills = 0, data_fills = 0, iwalk_words = 0, dwalk_words = 0;
++integer imem_wait = 0, d_wait = 0, iwalk_wait = 0, d_walk_wait = 0;
++integer execute_wait = 0, front_wait = 0, other = 0;
++integer results_fd;
++integer i_wait_by_pc[longint unsigned];
++integer execute_by_pc[longint unsigned];
++integer data_by_pc[int unsigned];
++integer uops_by_pc[int unsigned];
++integer iwait_file;
++reg workload_done = 0;
++`ifdef POLYCOUNT_PAIRED_LDM
++integer pairs = 0;
++integer pair_shapes = 0;
++`endif
++`ifdef POLYCOUNT_ISSUE_LDM
++integer pair_splits = 0;
++integer pair_address_splits = 0;
++integer pair_dependency_wait = 0;
++`define PDEC `PCORE.u_front_decode.u_decode
++`endif
++wire [31:0] execution_pc = (`PCPU.dbg_stall[7] || `PCPU.dbg_stall[5]) ? `PCORE.w[526-:32] :
++                           (`PCPU.dbg_stall[6] || `PCPU.dbg_stall[4]) ? `PCORE.a_pc : `PCORE.d_pc;
++
++function automatic [23:0] sdram_cell(input [24:0] address);
++    sdram_cell = {address[13:12], address[24:14], address[11:10], address[9:1]};
++endfunction
++
++task automatic dump_region(input integer fd, input [24:0] address, input integer bytes);
++    reg [23:0] pin_cell;
++    reg [15:0] word_half;
++    for (integer i = 0; i < bytes; i = i + 2) begin
++        pin_cell = sdram_cell(address + i);
++        case (pin_cell[23:22])
++            0: word_half = memory.Bank0[pin_cell[21:0]];
++            1: word_half = memory.Bank1[pin_cell[21:0]];
++            2: word_half = memory.Bank2[pin_cell[21:0]];
++            3: word_half = memory.Bank3[pin_cell[21:0]];
++        endcase
++        $fwrite(fd, "%c%c", word_half[7:0], word_half[15:8]);
++    end
++endtask
++
++initial begin
++    if (!$value$plusargs("snapshot=%s", snapshot_path) ||
++        !$value$plusargs("results=%s", results_path) ||
++        !$value$plusargs("begin_pc=%h", probe_begin) ||
++        !$value$plusargs("end_pc=%h", probe_end) ||
++        !$value$plusargs("done_pc=%h", probe_done) ||
++        !$value$plusargs("fail_pc=%h", probe_fail)) $fatal(1,"PolyCount arguments required");
++    snapshot_fd = $fopen(snapshot_path, "rb");
++    if (!snapshot_fd) $fatal(1,"Missing render snapshot");
++    snapshot_size = $fread(snapshot, snapshot_fd);
++    $fclose(snapshot_fd);
++    if (snapshot_size < 32'h440000 || snapshot_size[0]) $fatal(1,"Bad snapshot length");
++    for (offset = 32'h20000; offset < snapshot_size; offset = offset + 2) begin
++        cell_address = sdram_cell(offset);
++        case (cell_address[23:22])
++            0: memory.Bank0[cell_address[21:0]] = {snapshot[offset+1],snapshot[offset]};
++            1: memory.Bank1[cell_address[21:0]] = {snapshot[offset+1],snapshot[offset]};
++            2: memory.Bank2[cell_address[21:0]] = {snapshot[offset+1],snapshot[offset]};
++            3: memory.Bank3[cell_address[21:0]] = {snapshot[offset+1],snapshot[offset]};
++        endcase
++    end
++    iwait_file = $fopen({results_path,".ifetch"}, "w");
++    if (!iwait_file) $fatal(1,"Cannot open I-cache observer");
++end
++
++// The buckets partition elapsed clocks. Hit/retire and older backpressure
++// mask instruction-refill clocks that overlap useful work or a D-side stall.
++always @(posedge clk) if (!reset) begin
++`ifdef NGAGE_IC_HUM
++    observe_icache_hum(int'(cycles));
++`endif
++`ifdef NGAGE_IC_RESTART
++    observe_icache_restart(int'(cycles));
++`endif
++`ifdef NGAGE_CONTROL_FLOW
++    observe_control_flow(cycles);
++`endif
++    if ((|exceptions) || (retire && retire_pc == probe_fail))
++        $fatal(1,"Unexpected guest fault cycle=%0d fetch=%h retire=%h exceptions=%b",cycles,fetch_pc,retire_pc,exceptions);
++    if (retire && retire_pc == probe_begin) begin
++`ifdef NGAGE_IC_HUM
++        reset_icache_hum();
++`endif
++`ifdef NGAGE_IC_RESTART
++        reset_icache_restart();
++`endif
++`ifdef NGAGE_CONTROL_FLOW
++        reset_control_flow();
++`endif
++`ifdef NGAGE_COUNT_STORE_LIST
++        reset_store_list();
++`endif
++`ifdef NGAGE_COUNT_LOAD_WAW
++        reset_load_waw();
++`endif
++`ifdef POLYCOUNT_LOAD_TRACE
++        reset_load_trace();
++`endif
++`ifdef NGAGE_COUNT_PREDICATE_BLOCKS
++        reset_predicate_counts();
++`endif
++        if (start_clock >= 0 || !`PZAP.cpu_mmu_en || !`PZAP.cpu_ic_en || !`PZAP.cpu_dc_en)
++            $fatal(1,"Invalid PolyCount entry");
++        start_clock = cycles;
++        retired = 0; interior_uops = 0; draw_calls = 0; swaps = 0;
++        instr_fills = 0; data_fills = 0; iwalk_words = 0; dwalk_words = 0;
++        imem_wait = 0; d_wait = 0; iwalk_wait = 0; d_walk_wait = 0;
++        execute_wait = 0; front_wait = 0; other = 0;
++`ifdef POLYCOUNT_PAIRED_LDM
++        pairs = 0; pair_shapes = 0;
++`endif
++`ifdef POLYCOUNT_ISSUE_LDM
++        pair_splits = 0;
++        pair_address_splits = 0;
++        pair_dependency_wait = 0;
++`endif
++    end else if (start_clock >= 0) begin
++`ifdef NGAGE_COUNT_STORE_LIST
++        observe_store_list(cycles);
++`endif
++`ifdef NGAGE_COUNT_LOAD_WAW
++        observe_load_waw();
++`endif
++`ifdef POLYCOUNT_LOAD_TRACE
++        observe_load_trace();
++`endif
++`ifdef NGAGE_COUNT_PREDICATE_BLOCKS
++        count_predicate_blocks();
++`endif
++`ifdef POLYCOUNT_PAIRED_LDM
++        if (`PCORE.paired_ldm) pairs += 1;
++        if (`PCORE.complete_class[0] && `PCORE.paired_ldm_shape) pair_shapes += 1;
++`endif
++`ifdef POLYCOUNT_ISSUE_LDM
++        if (`PCORE.paired_ldm_split) begin
++            pair_splits += 1;
++            if (`PCORE.w[336:335] != 0 || `PCORE.w[339:337] == 7) pair_address_splits += 1;
++        end
++        if (`PDEC.d2_valid && `PDEC.pair_dependency && (!`PDEC.out_valid || `PDEC.i_ready))
++            pair_dependency_wait += 1;
++`endif
++        instr_fills += `PCPU.dbg_icache[2];
++        data_fills += |`PCPU.dbg_dcache[1:0];
++        iwalk_words += `PCPU.dbg_icache[6];
++        dwalk_words += `PCPU.dbg_icache[7];
++        if (retire) retired += 1;
++        else if (`PCPU.dbg_wb_valid || `PCPU.dbg_wb_dvalid) begin
++            interior_uops += 1;
++            uops_by_pc[retire_pc] += 1;
++        end
++        else if (`PCPU.dbg_stall[0] || `PCORE.request) begin
++            if (`PZAP.l_generate_with_cache_mmu.u_data_cache.tlb_busy) d_walk_wait += 1;
++            else begin
++                d_wait += 1;
++                data_by_pc[`PCORE.w[526-:32]] += 1;
++            end
++        end else if (|`PCPU.dbg_stall[7:3]) begin
++            execute_wait += 1;
++            execute_by_pc[{27'b0,`PCPU.dbg_stall[7:3],execution_pc}] += 1;
++        end
++        else if (`PCPU.dbg_stall[2]) begin
++            if (`PCOFF.tlb_busy) iwalk_wait += 1;
++            else if (`PCPU.dbg_icache[5]) begin
++                imem_wait += 1;
++                i_wait_by_pc[{`PCOFF.u_zap_cache_fsm.address,`PZAP.c_wb_adr[31:5],5'b0}] += 1;
++            end else front_wait += 1;
++        end else other += 1;
++
++        if (retire && retire_pc == 32'h101147f0) draw_calls += 1;
++        if (retire && retire_pc == 32'h10101c9c) swaps += 1;
++        if (retire && retire_pc == probe_end) begin
++`ifdef NGAGE_IC_HUM
++            report_icache_hum(int'(frame));
++`endif
++`ifdef NGAGE_IC_RESTART
++            report_icache_restart(int'(frame));
++`endif
++`ifdef NGAGE_CONTROL_FLOW
++            report_control_flow(int'(frame));
++`endif
++`ifdef NGAGE_COUNT_STORE_LIST
++            report_store_list(int'(frame));
++`endif
++`ifdef NGAGE_COUNT_LOAD_WAW
++            report_load_waw(int'(frame));
++`endif
++`ifdef POLYCOUNT_LOAD_TRACE
++            report_load_trace();
++`endif
++`ifdef NGAGE_COUNT_PREDICATE_BLOCKS
++            report_predicate_counts(int'(frame));
++`endif
++            foreach (i_wait_by_pc[key])
++                $fdisplay(iwait_file,"%0d %08x %08x %0d", frame,key[63:32],key[31:0],i_wait_by_pc[key]);
++            foreach (execute_by_pc[key])
++                $fdisplay(iwait_file,"EXEC %0d %08x %02x %0d", frame,key[31:0],key[36:32],execute_by_pc[key]);
++            foreach (data_by_pc[key])
++                $fdisplay(iwait_file,"DATA %0d %08x %0d", frame,key,data_by_pc[key]);
++            foreach (uops_by_pc[key])
++                $fdisplay(iwait_file,"UOP %0d %08x %0d", frame,key,uops_by_pc[key]);
++            i_wait_by_pc.delete(); execute_by_pc.delete(); data_by_pc.delete(); uops_by_pc.delete();
++            if (draw_calls != 1 || swaps != 1) $fatal(1,"Unexpected draws/swaps");
++            if (retired+interior_uops+d_wait+d_walk_wait+execute_wait+iwalk_wait+imem_wait+front_wait+other != cycles-start_clock)
++                $fatal(1,"Cycle buckets overlap or omit clocks");
++            $display("POLY_FRAME frame=%0d clocks=%0d retired=%0d uops=%0d ifills=%0d dfills=%0d iwalk_words=%0d dwalk_words=%0d d_wait=%0d d_walk_wait=%0d execute_wait=%0d iwalk_wait=%0d exposed_i=%0d frontend=%0d other=%0d draws=%0d swaps=%0d",
++                      frame,cycles-start_clock,retired,interior_uops,instr_fills,data_fills,iwalk_words,dwalk_words,
++                      d_wait,d_walk_wait,execute_wait,iwalk_wait,imem_wait,front_wait,other,draw_calls,swaps);
++`ifdef POLYCOUNT_PAIRED_LDM
++            $display("POLY_PAIR frame=%0d paired=%0d shape=%0d", frame,pairs,pair_shapes);
++`endif
++`ifdef POLYCOUNT_ISSUE_LDM
++            $display("POLY_SPLIT frame=%0d splits=%0d address=%0d dependency_wait=%0d",
++                     frame,pair_splits,pair_address_splits,pair_dependency_wait);
++`endif
++            $fflush();
++            frame += 1;
++            start_clock = -1;
++        end
++    end
++    if (retire && retire_pc == probe_done) workload_done <= 1;
++    if (workload_done && sadapter.drained) begin
++        if (frame != 4 || errors || data_errors || clear_clocks != 1024)
++            $fatal(1,"Invalid PolyCount completion frame=%0d errors=%0d D2=%0d", frame,errors,clear_clocks);
++        results_fd = $fopen({results_path,".bin"},"wb");
++        if (!results_fd) $fatal(1,"Cannot open rendered output");
++        dump_region(results_fd, 25'h400200, 80);
++        dump_region(results_fd, INDEX_REGION, 28800);
++        dump_region(results_fd, COLOR_REGION, COLOR_BYTES);
++        dump_region(results_fd, DEPTH_REGION, DEPTH_BYTES);
++        $fclose(results_fd);
++        $fclose(iwait_file);
++        $display("PASS_POLYCOUNT cycles=%0d frames=%0d ddr_reads=%0d d2_lines=%0d", cycles,frame,d2_reads,clear_clocks);
++        $finish;
++    end
++end
++
++`undef PCOFF
++`undef PCORE
++`undef PZAP
++`undef PCPU
+--- /dev/null
++++ b/tests/cpu/polycount_v5/run.py
+@@ -0,0 +1,301 @@
++"""Replay the warm native torus with matched v5 memory RTL at 78 MHz."""
++
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++import json
++from pathlib import Path
++import re
++import struct
++import subprocess
++import sys
++
++ROOT = Path(__file__).resolve().parents[3]
++sys.path.insert(0, str(ROOT / 'tests/cpu/arm9v2_board'))
++sys.path.insert(0, str(ROOT / 'tools'))
++from payload_clocks import IMAGE, DOCKER, FIRMWARE, compile_phone, container_path, digest, find
++from frame_gap_donor_sdram import generate as wire_production_sdram
++from frame_gap_early import swap
++from capture import ROM_SHA, MODULE_SHA
++from paired_ldm import pair_resident_loads
++from issue_ldm import issue_paired_loads
++from predicate_block import predicate_block
++from load_waw import load_waw_overlay
++from gen_arm9v2_phone import direct_accumulate, schedule_early_smull, schedule_ready_register_shift
++
++FIXTURE = Path(__file__).resolve().parent
++PRODUCTION_NETLIST = ROOT / 'rtl/arm9v2/arm925t_phone.v'
++PIN_MODEL_SHA = '61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b'
++ISSUE_LDM_LEGS = ('issue-ldm', 'issue-ldm-one-gap', 'issue-ldm-address-hint')
++
++
++def prepare(out, capture, netlist, legs, trace_load_sites=False, load_waw_counts=False,
++            store_list_counts=False, control_flow_counts=False, icache_restart_counts=False, icache_hum_counts=False):
++    oracle = json.loads((capture / 'oracle.json').read_text())
++    assert oracle['rom_sha'] == ROM_SHA and oracle['module_sha'] == MODULE_SHA
++    frames = oracle['frames'][1:]
++    assert len(frames) == 4 and all(frame['draw'][:3] == [4, 14400, 0x1403] for frame in frames)
++    for frame in frames:
++        assert frame['jit'] == frames[0]['jit']
++        # No allocations or code generation in the steady windows. Only the
++        # native TLS service requires an equivalent guest stub in this replay.
++        assert frame['calls'] == {'0x503b363c': 15, '0x10101c9c': 1}
++    assert oracle['tls'] == {str(0x10100000): 0x20040000}
++
++    (out / 'arm925t-i16.v').write_text(netlist)
++    i32 = swap(netlist, 'ICACHE_SIZE = 16384;', 'ICACHE_SIZE = 32768;')
++    i32 = swap(i32, ".CP15_CTYPE(32'h0514a14a)", ".CP15_CTYPE(32'h0514a18a)")
++    (out / 'arm925t-i32.v').write_text(i32)
++    if 'direct-mac' in legs:
++        (out / 'arm925t-direct-mac.v').write_text(direct_accumulate(netlist))
++    if 'early-smull' in legs:
++        (out / 'arm925t-early-smull.v').write_text(schedule_early_smull(netlist))
++    if 'predicate-block' in legs:
++        (out / 'arm925t-predicate-block.v').write_text(predicate_block(netlist))
++    if 'load-waw' in legs:
++        (out / 'arm925t-load-waw.v').write_text(load_waw_overlay(netlist))
++    if 'ready-reg-shift' in legs:
++        (out / 'arm925t-ready-reg-shift.v').write_text(schedule_ready_register_shift(netlist))
++    if 'paired-ldm' in legs:
++        (out / 'arm925t-paired-ldm.v').write_text(pair_resident_loads(netlist))
++    for leg in ISSUE_LDM_LEGS:
++        if leg in legs:
++            candidate = issue_paired_loads(netlist, one_cycle_split=leg != 'issue-ldm',
++                                           address_hint=leg == 'issue-ldm-address-hint')
++            (out / f'arm925t-{leg}.v').write_text(candidate)
++
++    subprocess.run(['arm-none-eabi-gcc', '-c', '-mcpu=arm920t', '-marm', FIXTURE / 'replay.S',
++                    '-o', out / 'guest.o'], check=True)
++    subprocess.run(['arm-none-eabi-ld', '-T', ROOT / 'sim/programs/link.ld', out / 'guest.o',
++                    '-o', out / 'guest.elf'], check=True)
++    subprocess.run(['arm-none-eabi-objcopy', '-O', 'binary', out / 'guest.elf', out / 'guest.bin'], check=True)
++    symbols = {name: int(value, 16) for value, _, name in
++               (line.split() for line in subprocess.check_output(['arm-none-eabi-nm', out / 'guest.elf'],
++                                                                 text=True).splitlines())}
++    boot = (out / 'guest.bin').read_bytes()
++    core = bytearray((FIRMWARE / 'core.bin').read_bytes())
++    assert digest(core) == ROM_SHA and len(boot) < 0xa000
++    core[:len(boot)] = boot
++    (out / 'core.bin').write_bytes(core)
++    with (out / 'cdrive.bin').open('wb') as handle:
++        handle.truncate(4194304)
++    heap = (capture / 'heap.bin').read_bytes()
++    ram = bytearray(0x400000 + len(heap))
++    # ROM code remains XIP. E: application and GLES pages, guest heap,
++    # generated rasterizer and page tables use the production SDRAM decoder.
++    for virtual, physical in [(0, 0), (0x100, 0x0a100000), (0x101, 0x0a200000),
++                              (0x200, 0x0a400000), (0x503, 0x00300000)]:
++        struct.pack_into('<I', ram, 0x20000 + 4 * virtual, physical | 0xc0e)
++    patch_old = struct.pack('<I', 0x503b363c)
++    patch_new = struct.pack('<I', symbols['expected_tls'])
++    for name, addr in [('app', 0x100000), ('gles', 0x200000)]:
++        original = (capture / f'{name}.bin').read_bytes()
++        if name == 'gles':
++            assert original[0x19970:0x19974] == patch_old and original.count(patch_old) == 1
++            original = original.replace(patch_old, patch_new)
++        ram[addr:addr + len(original)] = original
++    ram[0x400000:] = heap
++    (out / 'snapshot.bin').write_bytes(ram)
++    for ideal_leg, geometry in (('ideal', 'i32'), ('ideal-i16', 'i16')):
++        if ideal_leg in legs:
++            prepare_ideal(out, core, ram, frames[0]['jit'], ideal_leg, geometry)
++    bench = (ROOT / 'tests/phone/hardware_boot/tb.v').read_text()
++    bench = wire_production_sdram(out, bench, production=True)
++    bench = swap(bench, 'if(cycles==BOUNDED_CYCLES)begin',
++                 'if(cycles==BOUNDED_CYCLES) $fatal(1,"PolyCount timeout PC=%h",fetch_pc);\n if(1\'b0) begin')
++    observe = (FIXTURE / 'replay.vh').read_text()
++    if icache_hum_counts:
++        helper = ROOT / 'tests/cpu/arm9v2_board/icache_hum_observe.vh'
++        observe = '`define NGAGE_IC_HUM\n' + helper.read_text() + observe
++    if icache_restart_counts:
++        helper = ROOT / 'tests/cpu/arm9v2_board/icache_restart_observe.vh'
++        observe = '`define NGAGE_IC_RESTART\n' + helper.read_text() + observe
++    if control_flow_counts:
++        helper = ROOT / 'tests/cpu/arm9v2_board/control_flow_observe.vh'
++        observe = '`define NGAGE_CONTROL_FLOW\n' + helper.read_text() + observe
++    if store_list_counts:
++        helper = ROOT / 'tests/cpu/arm9v2_board/store_list_observe.vh'
++        observe = '`define NGAGE_COUNT_STORE_LIST\n' + helper.read_text() + observe
++    if load_waw_counts:
++        helper = ROOT / 'tests/cpu/arm9v2_board/waw_load_observe.vh'
++        observe = '`define NGAGE_COUNT_LOAD_WAW\n' + helper.read_text() + observe
++    if trace_load_sites:
++        observe = '`define POLYCOUNT_LOAD_TRACE\n' + swap(observe, '\n`undef PCOFF',
++                    '\n' + (FIXTURE / 'load_use.vh').read_text() + '\n`undef PCOFF')
++    if 'predicate-block' in legs:
++        helper = ROOT / 'tests/cpu/arm9v2_board/predicate_block_observe.vh'
++        observe = '`define NGAGE_COUNT_PREDICATE_BLOCKS\n' + helper.read_text() + observe
++    color, depth = frames[-1]['buffers']
++    for name, value in [('COLOR_REGION', int(color[0], 16)), ('DEPTH_REGION', int(depth[0], 16)),
++                        ('INDEX_REGION', frames[-1]['draw'][3])]:
++        observe = observe.replace(name, f"25'h{value - 0x20000000 + 0x400000:x}")
++    observe = observe.replace('COLOR_BYTES', str(color[1])).replace('DEPTH_BYTES', str(depth[1]))
++    (out / 'tb.v').write_text(bench.rsplit('endmodule', 1)[0] + '\n' + observe + '\nendmodule\n')
++    return symbols
++
++
++def prepare_ideal(out, core, ram, jit, leg, geometry):
++    # Serve a hit for known immutable instruction addresses, using the real
++    # cache's checked address and data latch. Leave its I-TLB and bus intact.
++    raster_begin = min(start for start, _ in jit) & ~0xfff
++    raster_end = (max(end for _, end in jit) + 0xfff) & ~0xfff
++    heap_offset = 0x400000 - 0x20000000
++    locations = [
++        ('boot', 0, core[:0x1000]),
++        ('app', 0x10000000, ram[0x100000:0x114000]),
++        ('gles', 0x10100000, ram[0x200000:0x21a000]),
++        ('raster', raster_begin, ram[heap_offset + raster_begin:heap_offset + raster_end]),
++        ('rom', 0x50300000, core[0x300000:0x400000]),
++    ]
++    hdl = ['\treg ideal_hit;', '\treg [31:0] ideal_word;']
++    predicates = []
++    for name, base, data in locations:
++        limit = base + len(data)
++        path = out / f'ideal-{name}.hex'
++        path.write_text(''.join(f'{word:08x}\n' for word, in struct.iter_unpack('<I', data)))
++        hdl += [f'\treg [31:0] ideal_{name}[0:{len(data)//4-1}];',
++                f'\tinitial $readmemh("{container_path(path)}", ideal_{name});']
++        lower = f"i_address_check >= 32'h{base:08x} && " if base else ''
++        predicates.append(f"if ({lower}i_address_check < 32'h{limit:08x}) begin\n"
++                          f"\t\t\tideal_word = ideal_{name}[(i_address_check - 32'h{base:08x}) >> 2];\n"
++                          '\t\t\tideal_hit = 1;\n\t\tend')
++    hdl += ['\talways @(*) begin', '\t\tideal_hit = 0;', '\t\tideal_word = 0;',
++            '\t\t' + '\n\t\telse '.join(predicates), '\tend',
++            "\twire [WAYS*32-1:0] device_words;",
++            '\twire device_hit, device_word_sel;',
++            "\tassign raw_cache_words = ideal_hit ? {{(WAYS-1)*32{1'b0}}, ideal_word} : device_words;",
++            '\tassign raw_cache_hit = ideal_hit || device_hit;',
++            "\tassign raw_cache_word_sel = ideal_hit ? 1'b0 : device_word_sel;", '']
++    source = (out / f'arm925t-{geometry}.v').read_text()
++    start = source.index('module ngage2_zap_cache (')
++    end = source.index('\nendmodule', start)
++    part = source[start:end]
++    for old, new in [('o_cache_words(raw_cache_words)', 'o_cache_words(device_words)'),
++                     ('o_cache_hit(raw_cache_hit)', 'o_cache_hit(device_hit)'),
++                     ('o_cache_word_sel(raw_cache_word_sel)', 'o_cache_word_sel(device_word_sel)')]:
++        part = swap(part, old, new)
++    part = swap(part, '\tassign o_data_early =', '\n'.join(hdl) + '\tassign o_data_early =')
++    (out / f'arm925t-{leg}.v').write_text(source[:start] + part + source[end:])
++
++
++def run_leg(run, capture, pin_model, symbols, leg, cpu_wrapper=None, board_overlay=None):
++    out = run / leg
++    out.mkdir()
++    bench = (run / 'tb.v').read_text()
++    if leg in ('paired-ldm', *ISSUE_LDM_LEGS):
++        bench = '`define POLYCOUNT_PAIRED_LDM\n' + bench
++    if leg in ISSUE_LDM_LEGS:
++        bench = '`define POLYCOUNT_ISSUE_LDM\n' + bench
++    (out / 'tb.v').write_text(bench)
++    netlist = run / f'arm925t-{leg}.v'
++    exe = compile_phone(out, divider=2, hz=64, arm9v2_netlist=netlist, flash_cache_bytes=32768,
++                        sdram_model=pin_model, cpu_wrapper=cpu_wrapper, posted_writes=False, interleave=False,
++                        pin_waits=False, handoff=None, donor_sdram=True, stream_sdram=True, block_writeback=True, board_overlay=board_overlay)
++    files = {'snapshot': run / 'snapshot.bin', 'results': out / 'result', 'core': run / 'core.bin',
++             'extension': FIRMWARE / 'extension.bin', 'cdrive': run / 'cdrive.bin'}
++    args = [f'+{name}={container_path(path)}' for name, path in files.items()]
++    for name, symbol in [('begin', 'frame_begin'), ('end', 'frame_end'),
++                         ('done', 'finished'), ('fail', 'failed')]:
++        args.append(f'+{name}_pc={symbols[symbol]:x}')
++    log = out / 'run.log'
++    with log.open('w') as handle:
++        subprocess.run(DOCKER + [container_path(exe), IMAGE, '+ngage-compact-trace', '+no-board-log', *args],
++                       cwd=ROOT, stdout=handle, stderr=subprocess.STDOUT, check=True)
++    names = ('object', 'indices', 'surface0', 'surface1')
++    expected = b''.join((capture / f'{name}.bin').read_bytes() for name in names)
++    actual = (out / 'result.bin').read_bytes()
++    assert actual == expected, (leg, digest(actual), digest(expected))
++    completion, = find(log, 'PASS_POLYCOUNT ')
++    frames = find(log, 'POLY_FRAME ')
++    assert completion['frames'] == len(frames) == 4
++    assert completion['d2_lines'] == 1024
++    if leg == 'ideal':
++        assert all(frame['ifills'] == 0 and frame['exposed_i'] == 0 for frame in frames)
++    if leg in ('paired-ldm', *ISSUE_LDM_LEGS):
++        pairs = find(log, 'POLY_PAIR ')
++        assert len(pairs) == 4 and all(frame['paired'] > 0 for frame in pairs)
++        for frame, pair in zip(frames, pairs, strict=True):
++            assert frame['frame'] == pair['frame']
++            frame.update(paired=pair['paired'], pair_shapes=pair['shape'])
++    if leg in ISSUE_LDM_LEGS:
++        for frame, split in zip(frames, find(log, 'POLY_SPLIT '), strict=True):
++            assert frame['frame'] == split['frame']
++            frame['pair_splits'] = split['splits']
++            frame['pair_address_splits'] = split['address']
++            frame['pair_dependency_wait'] = split['dependency_wait']
++    print(f'{leg} passed with output SHA-256 {digest(actual)}', flush=True)
++    result = dict(frames=frames, completion=completion, output_sha=digest(actual),
++                  netlist_sha=digest(netlist.read_bytes()))
++    predicates = find(log, 'PREDICATE_BLOCK ')
++    if predicates:
++        assert [row['window'] for row in predicates] == list(range(4))
++        result['predicate_blocks'] = predicates
++    waw = find(log, 'LOAD_WAW ')
++    if waw:
++        assert [row['window'] for row in waw] == list(range(4))
++        result['load_waw'] = waw
++    stores = find(log, 'STORE_LIST ')
++    if stores:
++        assert [row['window'] for row in stores] == list(range(4))
++        result['store_list'] = stores
++    hum = find(log, 'HUM_WINDOW ')
++    if hum:
++        assert [row['window'] for row in hum] == list(range(4))
++        result['icache_hum'] = hum
++    fills = find(log, 'ICR_BUCKET ')
++    if fills:
++        result['icache_restart'] = fills
++    flow = find(log, 'FLOW_WINDOW ')
++    if flow:
++        assert [row['window'] for row in flow] == list(range(4))
++        result['control_flow'] = dict(windows=flow, buckets=find(log, 'FLOW_BUCKET '))
++    return result
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--name', required=True)
++    parser.add_argument('--capture', type=Path, required=True)
++    parser.add_argument('--pin-model', type=Path, required=True)
++    parser.add_argument('--netlist', type=Path, default=PRODUCTION_NETLIST,
++                        help='Base 16 KiB I-cache netlist (defaults to current production RTL)')
++    parser.add_argument('--trace-load-sites', action='store_true', help='trace known GLES scalar load-use sites')
++    parser.add_argument('--load-waw-counts', action='store_true', help='count repeated scalar-load destination interlocks')
++    parser.add_argument('--board-overlay', type=Path, help='alternate line-guarantee integration files')
++    parser.add_argument('--icache-hum-counts', action='store_true')
++    parser.add_argument('--icache-restart-counts', action='store_true')
++    parser.add_argument('--cpu-wrapper', type=Path)
++    parser.add_argument('--control-flow-counts', action='store_true', help='measure branch-to-successor issue clocks')
++    parser.add_argument('--store-list-counts', action='store_true', help='count passed store words and resident pairs')
++    parser.add_argument('--legs', nargs='+',
++                        choices=['i16', 'i32', 'ideal', 'ideal-i16', 'direct-mac', 'early-smull', 'ready-reg-shift',
++                                 'paired-ldm', 'predicate-block', 'load-waw', *ISSUE_LDM_LEGS],
++                        default=['i16', 'i32', 'ideal'])
++    args = parser.parse_args()
++    if not re.fullmatch(r'[a-zA-Z0-9_-]+', args.name) or len(set(args.legs)) != len(args.legs):
++        parser.error('Use an alphanumeric run name and distinct legs')
++    run = ROOT / 'build/sim/polycount' / args.name
++    run.mkdir(parents=True)
++    capture = args.capture.resolve()
++    model = run / 'mt48lc16m16a2.v'
++    pin_model = args.pin_model.read_bytes()
++    assert digest(pin_model) == PIN_MODEL_SHA
++    model.write_bytes(pin_model)
++    netlist = args.netlist.read_bytes()
++    wrapper = None
++    if args.cpu_wrapper:
++        wrapper = run / 'ngage_cpu.sv'
++        wrapper.write_bytes(args.cpu_wrapper.read_bytes())
++    symbols = prepare(run, capture, netlist.decode(), args.legs, args.trace_load_sites,
++                      args.load_waw_counts, args.store_list_counts, args.control_flow_counts, args.icache_restart_counts, args.icache_hum_counts)
++    with ThreadPoolExecutor(max_workers=2) as pool:
++        jobs = {leg: pool.submit(run_leg, run, capture, model, symbols, leg, wrapper, args.board_overlay.resolve() if args.board_overlay else None) for leg in args.legs}
++        results = {leg: job.result() for leg, job in jobs.items()}
++    assert len({tuple(frame['retired'] for frame in result['frames']) for result in results.values()}) == 1
++    (run / 'result.json').write_text(json.dumps(dict(status='PASS', results=results, pin_model_sha=PIN_MODEL_SHA,
++                                                     base_netlist_sha=digest(netlist),
++                                                     snapshot_sha=digest((run / 'snapshot.bin').read_bytes())),
++                                             indent=2) + '\n')
++
++
++if __name__ == '__main__':
++    main()

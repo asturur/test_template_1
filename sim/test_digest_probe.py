@@ -11,7 +11,7 @@ import digest_probe as probe
 class DigestProbeChecks(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.temp=tempfile.TemporaryDirectory(prefix='digest-probe-checks-')
+        cls.temp=tempfile.TemporaryDirectory(prefix='digest-probe-checks-',dir=probe.ROOT/'scratch')
         cls.root=Path(cls.temp.name)
         cls.core=probe.ROOT/'firmware/SYM.ROM'
         cls.tail=probe.ROOT/'build/firmware/nem4-extension/extension.bin'

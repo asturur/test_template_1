@@ -1,3 +1,131 @@
+## 2026-11-20: Bomberman session hardware reset
+
+Physical MiSTer with DDR build tag `261120`. The pre-crash screenshot shows
+Bomberman Stage 1-1, and the post-crash screenshot shows the Nokia logo.
+DDR text records shutdown of threads 74, 135 and 61. The raw NGD ring retains
+the subsequent `hw_reset_generate` diagnostic on the NOS trace port.
+
+The last advancing snapshot is sequence 541887299. Sequence 541887300 shows
+the CPU at Thumb PC `0x514c11b2`, CPSR `0x200000fb`, with both interrupt masks
+set. The last acknowledged transfer is to physical `0x0c150000` with the
+halfword duplicated on the data bus as `0x00040004`. The fetch count keeps
+advancing from the same PC while acknowledgments stay at 1317654201. Reset
+generation stays at zero, the bus-error count stays at its pre-existing three,
+and the kernel panic mask stays clear. The retained NGD fetch fault
+`0x0c0047e4` is present in the first captured snapshot, before the game run.
+
+The verified stock NEM-4 4.03 image identifies the sequence as a halfword write
+of `0x0004` to virtual `0x58150000`, followed at `0x514c11b2` by a branch to
+itself. The UPP routes the accepted halfword to `gpio15_ram`. The phone-reset
+gate in `Template.sv` receives only the MiSTer framework reset, OSD Reset and
+the mapped controller reset button. Thus the requested reset has no modeled
+effect on the running core. The alternate firmware path for reason `0x0c`
+writes `0x0008`; the observed `0x0004` is shared by multiple callers and
+cannot identify the reason. The actual NEM-4 reset scope and timing require
+separate qualification before adding an RTL side effect.
+
+The user reports a bomb exploding shortly after starting gameplay, with
+previous instances after two ordinary explosions. The three
+`SHUTDOWN: App with ThreadId … has exited` messages belong to stock
+`EikSrv.dll`. The last sampled button was 14.75 seconds before the park,
+with no power-key bit seen at the 4 Hz snapshot rate. This does not rule out a
+short input. The original capture does not contain the reset caller or
+reason. A volatile repeat uses guarded probes at the NOS reset argument
+write (`0x514c1144`) and kernel `Plat::Reset` entry (`0x50324dc4`).
+The probe retains the original checksum check and passed 42 synthetic
+ARM/Thumb ABI cases. The repeat uses the same fitted RBF and Bomberman card,
+with background save disabled for the instrumented boot.
+
+The first controlled repeat reproduced the park after a 200 ms keypad-5 press
+and a Down input in Stage 1-1. Shutdown logging began 0.105 seconds after the
+keypad-5 sample and before the sampled Down input. No explosion frame was
+recorded. The firmware observer emitted `@N:00000015:514c2177`, identifying
+`MTC:PO:HW_RESET_POWER_OFF_RTC`. There was no `Plat::Reset` probe record.
+
+In stock firmware the RTC shutdown callback queries UEM logical register
+`0x15` (CBUS `0x35`) and immediately returns true when bit 3 is high. The
+fitted UEM read unconditionally ORs in `0x0008`, so clearing the stored
+alarm status cannot make that read low. An offline run of the original
+Nokia instructions with controlled service replies reproduces reset
+`0x15` with bit 3 set and no scheduled alarm. With bit 3 clear, the no-alarm
+and six-second-away controls choose ordinary power-off, and the alarm
+four seconds away still chooses the RTC reset. This identifies the false
+RTC result once the firmware enters power-off. It does not establish
+what initiated the shutdown.
+
+The expanded repeat reached Bomberman after confirming `1P game`. Its first
+park was snapshot 541896708, two seconds before the only subsequent
+keypad-5 sample (541896716). The game had already rendered a bomb on its
+own. Thus a manual bomb press is unnecessary to reproduce the symptom.
+Before the park, the stock path logged these probe records in order:
+
+| Relative to park snapshot | Probe evidence |
+| --- | --- |
+| −2.513 s | `@T:00000100:51599ff7`: MTC transition with target state 0, reached via the MTC internal event handler for type `0xf0`, subtype `0x0d`. |
+| −1.277 s | EikSrv starts logging the shutdown exits. |
+| −0.060 s | `@S:00000001:514c6599`: MTC state machine calls the power-off routine. `@R:514a4d44:514c2163`: the routine calls the expected RTC wrapper. `@N:00000015:514c2177`: it selects the RTC reset. |
+
+The MTC event handler completes an in-progress transition. The requester
+that started it is outside the recorded probe points. The original trace
+and both repeats park on the same GPIO write with reset generation zero.
+The expanded probe passed 54 offline continuation/ABI cases before use.
+After the repeats, the same fitted core and card were reloaded, the full
+stock ROM hash was verified, and the CPU advanced with the original
+Background save On setting. No production fix was installed.
+
+Local evidence: `scratch/crash-debug/ddr-20261120T075330Z.jsonl`,
+`scratch/crash-debug/screen-20261120T075910Z.png`, and
+`scratch/crash-debug/crash-20261120T075942Z.png`. Instrumented evidence:
+`scratch/crash-debug/reset-observer/repeat.jsonl` and
+`scratch/crash-debug/reset-observer/upstream.jsonl`.
+[Original-code RTC branch controls](../tests/historical/bomberman-reset-20261120/rtc_branch.py).
+[Rebuild the observer](../tests/historical/bomberman-reset-20261120/prepare.py).
+
+### Bomberman binary and UEM alarm
+
+Read the installed MMC without changing the running core. Its SHA-256 is
+`1bcb220afea6e7b593c8aad928de0d7b9974848febabc1a0c2573395855a3a60`. The
+FAT12 audit passed, and the extracted `6R29.APP` SHA-256 is
+`2ae0a18fc258c10a9eeb9c3d7d8abc9d6a7b0afff90207be9fef1b0806a56cee`.
+Its code embeds version 1.0.2. The app and the card's GameComms, GameUtils
+and LightDrv are uncompressed ARM E32 images. Each import block's ordinal
+list matches the import slots following the text section. Local ARM listings
+and import tables are under `build/bomberman-analysis/`. Listing addresses
+use the E32 link base `0x10000000`. Embedded tables can appear as instructions
+in a linear listing.
+
+- The app's direct `CEikAppUi::Exit` calls are at `0x10005d38` and
+  `0x10005dc0`. The latter is reached for error `-4` (`KErrNoMemory`).
+  The checked imports contain no `UserSvr::ResetMachine`, `UserHal::SwitchOff`,
+  `HAL::Set` or EikSrv shutdown entry. This bounds the direct imports only.
+- Bomberman uses System Agent queries and notifications. Its GameUtils helper
+  queries battery/charger UIDs `0x100052d3` and `0x100052c9`, and its
+  LightDrv calls `RDosLights::SwitchLights`, which sends DOS-server IPC
+  `0x258` in the inspected NEM-4 DSClient. GameUtils also
+  tries to load the optional `z:\system\libs\vbrdrv.dll`, which is absent
+  from the inspected NEM-4 ROM directory. The preserved Sega Rally
+  `6R12.APP` imports the same media stream library and has no GameUtils,
+  LightDrv or System Agent dependency.
+- The mounted Bomberman image has an unused `ENGAGE_ENGAGE_ENGAGE!` import
+  string and two active import blocks naming the same audio library and
+  ordinal. The main constructor reaches the real audio import from
+  `0x100001d8`. The other block's apparent thunk at `0x1003bca0` begins
+  with `bx lr` and returns immediately when called from `0x10000c28`.
+  These are properties of the tested image. There is no original
+  comparison image to attribute that stub or connect it to the shutdown.
+
+The RTL candidate removes the constant bit from CBUS register `0x35`.
+Firmware can acknowledge bit 3 by writing `0x0008` to that register.
+The regression checks the clear before and after the staged startup alarm,
+the independent power-key bit, and a later periodic IRQ with no new alarm.
+The old RTL fails at the first read after acknowledgement (`0x0018` versus
+`0x0010`). The staged boot alarm remains an explicit approximation.
+Both CBUS power-up profiles, board IRQ routing, registered peripheral
+responses, 78/104 MHz clocks, and all four native RTC CPU/HAL cases passed.
+The candidate has not run on MiSTer.
+There is no measured evidence associating the game's lighting, battery
+queries, modified import thunk or audio paths with the upstream MTC request.
+
 ## 2026-11-16: Passive memory-path wait observations
 
 Existing reserved snapshot words245..251 carry router and NOR state. No snapshot

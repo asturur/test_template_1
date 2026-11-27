@@ -1,0 +1,75 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index bb4bd15..ba79383 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -422,6 +422,7 @@ module ngage2_arm9v2_core (
+ 	parameter [31:0] DATA_CACHE_LINE = 64;
+ 	parameter [31:0] DATA_CACHE_WAYS = 1;
+ 	parameter [0:0] LOAD_FORMATTED = 1'd0;
++	parameter WAW_WAIT_RETIRE = 1'b0;
+ 	parameter [31:0] CODE_CACHE_LINE = 64;
+ 	parameter [31:0] RESET_VECTOR = 32'd0;
+ 	parameter [31:0] CPSR_INIT = 32'h000000d3;
+@@ -1425,12 +1426,14 @@ module ngage2_arm9v2_core (
+     wire s_wait_older = s_order_load &&
+         (m_same_writer || skid_same_writer || (i_dc_lock_any && i_dc_lock_tag == s_writer_tag));
+     wire s_wait_w_nohit = s_order_load && w_same_writer;
+-    wire s_wait_w_hit = s_wait_w_nohit &&
+-        !(load_trust && wb_valid && request_done && !retry && !resp_err);
++    // Only the same-destination guard waits for W to retire.
++    wire s_wait_w_hit = s_wait_w_nohit && (WAW_WAIT_RETIRE ||
++        !(load_trust && wb_valid && request_done && !retry && !resp_err));
+ `ifndef SYNTHESIS
+     wire s_waw_ref = d_valid && d_advanced_load_writer &&
+         (m_same_writer || skid_same_writer || (i_dc_lock_any && i_dc_lock_tag == s_writer_tag) ||
+-         (w_same_writer && !(w_load_hit && wb_valid && request_done && !retry && !resp_err)));
++         (w_same_writer && (WAW_WAIT_RETIRE ||
++             !(w_load_hit && wb_valid && request_done && !retry && !resp_err))));
+     always @(posedge i_clk)
+         if (!i_reset &&
+             (s_wait_older || ((w_hit && i_data_short_hit) ? s_wait_w_hit : s_wait_w_nohit)) !== s_waw_ref)
+@@ -15951,6 +15954,7 @@ module ngage2_zap_top (
+ 				.DATA_CACHE_LINE(DATA_CACHE_LINE),
+ 				.DATA_CACHE_WAYS(DATA_CACHE_WAYS),
+ 				.LOAD_FORMATTED(1'b1),
++				.WAW_WAIT_RETIRE(1'b1),
+ 				.CODE_CACHE_SIZE(CODE_CACHE_SIZE),
+ 				.CODE_CACHE_LINE(CODE_CACHE_LINE),
+ 				.CPSR_MODE(ZAP_CPSR_MODE),
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index 75b39c4..7175211 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -1348,6 +1348,24 @@ def prepare_wishbone_write_data(phone):
+     return ''.join(modules)
+ 
+ 
++def wait_for_w_load_retirement(phone):
++    """Remove same-destination release on a live trusted completion."""
++    phone = edit(phone, '\tparameter [0:0] LOAD_FORMATTED = 1\'d0;',
++                 '\tparameter [0:0] LOAD_FORMATTED = 1\'d0;\n'
++                 '\tparameter WAW_WAIT_RETIRE = 1\'b0;')
++    phone = edit(phone, '''    wire s_wait_w_hit = s_wait_w_nohit &&
++        !(load_trust && wb_valid && request_done && !retry && !resp_err);''',
++                 '''    // Only the same-destination guard waits for W to retire.
++    wire s_wait_w_hit = s_wait_w_nohit && (WAW_WAIT_RETIRE ||
++        !(load_trust && wb_valid && request_done && !retry && !resp_err));''')
++    phone = edit(phone,
++                 '(w_same_writer && !(w_load_hit && wb_valid && request_done && !retry && !resp_err)));',
++                 '(w_same_writer && (WAW_WAIT_RETIRE ||\n'
++                 '             !(w_load_hit && wb_valid && request_done && !retry && !resp_err))));')
++    return edit(phone, '\t\t\t\t.LOAD_FORMATTED(1\'b1),',
++                '\t\t\t\t.LOAD_FORMATTED(1\'b1),\n\t\t\t\t.WAW_WAIT_RETIRE(1\'b1),')
++
++
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
+@@ -1381,6 +1399,7 @@ def main():
+     generated = register_background_load_tag(generated)
+     generated = resolve_execute_forward_candidates(generated)
+     generated = split_execute_readiness(generated)
++    generated = wait_for_w_load_retirement(generated)
+     generated = move_fetch_payload_to_ram(generated)
+     if args.hinted_ldm:
+         generated = issue_hinted_ldm(generated, edit)

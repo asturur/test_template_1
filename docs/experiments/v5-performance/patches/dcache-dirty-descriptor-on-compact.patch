@@ -1,0 +1,66 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index ef351e0..7d6a04e 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -18316,7 +18316,9 @@ module ngage2_zap_dcache_half_tag_ram (
+ 		dirty_write_way = pend_sel;
+ 		dirty_write_data = pend_dirty;
+ 		dirty_write_mask = pend_dirty_mask;
+-		if (tag_ram_clean || line_clear) begin
++        // Leaving IDLE clears the pending store. A maintenance ACK
++        // enables the held descriptor without selecting its address or data.
++        if (!pend_en) begin
+ 			dirty_write_set = rd_flat_ff[SET_W - 1:0];
+ 			begin : sv2v_autoblock_11
+ 				reg signed [31:0] w;
+@@ -18332,6 +18334,11 @@ module ngage2_zap_dcache_half_tag_ram (
+ 		else if ((!line_mode_ff && (state_ff != 13'b0000000000001)) && (state_ff != 13'b0000001000000))
+ 			dirty_read_group = (DIRTY_GROUPS > 1 ? sv2v_cast_3A332(blk_ctr_nxt) : {DIRTY_GROUP_W {1'sb0}});
+ 	end
++`ifndef SYNTHESIS
++    always @(posedge i_clk)
++        if (!i_reset && pend_en && state_ff != 13'b0000000000001)
++            $fatal(1, "Pending dirty store outside D-cache tag IDLE");
++`endif
+ 	function automatic [WAY_W - 1:0] sv2v_cast_19C97;
+ 		input reg [WAY_W - 1:0] inp;
+ 		sv2v_cast_19C97 = inp;
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index ec5af20..8c9917c 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -1463,6 +1463,26 @@ def prepare_wishbone_write_data(phone):
+     return ''.join(modules)
+ 
+ 
++def preselect_dirty_clear_descriptor(phone):
++    """Select the pending store or held dirty-metadata descriptor before ACK."""
++    start = phone.index('module ngage2_zap_dcache_half_tag_ram (')
++    end = phone.index('\nendmodule', start)
++    tags = edit(phone[start:end],
++                '\t\tif (tag_ram_clean || line_clear) begin\n\t\t\tdirty_write_set =',
++                '''        // Leaving IDLE clears the pending store. A maintenance ACK
++        // enables the held descriptor without selecting its address or data.
++        if (!pend_en) begin
++\t\t\tdirty_write_set =''')
++    tags = edit(tags, '\tfunction automatic [WAY_W - 1:0] sv2v_cast_19C97;',
++                '''`ifndef SYNTHESIS
++    always @(posedge i_clk)
++        if (!i_reset && pend_en && state_ff != 13'b0000000000001)
++            $fatal(1, "Pending dirty store outside D-cache tag IDLE");
++`endif
++\tfunction automatic [WAY_W - 1:0] sv2v_cast_19C97;''')
++    return phone[:start] + tags + phone[end:]
++
++
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
+@@ -1502,6 +1522,7 @@ def main():
+         generated = issue_hinted_ldm(generated, edit)
+     generated = keep_wishbone_request_boundary(generated)
+     generated = prepare_wishbone_write_data(generated)
++    generated = preselect_dirty_clear_descriptor(generated)
+     if args.check:
+         if output.read_text() != generated:
+             raise ValueError('Phone netlist is out of date')

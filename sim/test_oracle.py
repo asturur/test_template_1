@@ -17,7 +17,9 @@ import oracle
 class OracleChecks(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.temporary = tempfile.TemporaryDirectory(prefix='oracle-checks-')
+        scratch = oracle.ROOT / 'scratch'
+        scratch.mkdir(exist_ok=True)
+        cls.temporary = tempfile.TemporaryDirectory(prefix='oracle-checks-', dir=scratch)
         cls.directory = Path(cls.temporary.name)
         cls.build = cls.directory / 'build'
         cls.build.mkdir()

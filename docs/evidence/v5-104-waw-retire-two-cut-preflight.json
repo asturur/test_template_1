@@ -1,0 +1,110 @@
+{
+  "status": "PASS",
+  "production_qualified": "preflight",
+  "two_cut": "ab75a622a80a5aedae347f63ae195f3da965815a",
+  "public_parent": "0c64862ebd8c5c85830a931c7f68b6b429a32076",
+  "restore": "0aeb6c621078bc7006fd455ac24604fd6fa6dbe0",
+  "private_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/waw-retire-two-cut/followup-20261126/objects",
+  "alternate_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/d-completion-merger/followup-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/w-completion-upp/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/upp-claim-refill-payload/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/refill-payload-after-a-only/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/.git/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/a-only-product-ram-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/tlb-fifo-refill-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/refill-payload-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/sdram-block-payload/followup-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-dirty-compact-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-compact-owner-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-footer-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/timer-live-trust-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-live-trust/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lltune-clock/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lane13-mmc-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-count-prepare/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/wb-reply-class/dispatch-20261126/objects",
+  "staged_source_sha256": "d3abf07a7e1ee51341b0359594980859a22a4fd0640791fb90960d9be294e664",
+  "design_patch_sha256": "a4717b4af199e9e8bbc901a195e62a2bce1ef963ded46a89e2d68894becc27c1",
+  "stack_patch_sha256": "db5f5b3bd2fce609c3d16cc1d694c93711a1d5b291db9f076d768c83ecc70ab3",
+  "variants": {
+    "waw-on-two-cut": {
+      "sha": "0bd02b3ed9df7abc5fbcade1281889ff213b9639",
+      "parent": "0aeb6c621078bc7006fd455ac24604fd6fa6dbe0",
+      "tree": "c2522f9f74efcd3047bb300f84acc62c1821fe6c",
+      "paths_since_parent": [
+        "rtl/arm9v2/arm925t_phone.v",
+        "tools/gen_arm9v2_phone.py"
+      ],
+      "sha256_from_two_cut": {
+        "rtl/arm9v2/arm925t_phone.v": "a060b789a1eaec4977a7fd0d18021549654453181aeebd774dac0a76ed9f8221",
+        "tools/gen_arm9v2_phone.py": "819d1cd5634983b87633f771629888f9762c391a3938b762159026521a7207db"
+      },
+      "production": {
+        "13": {
+          "control_run": 45879015397,
+          "control_origin": "routed two-cut control",
+          "mhz": 104,
+          "debugger": false,
+          "source_count": 133,
+          "delta": {
+            "rtl/arm9v2/arm925t_phone.v": "a060b789a1eaec4977a7fd0d18021549654453181aeebd774dac0a76ed9f8221"
+          },
+          "manifest_sha256": "5bf397d87f39c12ef341372ce6958cc461855e20de5f0b8f955bd8de26cd91f3"
+        },
+        "43": {
+          "control_run": 45879019116,
+          "control_origin": "routed two-cut control",
+          "mhz": 104,
+          "debugger": false,
+          "source_count": 133,
+          "delta": {
+            "rtl/arm9v2/arm925t_phone.v": "a060b789a1eaec4977a7fd0d18021549654453181aeebd774dac0a76ed9f8221"
+          },
+          "manifest_sha256": "bfdf184ad7f3f6ae7a0e25ab45cc1e061992783f90c4509d7ca498d92393e466"
+        },
+        "31337": {
+          "control_run": 45879022396,
+          "control_origin": "routed two-cut control",
+          "mhz": 104,
+          "debugger": false,
+          "source_count": 133,
+          "delta": {
+            "rtl/arm9v2/arm925t_phone.v": "a060b789a1eaec4977a7fd0d18021549654453181aeebd774dac0a76ed9f8221"
+          },
+          "manifest_sha256": "68e764d8f42aa9c0df894cdf4d0faa015acd9fd141eb48829edcad87db0d6e73"
+        }
+      }
+    },
+    "waw-on-d": {
+      "sha": "e35ecb3c788425ceb7de7f757ce2a3f61e31afaf",
+      "parent": "0c64862ebd8c5c85830a931c7f68b6b429a32076",
+      "tree": "ea6fc925cf1ec76fa832b124588b3ed556ec7fc9",
+      "paths_since_parent": [
+        "rtl/arm9v2/arm925t_phone.v",
+        "tools/gen_arm9v2_phone.py"
+      ],
+      "sha256_from_two_cut": {
+        "rtl/arm9v2/arm925t_phone.v": "6a2178ff14998bb32f60803204718113ccb6a1e7d01c01eece982b740723024d",
+        "tools/gen_arm9v2_phone.py": "84b0f118cd6a000fb67f1400b52992d6e73e01df9c04d37292c8874200beb378"
+      },
+      "production": {
+        "13": {
+          "control_run": 45893161445,
+          "control_origin": "sealed D-beat control preflight",
+          "mhz": 104,
+          "debugger": false,
+          "source_count": 133,
+          "delta": {
+            "rtl/arm9v2/arm925t_phone.v": "6a2178ff14998bb32f60803204718113ccb6a1e7d01c01eece982b740723024d"
+          },
+          "manifest_sha256": "6fd4798b3bb9774124f8818f144775d6930bc6da4d1385a3a90da208c9a56ef1"
+        },
+        "43": {
+          "control_run": 45893165422,
+          "control_origin": "sealed D-beat control preflight",
+          "mhz": 104,
+          "debugger": false,
+          "source_count": 133,
+          "delta": {
+            "rtl/arm9v2/arm925t_phone.v": "6a2178ff14998bb32f60803204718113ccb6a1e7d01c01eece982b740723024d"
+          },
+          "manifest_sha256": "f30ff564ec3a75c3942b8e9dcc96dc5b71428af053936841b1c4a7c9fb41a405"
+        },
+        "31337": {
+          "control_run": 45893169984,
+          "control_origin": "sealed D-beat control preflight",
+          "mhz": 104,
+          "debugger": false,
+          "source_count": 133,
+          "delta": {
+            "rtl/arm9v2/arm925t_phone.v": "6a2178ff14998bb32f60803204718113ccb6a1e7d01c01eece982b740723024d"
+          },
+          "manifest_sha256": "d82f2c4e515c3a525413c0b2a739a96f9fbc28e4bddcddc31f036785a0b81d3c"
+        }
+      }
+    }
+  }
+}

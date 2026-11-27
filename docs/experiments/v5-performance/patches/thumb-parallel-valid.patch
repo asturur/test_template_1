@@ -1,0 +1,408 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index 8cb27af75121f038cc85f1171753ccc0d9d5e566..d87bdafec87c439553b51f6abbbb369b9f3993ef 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -4488,6 +4488,7 @@ module ngage2_arm9v2_fetch (
+ 	(* keep *) wire [31:0] sequential_next = sequential_pc + (sequential_thumb ? 32'd2 : 32'd4);
+     reg saved_fall_valid;
+     reg [29:0] saved_fall_word;
++    (* dont_retime *) reg [29:0] saved_fall_next_word;
+     reg [15:0] saved_fall_half;
+     wire [15:0] upper_thumb = i_data[31:16];
+     // Limit reuse to ordinary low-register ALU and memory operations.
+@@ -4519,6 +4520,8 @@ module ngage2_arm9v2_fetch (
+                  i_data[15:12] == 4'hd && i_data[11:8] < 4'he) begin
+             saved_fall_valid <= simple_upper;
+             saved_fall_word <= f2[31:2];
++            // A recovered upper halfword resumes at the next aligned word.
++            saved_fall_next_word <= f2[31:2] + 30'd1;
+             saved_fall_half <= upper_thumb;
+         end
+     end
+@@ -4661,7 +4664,8 @@ module ngage2_arm9v2_fetch (
+ 		if (PREDICTOR) begin : g_predictor
+ 			ngage2_arm9v2_predict #(
+ 				.RAS_TOP_FF(RAS_TOP_FF),
+-				.VALID_BIT(VALID_BIT)
++				.VALID_BIT(VALID_BIT),
++				.PARALLEL_RECOVERY(HEAD_FF && BRAM_QUEUE && THUMB_HALF)
+ 			) u_predict(
+ 				.i_clk(i_clk),
+ 				.i_reset(i_reset),
+@@ -4669,7 +4673,9 @@ module ngage2_arm9v2_fetch (
+ 				.i_lookup(advance),
+ 				.i_pc(launch_pc),
+ 				.i_thumb(launch_thumb),
+-				.i_pc_redirect(repair_fetch_pc),
++                .i_pc_redirect({i_redirect_target[31:1], 1'b0}),
++                .i_pc_recovered({saved_fall_next_word, 2'b00}),
++                .i_use_recovered(reuse_fall_half),
+ 				.i_pc_sequential(sequential_pc),
+ 				.i_sel_redirect(i_redirect),
+ 				.i_sel_predicted(predicted),
+@@ -5278,12 +5284,17 @@ module ngage2_arm9v2_predict (
+ 	o_state,
+ 	o_kind,
+ 	o_pointer,
+-	o_count
++	o_count,
++	i_pc_recovered,
++	i_use_recovered
+ );
++	input wire [31:0] i_pc_recovered;
++	input wire i_use_recovered;
+ 	reg _sv2v_0;
+ 	parameter integer ENTRIES = 256;
+ 	parameter [0:0] RAS_TOP_FF = 1'b1;
+ 	parameter [0:0] VALID_BIT = 1'b1;
++	parameter [0:0] PARALLEL_RECOVERY = 1'b0;
+ 	localparam integer INDEX_W = $clog2(ENTRIES);
+ 	localparam integer TAG_W = 31 - INDEX_W;
+ 	input wire i_clk;
+@@ -5400,7 +5411,30 @@ module ngage2_arm9v2_predict (
+ 			read_valid_bit <= 1'b0;
+ 		else if (i_lookup)
+ 			read_valid_bit <= valid_launch;
+-	assign o_hit = ((VALID_BIT ? read_valid_bit : read_valid[read_pc[INDEX_W:1]]) && (read_entry[TAG_W + 36-:((TAG_W + 36) >= 37 ? TAG_W + 0 : 38 - (TAG_W + 36))] == read_pc[31:INDEX_W + 1])) && (read_entry[36] == read_thumb);
++    wire selected_valid;
++    generate
++        if (PARALLEL_RECOVERY && VALID_BIT) begin : g_recovery_valid
++            wire [INDEX_W-1:0] recovered_index = btb_index(i_pc_recovered);
++            wire recovered_valid = valid[recovered_index] ||
++                                   (write_enable && wr_index == recovered_index);
++            (* dont_retime *) reg read_recovered_valid, read_use_recovered;
++
++            // Snapshot the live bits, including this edge's write, and the
++            // choice together. Keep the SRAM read and tag comparison alone.
++            always @(posedge i_clk)
++                if (i_reset || i_clear) begin
++                    read_recovered_valid <= 0;
++                    read_use_recovered <= 0;
++                end else if (i_lookup) begin
++                    read_recovered_valid <= recovered_valid;
++                    read_use_recovered <= i_sel_redirect && i_use_recovered;
++                end
++            assign selected_valid = read_use_recovered ? read_recovered_valid : read_valid_bit;
++        end else begin : g_normal_valid
++            assign selected_valid = read_valid_bit;
++        end
++    endgenerate
++	assign o_hit = ((VALID_BIT ? selected_valid : read_valid[read_pc[INDEX_W:1]]) && (read_entry[TAG_W + 36-:((TAG_W + 36) >= 37 ? TAG_W + 0 : 38 - (TAG_W + 36))] == read_pc[31:INDEX_W + 1])) && (read_entry[36] == read_thumb);
+ 	assign o_taken = o_hit && read_entry[3];
+ 	assign o_target = ((read_entry[1-:2] == RETURN) && (count != 0) ? ras_top : read_entry[35-:32]);
+ 	assign o_state = (o_hit ? read_entry[3-:2] : 2'b01);
+diff --git a/tests/cpu/arm9v2_board/predictor_recovery_tb.sv b/tests/cpu/arm9v2_board/predictor_recovery_tb.sv
+new file mode 100644
+index 0000000000000000000000000000000000000000..1a4e2b6badacd2d10aa53c578d4ca4904b864a12
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/predictor_recovery_tb.sv
+@@ -0,0 +1,197 @@
++module predictor_recovery_tb;
++  bit clk, reset, clear, lookup;
++  bit redirect, select_predicted, use_recovered, thumb, accept;
++  bit update, update_thumb, update_taken, update_hit;
++  bit repair;
++  bit [1:0] repair_action, update_kind, update_state;
++  bit [2:0] repair_pointer;
++  bit [3:0] repair_count;
++  bit [31:0] pc, normal_pc, recovered_pc, sequential_pc;
++  bit [31:0] update_pc, update_target, repair_link;
++  wire [1:0] hit, taken;
++  wire [1:0] state_bits[0:1], kind[0:1];
++  wire [31:0] target [0:1];
++  wire [ 2:0] pointer[0:1];
++  wire [ 3:0] count  [0:1];
++
++  `define PREDICTOR_COMMON(lane) \
++        .i_clk(clk), .i_reset(reset), .i_clear(clear), .i_lookup(lookup), \
++        .i_pc(pc), .i_pc_sequential(sequential_pc), .i_sel_redirect(redirect), \
++        .i_sel_predicted(select_predicted), .i_thumb(thumb), .i_accept(accept), \
++        .i_update(update), .i_update_pc(update_pc), .i_update_target(update_target), \
++        .i_update_thumb(update_thumb), .i_update_taken(update_taken), .i_update_hit(update_hit), \
++        .i_update_state(update_state), .i_update_kind(update_kind), .i_repair(repair), \
++        .i_repair_pointer(repair_pointer), .i_repair_count(repair_count), \
++        .i_repair_action(repair_action), .i_repair_link(repair_link), \
++        .o_hit(hit[lane]), .o_taken(taken[lane]), .o_target(target[lane]), \
++        .o_state(state_bits[lane]), .o_kind(kind[lane]), \
++        .o_pointer(pointer[lane]), .o_count(count[lane])
++  reference_predict reference_dut (
++      .i_pc_redirect(use_recovered ? recovered_pc : normal_pc),
++      `PREDICTOR_COMMON(0)
++  );
++  ngage2_arm9v2_predict #(
++      .PARALLEL_RECOVERY(1)
++  ) parallel_dut (
++      .i_pc_redirect  (normal_pc),
++      .i_pc_recovered (recovered_pc),
++      .i_use_recovered(use_recovered),
++      `PREDICTOR_COMMON(1)
++  );
++  `undef PREDICTOR_COMMON
++
++  function automatic [7:0] folded(input bit [31:0] address);
++    return address[8:1] ^ address[16:9];
++  endfunction
++
++  bit [255:0] valid_slots = 0;
++  bit expected_valid = 0;
++  int cycles = 0, normal = 0, recovered = 0, collided_normal = 0, collided_recovered = 0;
++  int selected_collisions = 0, held_writes = 0, clears = 0, resets = 0;
++  int hits = 0, both_valid = 0, different_valid = 0, aliases = 0;
++
++  task automatic inspect;
++    if ({hit[0], taken[0], target[0], state_bits[0], kind[0], pointer[0], count[0]} !==
++            {hit[1], taken[1], target[1], state_bits[1], kind[1], pointer[1], count[1]})
++      $fatal(1, "Predictor changed at cycle %0d PC %h", cycles, pc);
++    if (reference_dut.read_valid_bit !== expected_valid ||
++            parallel_dut.selected_valid !== expected_valid)
++      $fatal(1, "Wrong held/forwarded valid at cycle %0d PC %h", cycles, pc);
++  endtask
++
++  task automatic tick;
++    begin
++      #1;
++      if (cycles > 1) inspect;
++      if (lookup) begin
++        pc = redirect ? (use_recovered ? recovered_pc : normal_pc) :
++                     select_predicted ? target[0] : sequential_pc;
++      end
++      if (reset || clear) begin
++        valid_slots = 0;
++        expected_valid = 0;
++        if (reset) resets++;
++        if (clear) clears++;
++      end else begin
++        if (update) begin
++          valid_slots[folded(update_pc)] = 1;
++          if (!lookup) held_writes++;
++          if (lookup && folded(update_pc) == folded(pc)) begin
++            selected_collisions++;
++            if (pc[31:9] != update_pc[31:9]) aliases++;
++          end
++          if (lookup && redirect) begin
++            if (folded(normal_pc) == folded(update_pc)) collided_normal++;
++            if (folded(recovered_pc) == folded(update_pc)) collided_recovered++;
++          end
++        end
++        if (lookup) begin
++          expected_valid = valid_slots[folded(pc)];
++          if (redirect) begin
++            if (use_recovered) recovered++;
++            else normal++;
++            if (valid_slots[folded(normal_pc)] && valid_slots[folded(recovered_pc)]) both_valid++;
++            if (valid_slots[folded(normal_pc)] != valid_slots[folded(recovered_pc)])
++              different_valid++;
++          end
++        end
++      end
++      #1 clk = 1;
++      #2 clk = 0;
++      #1;
++      if (cycles > 1) inspect;
++      if (hit[0]) hits++;
++      cycles++;
++    end
++  endtask
++
++  bit [31:0] rng = 32'h2cda71a8;
++
++  function automatic [31:0] advance(input bit [31:0] value);
++    bit [31:0] result;
++    result = value ^ (value << 13);
++    result = result ^ (result >> 17);
++    return result ^ (result << 5);
++  endfunction
++
++  initial begin
++    reset  = 1;
++    lookup = 1;
++    tick;
++    reset = 0;
++    normal_pc = 32'h01240002;
++    recovered_pc = normal_pc + 2;
++    redirect = 1;
++    update = 1;
++    update_pc = normal_pc;
++    update_target = 32'h01243000;
++    update_taken = 1;
++    thumb = 1;
++    update_thumb = 1;
++    tick;
++    if (hit !== 2'b11 || taken !== 2'b11) $fatal(1, "Normal write-through miss");
++    use_recovered = 1;
++    update = 0;
++    tick;
++    if (hit !== 0) $fatal(1, "Normal slot leaked into recovered slot");
++    update = 1;
++    update_pc = recovered_pc;
++    tick;
++    if (hit !== 2'b11 || taken !== 2'b11) $fatal(1, "Recovered write-through miss");
++    lookup = 0;
++    use_recovered = 0;
++    update_pc = normal_pc;
++    update_target = 32'h01244000;
++    tick;
++    if (hit !== 2'b11 || target[0] !== 32'h01243000)
++      $fatal(1, "Unselected write changed held lookup");
++    clear = 1;
++    tick;
++    if (hit !== 0) $fatal(1, "Clear failed on held lookup");
++    clear = 0;
++    for (int iteration = 0; iteration < 30000; iteration++) begin
++      rng = advance(rng);
++      reset = rng[9:0] == 10'h3e0;
++      clear = rng[15:10] == 6'd21;
++      lookup = rng[16] || rng[17];
++      redirect = rng[18];
++      select_predicted = rng[19];
++      use_recovered = rng[20];
++      thumb = rng[21];
++      update = rng[22] || rng[23];
++      update_hit = rng[24];
++      update_state = rng[26:25];
++      update_kind = rng[28:27];
++      update_taken = rng[29];
++      accept = rng[30];
++      repair = rng[31] && rng[0];
++      repair_pointer = rng[3:1];
++      repair_count = rng[7:4];
++      repair_action = rng[9:8];
++      rng = advance(rng);
++      normal_pc = {16'h0124, rng[15:2], 2'b10};
++      recovered_pc = normal_pc + 2;
++      sequential_pc = {16'h012c, rng[31:17], 1'b0};
++      repair_link = rng;
++      update_thumb = rng[24] ? !thumb : thumb;
++      update_target = {1'b0, rng[31:2], 1'b0};
++      case (rng[26:25])
++        0: update_pc = normal_pc;
++        1: update_pc = recovered_pc;
++        2: update_pc = sequential_pc;
++        3: update_pc = recovered_pc ^ 32'h00400000;
++      endcase
++      tick;
++    end
++    if (normal < 4000 || recovered < 4000 || collided_normal < 1000 ||
++            collided_recovered < 1000 || selected_collisions < 2000 ||
++            held_writes < 4000 || clears < 400 || resets < 10 ||
++            hits < 1000 || both_valid < 500 || different_valid < 1000 || aliases < 500)
++      $fatal(1, "Missing predictor test coverage");
++    $display(
++        "PASS parallel predictor cycles=%0d normal=%0d recovered=%0d normal_writes=%0d recovered_writes=%0d collisions=%0d held_writes=%0d clears=%0d resets=%0d hits=%0d both=%0d different=%0d aliases=%0d",
++        cycles, normal, recovered, collided_normal, collided_recovered, selected_collisions,
++        held_writes, clears, resets, hits, both_valid, different_valid, aliases);
++    $finish;
++  end
++endmodule
+diff --git a/tests/cpu/arm9v2_board/run-predictor-recovery.sh b/tests/cpu/arm9v2_board/run-predictor-recovery.sh
+new file mode 100755
+index 0000000000000000000000000000000000000000..43ec7cbad5e7975ab0cc3a688d500b64f640fd42
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/run-predictor-recovery.sh
+@@ -0,0 +1,31 @@
++#!/bin/sh
++set -eu
++
++name=${1:?provide a fresh run name}
++case "$name" in *[!A-Za-z0-9_.-]*) exit 2 ;; esac
++out="build/sim/$name"
++mkdir -p build/sim
++mkdir "$out"
++
++simulate() {
++    entrypoint=$1
++    shift
++    docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++        -w /work --entrypoint "$entrypoint" jotego/simulator:arm64 "$@"
++}
++
++git show 27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a:rtl/arm9v2/arm925t_phone.v | python3 -c '
++import sys
++text = sys.stdin.read()
++header = "module ngage2_arm9v2_predict ("
++start = text.index(header)
++end = text.index("\nendmodule", start) + len("\nendmodule")
++print(text[start:end].replace(header, "module reference_predict (", 1))
++' > "$out/reference.v"
++
++simulate verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
++    --top-module predictor_recovery_tb --Mdir "$out/obj" \
++    rtl/arm9v2/arm925t_phone.v "$out/reference.v" \
++    tests/cpu/arm9v2_board/predictor_recovery_tb.sv > "$out/build.log" 2>&1
++simulate "/work/$out/obj/Vpredictor_recovery_tb" > "$out/run.log" 2>&1
++rg '^PASS parallel predictor' "$out/run.log"
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index 47c32fbd769d2e039168fcbc3818e74acd63978c..fc6a6af58983f412f48b5123642dba68809b56b6 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -1197,6 +1197,62 @@ def recover_thumb_fallthrough(phone):
+     return header + ''.join(modules)
+ 
+ 
++def parallel_thumb_predictor_valid(phone):
++    """Read both redirect valid bits before selecting the recovered lookup."""
++    header, *modules = re.split(r'(?=^module )', phone, flags=re.M)
++    indices = {part.split()[1]: index for index, part in enumerate(modules)}
++    fetch_id, predict_id = (indices[f'ngage2_arm9v2_{kind}'] for kind in ('fetch', 'predict'))
++    fetch, predict = (modules[index] for index in (fetch_id, predict_id))
++    fetch = edit(fetch, '    reg [29:0] saved_fall_word;\n',
++                 '    reg [29:0] saved_fall_word;\n'
++                 '    (* dont_retime *) reg [29:0] saved_fall_next_word;\n')
++    fetch = edit(fetch, '            saved_fall_word <= f2[31:2];\n', """\
++            saved_fall_word <= f2[31:2];
++            // A recovered upper halfword resumes at the next aligned word.
++            saved_fall_next_word <= f2[31:2] + 30'd1;
++""")
++    fetch = edit(fetch, '\t\t\t\t.VALID_BIT(VALID_BIT)\n',
++                 '\t\t\t\t.VALID_BIT(VALID_BIT),\n'
++                 '\t\t\t\t.PARALLEL_RECOVERY(HEAD_FF && BRAM_QUEUE && THUMB_HALF)\n')
++    fetch = edit(fetch, '\t\t\t\t.i_pc_redirect(repair_fetch_pc),\n', """\
++                .i_pc_redirect({i_redirect_target[31:1], 1'b0}),
++                .i_pc_recovered({saved_fall_next_word, 2'b00}),
++                .i_use_recovered(reuse_fall_half),
++""")
++    predict = ports(predict, 'o_count', ['input wire [31:0] i_pc_recovered',
++                                        'input wire i_use_recovered'])
++    predict = edit(predict, "\tparameter [0:0] VALID_BIT = 1'b1;\n",
++                   "\tparameter [0:0] VALID_BIT = 1'b1;\n"
++                   "\tparameter [0:0] PARALLEL_RECOVERY = 1'b0;\n")
++    predict = edit(predict, '\tassign o_hit = ((VALID_BIT ? read_valid_bit :', """\
++    wire selected_valid;
++    generate
++        if (PARALLEL_RECOVERY && VALID_BIT) begin : g_recovery_valid
++            wire [INDEX_W-1:0] recovered_index = btb_index(i_pc_recovered);
++            wire recovered_valid = valid[recovered_index] ||
++                                   (write_enable && wr_index == recovered_index);
++            (* dont_retime *) reg read_recovered_valid, read_use_recovered;
++
++            // Snapshot the live bits, including this edge's write, and the
++            // choice together. Keep the SRAM read and tag comparison alone.
++            always @(posedge i_clk)
++                if (i_reset || i_clear) begin
++                    read_recovered_valid <= 0;
++                    read_use_recovered <= 0;
++                end else if (i_lookup) begin
++                    read_recovered_valid <= recovered_valid;
++                    read_use_recovered <= i_sel_redirect && i_use_recovered;
++                end
++            assign selected_valid = read_use_recovered ? read_recovered_valid : read_valid_bit;
++        end else begin : g_normal_valid
++            assign selected_valid = read_valid_bit;
++        end
++    endgenerate
++\tassign o_hit = ((VALID_BIT ? selected_valid :""")
++    modules[fetch_id], modules[predict_id] = fetch, predict
++    return header + ''.join(modules)
++
++
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--stock', type=Path, help='Use the pinned Quartus-selected donor artifact')
+@@ -1231,6 +1287,7 @@ def main():
+     generated = resolve_execute_forward_candidates(generated)
+     generated = move_fetch_payload_to_ram(generated)
+     generated = recover_thumb_fallthrough(generated)
++    generated = parallel_thumb_predictor_valid(generated)
+     if args.hinted_ldm:
+         generated = issue_hinted_ldm(generated, edit)
+     generated = keep_wishbone_request_boundary(generated)

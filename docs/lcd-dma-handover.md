@@ -9,6 +9,76 @@ is the RTL target, and new physical timing remains unverified.
 
 # Production DMA and LCD handover
 
+## 2026-11-19 — 16-byte LCD reads chosen
+
+The v5 top uses 16-byte LCD DMA reads. CPU refills remain 32 bytes.
+A 16-byte LCD request uses one BL8 and releases the shared port eight
+halfword clocks earlier than a 32-byte request. An aligned full frame
+still issues 4,576 physical READ commands at either burst width. The
+32-byte path schedules those commands in pairs with less setup between
+them, which accounts for its shorter upload.
+
+| Same full-frame replay at 78 MHz | Scalar | 16-byte LCD | 32-byte LCD |
+| --- | ---: | ---: | ---: |
+| Upload with no competing memory traffic | 148,836 | 69,761 | 53,548 |
+| Upload with CPU requests every 24 clocks | 165,251 | 80,419 | 63,487 |
+| Worst CPU release-to-response wait, 24-clock interval | 194 | 27 | 43 |
+| Upload with CPU requests every 40 clocks | 160,108 | 81,621 | 65,253 |
+| Worst CPU release-to-response wait, 40-clock interval | 24 | 25 | 35 |
+| Upload alongside 256 competing CPU cache refills | 155,275 | 76,087 | 59,830 |
+| Worst CPU cache-refill completion | 46 | 42 | 50 |
+
+The 16-byte mode keeps a 53% upload reduction from scalar and costs
+about 0.21 ms per isolated upload relative to 32-byte LCD reads.
+It reduces the worst measured CPU response on both contention
+profiles relative to 32 bytes. All three widths preserve the
+checked framebuffer, DMA IRQ, unaligned heads and tails, cancel/restart,
+and concurrent 32-byte CPU refills with SWP lock exclusion.
+The top-level RTL elaborates. This measures scheduled contention on
+the physical SDRAM model at 78 MHz. The GLES full-frame fill still takes
+124,998 CPU clocks. On-board 3DMark FPS remains unmeasured.
+
+[Numbers and source hashes](evidence/lcd-sdram-burst-widths-20261119.json).
+Run `sh tests/phone/lcd_stream/run-physical.sh fresh-lcd-widths` to repeat
+all three physical simulations.
+
+## 2026-11-19 — SDRAM line reads for LCD DMA
+
+The first burst version gave aligned, in-range LCD uploads access to the same 32-byte
+SDRAM read port as CPU cache refills. Each returned line buffers up to
+eight words and feeds the existing 32-bit ordered LCD queue. Scalar
+reads handle the head and tail of an unaligned upload. Once a line is
+accepted it drains through cancellation. The DMA frontend raises
+success only after the last pixel leaves the LCD queue.
+
+The line arbiter alternates CPU and LCD line grants when both are
+pending. A full LCD burst gives up to two scalar requests an opportunity
+before the next LCD line. A CPU lock blocks new LCD admissions. The
+scalar window avoids the CPU backlog that appeared when only one
+scalar could run between consecutive LCD lines.
+
+| Full-frame test at 78 MHz | Scalar LCD reads | 32-byte LCD reads |
+| --- | ---: | ---: |
+| LCD alone | 148,836 clocks | 53,548 clocks |
+| 1,024 CPU reads released every 24 clocks | 165,251 | 63,487 |
+| 1,024 CPU reads released every 40 clocks | 160,108 | 65,253 |
+| 256 competing CPU line refills and lock exclusion | 155,275 | 59,830 |
+
+An aligned upload uses 2,288 line requests and 4,576 pin READ commands
+instead of 18,304 scalar requests and pin READs. The test programs the
+actual DMA registers, checks every returned word and all 18,304 panel
+BRAM entries, and waits for the completion IRQ. Unaligned and canceled
+then restarted transfers also pass. Under the heavier load, worst CPU
+release-to-response latency drops from 194 to 43 clocks as the backlog
+clears. Under the lighter load, an already-issued LCD burst can hold the
+bus longer, raising worst CPU latency from 24 to 35 clocks. These are
+physical-pin simulations with scheduled competing requests. Native game
+upload intervals and FPS remain unmeasured.
+
+Run `sh tests/phone/lcd_stream/run-physical.sh fresh-lcd-burst` to repeat
+the comparison using the prepared Micron Verilator model.
+[Machine-readable upload and contention results](evidence/lcd-sdram-burst-20261119.json).
+
 ## Current result
 
 The production MiSTer profile now uses the general DMA frontend for all eight

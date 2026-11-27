@@ -13,7 +13,7 @@ Pinned source is ngage2 `rtl/board/mmc_card.sv`, SHA256
 Both retain their GPL-2.0-or-later SPDX notice. The card snapshot includes the
 reviewed payload-EOF and footer-version fixes. The source conversion and
 pinned reference snapshots are retained under
-`build/sim/phone-tests/p3-native-card/` for this integration session.
+`scratch/ngage2-integration/p3-native-card/` for this integration session.
 
 The public interface preserves the donor's 1-bit native CLK/CMD/DAT0 peer and
 MiSTer WIDE=1 HPS backing interface. Defaults, identity/footer parsing, CRC7 and
@@ -27,7 +27,7 @@ returns, sized casts expressed as bit slices, and separate loop indices.
 From the repository root inside the installed offline simulator image:
 
 ```sh
-MMC_CARD_OUT=build/sim/phone-tests/p3-native-card/logs/pinned \
+MMC_CARD_OUT=scratch/ngage2-integration/p3-native-card/logs/pinned \
   tests/phone/mmc_card/run.sh
 ```
 
@@ -42,7 +42,7 @@ comparison, from the host:
 
 ```sh
 NGAGE2_DONOR=/path/to/pinned/ngage2 \
-  MMC_CARD_DONOR_OUT=build/sim/phone-tests/p3-native-card/donor-suite \
+  MMC_CARD_DONOR_OUT=scratch/ngage2-integration/p3-native-card/donor-suite \
   tests/phone/mmc_card/run-donor.sh
 ```
 
@@ -92,3 +92,24 @@ No width, truncation, blocking-sequential or other warning is suppressed.
   limit; the tested write guard prevents rollover writes from aliasing LBA 0.
 - No whole-firmware card mount, boot, UI, physical hardware, synthesis/fit or
   production HPS connection claim is made. No user card/image was modified.
+
+## Stream tag RAM
+
+`tests/phone/mmc_card/run-stream-tags.sh` compares the three selected stream
+hits and public pins against the register-backed card at `29479fe`. It reruns
+the EOF and footer wire fixtures and exercises all twelve stream slots in a
+directed test. Its RAM model returns X on mixed-port collisions. The test
+checks 24 coincident hits across the independent low, high and prefetch
+ports, including replacement of occupied slots.
+
+The card samples three replicated M10K tag stores at its original slot-index
+edge. It compares the returned tags during the existing miss-selection
+stage. The logical tag write remains on its original edge and forwards to
+the physical read when the delayed RAM write collides. The four associative
+metadata tags stay in registers.
+
+At 104 MHz, the actual `hps_io` lockstep replay matched at modeled host
+delays of 13, 256 and 4,096 clocks. The original Sega Rally 64-sector CMD18
+replay matched the 32 KiB output and transfer counters at 830,761 transfer
+clocks and 852,184 total clocks. The mixed ARM9V2, SDRAM-pin, LCD, PCM and
+MMC replay still completed in 1,201,547 clocks.

@@ -54,6 +54,7 @@ def main():
     p.add_argument('--stop-on-kernel-panic',action='store_true',help='stop/save after the known NEM-4 terminal panic fetch loop is stable')
     p.add_argument('--stop-after-lcd-words',type=int,default=0,help='bounded display diagnostic: stop after this many observed LCD data writes plus queue drain')
     overlays.add_argument('--nos-overlay',type=Path,help='separate cold-run lineage: stage NOS_Compatibility.ngo through real overlay loader before CPU release')
+    p.add_argument('--cpu', choices=('arm9v2', 'zap'), default='arm9v2')
     p.add_argument('--cpu-reference-dir',type=Path,help='diagnostic cold run using matching-interface reference CPU sources by basename')
     p.add_argument('--build-jobs',type=int,default=4)
     p.add_argument('--checkpoint-before',type=int,default=1000000000,help='checkpoint period through switch cycle')
@@ -74,7 +75,7 @@ def main():
     p.add_argument('--key-hold',type=int,default=0,help='diagnostic key hold in CPU clocks')
     p.add_argument('--early-boot-trace',action='store_true',help='bounded delay/caller observer for independent short investigations')
     p.add_argument('--sys-clk-hz',type=int,default=104000000,help='phone clock/timebase parameter; requires a new checkpoint lineage when changed')
-    p.add_argument('--core',type=Path,default=Path('build/firmware/nem4-factory/core.bin'));p.add_argument('--extension',type=Path,default=Path('build/firmware/nem4-factory/extension.bin'));p.add_argument('--cdrive',type=Path,default=Path('runtime/boot/cdrive-11b.img'))
+    p.add_argument('--core',type=Path,default=Path('build/firmware/nem4-factory/core.bin'));p.add_argument('--extension',type=Path,default=Path('build/firmware/nem4-factory/extension.bin'));p.add_argument('--cdrive',type=Path,default=Path('scratch/overnight/cdrive-11b.img'))
     a=p.parse_args();assert Path.cwd()==ROOT and 0<a.cycles<2**63 and '/' not in a.name and a.name not in ('.','..')
     if not (0<a.checkpoint_before<2**63 and 0<a.checkpoint_after<2**63 and 0<=a.checkpoint_switch<2**63):
         p.error('checkpoint periods must be positive 64-bit cycle counts; switch must be nonnegative')
@@ -87,6 +88,11 @@ def main():
     sources+=['rtl/ngage_ddr_rom_cache.v','rtl/jtframe/ngage_jtframe_romrq_lcache.v','tests/phone/hardware_boot/key_input.v']
     if a.production_ddr:sources+=['rtl/ngage_ddr_flash_adapter.v','rtl/ngage_ddr_flash_cache.v']
     if overlay_path:sources+=['rtl/ngage_nos_overlay.v']
+    if a.cpu == 'arm9v2':
+        if a.cpu_reference_dir or a.early_boot_trace or a.fault_context or a.refill_stats:
+            p.error('ZAP-specific observation requires --cpu zap')
+        sources = [f for f in sources if not f.startswith(('rtl/arm/', 'rtl/arm920/'))]
+        sources += ['rtl/arm9v2/arm925t_phone.v', *sorted(glob.glob('rtl/arm9v2/upstream/sim/stubs/*.sv'))]
     if a.cpu_reference_dir:
         if a.restore:p.error('CPU reference selection requires a cold run')
         sources=[str(a.cpu_reference_dir/Path(f).name) if f.startswith('rtl/arm/') and (a.cpu_reference_dir/Path(f).name).is_file() else f for f in sources]
@@ -130,7 +136,7 @@ def main():
     identity=hashlib.sha256(json.dumps(identity_fields,sort_keys=True).encode()).hexdigest()
     if saved is not None and not a.driver_upgrade:identity=saved['source_identity']
     build=Path('build/sim/logo-build')/identity[:16];build.mkdir(parents=True,exist_ok=True)
-    image='jotego/simulator:arm64';docker=['docker','run','--rm','--network','none','--platform','linux/arm64','-v',str(ROOT)+':/work','-w','/work','--entrypoint']
+    image='jotego/simulator:arm64';docker=['docker','run','--rm','--pull=never','--network','none','--platform','linux/arm64','-v',str(ROOT)+':/work','-w','/work','--entrypoint']
     image_id=subprocess.check_output(['docker','image','inspect',image,'--format','{{.Id}}'],text=True).strip()
     binary=build/'Vtb'
     if saved is not None:
@@ -152,14 +158,14 @@ def main():
         cmd=docker+['g++',image,'-O3',*(['-DNGAGE_REFILL_STATS'] if a.refill_stats else []),'-std=c++17','-I'+str(saved_build),'-I'+include,'-I'+include+'/vltstd',cpp,str(saved_build/'Vtb__ALL.a')]+[str(saved_build/name) for name in ('verilated.o','verilated_save.o','verilated_threads.o')]+['-pthread','-o',str(binary)]
         with (build/'build.log').open('w') as log:subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
     if not binary.exists():
-        cmd=docker+['verilator',image,'--cc','--exe','--build','-j',str(a.build_jobs),'--savable','--assert','-DNGAGE_LOGO_RUN','-DNGAGE_RUNTIME_TRACE','-Wno-fatal','-Wno-lint','-Irtl/arm','--top-module','tb','--Mdir',str(build),'-CFLAGS','-O3'+(' -DNGAGE_REFILL_STATS' if a.refill_stats else ''),'-GLINE_REFILL='+str(int(a.line_refill)),'-GTIMER_CLK_DIV='+str(a.sys_clk_hz//26000000 if a.timer_clock=='26mhz' else 1),'-GNOS_TICK_HZ='+str(a.nos_tick_hz),'-GSYS_CLK_HZ='+str(a.sys_clk_hz),'-GDIRECT_SDRAM='+str(int(not a.legacy_sdram_route)),'-GROM_CACHE='+str(int(a.rom_cache)),'-GROM_CACHE_BITS='+str(a.rom_cache_bits),'-GROM_CACHE_BYTES='+str(a.rom_cache_bytes)]+(['-DNGAGE_NOS_OVERLAY_RUN','-GOVERLAY_COMPONENT='+str(overlay_id)] if overlay_path else [])+(['-DNGAGE_POWERUP_NORMAL'] if a.powerup=='normal' else [])+(['-DNGAGE_EARLY_BOOT_TRACE'] if a.early_boot_trace else [])+(['-DNGAGE_FAULT_CONTEXT'] if a.fault_context else [])+(['-DNGAGE_PRODUCTION_DDR'] if a.production_ddr else [])+sources+['/work/'+cpp]
+        cmd=docker+['verilator',image,'--cc','--exe','--build','-j',str(a.build_jobs),'--savable','--assert','-DNGAGE_LOGO_RUN','-DNGAGE_RUNTIME_TRACE',*(['-DNGAGE_ARM9V2'] if a.cpu == 'arm9v2' else []),'-Wno-fatal','-Wno-lint','-Irtl/arm','--top-module','tb','--Mdir',str(build),'-CFLAGS','-O3'+(' -DNGAGE_REFILL_STATS' if a.refill_stats else ''),'-GLINE_REFILL='+str(int(a.line_refill)),'-GTIMER_CLK_DIV='+str(a.sys_clk_hz//26000000 if a.timer_clock=='26mhz' else 1),'-GNOS_TICK_HZ='+str(a.nos_tick_hz),'-GSYS_CLK_HZ='+str(a.sys_clk_hz),'-GDIRECT_SDRAM='+str(int(not a.legacy_sdram_route)),'-GROM_CACHE='+str(int(a.rom_cache)),'-GROM_CACHE_BITS='+str(a.rom_cache_bits),'-GROM_CACHE_BYTES='+str(a.rom_cache_bytes)]+(['-DNGAGE_NOS_OVERLAY_RUN','-GOVERLAY_COMPONENT='+str(overlay_id)] if overlay_path else [])+(['-DNGAGE_POWERUP_NORMAL'] if a.powerup=='normal' else [])+(['-DNGAGE_EARLY_BOOT_TRACE'] if a.early_boot_trace else [])+(['-DNGAGE_FAULT_CONTEXT'] if a.fault_context else [])+(['-DNGAGE_PRODUCTION_DDR'] if a.production_ddr else [])+sources+['/work/'+cpp]
         with (build/'build.log').open('w') as log:subprocess.run(cmd,stdout=log,stderr=subprocess.STDOUT,check=True)
     # Precompiled headers are large and unused once the executable exists.
     for cache in build.glob('*.gch'):cache.unlink()
     if a.build_only:print(binary);return
     out=Path('build/sim/runs')/a.name;out.mkdir(parents=True,exist_ok=False)
     inputs={k:{'path':str(getattr(a,k)),'sha256':sha(getattr(a,k))} for k in ('core','extension','cdrive')}
-    manifest={'production_ddr':a.production_ddr,'fault_context':a.fault_context,'key_pulse':[a.key_at,a.key_mask,a.key_hold],'refill_stats':a.refill_stats,'line_refill':a.line_refill,'timer_clock':a.timer_clock,'nos_tick_hz':a.nos_tick_hz,'direct_sdram':not a.legacy_sdram_route,'rom_cache_bits':a.rom_cache_bits,'rom_cache_bytes':a.rom_cache_bytes,'rom_cache':a.rom_cache,'sys_clk_hz':a.sys_clk_hz,'powerup':a.powerup,'source_identity':identity,'sources':hashes,'binary_sha256':sha(binary),'image':image_id,'inputs':inputs,'cycles_target':a.cycles,'restore':str(a.restore) if a.restore else None,'profile':'no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness'}
+    manifest={'cpu':a.cpu,'production_ddr':a.production_ddr,'fault_context':a.fault_context,'key_pulse':[a.key_at,a.key_mask,a.key_hold],'refill_stats':a.refill_stats,'line_refill':a.line_refill,'timer_clock':a.timer_clock,'nos_tick_hz':a.nos_tick_hz,'direct_sdram':not a.legacy_sdram_route,'rom_cache_bits':a.rom_cache_bits,'rom_cache_bytes':a.rom_cache_bytes,'rom_cache':a.rom_cache,'sys_clk_hz':a.sys_clk_hz,'powerup':a.powerup,'source_identity':identity,'sources':hashes,'binary_sha256':sha(binary),'image':image_id,'inputs':inputs,'cycles_target':a.cycles,'restore':str(a.restore) if a.restore else None,'profile':'no SIM/no ATR, erased PMM, phone video, HDL peripherals; preloaded DDR and zeroed 16MiB SDRAM; modeled backing memories, 100MHz system, fixed response delays from bounded harness'}
     if overlay_sha:manifest[overlay_key]={'sha256':overlay_sha,'path':str(overlay_path),'skip_primary_checksum':True}
     manifest['interactive_keys']=saved.get('interactive_keys',False) if saved is not None else True
     manifest['stop_after_lcd_words']=a.stop_after_lcd_words

@@ -1,0 +1,112 @@
+{
+  "status": "PASS",
+  "base_commit": "11c4a0c32983cc9aba89cae986684558583a33f2",
+  "physical_clock_mhz": 104,
+  "compiled_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "7e01d505577d92de2bdd7f5d4346375108895e3e8d6a1a2148d5b8438c00efc3",
+    "rtl/ngage_cpu.sv": "c6d1b5da0af706f942e3be06510ffa645039607e92e7625ac470c86515d57785",
+    "rtl/ngage_board.v": "2c6f76c8a654ffe038bfd15dc5cd8bcfe777315e2b9e3fa31c0811c8cd9e606b",
+    "rtl/ngage_ddr_stream.v": "376b0d805363dcedf72f641a266826c899380fd9add3f22dc8f2d7de4e3dad0c",
+    "rtl/ngage_dma_channels.v": "71ee9850f2dbffe8553c3862d1e79a9f73784bd8f37c2c308bcbb1a4bd6ccc35",
+    "rtl/ngage_mister.v": "ba5d40c2a767b0e35dff7af20fdc9a04309e6e1276395e7c60bbe0a3e641236c",
+    "rtl/ngage_sdram_arbiter.v": "1258879d1aefd74357e4a3887fcbf4ea1e1ed964127cd936c9b2a948a04b90e3",
+    "rtl/ngage_sdram_stream.v": "bbb8f5aab32a8bd70ebd9afd06cb2a035ffa4d817ddb5723e395baaa435fc36f",
+    "rtl/ngage_upp.v": "80f5e5f8682297f291a121061eec765acd3b450bd30ea6c9804c7dce1bde36f8"
+  },
+  "fixed": {
+    "workloads": 15,
+    "windows": 105,
+    "repeat_matches": 15,
+    "wrong_output_rejections": 15,
+    "snapshots": {
+      "sega-scan": 2395767,
+      "matrix4": 16946,
+      "transpose4": 2976,
+      "triangle_edges": 12226,
+      "fill16_frame": 122402,
+      "fill16_tail": 725,
+      "fill8_tail": 753,
+      "monkey-forward": 15940,
+      "monkey-reverse": 15940,
+      "sega-span": 15430,
+      "sega-fill": 2628,
+      "asphalt-table": 21163,
+      "asphalt-double": 11974,
+      "asphalt-single": 7753,
+      "diffuse_m10_8x8_jpeg": 35324
+    },
+    "write_acks_in_windows": 52087,
+    "reply_events_including_setup": {
+      "physical_cpu_write": 220666,
+      "donor_write": 220666,
+      "donor_common": 2156066,
+      "donor_line": 1968840
+    },
+    "replay_sha256": "ba8df13cff4af614424f7209f07a3bdc7eae81ad2ddb84167cbb9f4ceaa057c9"
+  },
+  "native": {
+    "clocks_per_frame": [
+      14391395,
+      14467552,
+      14346201,
+      14303223
+    ],
+    "total_clocks": 57508371,
+    "write_acks_in_frames": 278165,
+    "reply_events_including_setup": {
+      "physical_cpu_write": 280009,
+      "donor_write": 280009,
+      "donor_common": 5944663,
+      "donor_line": 5944168
+    },
+    "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+    "replay_sha256": "6e40fbd08267c763fe53a443e9d00a7d263b6473ff7dcddd55c94539a5ee1f25"
+  },
+  "mixed": {
+    "clocks": 1201547,
+    "trace_events": 171496,
+    "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+    "replay_sha256": "2e339633726bf1771d277cc198b561a4827e8f0d814711cdd85b07741b972aea",
+    "delivery_counts": {
+      "status": "PASS",
+      "physical_clock_mhz": 104,
+      "clocks": 1201547,
+      "trace_events": 171496,
+      "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+      "reference_trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+      "physical_cpu_write_replies": 18945,
+      "donor_write_replies": 18945,
+      "donor_common_replies": 95120,
+      "compiled_sha256": {
+        "rtl/arm9v2/arm925t_phone.v": "7e01d505577d92de2bdd7f5d4346375108895e3e8d6a1a2148d5b8438c00efc3",
+        "rtl/ngage_cpu.sv": "c6d1b5da0af706f942e3be06510ffa645039607e92e7625ac470c86515d57785",
+        "rtl/ngage_mister.v": "ba5d40c2a767b0e35dff7af20fdc9a04309e6e1276395e7c60bbe0a3e641236c",
+        "rtl/ngage_board.v": "2c6f76c8a654ffe038bfd15dc5cd8bcfe777315e2b9e3fa31c0811c8cd9e606b",
+        "rtl/ngage_upp.v": "80f5e5f8682297f291a121061eec765acd3b450bd30ea6c9804c7dce1bde36f8",
+        "rtl/ngage_sdram_stream.v": "bbb8f5aab32a8bd70ebd9afd06cb2a035ffa4d817ddb5723e395baaa435fc36f",
+        "rtl/ngage_sdram_arbiter.v": "1258879d1aefd74357e4a3887fcbf4ea1e1ed964127cd936c9b2a948a04b90e3"
+      },
+      "fixture_sha256": "8b489f2ff0055ad2b64e946ffdf1a118b8fcd5af4d99a2d396f61ef141c3ecaf",
+      "staged_source_count": 113,
+      "changed_frozen_sources": [
+        "rtl/arm9v2/arm925t_phone.v",
+        "rtl/ngage_board.v",
+        "rtl/ngage_cpu.sv",
+        "rtl/ngage_mister.v",
+        "rtl/ngage_sdram_arbiter.v",
+        "rtl/ngage_sdram_stream.v",
+        "rtl/ngage_upp.v",
+        "tests/phone/mmc_mister/tb.v"
+      ],
+      "staged_source_manifest_sha256": "69948c6e9b2fa875f19ec2293d2f30e6a20547db0cf89557b0c1f9b58ef1b2b1"
+    }
+  },
+  "patch_sha256": {
+    "wb-reply-class.patch": "bc335d91a05acb392989c6c7d981efe16f2ad9f0974d4084258719946623e897",
+    "wb-reply-class-directed-fixture.patch": "5c2142cbbf97333cf19989333b81f7b7a5f9b22c4300c97806449013a8fac163",
+    "wb-reply-class-replay-tools.patch": "a3d9d30cb12d4259e3cb1e2c4100ab2a64f1a5f76da50d7894398aa1c323cbe9",
+    "wb-reply-class-mixed-fixture.patch": "43b19a6cbe38a5ec9eb3abf8fac8a1d8c713509cf8cc4b4ad9e42e0f3a699ea5",
+    "wb-reply-class-fixed-fixture.patch": "715f318ce76046572af7d85b6487940a164a1723b4f085a9703a8ac1c910690a",
+    "wb-reply-class-native-fixture.patch": "23782917aa234681ffd791e8faab6659dada320566231c78ea6fd6d8fff94060"
+  }
+}

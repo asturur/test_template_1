@@ -1,0 +1,809 @@
+diff --git a/scratch/v5-fit-loop/tlb-fifo-refill-combined/prepare-fit.py b/scratch/v5-fit-loop/tlb-fifo-refill-combined/prepare-fit.py
+new file mode 100644
+index 0000000..231d229
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-fifo-refill-combined/prepare-fit.py
+@@ -0,0 +1,225 @@
++"""Prepare the TLB and MMC RAM fit for either refill outcome."""
++from hashlib import sha256
++import json
++import os
++from pathlib import Path
++import subprocess
++
++
++area = Path(__file__).resolve().parent
++root = area.parents[2]
++refill_stage = area.parent / 'refill-payload-combined/dispatch-20261126'
++active_refill = '99299836993ad77d812d314c78134ef6727d913e'
++active_timer = '9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e'
++private = area / 'dispatch-20261126'
++objects = private / 'objects'
++objects.mkdir(parents=True, exist_ok=True)
++controls = {13: 45824513460, 43: 45824520116, 31337: 45824525843}
++
++
++def git(*args, env=None):
++    return subprocess.check_output(['git', '-C', str(root), *args], env=env)
++
++
++def sha(data):
++    return sha256(data).hexdigest()
++
++
++shared_objects = git('rev-parse', '--path-format=absolute', '--git-path', 'objects').decode().strip()
++older_objects = (refill_stage / 'alternate-objects.txt').read_text().strip().split(os.pathsep)
++alternates = os.pathsep.join(dict.fromkeys([shared_objects, str(refill_stage / 'objects'), *older_objects]))
++assert all(Path(path).is_absolute() and Path(path).is_dir() for path in alternates.split(os.pathsep))
++(private / 'alternate-objects.txt').write_text(alternates + '\n')
++
++
++def context(index):
++    return os.environ | {
++        'GIT_OBJECT_DIRECTORY': str(objects),
++        'GIT_ALTERNATE_OBJECT_DIRECTORIES': alternates,
++        'GIT_INDEX_FILE': str(private / f'index-{index}'),
++    }
++
++
++def subject(revision, env):
++    return git('rev-parse', revision, env=env).decode().strip()
++
++
++def tree(revision, env):
++    return subject(f'{revision}^{{tree}}', env)
++
++
++def changes(before, after, env):
++    records = git('diff', '--name-only', '-z', before, after, env=env).split(b'\0')
++    return sorted(name.decode() for name in records if name)
++
++
++def file_hashes(revision, paths, env):
++    return {name: sha(git('show', f'{revision}:{name}', env=env)) for name in paths}
++
++
++def stage_tree(base, patches, env, include=()):
++    git('read-tree', base, env=env)
++    filters = [f'--include={path}' for path in include]
++    for patch in patches:
++        git('apply', '--cached', '--check', *filters, str(patch), env=env)
++        git('apply', '--cached', *filters, str(patch), env=env)
++    return git('write-tree', env=env).decode().strip()
++
++
++def commit(tree_id, base, message, env):
++    timestamp = int(git('show', '-s', '--format=%ct', base, env=env)) + 1
++    date = f'@{timestamp} +0000'
++    dated = env | {'GIT_AUTHOR_DATE': date, 'GIT_COMMITTER_DATE': date}
++    result = git('commit-tree', tree_id, '-p', base, '-m', message, env=dated).decode().strip()
++    assert tree(result, env) == tree_id and subject(f'{result}^', env) == base
++    return result
++
++
++def read_json(path):
++    return json.loads(path.read_text())
++
++
++refill_dir = area.parent / 'refill-line-word-ready'
++refill_path = refill_dir / 'qualification.json'
++refill = read_json(refill_path)
++refill_patch = refill_dir / 'refill-line-word-ready.patch'
++assert sha(refill_patch.read_bytes()) == refill['design_patch_sha256']
++assert refill['status'] == 'PASS' and refill['base'] == active_timer
++assert (refill_stage / 'published.sha').read_text().strip() == active_refill
++refill_dispatch = read_json(refill_stage / 'dispatch.json')
++assert refill_dispatch['status'] == 'VERIFIED_DISPATCH' and refill_dispatch['candidate'] == active_refill
++assert refill['changed_source'] == 'rtl/ngage_cpu.sv'
++refill_hashes = {refill['changed_source']: refill['candidate_sha256']}
++
++ram_dir = area.parent / 'tlb-victims-mmc-fifo'
++ram_path = ram_dir / 'qualification.json'
++ram = read_json(ram_path)
++ram_patch = ram_dir / 'tlb-victims-mmc-fifo.patch'
++sealed = {name: value for value, name in (line.split(maxsplit=1) for line in
++          (ram_dir / 'SHA256SUMS').read_text().splitlines())}
++assert all(sha(path.read_bytes()) == sealed[path.name] for path in (ram_path, ram_patch))
++assert sha(ram_patch.read_bytes()) == ram['design_patch_sha256']
++assert ram['status'] == 'PASS' and ram['base'] == active_timer
++ram_hashes = ram['source_sha256']
++assert sorted(ram_hashes) == ['rtl/arm9v2/arm925t_phone.v', 'rtl/ngage_mmc_host.v', 'tools/gen_arm9v2_phone.py']
++assert {name: sha((ram_dir / 'source' / name).read_bytes()) for name in ram_hashes} == ram_hashes
++catalog = root / 'docs/experiments/v5-performance/patches'
++components = [catalog / name for name in ram['archived_patch_sha256']]
++assert {path.name: sha(path.read_bytes()) for path in components} == ram['archived_patch_sha256']
++
++env = context('proof')
++timer_tree = tree(active_timer, env)
++assert timer_tree == ram['base_tree']
++assert stage_tree(active_timer, [refill_patch], env) == tree(active_refill, env)
++assert changes(active_timer, active_refill, env) == sorted(refill_hashes)
++assert file_hashes(active_refill, refill_hashes, env) == refill_hashes
++assert file_hashes(active_refill, ram_hashes, env) == ram['reference_sha256']
++joint = stage_tree(active_timer, [ram_patch], env)
++assert joint == ram['joint_tree']
++assert joint == stage_tree(active_timer, components, env, ram_hashes)
++assert joint == stage_tree(active_timer, components[::-1], env, ram_hashes)
++
++restore = commit(timer_tree, active_refill, 'revert: restore timer-only 104 MHz tree', env)
++assert changes(active_refill, restore, env) == sorted(refill_hashes)
++(private / 'restore.sha').write_text(restore + '\n')
++message = 'perf: map TLB victims and MMC FIFO to RAM'
++variants = {}
++for label, parent in (('ram-on-timer', restore), ('ram-plus-refill', active_refill)):
++    env = context(label)
++    candidate_tree = stage_tree(parent, [ram_patch], env)
++    candidate = commit(candidate_tree, parent, message, env)
++    combined = label == 'ram-plus-refill'
++    exact_paths = refill_hashes | ram_hashes if combined else ram_hashes
++    assert changes(parent, candidate, env) == sorted(ram_hashes)
++    assert changes(active_timer, candidate, env) == sorted(exact_paths)
++    assert file_hashes(candidate, exact_paths, env) == exact_paths
++    ordered_patches = [ram_patch, refill_patch] if combined else [ram_patch]
++    assert stage_tree(active_timer, ordered_patches, context('compose')) == candidate_tree
++    variants[label] = {'sha': candidate, 'parent': parent, 'tree': candidate_tree,
++                       'paths_since_parent': sorted(ram_hashes), 'hashes_from_timer': exact_paths}
++    (private / f'{label}.sha').write_text(candidate + '\n')
++
++production_tools = ('set_quartus_seed', 'set_quartus_debug', 'record_fit_inputs')
++for label, metadata in variants.items():
++    env = context(label)
++    candidate = metadata['sha']
++    variant_dir = private / 'preflight' / label
++    variant_dir.mkdir(parents=True, exist_ok=True)
++    metadata['production'] = {}
++    for seed, run in controls.items():
++        control_dir = root / f'build/timing-audit-{run}/output_files'
++        control = read_json(control_dir / 'resident-fit-manifest.json')
++        basenames = control['compiled_source_sha256'].keys()
++        assert tree(control['actual_commit'], env) == timer_tree
++        assert control['seed'] == seed and control['physical_cpu_mhz'] == 104 and control['debugger'] is False
++        assert len(basenames) == 133 and 'Template.qsf' in basenames
++        seed_dir = variant_dir / str(seed)
++        output_dir = seed_dir / 'output_files'
++        output_dir.mkdir(parents=True, exist_ok=True)
++        source_graph = (control_dir / 'source-graph.txt').read_text()
++        graphed = {line.removeprefix('SOURCE /project/') for line in source_graph.splitlines()
++                   if line.startswith('SOURCE ')}
++        assert graphed == set(basenames), sorted(graphed ^ set(basenames))
++        (output_dir / 'source-graph.txt').write_text(source_graph)
++        for name in (*basenames, *(f'tools/{tool}.py' for tool in production_tools)):
++            assert not Path(name).is_absolute() and '..' not in Path(name).parts
++            path = seed_dir / name
++            path.parent.mkdir(parents=True, exist_ok=True)
++            path.write_bytes(git('show', f'{candidate}:{name}', env=env))
++        local_env = os.environ | {'GITHUB_SHA': candidate}
++        for name in ('GITHUB_STEP_SUMMARY', 'GITHUB_RUN_ID'):
++            local_env.pop(name, None)
++        for tool, *args in (
++            ('set_quartus_seed', 'Template.qsf', '--seed', str(seed)),
++            ('set_quartus_debug', 'Template.qsf', '--enabled', 'false'),
++        ):
++            subprocess.run(['python3', '-B', f'tools/{tool}.py', *args],
++                           cwd=seed_dir, env=local_env, check=True, stdout=subprocess.PIPE)
++        qsf = seed_dir / 'Template.qsf'
++        # Quartus on the runner rewrites the version line with LF, leaving
++        # the rest of the generated QSF at its original CRLF line endings.
++        qsf.write_bytes(qsf.read_bytes().replace(b'LAST_QUARTUS_VERSION "17.0.2 Standard Edition"\r\n',
++                                                 b'LAST_QUARTUS_VERSION "17.0.2 Lite Edition"\n'))
++        subprocess.run(['python3', '-B', 'tools/record_fit_inputs.py'],
++                       cwd=seed_dir, env=local_env, check=True, stdout=subprocess.PIPE)
++        effective = output_dir / 'resident-fit-manifest.json'
++        compiled = read_json(effective)
++        assert compiled['actual_commit'] == candidate
++        actual_hashes = compiled['compiled_source_sha256']
++        selected_run = run
++        selected_manifest = control_dir / 'resident-fit-manifest.json'
++        if label == 'ram-plus-refill':
++            prior_run = refill_dispatch['runs'][str(seed)]
++            assert prior_run['head_sha'] == active_refill
++            selected_run = prior_run['id']
++            selected_manifest = refill_stage / f'preflight/refill-on-timer/{seed}/output_files/resident-fit-manifest.json'
++        match = read_json(selected_manifest)
++        expected_parent = active_refill if label == 'ram-plus-refill' else control['actual_commit']
++        assert match['actual_commit'] == expected_parent
++        assert match['compiled_source_sha256'].keys() == basenames
++        expected_delta = {name: actual_hashes[name] for name in basenames
++                          if actual_hashes[name] != match['compiled_source_sha256'][name]}
++        assert expected_delta == {name: value for name, value in ram_hashes.items() if name in basenames}, (label, seed, expected_delta)
++        for field in control.keys() - {'actual_commit', 'compiled_source_sha256'}:
++            assert control[field] == match[field] == compiled[field], field
++        metadata['production'][seed] = {
++            'control_run': selected_run, 'control_commit': expected_parent,
++            'physical_cpu_mhz': compiled['physical_cpu_mhz'], 'ddr_debug': compiled['debugger'],
++            'compiled_source_count': len(basenames), 'compiled_input_delta': expected_delta,
++            'qsf_sha256': actual_hashes['Template.qsf'],
++            'manifest_sha256': sha(effective.read_bytes()),
++            'control_manifest_sha256': sha(selected_manifest.read_bytes()),
++        }
++        print(f'PASS {label} seed {seed}, 104 MHz, DDR debug off, {len(basenames)} inputs', flush=True)
++
++receipt = {'status': 'PASS', 'active_refill': active_refill, 'active_timer': active_timer,
++           'timer_tree': timer_tree, 'restore': restore, 'restore_parent': active_refill,
++           'refill_patch_sha256': sha(refill_patch.read_bytes()),
++           'ram_patch_sha256': sha(ram_patch.read_bytes()),
++           'refill_qualification_sha256': sha(refill_path.read_bytes()),
++           'ram_qualification_sha256': sha(ram_path.read_bytes()),
++           'private_objects': str(objects), 'alternate_objects': alternates, 'variants': variants}
++(private / 'prepare.json').write_text(json.dumps(receipt, indent=2) + '\n')
++for label, variant in variants.items():
++    print(label, variant['sha'], variant['parent'], variant['tree'])
++print('restore', restore, active_refill, timer_tree)
+diff --git a/scratch/v5-fit-loop/tlb-fifo-refill-combined/stage.sh b/scratch/v5-fit-loop/tlb-fifo-refill-combined/stage.sh
+new file mode 100644
+index 0000000..581f304
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-fifo-refill-combined/stage.sh
+@@ -0,0 +1,23 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/tlb-fifo-refill-combined
++old=scratch/v5-fit-loop/tlb-victims-mmc-fifo
++private="$area/dispatch-20261126"
++out=build/sim/v5-104-tlb-fifo-refill-combined
++mkdir -p "$area/reference" "$area/source" "$out"
++for leg in reference source; do
++  if [ "$leg" = reference ]; then
++    rev=99299836993ad77d812d314c78134ef6727d913e
++  else
++    rev=$(cat "$private/ram-plus-refill.sha")
++  fi
++  env GIT_OBJECT_DIRECTORY="$PWD/$private/objects" \
++    GIT_ALTERNATE_OBJECT_DIRECTORIES="$(cat "$private/alternate-objects.txt")" \
++    git archive "$rev" rtl tools tests/cpu/arm9v2_board tests/cpu/spmark_payload \
++      tests/phone/mmc_host tests/phone/upp_ddr_ram/peer.v tests/phone/direct_sdram \
++      tests/phone/upp_bus_bridge sim/programs/link.ld | tar -x -C "$area/$leg"
++  python3 -B "$area/$leg/tools/gen_arm9v2_phone.py" --stock build/arm9v2-assoc/stock-pinned.v --check
++done
++cp "$old/architectural_trace.vh" "$old/wb-write-trace.vh" "$area"
++cp "$old/tlb_victim_tb.sv" "$old/fifo_reference.vh" "$old/fifo_banks_tb.sv" "$area"
++cp "$area/source/rtl/ngage_cpu.sv" "$area/ngage_cpu.sv"
+diff --git a/scratch/v5-fit-loop/tlb-fifo-refill-combined/qualify.sh b/scratch/v5-fit-loop/tlb-fifo-refill-combined/qualify.sh
+new file mode 100644
+index 0000000..d963147
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-fifo-refill-combined/qualify.sh
+@@ -0,0 +1,20 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/tlb-fifo-refill-combined
++out=build/sim/v5-104-tlb-fifo-refill-combined
++mkdir -p "$out"
++docker image inspect -f '{{.Id}} {{.Os}}/{{.Architecture}}' jotego/simulator:arm64 > "$out/image.id"
++python3 -B "$area/replay.py" fixed --output qualification > "$out/fixed.log" 2>&1 &
++fixed=$!
++python3 -B "$area/replay.py" native --output qualification > "$out/native.log" 2>&1 &
++native=$!
++sh "$area/pins.sh" > "$out/pins.log" 2>&1 &
++pins=$!
++sh "$area/board.sh" > "$out/board.log" 2>&1 &
++board=$!
++sh "$area/directed.sh" > "$out/directed.log" 2>&1 &
++directed=$!
++status=0
++for slot in "$fixed" "$native" "$pins" "$board" "$directed"; do wait "$slot" || status=1; done
++for log in fixed native pins board directed; do tail -8 "$out/$log.log"; done
++exit "$status"
+diff --git a/scratch/v5-fit-loop/tlb-fifo-refill-combined/mixed.py b/scratch/v5-fit-loop/tlb-fifo-refill-combined/mixed.py
+new file mode 100644
+index 0000000..a93fa16
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-fifo-refill-combined/mixed.py
+@@ -0,0 +1,34 @@
++"""Stage the frozen physical-SDRAM replay with the prepared UPP timer writes."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-refill-line-word-ready/mixed')
++trial = Path('build/sim/v5-104-tlb-fifo-refill-combined/mixed')
++changed = {'rtl/arm9v2/arm925t_phone.v', 'rtl/ngage_mmc_host.v'}
++peer = 'tests/phone/upp_ddr_ram/peer.v'
++
++trial.mkdir(parents=True, exist_ok=True)
++shutil.copytree(base / 'source', trial / 'source', dirs_exist_ok=True)
++for name in ('stress.hex', 'image.hex', 'program.hex'):
++    shutil.copyfile(base / name, trial / name)
++(trial / 'source' / peer).parent.mkdir(parents=True, exist_ok=True)
++shutil.copyfile(stage / 'source' / peer, trial / 'source' / peer)
++for name in changed:
++    shutil.copyfile(stage / 'source' / name, trial / 'source' / name)
++
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert changed <= hashes.keys() and peer in hashes
++for name, reference in hashes.items():
++    if name.startswith('rtl/'):
++        assert sha256((stage / 'reference' / name).read_bytes()).hexdigest() == reference, name
++    actual = sha256((trial / 'source' / name).read_bytes()).hexdigest()
++    assert (actual != reference) == (name in changed), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++
++build = (base / 'build.sh').read_text().replace(str(base), str(trial))
++(trial / 'build.sh').write_text(build)
+diff --git a/scratch/v5-fit-loop/tlb-fifo-refill-combined/pins.sh b/scratch/v5-fit-loop/tlb-fifo-refill-combined/pins.sh
+new file mode 100644
+index 0000000..b8c630f
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-fifo-refill-combined/pins.sh
+@@ -0,0 +1,22 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/tlb-fifo-refill-combined
++out=build/sim/v5-104-tlb-fifo-refill-combined
++base=build/sim/v5-104-refill-line-word-ready
++timer=build/sim/v5-104-timer-write-prepare
++guest_path=build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed/stress.hex
++mixed="$out/mixed"
++image=jotego/simulator:arm64
++mkdir -p "$out/coexistence"
++python3 -B "$area/mixed.py"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -w /work --entrypoint sh "$image" -ec "sh '$mixed/build.sh'
++'$mixed/obj/Vtb' +upp_stress '+compare_trace=$mixed/traffic.log' > '$mixed/replay.log'"
++cmp "$base/mixed/traffic.log" "$mixed/traffic.log"
++grep '^PASS ' "$mixed/replay.log"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -v "$PWD/$timer/coexistence/stress-timer.hex:/work/$guest_path:ro" \
++  -w /work --entrypoint "/work/$mixed/obj/Vtb" "$image" \
++  +upp_stress "+compare_trace=$out/coexistence/candidate.trace" > "$out/coexistence/candidate.log"
++cmp "$base/coexistence/candidate.trace" "$out/coexistence/candidate.trace"
++grep '^PASS ' "$out/coexistence/candidate.log"
+diff --git a/scratch/v5-fit-loop/tlb-fifo-refill-combined/replay.py b/scratch/v5-fit-loop/tlb-fifo-refill-combined/replay.py
+new file mode 100644
+index 0000000..dc5518c
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-fifo-refill-combined/replay.py
+@@ -0,0 +1,182 @@
++"""Replay prepared UPP timer writes against the retained 104 MHz control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = repo / 'build/sim/v5-104-tlb-fifo-refill-combined' / args.output
++work.mkdir(parents=True, exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(stage / 'source/tests/cpu/arm9v2_board'))
++import payload_clocks
++payload_clocks.OUT = repo / "build/sim"
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_upp_peripherals.v', 'rtl/ngage_keypad.v', 'rtl/ngage_upp_euart.v', 'rtl/ngage_timers.v', 'rtl/ngage_mmc_host.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/tlb-fifo-refill-combined/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_upp_peripherals.v', 'ngage_keypad.v', 'ngage_upp_euart.v', 'ngage_timers.v', 'ngage_mmc_host.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/tlb-fifo-refill-combined/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((stage.parent/'prepared-wb-write-data'/'candidate'/f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                source_sha256={name:digest(stage / 'source/rtl' / name) for name in ('ngage_upp.v','ngage_upp_peripherals.v','ngage_upp_euart.v', 'ngage_timers.v','ngage_keypad.v','ngage_mmc_host.v')}, rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/tlb-fifo-refill-combined/board.sh b/scratch/v5-fit-loop/tlb-fifo-refill-combined/board.sh
+new file mode 100644
+index 0000000..cd8c208
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-fifo-refill-combined/board.sh
+@@ -0,0 +1,47 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/tlb-fifo-refill-combined
++out=build/sim/v5-104-tlb-fifo-refill-combined/board
++fixture=tests/cpu/arm9v2_board
++mkdir -p "$out"
++arm-none-eabi-gcc -c -mcpu=arm920t -marm -DEXPECTED_CTYPE=0x0514a14a -DASSOC_WAYS=2 \
++    -DSECTION_INDEX_TEST "$area/reference/$fixture/contract.S" -o "$out/guest.o"
++arm-none-eabi-ld -T "$area/reference/sim/programs/link.ld" "$out/guest.o" -o "$out/guest.elf"
++arm-none-eabi-objcopy -O binary "$out/guest.elf" "$out/guest.bin"
++python3 -B - "$out" <<'PY'
++from pathlib import Path
++import struct
++import sys
++
++out = Path(sys.argv[1])
++words = struct.iter_unpack('<I', (out / 'guest.bin').read_bytes())
++(out / 'guest.hex').write_text(''.join(f'{word:08x}\n' for (word,) in words))
++PY
++
++for leg in reference source; do
++    mkdir -p "$out/$leg"
++    docker run --rm --pull=never --network none --platform linux/arm64 \
++        -v "$PWD/$area/$leg:/work:ro" -v "$PWD/$out:/results" -w /work \
++        --entrypoint sh jotego/simulator:arm64 -ec '
++        out=/results/$1
++        verilator --binary --timing --assert -j 2 \
++            -Wno-fatal -Wno-lint -DNGAGE_ARM9V2 --top-module contract --Mdir "$out/obj" \
++            rtl/ngage_cpu.sv rtl/ngage_upp.v rtl/arm9v2/arm925t_phone.v \
++            rtl/arm9v2/upstream/sim/stubs/*.sv tests/cpu/arm9v2_board/contract.v > "$out/build.log" 2>&1
++        for burst in 0 1; do
++            for wait in 0 5; do
++                log="$out/burst-$burst-wait-$wait.log"
++                "$out/obj/Vcontract" +program=/results/guest.hex "+wait=$wait" "+burst=$burst" \
++                    +half-writeback +section-reads=2 > "$log" 2>&1
++                grep -E "^(PASS|LINES|ASSOC|SECTION|DATA_FAULT|REFILL_FAULT) " "$log" > "${log%.log}.trace"
++                grep -q "^PASS " "$log"
++            done
++        done' board "$leg"
++done
++for burst in 0 1; do
++    for wait in 0 5; do
++        name=burst-$burst-wait-$wait.trace
++        cmp "$out/reference/$name" "$out/source/$name"
++        grep '^PASS ' "$out/source/$name"
++    done
++done
+diff --git a/scratch/v5-fit-loop/tlb-fifo-refill-combined/directed.sh b/scratch/v5-fit-loop/tlb-fifo-refill-combined/directed.sh
+new file mode 100644
+index 0000000..501aacd
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-fifo-refill-combined/directed.sh
+@@ -0,0 +1,48 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/tlb-fifo-refill-combined
++out=build/sim/v5-104-tlb-fifo-refill-combined/directed
++image=jotego/simulator:arm64
++python3 -B "$area/prepare-directed.py"
++case "${1:-all}" in
++  tlb|mmc|all) suite="${1:-all}" ;;
++  *) exit 2 ;;
++esac
++
++if [ "$suite" != mmc ]; then
++    docker run --rm --pull=never --network none --platform linux/arm64 \
++        -v "$PWD/$area:/bench:ro" -v "$PWD/$out:/results" -w /bench/source \
++        --entrypoint sh "$image" -ec '
++        verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
++            --top-module walker_tb --Mdir /results/obj-tlb rtl/arm9v2/arm925t_phone.v \
++            rtl/arm9v2/upstream/sim/stubs/*.sv /results/reference_zap_tlb.v /bench/tlb_victim_tb.sv \
++            > /results/tlb-build.log 2>&1
++        /results/obj-tlb/Vwalker_tb > /results/tlb.log 2>&1
++        grep -E "^PASS walker " /results/tlb.log'
++fi
++if [ "$suite" != tlb ]; then
++    docker run --rm --pull=never --network none --platform linux/arm64 \
++        -v "$PWD/$area:/bench:ro" -v "$PWD/$out:/results" -w /results \
++        --entrypoint sh "$image" -ec '
++        rtl=/bench/source/rtl
++        iverilog -g2001 -s ngage_mmc_host -o strict "$rtl/ngage_mmc_host.v" "$rtl/ngage_bram.v"
++        for config in "2 16" "3 16" "4 16" "12 8"; do
++            set -- $config
++            tag=mmc-data-$1-$2
++            iverilog -g2012 -I/bench -s tb -Ptb.DIV="$1" -Ptb.FIFO_DEPTH="$2" -o "$tag" \
++                "$rtl/ngage_mmc_host.v" register_mmc_host.v poison_bram.v data_fifo_tb.v
++            vvp "$tag" > "$tag.log"
++            grep "^PASS MMC host data " "$tag.log"
++        done
++        iverilog -g2012 -I/bench -s fifo_banks_tb -o banks \
++            "$rtl/ngage_mmc_host.v" register_mmc_host.v poison_bram.v /bench/fifo_banks_tb.sv
++        vvp banks > banks.log
++        grep "^PASS MMC FIFO " banks.log
++        fixture=/bench/source/tests/phone/mmc_host
++        iverilog -g2001 -s tb -o cmd16 "$rtl/ngage_mmc_host.v" "$rtl/ngage_bram.v" "$fixture/cmd16_tb.v"
++        vvp cmd16 > cmd16.log
++        grep "^PASS CMD16 " cmd16.log
++        iverilog -g2001 -s integer_clock_tb -o integer "$rtl/ngage_mmc_host.v" "$rtl/ngage_bram.v" "$fixture/integer_clock_tb.v"
++        vvp integer > integer.log
++        grep "^PASS MMC integer " integer.log'
++fi
+diff --git a/scratch/v5-fit-loop/tlb-fifo-refill-combined/prepare-directed.py b/scratch/v5-fit-loop/tlb-fifo-refill-combined/prepare-directed.py
+new file mode 100644
+index 0000000..755be7a
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-fifo-refill-combined/prepare-directed.py
+@@ -0,0 +1,34 @@
++"""Stage exact timer-reference models for the archived TLB and MMC fixtures."""
++from pathlib import Path
++import re
++
++
++stage = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-tlb-fifo-refill-combined/directed')
++out.mkdir(parents=True, exist_ok=True)
++
++cpu = (stage / 'reference/rtl/arm9v2/arm925t_phone.v').read_text()
++tlb = re.search(r'^module ngage2_zap_tlb \(.*?^endmodule$', cpu, re.M | re.S)[0]
++(out / 'reference_zap_tlb.v').write_text(tlb.replace(
++    'module ngage2_zap_tlb (', 'module reference_zap_tlb (', 1) + '\n')
++
++host = (stage / 'reference/rtl/ngage_mmc_host.v').read_text()
++assert host.count('module ngage_mmc_host #(') == 1
++(out / 'register_mmc_host.v').write_text(host.replace(
++    'module ngage_mmc_host #(', 'module mmc_host_fifo_reference #(', 1))
++
++bram = (stage / 'source/rtl/ngage_bram.v').read_text()
++marker = 'b_q[lane*BYTE_WIDTH+:BYTE_WIDTH] <= we_b[lane] ?'
++assert bram.count(marker) == 1
++poisoned = ('b_q[lane*BYTE_WIDTH+:BYTE_WIDTH] <= '
++            "(we_a[lane] && addr_a == addr_b) ? {BYTE_WIDTH{1'bx}} : we_b[lane] ?")
++(out / 'poison_bram.v').write_text(bram.replace(marker, poisoned))
++
++pin = (stage / 'source/tests/phone/mmc_host/data_tb.v').read_text()
++anchor = '    always @(posedge clk)begin cycles<=cycles+1;'
++assert pin.count(anchor) == 1
++monitor = '''    `include "fifo_reference.vh"
++    // Let the register model sample a mask transition before leaving reset.
++    initial begin #1; be = 0; #1; be = 15; end
++'''
++(out / 'data_fifo_tb.v').write_text(pin.replace(anchor, monitor + anchor))
+diff --git a/scratch/v5-fit-loop/tlb-fifo-refill-combined/record.py b/scratch/v5-fit-loop/tlb-fifo-refill-combined/record.py
+new file mode 100644
+index 0000000..e892347
+--- /dev/null
++++ b/scratch/v5-fit-loop/tlb-fifo-refill-combined/record.py
+@@ -0,0 +1,114 @@
++"""Record the exact TLB and MMC RAM replay on the qualified refill wrapper."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shlex
++
++
++area = Path(__file__).resolve().parent
++root = area.parents[2]
++out = root / 'build/sim/v5-104-tlb-fifo-refill-combined'
++ram_runs = root / 'build/sim/v5-104-tlb-victims-mmc-fifo'
++refill_runs = root / 'build/sim/v5-104-refill-line-word-ready'
++ram_path = area.parent / 'tlb-victims-mmc-fifo/qualification.json'
++refill_path = area.parent / 'refill-line-word-ready/qualification.json'
++prep_path = area / 'dispatch-20261126/prepare.json'
++cpu = 'rtl/arm9v2/arm925t_phone.v'
++host = 'rtl/ngage_mmc_host.v'
++wrapper = 'rtl/ngage_cpu.sv'
++
++
++def digest(path):
++    return sha256(path.read_bytes()).hexdigest()
++
++
++def load(path):
++    return json.loads(path.read_bytes())
++
++
++def fingerprint(path, suffix):
++    rows = [shlex.split(line) for line in path.read_text().splitlines()
++            if line.startswith('S ') and line.endswith(f'{suffix}"')]
++    (row,) = rows
++    return row[-2]
++
++
++def passes(path):
++    return [line for line in path.read_text().splitlines() if line.startswith('PASS ')]
++
++
++prep, ram, refill = (load(path) for path in (prep_path, ram_path, refill_path))
++assert all(receipt['status'] == 'PASS' for receipt in (prep, ram, refill))
++assert prep['active_timer'] == ram['base'] == refill['base']
++assert digest(ram_path) == prep['ram_qualification_sha256']
++assert digest(refill_path) == prep['refill_qualification_sha256']
++selected = prep['variants']['ram-plus-refill']
++assert selected['parent'] == prep['active_refill']
++assert {wrapper: refill['candidate_sha256']} | ram['source_sha256'] == selected['hashes_from_timer']
++assert all(digest(area / 'source' / name) == value for name, value in selected['hashes_from_timer'].items())
++assert digest(area / 'ngage_cpu.sv') == refill['candidate_sha256']
++
++mix = out / 'mixed'
++fingerprints = {name: fingerprint(mix / 'obj/Vtb__verFiles.dat', name) for name in (cpu, host, wrapper)}
++assert fingerprints == ram['compiled_fingerprints'] | {wrapper: refill['compiled_wrapper_fingerprint']}
++trial, baseline = (load(deck / 'source-hashes.json') for deck in (mix, refill_runs / 'mixed'))
++assert len(trial) == len(baseline) == 114 and trial.keys() == baseline.keys()
++assert {name: trial[name] for name in trial if trial[name] != baseline[name]} == {
++    name: ram['source_sha256'][name] for name in (cpu, host)}
++assert trial[wrapper] == refill['candidate_sha256']
++
++workload = {}
++for kind, metric, count in (('fixed', 'windows', 105), ('native', 'frames', 4)):
++    receipt = out / f'qualification/{kind}.json'
++    result = load(receipt)
++    control = load(refill_runs / f'qualification/{kind}.json')
++    ram_control = load(ram_runs / f'qualification/{kind}.json')
++    assert result['status'] == control['status'] == ram_control['status'] == 'PASS'
++    assert result['rows'] == control['rows'] == ram_control['rows']
++    assert result['netlist_sha256'] == ram['source_sha256'][cpu]
++    assert result['wrapper_sha256'] == refill['candidate_sha256']
++    assert result['source_sha256'][Path(host).name] == ram['source_sha256'][host]
++    assert sum(len(row['candidate'][metric]) for row in result['rows']) == count
++    manifest = out / f'qualification/obj-{kind}/Vtb__verFiles.dat'
++    command = next(line for line in manifest.read_text().splitlines() if line.startswith('C '))
++    assert '-GLINE_REFILL=1' in command
++    assert fingerprint(manifest, host) == fingerprints[host]
++    assert fingerprint(manifest, '/ngage_cpu.sv') == fingerprints[wrapper]
++    assert fingerprint(manifest, f'{kind}-candidate-cpu.v') == fingerprints[cpu]
++    workload[kind] = {'count': count, 'receipt_sha256': digest(receipt)}
++native = result['rows'][0]['candidate']
++workload['native']['cycles'] = [row['clocks'] for row in native['frames']]
++workload['native']['guest_output_sha256'] = native['output_sha256']
++
++directed = passes(out / 'directed.log')
++assert len([line for line in directed if line.startswith('PASS walker ')]) == 2
++assert len([line for line in directed if line.startswith('PASS MMC host data peer ')]) == 4
++assert any('260' in line and '939' in line for line in directed)
++assert fingerprint(out / 'directed/obj-tlb/Vwalker_tb__verFiles.dat', cpu) == fingerprints[cpu]
++board = {}
++for profile, record in refill['board_replays'].items():
++    trace = out / 'board/source' / f'{profile}.trace'
++    assert digest(trace) == record['trace_sha256']
++    assert digest(trace) == digest(out / 'board/reference' / trace.name)
++    board[profile] = record
++assert fingerprint(out / 'board/source/obj/Vcontract__verFiles.dat', wrapper) == fingerprints[wrapper]
++assert fingerprint(out / 'board/source/obj/Vcontract__verFiles.dat', cpu) == fingerprints[cpu]
++
++physical = {}
++for label, trace, log in (('normal', 'mixed/traffic.log', 'mixed/replay.log'),
++                          ('overlap', 'coexistence/candidate.trace', 'coexistence/candidate.log')):
++    candidate = out / trace
++    control = refill['physical_replays'][label]
++    assert digest(candidate) == digest(refill_runs / trace) == control['trace_sha256']
++    assert len(candidate.read_bytes().splitlines()) == control['events']
++    assert passes(out / log) == passes(refill_runs / log)
++    physical[label] = control
++
++receipt = {'status': 'PASS', 'candidate': selected['sha'], 'base': selected['parent'],
++           'tree': selected['tree'], 'source_sha256': selected['hashes_from_timer'],
++           'preflight_sha256': digest(prep_path),
++           'ram_qualification_sha256': digest(ram_path), 'refill_qualification_sha256': digest(refill_path),
++           'compiled_fingerprints': fingerprints, 'mixed_sources': len(trial),
++           'simulator': (out / 'image.id').read_text().strip(), 'workload': workload,
++           'board': board, 'directed': directed, 'physical_replays': physical}
++(area / 'qualification.json').write_text(json.dumps(receipt, indent=2) + '\n')

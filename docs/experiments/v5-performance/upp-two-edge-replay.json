@@ -1,0 +1,609 @@
+{
+  "status": "PASS_WITH_PCM_STARTUP_DIFFERENCE",
+  "baseline": "e7f1e31ea4f6d51e9e59463a7f13168b9a8f4530",
+  "candidate": "4c02fdab93f690945334ba06b8e4dadaaec3e9a6",
+  "directed": [
+    {
+      "keypad": 0,
+      "sequence_sha256": "ffdbee1d2100b98d78ffa4f207320f337b12566fff1f91b01946bc0b91e80a4f",
+      "coverage": {
+        "two_edge": 1,
+        "even": 223,
+        "odd": 98,
+        "fast": 4,
+        "min_issue": 2,
+        "max_issue": 39
+      },
+      "observed": {
+        "keypad": 0,
+        "replies": 318,
+        "samples": 319,
+        "writes": 162,
+        "gpio": 47,
+        "uart": 237,
+        "overlap": 11,
+        "nos": 4,
+        "loop": 3,
+        "tx": 21,
+        "rx": 3
+      }
+    },
+    {
+      "keypad": 1,
+      "sequence_sha256": "ab5821eb328a63ed743eb5b38656dac53214e4e4038585ee817dd020031ded96",
+      "coverage": {
+        "two_edge": 1,
+        "even": 223,
+        "odd": 98,
+        "fast": 4,
+        "min_issue": 2,
+        "max_issue": 39
+      },
+      "observed": {
+        "keypad": 1,
+        "replies": 318,
+        "samples": 319,
+        "writes": 162,
+        "gpio": 47,
+        "uart": 237,
+        "overlap": 11,
+        "nos": 4,
+        "loop": 3,
+        "tx": 21,
+        "rx": 3
+      }
+    }
+  ],
+  "stock_keypad": [
+    {
+      "memory_waits": 0,
+      "control_clocks": 7302,
+      "trial_clocks": 7338,
+      "sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b",
+      "replies": 44,
+      "key_events": 9
+    },
+    {
+      "memory_waits": 3,
+      "control_clocks": 12660,
+      "trial_clocks": 12696,
+      "sha256": "763e54d58e3f5df63e658b5b5a5d7593d5ea51cb1a0788c292176d4f5309d09b",
+      "replies": 44,
+      "key_events": 9
+    }
+  ],
+  "authored_gpio_euart": {
+    "control_clocks": 91443,
+    "candidate_clocks": 92981,
+    "targeted_accesses": 2050
+  },
+  "mixed": {
+    "control_clocks": 1168777,
+    "candidate_clocks": 1169386,
+    "checked_dma_transactions": 1290,
+    "dma_ordered_tuple_sha256": "e42183eaeec2567d1187cd264b7eba8d56efb38c1adfe5553b00faaec64f3134",
+    "mmc_fifo_latency_clocks": {
+      "control": {
+        "4": 1032
+      },
+      "candidate": {
+        "5": 1032
+      }
+    },
+    "reference_trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+    "candidate_trace_sha256": "9296f49f475f4e109b90acda26020665de8283d3e41da8c89f55d1e99eee8c26",
+    "pcm_changes": [
+      {
+        "index": 2,
+        "control": [
+          "f415",
+          "05f5"
+        ],
+        "candidate": [
+          "f887",
+          "03bc"
+        ]
+      }
+    ],
+    "physical_mmc_divisor": 3,
+    "guest_checks": [
+      "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=c5beb2c9",
+      "PASS native LCD grants=4576 completed=4576",
+      "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=720 PCM ticks=2 underflows=0 overwritten=0",
+      "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1202156 reads=4 writes=1"
+    ]
+  },
+  "fixed": [
+    {
+      "case": "sega-scan",
+      "median_cycles": 2395767,
+      "windows": [
+        2396210,
+        2395853,
+        2395905,
+        2395767,
+        2395767,
+        2395767,
+        2395767
+      ]
+    },
+    {
+      "case": "matrix4",
+      "median_cycles": 16946,
+      "windows": [
+        17981,
+        16937,
+        16937,
+        16937,
+        16949,
+        16946,
+        16952
+      ]
+    },
+    {
+      "case": "transpose4",
+      "median_cycles": 2976,
+      "windows": [
+        3055,
+        2964,
+        2964,
+        2976,
+        2976,
+        2979,
+        2976
+      ]
+    },
+    {
+      "case": "triangle_edges",
+      "median_cycles": 12226,
+      "windows": [
+        13136,
+        12220,
+        12226,
+        12262,
+        12253,
+        12220,
+        12220
+      ]
+    },
+    {
+      "case": "fill16_frame",
+      "median_cycles": 122402,
+      "windows": [
+        122534,
+        122402,
+        122402,
+        122402,
+        122402,
+        122402,
+        122402
+      ]
+    },
+    {
+      "case": "fill16_tail",
+      "median_cycles": 725,
+      "windows": [
+        876,
+        725,
+        725,
+        728,
+        725,
+        725,
+        725
+      ]
+    },
+    {
+      "case": "fill8_tail",
+      "median_cycles": 753,
+      "windows": [
+        903,
+        753,
+        753,
+        753,
+        753,
+        753,
+        753
+      ]
+    },
+    {
+      "case": "monkey-forward",
+      "median_cycles": 15940,
+      "windows": [
+        16021,
+        15937,
+        15940,
+        15940,
+        15949,
+        15937,
+        15940
+      ]
+    },
+    {
+      "case": "monkey-reverse",
+      "median_cycles": 15940,
+      "windows": [
+        16021,
+        15937,
+        15940,
+        15940,
+        15949,
+        15937,
+        15940
+      ]
+    },
+    {
+      "case": "sega-span",
+      "median_cycles": 15430,
+      "windows": [
+        15585,
+        15430,
+        15430,
+        15430,
+        15430,
+        15430,
+        15430
+      ]
+    },
+    {
+      "case": "sega-fill",
+      "median_cycles": 2628,
+      "windows": [
+        2757,
+        2628,
+        2628,
+        2628,
+        2628,
+        2628,
+        2628
+      ]
+    },
+    {
+      "case": "asphalt-table",
+      "median_cycles": 21163,
+      "windows": [
+        21328,
+        21155,
+        21160,
+        21152,
+        21168,
+        21163,
+        21171
+      ]
+    },
+    {
+      "case": "asphalt-double",
+      "median_cycles": 11974,
+      "windows": [
+        12140,
+        11974,
+        11982,
+        11974,
+        11977,
+        11974,
+        11974
+      ]
+    },
+    {
+      "case": "asphalt-single",
+      "median_cycles": 7753,
+      "windows": [
+        7933,
+        7753,
+        7753,
+        7762,
+        7753,
+        7753,
+        7753
+      ]
+    },
+    {
+      "case": "diffuse_m10_8x8_jpeg",
+      "median_cycles": 35324,
+      "windows": [
+        36331,
+        35324,
+        35324,
+        35324,
+        35324,
+        35324,
+        35324
+      ]
+    }
+  ],
+  "native": {
+    "profile": [
+      0,
+      0
+    ],
+    "case": "native",
+    "frames": [
+      {
+        "frame": 0,
+        "clocks": 14391395,
+        "retired": 7338211,
+        "uops": 1040332,
+        "ifills": 177192,
+        "dfills": 8778,
+        "iwalk_words": 119,
+        "dwalk_words": 5,
+        "d_wait": 297524,
+        "d_walk_wait": 154,
+        "execute_wait": 556759,
+        "iwalk_wait": 1281,
+        "exposed_i": 1524860,
+        "frontend": 1491652,
+        "other": 2140622,
+        "draws": 1,
+        "swaps": 1
+      },
+      {
+        "frame": 1,
+        "clocks": 14467552,
+        "retired": 7372623,
+        "uops": 1046017,
+        "ifills": 179072,
+        "dfills": 8590,
+        "iwalk_words": 111,
+        "dwalk_words": 1,
+        "d_wait": 295747,
+        "d_walk_wait": 33,
+        "execute_wait": 556254,
+        "iwalk_wait": 1176,
+        "exposed_i": 1538774,
+        "frontend": 1501064,
+        "other": 2155864,
+        "draws": 1,
+        "swaps": 1
+      },
+      {
+        "frame": 2,
+        "clocks": 14346201,
+        "retired": 7322287,
+        "uops": 1039189,
+        "ifills": 176599,
+        "dfills": 8508,
+        "iwalk_words": 115,
+        "dwalk_words": 2,
+        "d_wait": 293387,
+        "d_walk_wait": 61,
+        "execute_wait": 551454,
+        "iwalk_wait": 1255,
+        "exposed_i": 1518818,
+        "frontend": 1485675,
+        "other": 2134075,
+        "draws": 1,
+        "swaps": 1
+      },
+      {
+        "frame": 3,
+        "clocks": 14303223,
+        "retired": 7301052,
+        "uops": 1038177,
+        "ifills": 175649,
+        "dfills": 8626,
+        "iwalk_words": 117,
+        "dwalk_words": 2,
+        "d_wait": 295271,
+        "d_walk_wait": 61,
+        "execute_wait": 551798,
+        "iwalk_wait": 1183,
+        "exposed_i": 1510829,
+        "frontend": 1479713,
+        "other": 2125139,
+        "draws": 1,
+        "swaps": 1
+      }
+    ],
+    "architecture": [
+      {
+        "window": 0,
+        "retired": 8378542,
+        "data": 2795132,
+        "mmio": 0,
+        "recover": 0,
+        "retire_hash": 10205000342560512243,
+        "data_hash": 1099935925129445331,
+        "mmio_hash": 14695981039346656037
+      },
+      {
+        "window": 1,
+        "retired": 8418639,
+        "data": 2808540,
+        "mmio": 0,
+        "recover": 0,
+        "retire_hash": 14330942816271412486,
+        "data_hash": 12998895494613033264,
+        "mmio_hash": 14695981039346656037
+      },
+      {
+        "window": 2,
+        "retired": 8361475,
+        "data": 2789266,
+        "mmio": 0,
+        "recover": 0,
+        "retire_hash": 840186148523522304,
+        "data_hash": 10876088796762072086,
+        "mmio_hash": 14695981039346656037
+      },
+      {
+        "window": 3,
+        "retired": 8339228,
+        "data": 2782792,
+        "mmio": 0,
+        "recover": 0,
+        "retire_hash": 8873323223938994861,
+        "data_hash": 709881815613675910,
+        "mmio_hash": 14695981039346656037
+      }
+    ],
+    "wb_writes": [
+      {
+        "window": 0,
+        "offer": 203207,
+        "stall": 133113,
+        "read_ack": 1487884,
+        "write_ack": 70094,
+        "write_error": 0,
+        "read_to_write": 1437,
+        "changed_after_write_ack": 7201,
+        "owner_changes": 0,
+        "tag": 0,
+        "evict_scalar": 0,
+        "evict_native": 4543,
+        "post": 65551,
+        "unc": 0,
+        "tag_changed": 0,
+        "evict_scalar_changed": 0,
+        "evict_native_changed": 1845,
+        "post_changed": 5356,
+        "unc_changed": 0,
+        "write_hash": 17993793482680284196
+      },
+      {
+        "window": 1,
+        "offer": 201904,
+        "stall": 132472,
+        "read_ack": 1501408,
+        "write_ack": 69432,
+        "write_error": 0,
+        "read_to_write": 1454,
+        "changed_after_write_ack": 6857,
+        "owner_changes": 0,
+        "tag": 0,
+        "evict_scalar": 0,
+        "evict_native": 4678,
+        "post": 64754,
+        "unc": 0,
+        "tag_changed": 0,
+        "evict_scalar_changed": 0,
+        "evict_native_changed": 1894,
+        "post_changed": 4963,
+        "unc_changed": 0,
+        "write_hash": 10036837994085394481
+      },
+      {
+        "window": 2,
+        "offer": 201052,
+        "stall": 131986,
+        "read_ack": 1480973,
+        "write_ack": 69066,
+        "write_error": 0,
+        "read_to_write": 1415,
+        "changed_after_write_ack": 6678,
+        "owner_changes": 0,
+        "tag": 0,
+        "evict_scalar": 0,
+        "evict_native": 4599,
+        "post": 64467,
+        "unc": 0,
+        "tag_changed": 0,
+        "evict_scalar_changed": 0,
+        "evict_native_changed": 1857,
+        "post_changed": 4821,
+        "unc_changed": 0,
+        "write_hash": 9412616994930253262
+      },
+      {
+        "window": 3,
+        "offer": 202083,
+        "stall": 132510,
+        "read_ack": 1474319,
+        "write_ack": 69573,
+        "write_error": 0,
+        "read_to_write": 1475,
+        "changed_after_write_ack": 6950,
+        "owner_changes": 0,
+        "tag": 0,
+        "evict_scalar": 0,
+        "evict_native": 4715,
+        "post": 64858,
+        "unc": 0,
+        "tag_changed": 0,
+        "evict_scalar_changed": 0,
+        "evict_native_changed": 1895,
+        "post_changed": 5055,
+        "unc_changed": 0,
+        "write_hash": 4619195081536685894
+      }
+    ],
+    "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+    "median": 14346201
+  },
+  "board": {
+    "burst-0-wait-0": {
+      "clocks": 33464,
+      "ordered_sha256": "5eb36a2549bc68ac5e750b70d2e5ddb95e97900ce3d5a39ecfa59971bdc46c57"
+    },
+    "burst-0-wait-5": {
+      "clocks": 67865,
+      "ordered_sha256": "6d7c90428c2072dcba11c44b696e1e2d19b8d6f46f38973b840f09f1ecfed809"
+    },
+    "burst-1-wait-0": {
+      "clocks": 28464,
+      "ordered_sha256": "31cd1b51eb82c54931c436fcfa8b933f8fba7b6dcac00d9bb26f3df437b0f2ee"
+    },
+    "burst-1-wait-5": {
+      "clocks": 42543,
+      "ordered_sha256": "12349a2fe3c61600eb64ba3f1214fbdc25324d5fb59e6f5a90e96511eb6d26f4"
+    }
+  },
+  "fits": [
+    {
+      "seed": 43,
+      "databaseId": 45468211620,
+      "displayTitle": "ngage1 build (seed 43, DDR debug off)",
+      "event": "workflow_dispatch",
+      "headBranch": "ngage-v5",
+      "headSha": "4c02fdab93f690945334ba06b8e4dadaaec3e9a6",
+      "url": "https://github.com/asturur/test_template_1/actions/runs/45468211620",
+      "preflight": {
+        "compiled_input_count": 132,
+        "changed_fit_inputs": [
+          "Template.sdc",
+          "rtl/ngage_upp.v",
+          "rtl/ngage_upp_peripherals.v"
+        ],
+        "selected_sha256": "c40579a31380879f9d4553ec6d3e2a9e2549a713494a1643ce1f0827459e0061",
+        "qsf_sha256": "cd53ae81c1283ee7ad06e4615a0d6393f3daa31ae3cc434767526678167216bd"
+      }
+    },
+    {
+      "seed": 13,
+      "databaseId": 45468217182,
+      "displayTitle": "ngage1 build (seed 13, DDR debug off)",
+      "event": "workflow_dispatch",
+      "headBranch": "ngage-v5",
+      "headSha": "4c02fdab93f690945334ba06b8e4dadaaec3e9a6",
+      "url": "https://github.com/asturur/test_template_1/actions/runs/45468217182",
+      "preflight": {
+        "compiled_input_count": 132,
+        "changed_fit_inputs": [
+          "Template.sdc",
+          "rtl/ngage_upp.v",
+          "rtl/ngage_upp_peripherals.v"
+        ],
+        "selected_sha256": "c40579a31380879f9d4553ec6d3e2a9e2549a713494a1643ce1f0827459e0061",
+        "qsf_sha256": "580f4549f6b9067a893bfe227b7cd0fc2296b2303362627e8fffdf211c3054ac"
+      }
+    },
+    {
+      "seed": 31337,
+      "databaseId": 45468222028,
+      "displayTitle": "ngage1 build (seed 31337, DDR debug off)",
+      "event": "workflow_dispatch",
+      "headBranch": "ngage-v5",
+      "headSha": "4c02fdab93f690945334ba06b8e4dadaaec3e9a6",
+      "url": "https://github.com/asturur/test_template_1/actions/runs/45468222028",
+      "preflight": {
+        "compiled_input_count": 132,
+        "changed_fit_inputs": [
+          "Template.sdc",
+          "rtl/ngage_upp.v",
+          "rtl/ngage_upp_peripherals.v"
+        ],
+        "selected_sha256": "c40579a31380879f9d4553ec6d3e2a9e2549a713494a1643ce1f0827459e0061",
+        "qsf_sha256": "464934e045a3fb70e8c7a8cfb4c7bc337550fd77b93ba357b7db107fd549c352"
+      }
+    }
+  ]
+}

@@ -1,0 +1,1347 @@
+{
+  "all_four": [
+    {
+      "run": 45206755388,
+      "sha": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+      "seed": 43,
+      "alms": 37366,
+      "m10ks": 321,
+      "registers": 40928,
+      "average_routing_pct": 47.1,
+      "peak_routing_pct": 80.8,
+      "core_setup_tns_sta_summary_ns": -5849.103,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.81,
+          "hold-summary": 0.217,
+          "recovery-summary": 2.286,
+          "removal-summary": 0.703,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.48
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.851,
+          "hold-summary": 0.102,
+          "recovery-summary": 2.552,
+          "removal-summary": 0.653,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.22
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.311,
+          "hold-summary": 0.098,
+          "recovery-summary": 5.012,
+          "removal-summary": 0.31,
+          "min-pulse": 0.961,
+          "fmax_mhz": 136.91
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.592,
+          "hold-summary": 0.078,
+          "recovery-summary": 5.303,
+          "removal-summary": 0.263,
+          "min-pulse": 0.961,
+          "fmax_mhz": 167.2
+        }
+      ],
+      "worst_setup_ns": -2.851,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 22,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 36,
+        "ngage2_zap_tlb:": 204,
+        "ngage2_zap_wb_merger:": 121,
+        "ngage2_arm9v2_execute:": 195
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|state.IDLE_OTERM481~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[31]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 248.4,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.3,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 240.8,
+          "direct_registers": 292,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 209.9,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 789.1,
+          "direct_registers": 985,
+          "inclusive_m10ks": 0
+        }
+      }
+    },
+    {
+      "run": 45206762467,
+      "sha": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+      "seed": 13,
+      "alms": 37286,
+      "m10ks": 321,
+      "registers": 40750,
+      "average_routing_pct": 46.3,
+      "peak_routing_pct": 77.5,
+      "core_setup_tns_sta_summary_ns": -5808.641,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.803,
+          "hold-summary": 0.244,
+          "recovery-summary": 1.585,
+          "removal-summary": 0.694,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.53
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.738,
+          "hold-summary": 0.156,
+          "recovery-summary": 2.007,
+          "removal-summary": 0.67,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.95
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.422,
+          "hold-summary": 0.131,
+          "recovery-summary": 4.998,
+          "removal-summary": 0.376,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.02
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.624,
+          "hold-summary": 0.082,
+          "recovery-summary": 5.332,
+          "removal-summary": 0.323,
+          "min-pulse": 0.961,
+          "fmax_mhz": 166.92
+        }
+      ],
+      "worst_setup_ns": -2.803,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 101,
+        "ngage_icu_extra:extra_regs|": 33,
+        "ngage_mmc_host:": 54,
+        "ngage2_zap_tlb:": 108,
+        "ngage2_zap_wb_merger:": 85,
+        "ngage2_arm9v2_execute:": 229
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage_arm9v2_refill:refill|cpu_ack~1_OTERM11100",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[6]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 256.2,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 259.2,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.7,
+          "direct_registers": 292,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 196.6,
+          "direct_registers": 208,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 774.6,
+          "direct_registers": 966,
+          "inclusive_m10ks": 0
+        }
+      }
+    },
+    {
+      "run": 45206768879,
+      "sha": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+      "seed": 31337,
+      "alms": 37364,
+      "m10ks": 321,
+      "registers": 40862,
+      "average_routing_pct": 46.5,
+      "peak_routing_pct": 78.8,
+      "core_setup_tns_sta_summary_ns": -6751.009,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.852,
+          "hold-summary": 0.173,
+          "recovery-summary": 1.602,
+          "removal-summary": 0.986,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.21
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.641,
+          "hold-summary": 0.059,
+          "recovery-summary": 2.041,
+          "removal-summary": 0.923,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.59
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.439,
+          "hold-summary": 0.129,
+          "recovery-summary": 5.09,
+          "removal-summary": 0.478,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.35
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.556,
+          "hold-summary": 0.095,
+          "recovery-summary": 5.389,
+          "removal-summary": 0.408,
+          "min-pulse": 0.961,
+          "fmax_mhz": 165.26
+        }
+      ],
+      "worst_setup_ns": -2.852,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 5,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 0,
+        "ngage2_zap_tlb:": 116,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 160
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|write_through_match[6]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[243]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 249.2,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 259.8,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.3,
+          "direct_registers": 293,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 198.6,
+          "direct_registers": 206,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 773.6,
+          "direct_registers": 972,
+          "inclusive_m10ks": 0
+        }
+      }
+    }
+  ],
+  "refill": [
+    {
+      "run": 45230489919,
+      "sha": "13a471b684c6730c37d9890c057c95e966a50ec0",
+      "seed": 43,
+      "alms": 36176,
+      "m10ks": 323,
+      "registers": 40893,
+      "average_routing_pct": 44.2,
+      "peak_routing_pct": 80.5,
+      "core_setup_tns_sta_summary_ns": -6621.0,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.774,
+          "hold-summary": 0.212,
+          "recovery-summary": 1.419,
+          "removal-summary": 0.974,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.72
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.895,
+          "hold-summary": 0.088,
+          "recovery-summary": 1.885,
+          "removal-summary": 0.903,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.94
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.571,
+          "hold-summary": 0.117,
+          "recovery-summary": 4.88,
+          "removal-summary": 0.482,
+          "min-pulse": 0.961,
+          "fmax_mhz": 141.96
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.559,
+          "hold-summary": 0.066,
+          "recovery-summary": 5.256,
+          "removal-summary": 0.4,
+          "min-pulse": 0.961,
+          "fmax_mhz": 165.13
+        }
+      ],
+      "worst_setup_ns": -2.895,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 106,
+        "ngage_icu_extra:extra_regs|": 20,
+        "ngage_mmc_host:": 3,
+        "ngage2_zap_tlb:": 94,
+        "ngage2_zap_wb_merger:": 159,
+        "ngage2_arm9v2_execute:": 155
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ref_due~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_cache_fsm:u_zap_cache_fsm|response_dat_ff[23]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 252.5,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 265.7,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 157.5,
+          "direct_registers": 103,
+          "inclusive_m10ks": 2
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 193.9,
+          "direct_registers": 212,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 831.3,
+          "direct_registers": 997,
+          "inclusive_m10ks": 0
+        }
+      }
+    },
+    {
+      "run": 45230488647,
+      "sha": "13a471b684c6730c37d9890c057c95e966a50ec0",
+      "seed": 13,
+      "alms": 36148,
+      "m10ks": 323,
+      "registers": 40971,
+      "average_routing_pct": 44.9,
+      "peak_routing_pct": 76.9,
+      "core_setup_tns_sta_summary_ns": -9276.497,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -3.081,
+          "hold-summary": 0.192,
+          "recovery-summary": 1.108,
+          "removal-summary": 0.931,
+          "min-pulse": 0.961,
+          "fmax_mhz": 78.76
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -3.079,
+          "hold-summary": 0.071,
+          "recovery-summary": 1.502,
+          "removal-summary": 0.875,
+          "min-pulse": 0.961,
+          "fmax_mhz": 78.78
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.269,
+          "hold-summary": 0.126,
+          "recovery-summary": 4.741,
+          "removal-summary": 0.444,
+          "min-pulse": 0.961,
+          "fmax_mhz": 136.13
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.489,
+          "hold-summary": 0.074,
+          "recovery-summary": 5.223,
+          "removal-summary": 0.38,
+          "min-pulse": 0.961,
+          "fmax_mhz": 163.24
+        }
+      ],
+      "worst_setup_ns": -3.081,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 1,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 68,
+        "ngage2_zap_tlb:": 14,
+        "ngage2_zap_wb_merger:": 89,
+        "ngage2_arm9v2_execute:": 235
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[534]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|request_live"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 251.8,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 268.1,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 154.7,
+          "direct_registers": 101,
+          "inclusive_m10ks": 2
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 192.3,
+          "direct_registers": 214,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 828.9,
+          "direct_registers": 992,
+          "inclusive_m10ks": 0
+        }
+      }
+    },
+    {
+      "run": 45230489549,
+      "sha": "13a471b684c6730c37d9890c057c95e966a50ec0",
+      "seed": 31337,
+      "alms": 36166,
+      "m10ks": 323,
+      "registers": 40965,
+      "average_routing_pct": 44.9,
+      "peak_routing_pct": 80.8,
+      "core_setup_tns_sta_summary_ns": -6218.325,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.779,
+          "hold-summary": 0.193,
+          "recovery-summary": 1.585,
+          "removal-summary": 1.008,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.68
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.703,
+          "hold-summary": 0.07,
+          "recovery-summary": 1.982,
+          "removal-summary": 0.926,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.18
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.533,
+          "hold-summary": 0.133,
+          "recovery-summary": 4.951,
+          "removal-summary": 0.507,
+          "min-pulse": 0.961,
+          "fmax_mhz": 141.2
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.643,
+          "hold-summary": 0.084,
+          "recovery-summary": 5.232,
+          "removal-summary": 0.436,
+          "min-pulse": 0.961,
+          "fmax_mhz": 168.86
+        }
+      ],
+      "worst_setup_ns": -2.779,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 1,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 124,
+        "ngage2_zap_tlb:": 103,
+        "ngage2_zap_wb_merger:": 200,
+        "ngage2_arm9v2_execute:": 250
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|wb_flush",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[15]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 252.0,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 264.1,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 156.6,
+          "direct_registers": 102,
+          "inclusive_m10ks": 2
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 194.4,
+          "direct_registers": 212,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 849.3,
+          "direct_registers": 1004,
+          "inclusive_m10ks": 0
+        }
+      }
+    }
+  ],
+  "icu": [
+    {
+      "run": 45231285727,
+      "sha": "fa1b2f1b62b1452343dc1a9258b7601cf1acb5af",
+      "seed": 43,
+      "alms": 36151,
+      "m10ks": 321,
+      "registers": 40500,
+      "average_routing_pct": 45.4,
+      "peak_routing_pct": 77.7,
+      "core_setup_tns_sta_summary_ns": -7837.591,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.863,
+          "hold-summary": 0.159,
+          "recovery-summary": 1.553,
+          "removal-summary": 1.263,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.14
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.766,
+          "hold-summary": 0.041,
+          "recovery-summary": 1.774,
+          "removal-summary": 1.163,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.77
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.355,
+          "hold-summary": 0.124,
+          "recovery-summary": 4.982,
+          "removal-summary": 0.648,
+          "min-pulse": 0.961,
+          "fmax_mhz": 137.74
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.568,
+          "hold-summary": 0.088,
+          "recovery-summary": 5.266,
+          "removal-summary": 0.553,
+          "min-pulse": 0.961,
+          "fmax_mhz": 165.37
+        }
+      ],
+      "worst_setup_ns": -2.863,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 2,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 25,
+        "ngage2_zap_tlb:": 332,
+        "ngage2_zap_wb_merger:": 174,
+        "ngage2_arm9v2_execute:": 365
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|wb_flush",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 250.3,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.8,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 235.5,
+          "direct_registers": 293,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 97.9,
+          "direct_registers": 47,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 821.0,
+          "direct_registers": 981,
+          "inclusive_m10ks": 0
+        }
+      }
+    },
+    {
+      "run": 45231286010,
+      "sha": "fa1b2f1b62b1452343dc1a9258b7601cf1acb5af",
+      "seed": 13,
+      "alms": 36304,
+      "m10ks": 321,
+      "registers": 40347,
+      "average_routing_pct": 44.0,
+      "peak_routing_pct": 80.2,
+      "core_setup_tns_sta_summary_ns": -7958.179,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -3.278,
+          "hold-summary": 0.218,
+          "recovery-summary": 1.26,
+          "removal-summary": 0.907,
+          "min-pulse": 0.961,
+          "fmax_mhz": 77.56
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.943,
+          "hold-summary": 0.099,
+          "recovery-summary": 1.739,
+          "removal-summary": 0.864,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.63
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.351,
+          "hold-summary": 0.095,
+          "recovery-summary": 4.724,
+          "removal-summary": 0.423,
+          "min-pulse": 0.961,
+          "fmax_mhz": 137.67
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.527,
+          "hold-summary": 0.076,
+          "recovery-summary": 5.57,
+          "removal-summary": 0.358,
+          "min-pulse": 0.961,
+          "fmax_mhz": 164.26
+        }
+      ],
+      "worst_setup_ns": -3.278,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 2,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 5,
+        "ngage2_zap_tlb:": 195,
+        "ngage2_zap_wb_merger:": 130,
+        "ngage2_arm9v2_execute:": 155
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[1]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[236]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 250.2,
+          "direct_registers": 302,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.7,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.7,
+          "direct_registers": 293,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 96.5,
+          "direct_registers": 48,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 826.0,
+          "direct_registers": 993,
+          "inclusive_m10ks": 0
+        }
+      }
+    },
+    {
+      "run": 45231285784,
+      "sha": "fa1b2f1b62b1452343dc1a9258b7601cf1acb5af",
+      "seed": 31337,
+      "alms": 36311,
+      "m10ks": 321,
+      "registers": 40484,
+      "average_routing_pct": 45.7,
+      "peak_routing_pct": 76.3,
+      "core_setup_tns_sta_summary_ns": -7022.991,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.932,
+          "hold-summary": 0.207,
+          "recovery-summary": 1.436,
+          "removal-summary": 1.211,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.7
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.518,
+          "hold-summary": 0.111,
+          "recovery-summary": 1.714,
+          "removal-summary": 1.117,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.42
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.514,
+          "hold-summary": 0.13,
+          "recovery-summary": 4.893,
+          "removal-summary": 0.605,
+          "min-pulse": 0.961,
+          "fmax_mhz": 140.83
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.483,
+          "hold-summary": 0.114,
+          "recovery-summary": 5.166,
+          "removal-summary": 0.504,
+          "min-pulse": 0.961,
+          "fmax_mhz": 167.39
+        }
+      ],
+      "worst_setup_ns": -2.932,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 14,
+        "ngage2_zap_tlb:": 31,
+        "ngage2_zap_wb_merger:": 229,
+        "ngage2_arm9v2_execute:": 135
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|l_genblk1.data_data_ff[21]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 248.7,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.5,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 236.3,
+          "direct_registers": 293,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 92.8,
+          "direct_registers": 52,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 810.0,
+          "direct_registers": 1006,
+          "inclusive_m10ks": 0
+        }
+      }
+    }
+  ],
+  "mmc": [
+    {
+      "run": 45231987887,
+      "sha": "d790e966390a2fa2af10a836ec0d4543037c509a",
+      "seed": 43,
+      "alms": 37052,
+      "m10ks": 325,
+      "registers": 40409,
+      "average_routing_pct": 45.6,
+      "peak_routing_pct": 80.0,
+      "core_setup_tns_sta_summary_ns": -6406.518,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.98,
+          "hold-summary": 0.178,
+          "recovery-summary": 1.166,
+          "removal-summary": 1.103,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.4
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.766,
+          "hold-summary": 0.08,
+          "recovery-summary": 1.609,
+          "removal-summary": 1.075,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.77
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.362,
+          "hold-summary": 0.128,
+          "recovery-summary": 4.67,
+          "removal-summary": 0.511,
+          "min-pulse": 0.961,
+          "fmax_mhz": 137.87
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.57,
+          "hold-summary": 0.113,
+          "recovery-summary": 5.018,
+          "removal-summary": 0.436,
+          "min-pulse": 0.961,
+          "fmax_mhz": 165.43
+        }
+      ],
+      "worst_setup_ns": -2.98,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 1,
+        "ngage_icu_extra:extra_regs|": 1,
+        "ngage_mmc_host:": 20,
+        "ngage2_zap_tlb:": 88,
+        "ngage2_zap_wb_merger:": 212,
+        "ngage2_arm9v2_execute:": 188
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|state_ff",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|l_genblk1.data_data_ff[31]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 251.3,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 271.4,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 236.5,
+          "direct_registers": 295,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 205.4,
+          "direct_registers": 224,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 587.6,
+          "direct_registers": 731,
+          "inclusive_m10ks": 4
+        }
+      }
+    },
+    {
+      "run": 45231987701,
+      "sha": "d790e966390a2fa2af10a836ec0d4543037c509a",
+      "seed": 13,
+      "alms": 37140,
+      "m10ks": 325,
+      "registers": 40411,
+      "average_routing_pct": 46.3,
+      "peak_routing_pct": 81.7,
+      "core_setup_tns_sta_summary_ns": -4861.117,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.713,
+          "hold-summary": 0.221,
+          "recovery-summary": 1.447,
+          "removal-summary": 1.086,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.12
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.695,
+          "hold-summary": 0.116,
+          "recovery-summary": 1.814,
+          "removal-summary": 1.008,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.23
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.496,
+          "hold-summary": 0.101,
+          "recovery-summary": 4.16,
+          "removal-summary": 0.535,
+          "min-pulse": 0.961,
+          "fmax_mhz": 140.47
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.487,
+          "hold-summary": 0.08,
+          "recovery-summary": 4.642,
+          "removal-summary": 0.457,
+          "min-pulse": 0.961,
+          "fmax_mhz": 167.22
+        }
+      ],
+      "worst_setup_ns": -2.713,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 2,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 15,
+        "ngage2_zap_tlb:": 59,
+        "ngage2_zap_wb_merger:": 88,
+        "ngage2_arm9v2_execute:": 254
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|o_forward_grant[29]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[226]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 248.1,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 271.5,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 234.5,
+          "direct_registers": 295,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 203.2,
+          "direct_registers": 223,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 585.7,
+          "direct_registers": 730,
+          "inclusive_m10ks": 4
+        }
+      }
+    },
+    {
+      "run": 45231987009,
+      "sha": "d790e966390a2fa2af10a836ec0d4543037c509a",
+      "seed": 31337,
+      "alms": 37079,
+      "m10ks": 325,
+      "registers": 40391,
+      "average_routing_pct": 46.1,
+      "peak_routing_pct": 81.5,
+      "core_setup_tns_sta_summary_ns": -5838.194,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.882,
+          "hold-summary": 0.206,
+          "recovery-summary": 1.694,
+          "removal-summary": 1.202,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.02
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.993,
+          "hold-summary": 0.089,
+          "recovery-summary": 2.059,
+          "removal-summary": 1.133,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.31
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.452,
+          "hold-summary": 0.1,
+          "recovery-summary": 4.719,
+          "removal-summary": 0.616,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.61
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.474,
+          "hold-summary": 0.08,
+          "recovery-summary": 5.067,
+          "removal-summary": 0.527,
+          "min-pulse": 0.961,
+          "fmax_mhz": 163.51
+        }
+      ],
+      "worst_setup_ns": -2.993,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 11,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 39,
+        "ngage2_zap_tlb:": 73,
+        "ngage2_zap_wb_merger:": 104,
+        "ngage2_arm9v2_execute:": 156
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_half_tag_ram:u_zap_cache_tag_ram|ngage2_zap_ram_bytes:g_short_ram.g_way[0].g_packed_data.u_data|altsyncram:u_ram|altsyncram_9h52:auto_generated|ram_block1a144~PORT_B_WRITE_ENABLE_REG",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[9]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 246.5,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 269.5,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 232.5,
+          "direct_registers": 291,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 206.5,
+          "direct_registers": 221,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 587.1,
+          "direct_registers": 742,
+          "inclusive_m10ks": 4
+        }
+      }
+    }
+  ],
+  "tlb": [
+    {
+      "run": 45232753533,
+      "sha": "723e2b7eb3ce77a36550c32bd2230e8145813078",
+      "seed": 43,
+      "alms": 35641,
+      "m10ks": 323,
+      "registers": 39736,
+      "average_routing_pct": 44.4,
+      "peak_routing_pct": 78.9,
+      "core_setup_tns_sta_summary_ns": -8820.336,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.997,
+          "hold-summary": 0.181,
+          "recovery-summary": 2.487,
+          "removal-summary": 1.111,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.29
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -3.088,
+          "hold-summary": 0.06,
+          "recovery-summary": 2.821,
+          "removal-summary": 1.025,
+          "min-pulse": 0.961,
+          "fmax_mhz": 78.72
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.32,
+          "hold-summary": 0.092,
+          "recovery-summary": 4.798,
+          "removal-summary": 0.556,
+          "min-pulse": 0.961,
+          "fmax_mhz": 137.08
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.461,
+          "hold-summary": 0.075,
+          "recovery-summary": 5.152,
+          "removal-summary": 0.477,
+          "min-pulse": 0.961,
+          "fmax_mhz": 162.5
+        }
+      ],
+      "worst_setup_ns": -3.088,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 362,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 38,
+        "ngage2_zap_tlb:": 132,
+        "ngage2_zap_wb_merger:": 79,
+        "ngage2_arm9v2_execute:": 113
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage_arm9v2_refill:refill|state.LINE~DUPLICATE",
+        "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[76]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 55.3,
+          "direct_registers": 109,
+          "inclusive_m10ks": 15
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 64.5,
+          "direct_registers": 110,
+          "inclusive_m10ks": 15
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 239.3,
+          "direct_registers": 290,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 194.5,
+          "direct_registers": 211,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 767.3,
+          "direct_registers": 801,
+          "inclusive_m10ks": 0
+        }
+      }
+    },
+    {
+      "run": 45232752956,
+      "sha": "723e2b7eb3ce77a36550c32bd2230e8145813078",
+      "seed": 13,
+      "alms": 35645,
+      "m10ks": 323,
+      "registers": 39654,
+      "average_routing_pct": 44.7,
+      "peak_routing_pct": 80.9,
+      "core_setup_tns_sta_summary_ns": -8282.48,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -3.089,
+          "hold-summary": 0.22,
+          "recovery-summary": 2.377,
+          "removal-summary": 1.038,
+          "min-pulse": 0.961,
+          "fmax_mhz": 78.72
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.878,
+          "hold-summary": 0.121,
+          "recovery-summary": 2.769,
+          "removal-summary": 0.989,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.04
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.255,
+          "hold-summary": 0.133,
+          "recovery-summary": 4.815,
+          "removal-summary": 0.53,
+          "min-pulse": 0.961,
+          "fmax_mhz": 135.87
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.422,
+          "hold-summary": 0.113,
+          "recovery-summary": 5.108,
+          "removal-summary": 0.451,
+          "min-pulse": 0.961,
+          "fmax_mhz": 161.47
+        }
+      ],
+      "worst_setup_ns": -3.089,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 2,
+        "ngage_icu_extra:extra_regs|": 62,
+        "ngage_mmc_host:": 62,
+        "ngage2_zap_tlb:": 71,
+        "ngage2_zap_wb_merger:": 116,
+        "ngage2_arm9v2_execute:": 159
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[2]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|m[429]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 55.7,
+          "direct_registers": 111,
+          "inclusive_m10ks": 15
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 64.3,
+          "direct_registers": 109,
+          "inclusive_m10ks": 15
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 236.3,
+          "direct_registers": 295,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 199.7,
+          "direct_registers": 216,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 774.6,
+          "direct_registers": 819,
+          "inclusive_m10ks": 0
+        }
+      }
+    },
+    {
+      "run": 45232753430,
+      "sha": "723e2b7eb3ce77a36550c32bd2230e8145813078",
+      "seed": 31337,
+      "alms": 35680,
+      "m10ks": 323,
+      "registers": 39827,
+      "average_routing_pct": 44.5,
+      "peak_routing_pct": 72.9,
+      "core_setup_tns_sta_summary_ns": -8281.914,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.95,
+          "hold-summary": 0.208,
+          "recovery-summary": 1.979,
+          "removal-summary": 0.815,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.59
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.999,
+          "hold-summary": 0.074,
+          "recovery-summary": 2.209,
+          "removal-summary": 0.77,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.28
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.467,
+          "hold-summary": 0.096,
+          "recovery-summary": 5.12,
+          "removal-summary": 0.362,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.9
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.61,
+          "hold-summary": 0.033,
+          "recovery-summary": 5.372,
+          "removal-summary": 0.317,
+          "min-pulse": 0.961,
+          "fmax_mhz": 167.79
+        }
+      ],
+      "worst_setup_ns": -2.999,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 38,
+        "ngage2_zap_tlb:": 58,
+        "ngage2_zap_wb_merger:": 120,
+        "ngage2_arm9v2_execute:": 88
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[8]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|invalid_response"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 54.5,
+          "direct_registers": 112,
+          "inclusive_m10ks": 15
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 65.1,
+          "direct_registers": 116,
+          "inclusive_m10ks": 15
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 234.4,
+          "direct_registers": 290,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 194.5,
+          "direct_registers": 212,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 770.9,
+          "direct_registers": 827,
+          "inclusive_m10ks": 0
+        }
+      }
+    }
+  ]
+}

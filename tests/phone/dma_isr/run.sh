@@ -1,7 +1,7 @@
 #!/bin/sh
 # Run original private NEM-4 ISR instructions on the actual ZAP CPU.
 set -eu
-out=${PHONE_TEST_OUT:-build/sim/phone-tests/lcd-handover/isr}
+out=${PHONE_TEST_OUT:-scratch/ngage2-integration/lcd-handover/isr}
 mkdir -p "$out"
 arm-none-eabi-gcc -c -mcpu=arm920t -marm tests/phone/dma_isr/program.S -o "$out/program.o"
 arm-none-eabi-ld -T sim/programs/link.ld "$out/program.o" -o "$out/program.elf"

@@ -25,7 +25,7 @@ def support():
  b.snapshot=snapshot;return b
 common.support=support
 path=ROOT/'tests/cpu/cache_probe_retime/jpeg_run.py'
-text=path.read_text()
+text=path.read_text().replace("sys.path.insert(0,str(ROOT/'scratch/spmark-jpeg-profile-20261115'))", "sys.path.insert(0,str(ROOT/'tests/cpu/cache_probe_retime'))")
 text=text.replace("'-j','3'","'-j','1'")
 text=text.replace("tb=(ROOT/'tests/cpu/cache_probe_retime/tb.v').read_text()", "tb=(ROOT/'tests/cpu/cache_probe_retime/tb.v').read_text().replace('module bench;','module bench;\\n`include \"tests/cpu/cpu_target_delivery/timeline.vh\"')")
 text=text.replace("observer_text=observer.read_text()", "observer_text=observer.read_text().replace(' original_prof_sample();',' original_prof_sample(); target_sample();')")

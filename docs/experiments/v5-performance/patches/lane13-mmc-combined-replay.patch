@@ -1,0 +1,616 @@
+diff --git a/scratch/v5-fit-loop/lane13-mmc-combined/mixed.py b/scratch/v5-fit-loop/lane13-mmc-combined/mixed.py
+new file mode 100644
+index 0000000..202364a
+--- /dev/null
++++ b/scratch/v5-fit-loop/lane13-mmc-combined/mixed.py
+@@ -0,0 +1,35 @@
++"""Stage the frozen physical-SDRAM replay with the combined MMC and lane 13 RTL."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed')
++trial = Path('build/sim/v5-104-lane13-mmc-combined/mixed')
++changed = {'rtl/ngage_mmc_host.v', 'rtl/ngage_upp_peripherals.v'}
++peer = 'tests/phone/upp_ddr_ram/peer.v'
++
++trial.mkdir(parents=True, exist_ok=True)
++shutil.copytree(base / 'source', trial / 'source', dirs_exist_ok=True)
++for name in ('stress.hex', 'image.hex', 'program.hex'):
++    shutil.copyfile(base / name, trial / name)
++(trial / 'source' / peer).parent.mkdir(parents=True, exist_ok=True)
++shutil.copyfile(stage / 'source' / peer, trial / 'source' / peer)
++for name in changed:
++    shutil.copyfile(stage / 'source' / name, trial / 'source' / name)
++
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert changed <= hashes.keys() and peer in hashes
++for name, reference in hashes.items():
++    if name.startswith('rtl/'):
++        assert sha256((stage / 'reference' / name).read_bytes()).hexdigest() == reference, name
++    actual = sha256((trial / 'source' / name).read_bytes()).hexdigest()
++    assert (actual != reference) == (name in changed), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++
++build = (base / 'build.sh').read_text().replace(str(base), str(trial))
++build = build.replace(f' {peer} ', f' {trial}/source/{peer} ')
++(trial / 'build.sh').write_text(build)
+diff --git a/scratch/v5-fit-loop/lane13-mmc-combined/replay.py b/scratch/v5-fit-loop/lane13-mmc-combined/replay.py
+new file mode 100644
+index 0000000..87a3e00
+--- /dev/null
++++ b/scratch/v5-fit-loop/lane13-mmc-combined/replay.py
+@@ -0,0 +1,182 @@
++"""Replay MMC and registered lane 13 sources against the retained 104 MHz control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = repo / 'build/sim/v5-104-lane13-mmc-combined' / args.output
++work.mkdir(parents=True, exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(stage / 'source/tests/cpu/arm9v2_board'))
++import payload_clocks
++payload_clocks.OUT = repo / "build/sim"
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_upp_peripherals.v', 'rtl/ngage_keypad.v', 'rtl/ngage_upp_euart.v', 'rtl/ngage_mmc_host.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/lane13-mmc-combined/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_upp_peripherals.v', 'ngage_keypad.v', 'ngage_upp_euart.v', 'ngage_mmc_host.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/lane13-mmc-combined/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((stage.parent/'prepared-wb-write-data'/'candidate'/f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                source_sha256={name:digest(stage / 'source/rtl' / name) for name in ('ngage_upp.v','ngage_upp_peripherals.v','ngage_upp_euart.v', 'ngage_mmc_host.v','ngage_keypad.v')}, rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/lane13-mmc-combined/prepare-host-tests.py b/scratch/v5-fit-loop/lane13-mmc-combined/prepare-host-tests.py
+new file mode 100644
+index 0000000..51a0542
+--- /dev/null
++++ b/scratch/v5-fit-loop/lane13-mmc-combined/prepare-host-tests.py
+@@ -0,0 +1,25 @@
++"""Attach the legacy-count observer and prepare long MMC transfer cases."""
++from pathlib import Path
++
++
++stage = Path(__file__).resolve().parent
++fixture = 'tests/phone/mmc_host/data_tb.v'
++reference = (stage/'reference'/fixture).read_text()
++observer = (stage/'count-observer.vh').read_text()
++entry = '    always @(posedge clk)begin cycles'
++assert reference.count(entry) == reference.count('$finish;') == 1
++candidate = reference.replace(entry, observer+entry, 1).replace('$finish;',
++    '$display("COUNT checked reads=%0d writes=%0d group_crossings=%0d", '
++    'count_reads, count_writes, count_crossings); $finish;')
++(stage/'source'/fixture).write_text(candidate)
++
++for name, bench in [('source', candidate), ('reference', reference)]:
++    marker = '        $display("PASS MMC host data peer'
++    assert bench.count(marker) == 1
++    long_test = bench.replace(marker, '        tx_case(4096,21,0,0,0,6);\n'
++                              '        rx_case(4096,22,0,0,9);\n'+marker)
++    long_test = long_test.replace('[8191:0]', '[32799:0]').replace('[8190:0]', '[32798:0]')
++    long_test = long_test.replace("8192'h11021", "32800'h11021")
++    out = Path('build/sim/v5-104-lane13-mmc-combined/mmc') / name / 'sim/unit-mmc-host'
++    out.mkdir(parents=True, exist_ok=True)
++    (out/'long_tb.v').write_text(long_test)
+diff --git a/scratch/v5-fit-loop/lane13-mmc-combined/prepare.py b/scratch/v5-fit-loop/lane13-mmc-combined/prepare.py
+new file mode 100644
+index 0000000..514cecd
+--- /dev/null
++++ b/scratch/v5-fit-loop/lane13-mmc-combined/prepare.py
+@@ -0,0 +1,116 @@
++"""Prepare both lane 13 candidates with isolated Git indexes and objects."""
++from hashlib import sha256
++import json
++import os
++from pathlib import Path
++import subprocess
++
++
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++private = stage / 'dispatch-20261126'
++objects = private / 'objects'
++objects.mkdir(parents=True, exist_ok=True)
++catalog = repo / 'docs/experiments/v5-performance/patches'
++retained = '11c4a0c32983cc9aba89cae986684558583a33f2'
++mmc_candidate = '9a02faffc870156e8df2eb74b8c9db141bdb570e'
++retained_tree_id = '8406276acdc60d658e189d09d31b0699217717ba'
++mmc_file = 'rtl/ngage_mmc_host.v'
++lane_file = 'rtl/ngage_upp_peripherals.v'
++patches = {
++    'mmc-count-prepare.patch': '96f4747b20c7b6557fc26587dabfc5a759adabb0ee5f6431abbb19474623eeb4',
++    'lane13-register-sources.patch': '314eb584bdfd3b42cd7d21dde32232f068c39c8694dff25b024cd062730005bc',
++}
++verified = {
++    mmc_file: 'b13acfef39ede0231b563198b221bf5ec8d428bf2c12e339f6a27bec2b751c73',
++    lane_file: '5189d7da1cd75052e0075af9a7966dc39399939446163529a86f89ca325f986f',
++}
++
++
++def git(*args, env=None):
++    return subprocess.check_output(['git', '-C', str(repo), *args], env=env)
++
++
++alternates = [git('rev-parse', '--path-format=absolute', '--git-path', 'objects').decode().strip()]
++for trial in ('mmc-count-prepare', 'wb-reply-class'):
++    alternate = stage.parent / trial / 'dispatch-20261126/objects'
++    if alternate.is_dir():
++        alternates.append(str(alternate))
++
++
++def git_env(index):
++    return os.environ | {
++        'GIT_OBJECT_DIRECTORY': str(objects),
++        'GIT_ALTERNATE_OBJECT_DIRECTORIES': os.pathsep.join(alternates),
++        'GIT_INDEX_FILE': str(private / f'index-{index}'),
++    }
++
++
++def tree(ref, env):
++    return git('rev-parse', f'{ref}^{{tree}}', env=env).decode().strip()
++
++
++def changed_paths(before, after, env):
++    raw = git('diff', '--name-only', '-z', before, after, env=env)
++    return [path.decode() for path in raw.split(b'\0') if path]
++
++
++def apply_patch(name, env):
++    patch = catalog / name
++    assert sha256(patch.read_bytes()).hexdigest() == patches[name], name
++    git('apply', '--cached', '--check', str(patch), env=env)
++    git('apply', '--cached', str(patch), env=env)
++
++
++def commit(tree_id, parent, message, env):
++    ref = git('commit-tree', tree_id, '-p', parent, '-m', message, env=env).decode().strip()
++    assert git('rev-parse', f'{ref}^', env=env).decode().strip() == parent
++    return ref
++
++
++verify = git_env('stack-proof')
++retained_tree = tree(retained, verify)
++assert retained_tree == retained_tree_id
++mmc_tree = tree(mmc_candidate, verify)
++assert changed_paths(retained, mmc_candidate, verify) == [mmc_file]
++git('read-tree', retained, env=verify)
++apply_patch('mmc-count-prepare.patch', verify)
++assert git('write-tree', env=verify).decode().strip() == mmc_tree
++apply_patch('lane13-register-sources.patch', verify)
++stack_tree = git('write-tree', env=verify).decode().strip()
++assert changed_paths(retained, stack_tree, verify) == [mmc_file, lane_file]
++
++restore = commit(retained_tree, mmc_candidate, 'revert: restore retained 104 MHz tree', verify)
++assert tree(restore, verify) == retained_tree
++assert changed_paths(mmc_candidate, restore, verify) == [mmc_file]
++(private / 'restore.sha').write_text(restore + '\n')
++
++results = {}
++for name, parent in (('keep-mmc', mmc_candidate), ('retained', restore)):
++    env = git_env(name)
++    git('read-tree', parent, env=env)
++    apply_patch('lane13-register-sources.patch', env)
++    candidate_tree = git('write-tree', env=env).decode().strip()
++    candidate = commit(candidate_tree, parent, 'perf: separate GPIO and EUART responses', env)
++    assert changed_paths(parent, candidate, env) == [lane_file]
++    paths = changed_paths(retained, candidate, env)
++    assert paths == ([mmc_file, lane_file] if name == 'keep-mmc' else [lane_file])
++    if name == 'keep-mmc':
++        assert candidate_tree == stack_tree
++    checks = {}
++    for path in paths:
++        committed = sha256(git('show', f'{candidate}:{path}', env=env)).hexdigest()
++        staged = sha256((stage / 'source' / path).read_bytes()).hexdigest()
++        assert committed == staged == verified[path], path
++        checks[path] = committed
++    (private / f'{name}.sha').write_text(candidate + '\n')
++    results[name] = {'sha': candidate, 'parent': parent, 'tree': candidate_tree,
++                     'changes_since_parent': [lane_file], 'changes_since_retained': paths,
++                     'file_sha256': checks}
++
++receipt = {'retained': retained, 'retained_tree': retained_tree,
++           'mmc_candidate': mmc_candidate, 'mmc_tree': mmc_tree,
++           'restore': restore, 'restore_parent': mmc_candidate,
++           'patch_sha256': patches, 'candidates': results}
++(private / 'prepare.json').write_text(json.dumps(receipt, indent=2) + '\n')
++print(json.dumps(receipt, indent=2))
+diff --git a/scratch/v5-fit-loop/lane13-mmc-combined/preflight.py b/scratch/v5-fit-loop/lane13-mmc-combined/preflight.py
+new file mode 100644
+index 0000000..029071c
+--- /dev/null
++++ b/scratch/v5-fit-loop/lane13-mmc-combined/preflight.py
+@@ -0,0 +1,71 @@
++"""Check each private lane 13 tree against the retained production fit inputs."""
++from hashlib import sha256
++import json
++import os
++from pathlib import Path
++import subprocess
++
++
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++private = stage / 'dispatch-20261126'
++provenance = json.loads((private / 'prepare.json').read_text())
++output = private / 'preflight'
++output.mkdir(exist_ok=True)
++controls = {13: 45771268571, 43: 45771267820, 31337: 45771266151}
++
++
++def git(*args, env=None):
++    return subprocess.check_output(['git', '-C', str(repo), *args], env=env)
++
++
++root_objects = Path(git('rev-parse', '--path-format=absolute', '--git-path', 'objects').decode().strip())
++alternate_objects = [root_objects]
++for trial in ('mmc-count-prepare', 'wb-reply-class'):
++    alternate = stage.parent / trial / 'dispatch-20261126/objects'
++    if alternate.is_dir():
++        alternate_objects.append(alternate)
++env = os.environ | {
++    'GIT_OBJECT_DIRECTORY': str(private / 'objects'),
++    'GIT_ALTERNATE_OBJECT_DIRECTORIES': os.pathsep.join(map(str, alternate_objects)),
++}
++
++
++def source_hashes(commit, paths):
++    return {name: sha256(git('show', f'{commit}:{name}', env=env)).hexdigest() for name in paths}
++
++
++retained = provenance['retained']
++reference = json.loads((repo / f'build/timing-audit-{controls[13]}/output_files/resident-fit-manifest.json').read_text())
++selected = {name: digest for name, digest in reference['compiled_source_sha256'].items() if name != 'Template.qsf'}
++assert source_hashes(retained, selected) == selected
++for leg, candidate in provenance['candidates'].items():
++    commit = candidate['sha']
++    expected = source_hashes(commit, selected)
++    changed = sorted(name for name in selected if selected[name] != expected[name])
++    assert changed == candidate['changes_since_retained']
++    assert {name: expected[name] for name in changed} == candidate['file_sha256']
++    qsf_bytes = git('show', f'{commit}:Template.qsf', env=env)
++    assert qsf_bytes == git('show', f'{retained}:Template.qsf', env=env)
++    for seed, run in controls.items():
++        control_path = repo / f'build/timing-audit-{run}/output_files/resident-fit-manifest.json'
++        control = json.loads(control_path.read_text())
++        check = {name: digest for name, digest in control['compiled_source_sha256'].items() if name != 'Template.qsf'}
++        assert check == selected
++        assert git('rev-parse', f"{control['actual_commit']}^{{tree}}", env=env).decode().strip() == provenance['retained_tree']
++        assert int(control['seed']) == seed and control['physical_cpu_mhz'] == 104 and not control['debugger']
++        qsf = output / f'{leg}-{seed}.qsf'
++        qsf.write_bytes(qsf_bytes)
++        for tool, option, value in (('seed', '--seed', str(seed)), ('debug', '--enabled', 'false')):
++            subprocess.run(['python3', '-B', str(stage / f'source/tools/set_quartus_{tool}.py'),
++                            str(qsf), option, value], cwd=output, check=True, stdout=subprocess.PIPE)
++        effective_qsf = qsf.read_text().replace('LAST_QUARTUS_VERSION "17.0.2 Standard Edition"',
++                                              'LAST_QUARTUS_VERSION "17.0.2 Lite Edition"')
++        qsf.write_text(effective_qsf)
++        assert effective_qsf == control['effective_qsf']
++        receipt = {'candidate': commit, 'parent': candidate['parent'], 'seed': seed,
++                   'control_run': run, 'physical_cpu_mhz': 104, 'debugger': False,
++                   'expected_changed_inputs': changed, 'expected_effective_qsf': effective_qsf,
++                   'compiled_source_sha256': expected}
++        (output / f'{leg}-{seed}.json').write_text(json.dumps(receipt, indent=2) + '\n')
++        print(f'PASS {leg} seed {seed}, {len(expected)} selected source files and effective QSF')
+diff --git a/scratch/v5-fit-loop/lane13-mmc-combined/record-qualification.py b/scratch/v5-fit-loop/lane13-mmc-combined/record-qualification.py
+new file mode 100644
+index 0000000..af1fe56
+--- /dev/null
++++ b/scratch/v5-fit-loop/lane13-mmc-combined/record-qualification.py
+@@ -0,0 +1,151 @@
++"""Verify and summarize the combined MMC and lane 13 replay results."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++
++
++stage = Path(__file__).resolve().parent
++private = stage / 'dispatch-20261126'
++out = Path('build/sim/v5-104-lane13-mmc-combined')
++work = out / 'qualification'
++retained_work = stage.parent / 'prepared-wb-write-data/candidate'
++retained_mixed = Path('build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed')
++prepared = json.loads((private / 'prepare.json').read_text())
++stack = prepared['candidates']['keep-mmc']
++changes = stack['file_sha256']
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def trace_digest(rows):
++    return sha256(json.dumps(rows, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
++
++
++def match(trial, retained):
++    assert trial.read_bytes() == retained.read_bytes(), trial
++    return digest(trial)
++
++
++def compile_sources(manifest, prefix):
++    lines = manifest.read_text().splitlines()
++    records = [record.groups() for line in lines
++               if (record := re.fullmatch(r'S .*?"([^"]+)" "([^"]+)"', line))]
++    checked = {}
++    for path, sha in changes.items():
++        [(fingerprint, selected)] = [(code, source) for code, source in records
++                                     if source == path or source.endswith(f'/{path}')]
++        assert selected == f'{prefix}/{path}', (manifest, selected)
++        if selected.startswith('/frozen/'):
++            host_path = Path(selected.removeprefix('/frozen/'))
++        else:
++            host_path = Path(selected)
++        assert digest(host_path) == sha
++        checked[path] = {'sha256': sha, 'verilator_fingerprint': fingerprint}
++    return checked
++
++
++receipt = {'status': 'PASS', 'trees': prepared,
++           'private_preparation_sha256': digest(private / 'prepare.json'),
++           'replay_patch_sha256': digest(stage / 'lane13-mmc-combined-replay.patch'),
++           'simulator_image': 'jotego/simulator:arm64',
++           'simulator_image_identity': (out / 'image.id').read_text().strip()}
++assert all(digest(stage / 'source' / name) == sha for name, sha in changes.items())
++
++preflight = {}
++for leg, expected in prepared['candidates'].items():
++    preflight[leg] = {}
++    for seed in (13, 43, 31337):
++        proof = private / 'preflight' / f'{leg}-{seed}.json'
++        manifest = json.loads(proof.read_text())
++        assert manifest['candidate'] == expected['sha'] and manifest['parent'] == expected['parent']
++        assert len(manifest['compiled_source_sha256']) == 132
++        assert manifest['expected_changed_inputs'] == expected['changes_since_retained']
++        assert manifest['physical_cpu_mhz'] == 104 and not manifest['debugger']
++        preflight[leg][seed] = {'control_run': manifest['control_run'], 'selected_sources': 132,
++                                'preflight_sha256': digest(proof)}
++receipt['production_preflight'] = preflight
++
++directed = []
++for keypad in (0, 1):
++    base = out / 'directed'
++    trial = base / f'trial-{keypad}.trace'
++    digest_match = match(trial, base / f'reference-{keypad}.trace')
++    lines = trial.read_text().splitlines()
++    replies = int(re.search(r'replies=(\d+)', lines[-1])[1])
++    directed.append({'keypad_enabled': bool(keypad), 'replies': replies,
++                     'trace_records': len(lines), 'trace_sha256': digest_match})
++assert sum(row['replies'] for row in directed) == 614
++assert sum(row['trace_records'] for row in directed) == 4070
++receipt['directed_lane13'] = {'configurations': directed,
++                              'fixture_sha256': digest(stage / 'source/tests/phone/upp_lane13/tb.sv')}
++
++mmc = out / 'mmc'
++pass_sha = match(mmc / 'source.pass', mmc / 'reference.pass')
++outcomes = (mmc / 'source.pass').read_text().splitlines()
++assert len(outcomes) == 6 and 'cases=30 clocks=258366' in outcomes[-1]
++observer = re.search(r'^COUNT checked reads=(\d+) writes=(\d+) group_crossings=(\d+)$',
++                     (mmc / 'source.log').read_text(), re.MULTILINE)
++reads, writes, crossings = map(int, observer.groups())
++assert (reads, writes, crossings) == (1307, 1309, 1278)
++receipt['directed_mmc'] = {'clocks_4kib': 258366, 'group_crossings': crossings,
++                           'count_reads': reads, 'count_writes': writes,
++                           'pass_sha256': pass_sha, 'matched_tests': outcomes}
++
++for kind, count in (('fixed', 15), ('native', 1)):
++    trial_file = work / f'{kind}.json'
++    control_file = retained_work / f'{kind}.json'
++    trial = json.loads(trial_file.read_text())
++    control = json.loads(control_file.read_text())
++    assert trial['status'] == control['status'] == 'PASS'
++    for name, sha in changes.items():
++        assert trial['source_sha256'][Path(name).name] == sha
++    for key in ('netlist_sha256', 'wrapper_sha256', 'ddr_stream_sha256', 'dma_channels_sha256'):
++        assert trial[key] == control[key]
++    assert trial['source_sha256']['ngage_upp.v'] == control['upp_sha256']
++    assert len(trial['rows']) == len(control['rows']) == count
++    controls = {row['candidate']['case']: row['candidate'] for row in control['rows']}
++    rows = []
++    for row in trial['rows']:
++        candidate = row['candidate']
++        case = candidate['case']
++        assert row['control'] == candidate == controls[case]
++        result = {'case': case, 'architectural_sha256': trace_digest(candidate['architecture']),
++                  'valid_write_trace_sha256': trace_digest(candidate['wb_writes'])}
++        if kind == 'fixed':
++            assert len(candidate['windows']) == 7
++            assert 'Guest output check rejected payload' in (work / f'{case}-00-0-wrong.log').read_text()
++            assert (work / f'{case}-00-1.log').is_file()
++            result.update(window_cycles=[window['cycles'] for window in candidate['windows']],
++                          median_cycles=candidate['median'], repeat_and_negative_output_check=True)
++        else:
++            assert len(candidate['frames']) == 4
++            result.update(frame_cycles=[frame['clocks'] for frame in candidate['frames']],
++                          output_sha256=candidate['output_sha256'])
++        rows.append(result)
++    receipt[kind] = {
++        'retained_receipt_sha256': digest(control_file),
++        'candidate_receipt_sha256': digest(trial_file),
++        'compiled_changes': compile_sources(work / f'obj-{kind}/Vtb__verFiles.dat', f'/frozen/{stage.relative_to(stage.parents[2])}/source'),
++        'rows': rows,
++    }
++
++mixed = out / 'mixed'
++trial_sources = json.loads((mixed / 'source-hashes.json').read_text())
++control_sources = json.loads((retained_mixed / 'source-hashes.json').read_text())
++assert trial_sources.keys() == control_sources.keys() and len(trial_sources) == 114
++assert {name: sha for name, sha in trial_sources.items() if sha != control_sources[name]} == changes
++traffic = mixed / 'traffic.log'
++mixed_sha = match(traffic, retained_mixed / 'traffic.log')
++events = len(traffic.read_bytes().splitlines())
++passes = [line for line in (mixed / 'replay.log').read_text().splitlines() if line.startswith('PASS ')]
++clocks = int(re.search(r'cycles=(\d+)', next(line for line in passes if 'persisted512bytes' in line))[1])
++assert len(passes) == 4 and (events, clocks) == (171496, 1201547)
++receipt['physical_mixed'] = {'clocks': clocks, 'events': events, 'trace_sha256': mixed_sha,
++                             'source_count': len(trial_sources), 'matched_tests': passes,
++                             'compiled_changes': compile_sources(mixed / 'obj/Vtb__verFiles.dat', f'{mixed}/source')}
++assert receipt['fixed']['compiled_changes'] == receipt['native']['compiled_changes'] == receipt['physical_mixed']['compiled_changes']
++(stage / 'qualification.json').write_text(json.dumps(receipt, indent=2) + '\n')
++print('PASS combined lane 13, 4 KiB MMC, 105 fixed windows, four native frames and 171496 pin-model events')

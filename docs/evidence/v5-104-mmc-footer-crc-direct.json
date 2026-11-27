@@ -1,0 +1,56 @@
+{
+  "status": "PASS",
+  "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+  "base_tree": "8406276acdc60d658e189d09d31b0699217717ba",
+  "changed_source": "rtl/ngage_mmc_hps.v",
+  "reference_sha256": "9c5c8bd7678eda61001f7460542466391225e548867736c2c2f7296dfc66a1e0",
+  "candidate_sha256": "0df16bfd82217bd5fb600ad37d472d668b98aca4fbae759c2b101651a376d342",
+  "design_patch_sha256": "1f41e4feed53c1345dd3a114d0a99eaf8b0e4b21cf21c354999535377200d9f2",
+  "fixture_patch_sha256": "f6dc4a55a139d5f0f39824791667619a5adfa9b950c88370db9377a6f730b851",
+  "simulator": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "direct_and_native_hps": {
+    "passes": [
+      "PASS MMC HPS direct cases=48 mounts=45 copies=13851 clocks=33287",
+      "PASS actual three-slot MMC HPS card_reads=20 writes=4 other_reads=2 bulk=2 delayed_tail_words=18 overlaps=2128 clocks=604018"
+    ],
+    "reference_source_fingerprint": "nFyL12eO2mEAH3RgVCRmORIl5UiGdzbCwvcpbfxm",
+    "candidate_source_fingerprint": "DfFrBYIhe9X7YArTfUctZouYrKT7rnWcKxAWUaN2"
+  },
+  "crc_cancel_and_corroboration": {
+    "verify_edge_rows": 1186,
+    "passes": [
+      "PASS MMC HPS direct cases=82 mounts=81 copies=23067 clocks=53112"
+    ],
+    "fixture_sha256": "a439d40136d753911c9ff251b0ea2e2717152568d6b503628edc1ea202d73f99",
+    "trace_sha256": "6835fa7961e16a8b5607925cc22771e57262a774821fffd88b68b22ec3d4c1c3"
+  },
+  "workload_digest_controls": {
+    "fixed": {
+      "count": 105,
+      "upstream_receipt_sha256": "6d0102e554f198493112a847a853ec2edd75284ae435e3149dd5c6a23288e8e0"
+    },
+    "native": {
+      "count": 4,
+      "upstream_receipt_sha256": "9ba6179c6528c221cbc710c15add389beaf7470e8960432210ae7ae3ec99405a",
+      "cycle_counts": [
+        14391395,
+        14467552,
+        14346201,
+        14303223
+      ],
+      "guest_result_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77"
+    }
+  },
+  "physical_sdram_mixed": {
+    "source_count": 114,
+    "source_fingerprint": "DfFrBYIhe9X7YArTfUctZouYrKT7rnWcKxAWUaN2",
+    "traffic_events": 171496,
+    "traffic_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+    "passes": [
+      "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+      "PASS native LCD grants=4576 completed=4576",
+      "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+      "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+    ]
+  }
+}

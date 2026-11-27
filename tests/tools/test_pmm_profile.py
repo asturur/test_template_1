@@ -5,12 +5,11 @@ import hashlib
 import subprocess
 import sys
 import unittest
-import tempfile
 ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location('pmm', ROOT/'tools/ngage_pmm_profile.py')
 pmm = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(pmm)
-SOURCE = ROOT/'tests/phone/fixtures/local/live-pmm.vhd'
+SOURCE = ROOT/'scratch/menu-bringup-20261112/live-pmm.vhd'
 
 @unittest.skipUnless(SOURCE.exists(), 'requires the private native PMM capture')
 class PMMProfile(unittest.TestCase):
@@ -30,13 +29,14 @@ class PMMProfile(unittest.TestCase):
             with self.assertRaises(ValueError):pmm.build(source,value)
 
     def test_existing_output_is_unchanged(self):
-        with tempfile.TemporaryDirectory() as directory:
-            path = Path(directory)/'existing.bin'
-            path.write_bytes(b'preserve existing image')
+        path = ROOT/'scratch/menu-bringup-20261112/pmm-existing-output-test.bin'
+        path.write_bytes(b'preserve existing image')
+        try:
             result = subprocess.run([sys.executable,str(ROOT/'tools/ngage_pmm_profile.py'),
                 '--source',str(SOURCE),'--output',str(path),'--synthetic-dos-byte','0'],
                 capture_output=True)
             self.assertEqual(result.returncode,2)
             self.assertEqual(path.read_bytes(),b'preserve existing image')
+        finally:path.unlink()
 
 if __name__ == '__main__':unittest.main()

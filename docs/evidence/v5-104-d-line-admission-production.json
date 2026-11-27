@@ -1,0 +1,1529 @@
+{
+  "status": "PASS",
+  "base": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+  "base_tree": "0ccd13d8cd502bc14d3b89c6431ff0ebe4745612",
+  "candidate_tree": "27b2fe1957188d905a4a61e0e1a3be92367ce34c",
+  "source_sha256": {
+    "rtl/ngage_cpu.sv": "63cb6012cc8f3fbb2c0a6c86484f91d27b02ce9e6913f1e677c31562b084e955",
+    "rtl/arm9v2/arm925t_phone.v": "4aa8037c0051b43819de2dc9d9f96322ea2e2bb2d91c82df1383ad6840d5d37e"
+  },
+  "reference_wrapper_sha256": "fc1da44e0f5b7f678a51b4e5bb322c38d985a7d868608f8d33a0b86814070b46",
+  "design_patch_sha256": "48a5f8d8166d4bea4a0b5692c44c3487b13021c6321949fcedc478efebcaf994",
+  "replay_patch_sha256": "2d9d25273547f28620886de6a179224f13ad6fccb787a3b85ed4f52e5ad0fafd",
+  "image": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "compiled_wrapper_fingerprint": "Y8tgEsyPP7ssCmyGSEAR0nsCzp5pEBHmd8MVYrCE",
+  "directed": {
+    "enable-1-scalar-1-stage-1": {
+      "passes": [
+        "PASS refill interface enable=1 registered=1 comparisons=3625 line=105 errors=53 narrow_pop=29 wide_pop=110 line_withdraw=3 scalar_withdraw=6 reads=3 writes=2 scalar_errors=2",
+        "PASS offer selection enabled=1 staged=1 D=57 held=52 pending_reset=1"
+      ],
+      "log_sha256": "129cf2c63712b9816b0303d67456fc0e2fec5c690c10a0c694bb7fb4208a18aa"
+    },
+    "enable-1-scalar-0-stage-1": {
+      "passes": [
+        "PASS refill interface enable=1 registered=0 comparisons=3615 line=105 errors=53 narrow_pop=29 wide_pop=110 line_withdraw=3 scalar_withdraw=6 reads=3 writes=2 scalar_errors=2",
+        "PASS offer selection enabled=1 staged=1 D=57 held=52 pending_reset=1"
+      ],
+      "log_sha256": "9158ae0755a07258b3bd3bf04234636c4e7f3816651ac9fd2169834079a32665"
+    },
+    "enable-1-scalar-1-stage-0": {
+      "passes": [
+        "PASS refill interface enable=1 registered=1 comparisons=3401 line=105 errors=53 narrow_pop=29 wide_pop=110 line_withdraw=3 scalar_withdraw=6 reads=3 writes=2 scalar_errors=2",
+        "PASS offer selection enabled=1 staged=0 D=0 held=0 pending_reset=0"
+      ],
+      "log_sha256": "79344ceca6be3bcb724e5e13cea726ff0e134a2685d9caebf80dd07c33e7594a"
+    },
+    "enable-0-scalar-1-stage-1": {
+      "passes": [
+        "PASS refill interface enable=0 registered=1 comparisons=48 line=0 errors=0 narrow_pop=0 wide_pop=0 line_withdraw=0 scalar_withdraw=6 reads=3 writes=2 scalar_errors=2",
+        "PASS offer selection enabled=0 staged=1 D=0 held=0 pending_reset=0"
+      ],
+      "log_sha256": "0329d33c3a2de49d40de50cad2641913d707a3baa1367ee97621cd7271c81024"
+    }
+  },
+  "board": {
+    "burst-0-wait-0": {
+      "reference_cycles": 33464,
+      "candidate_cycles": 33988,
+      "reference_trace_sha256": "5eb36a2549bc68ac5e750b70d2e5ddb95e97900ce3d5a39ecfa59971bdc46c57",
+      "candidate_trace_sha256": "8d0259e2b85c7de8357288153ade82d4f70351b52d32af0a31e1607b835ae100"
+    },
+    "burst-0-wait-5": {
+      "reference_cycles": 67865,
+      "candidate_cycles": 68389,
+      "reference_trace_sha256": "6d7c90428c2072dcba11c44b696e1e2d19b8d6f46f38973b840f09f1ecfed809",
+      "candidate_trace_sha256": "5ec92957a720e7ce63d567b97bf817c3b1df21bb96dc73a0657db2a460e3c99d"
+    },
+    "burst-1-wait-0": {
+      "reference_cycles": 28464,
+      "candidate_cycles": 28988,
+      "reference_trace_sha256": "31cd1b51eb82c54931c436fcfa8b933f8fba7b6dcac00d9bb26f3df437b0f2ee",
+      "candidate_trace_sha256": "8be8d1ab4c888aea6dc76713e2e5a350e525eb8db069012564f12746c33bc9b1"
+    },
+    "burst-1-wait-5": {
+      "reference_cycles": 42543,
+      "candidate_cycles": 43067,
+      "reference_trace_sha256": "12349a2fe3c61600eb64ba3f1214fbdc25324d5fb59e6f5a90e96511eb6d26f4",
+      "candidate_trace_sha256": "fb0c8ab6f3e7fa9a8a21f52e73339315b429f3887f0687a93d764ac475cae58a"
+    }
+  },
+  "workloads": {
+    "fixed": {
+      "count": 105,
+      "receipt_sha256": "a29b1752c6dacdaf9715f402238a31863ccde81c3ad85e05c441d29ed58c7b9b",
+      "delays": {
+        "sega-scan": {
+          "reference_median": 2395767,
+          "candidate_median": 2400868,
+          "cycle_deltas": [
+            4833,
+            4982,
+            4963,
+            5082,
+            5101,
+            5082,
+            5101
+          ]
+        },
+        "matrix4": {
+          "reference_median": 16946,
+          "candidate_median": 16937,
+          "cycle_deltas": [
+            -3,
+            12,
+            0,
+            0,
+            -12,
+            3,
+            -9
+          ]
+        },
+        "transpose4": {
+          "reference_median": 2976,
+          "candidate_median": 2976,
+          "cycle_deltas": [
+            3,
+            18,
+            12,
+            3,
+            0,
+            9,
+            0
+          ]
+        },
+        "triangle_edges": {
+          "reference_median": 12226,
+          "candidate_median": 12220,
+          "cycle_deltas": [
+            7,
+            15,
+            36,
+            -9,
+            -33,
+            0,
+            0
+          ]
+        },
+        "fill16_frame": {
+          "reference_median": 122402,
+          "candidate_median": 122578,
+          "cycle_deltas": [
+            186,
+            176,
+            176,
+            176,
+            176,
+            176,
+            176
+          ]
+        },
+        "fill16_tail": {
+          "reference_median": 725,
+          "candidate_median": 725,
+          "cycle_deltas": [
+            0,
+            0,
+            0,
+            -3,
+            0,
+            0,
+            3
+          ]
+        },
+        "fill8_tail": {
+          "reference_median": 753,
+          "candidate_median": 753,
+          "cycle_deltas": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "monkey-forward": {
+          "reference_median": 15940,
+          "candidate_median": 15940,
+          "cycle_deltas": [
+            0,
+            3,
+            -3,
+            0,
+            -12,
+            3,
+            0
+          ]
+        },
+        "monkey-reverse": {
+          "reference_median": 15940,
+          "candidate_median": 15940,
+          "cycle_deltas": [
+            0,
+            3,
+            -3,
+            0,
+            -12,
+            3,
+            0
+          ]
+        },
+        "sega-span": {
+          "reference_median": 15430,
+          "candidate_median": 15430,
+          "cycle_deltas": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "sega-fill": {
+          "reference_median": 2628,
+          "candidate_median": 2628,
+          "cycle_deltas": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            9,
+            0
+          ]
+        },
+        "asphalt-table": {
+          "reference_median": 21163,
+          "candidate_median": 21183,
+          "cycle_deltas": [
+            28,
+            30,
+            19,
+            30,
+            17,
+            32,
+            12
+          ]
+        },
+        "asphalt-double": {
+          "reference_median": 11974,
+          "candidate_median": 11977,
+          "cycle_deltas": [
+            1,
+            11,
+            -5,
+            13,
+            0,
+            6,
+            3
+          ]
+        },
+        "asphalt-single": {
+          "reference_median": 7753,
+          "candidate_median": 7753,
+          "cycle_deltas": [
+            11,
+            0,
+            0,
+            -9,
+            0,
+            0,
+            0
+          ]
+        },
+        "diffuse_m10_8x8_jpeg": {
+          "reference_median": 35324,
+          "candidate_median": 35324,
+          "cycle_deltas": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "native": {
+      "count": 4,
+      "receipt_sha256": "b362275c9c8a62e5283b42b83cbb41fbc3cbbe058f04b65bf62acd912cdac166",
+      "delays": {
+        "native": {
+          "reference_median": 14346201,
+          "candidate_median": 14353712,
+          "cycle_deltas": [
+            6818,
+            8038,
+            7511,
+            7663
+          ]
+        }
+      },
+      "reference_total": 57508371,
+      "candidate_total": 57538401,
+      "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77"
+    }
+  },
+  "physical": {
+    "normal": {
+      "cycles": 1201547,
+      "events": 171496,
+      "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26"
+    },
+    "timer_mmc_lcd": {
+      "cycles": 1201528,
+      "events": 171497,
+      "trace_sha256": "0e9fb47c965bab211b315c129e08effab414ed1ccc9e579aee4d56d9d29ba824"
+    }
+  },
+  "lcd_phase_sweep": {
+    "distribution": {
+      "0": 21,
+      "1": 12,
+      "15": 1,
+      "16": 1,
+      "27": 1
+    },
+    "cases": [
+      {
+        "reference": {
+          "sample": 0,
+          "d_offset": 35,
+          "lcd_offset": 31,
+          "cpu_grant": 49,
+          "first": 58,
+          "last": 72,
+          "lcd_grant": 31,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "candidate": {
+          "sample": 0,
+          "d_offset": 35,
+          "lcd_offset": 31,
+          "cpu_grant": 49,
+          "first": 58,
+          "last": 72,
+          "lcd_grant": 31,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 1,
+          "d_offset": 35,
+          "lcd_offset": 32,
+          "cpu_grant": 50,
+          "first": 59,
+          "last": 73,
+          "lcd_grant": 32,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "candidate": {
+          "sample": 1,
+          "d_offset": 35,
+          "lcd_offset": 32,
+          "cpu_grant": 50,
+          "first": 59,
+          "last": 73,
+          "lcd_grant": 32,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 2,
+          "d_offset": 35,
+          "lcd_offset": 33,
+          "cpu_grant": 51,
+          "first": 60,
+          "last": 74,
+          "lcd_grant": 33,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "candidate": {
+          "sample": 2,
+          "d_offset": 35,
+          "lcd_offset": 33,
+          "cpu_grant": 51,
+          "first": 60,
+          "last": 74,
+          "lcd_grant": 33,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 3,
+          "d_offset": 35,
+          "lcd_offset": 34,
+          "cpu_grant": 52,
+          "first": 61,
+          "last": 75,
+          "lcd_grant": 34,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "candidate": {
+          "sample": 3,
+          "d_offset": 35,
+          "lcd_offset": 34,
+          "cpu_grant": 52,
+          "first": 61,
+          "last": 75,
+          "lcd_grant": 34,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 4,
+          "d_offset": 35,
+          "lcd_offset": 35,
+          "cpu_grant": 53,
+          "first": 62,
+          "last": 76,
+          "lcd_grant": 35,
+          "overlap": 1,
+          "refresh": 0
+        },
+        "candidate": {
+          "sample": 4,
+          "d_offset": 35,
+          "lcd_offset": 35,
+          "cpu_grant": 53,
+          "first": 62,
+          "last": 76,
+          "lcd_grant": 35,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 5,
+          "d_offset": 35,
+          "lcd_offset": 36,
+          "cpu_grant": 35,
+          "first": 47,
+          "last": 61,
+          "lcd_grant": 61,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "candidate": {
+          "sample": 5,
+          "d_offset": 35,
+          "lcd_offset": 36,
+          "cpu_grant": 54,
+          "first": 63,
+          "last": 77,
+          "lcd_grant": 36,
+          "overlap": 1,
+          "refresh": 0
+        },
+        "cpu_first_and_final_ack_delta": 16,
+        "lcd_grant_delta": -25
+      },
+      {
+        "reference": {
+          "sample": 6,
+          "d_offset": 35,
+          "lcd_offset": 37,
+          "cpu_grant": 35,
+          "first": 47,
+          "last": 61,
+          "lcd_grant": 61,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "candidate": {
+          "sample": 6,
+          "d_offset": 35,
+          "lcd_offset": 37,
+          "cpu_grant": 36,
+          "first": 48,
+          "last": 62,
+          "lcd_grant": 62,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "cpu_first_and_final_ack_delta": 1,
+        "lcd_grant_delta": 1
+      },
+      {
+        "reference": {
+          "sample": 7,
+          "d_offset": 35,
+          "lcd_offset": 38,
+          "cpu_grant": 35,
+          "first": 47,
+          "last": 61,
+          "lcd_grant": 61,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "candidate": {
+          "sample": 7,
+          "d_offset": 35,
+          "lcd_offset": 38,
+          "cpu_grant": 36,
+          "first": 48,
+          "last": 62,
+          "lcd_grant": 62,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "cpu_first_and_final_ack_delta": 1,
+        "lcd_grant_delta": 1
+      },
+      {
+        "reference": {
+          "sample": 8,
+          "d_offset": 35,
+          "lcd_offset": 39,
+          "cpu_grant": 35,
+          "first": 47,
+          "last": 61,
+          "lcd_grant": 61,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "candidate": {
+          "sample": 8,
+          "d_offset": 35,
+          "lcd_offset": 39,
+          "cpu_grant": 36,
+          "first": 48,
+          "last": 62,
+          "lcd_grant": 62,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "cpu_first_and_final_ack_delta": 1,
+        "lcd_grant_delta": 1
+      },
+      {
+        "reference": {
+          "sample": 9,
+          "d_offset": 35,
+          "lcd_offset": 40,
+          "cpu_grant": 35,
+          "first": 47,
+          "last": 61,
+          "lcd_grant": 61,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "candidate": {
+          "sample": 9,
+          "d_offset": 35,
+          "lcd_offset": 40,
+          "cpu_grant": 36,
+          "first": 48,
+          "last": 62,
+          "lcd_grant": 62,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "cpu_first_and_final_ack_delta": 1,
+        "lcd_grant_delta": 1
+      },
+      {
+        "reference": {
+          "sample": 10,
+          "d_offset": 35,
+          "lcd_offset": 41,
+          "cpu_grant": 35,
+          "first": 47,
+          "last": 61,
+          "lcd_grant": 61,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "candidate": {
+          "sample": 10,
+          "d_offset": 35,
+          "lcd_offset": 41,
+          "cpu_grant": 36,
+          "first": 48,
+          "last": 62,
+          "lcd_grant": 62,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "cpu_first_and_final_ack_delta": 1,
+        "lcd_grant_delta": 1
+      },
+      {
+        "reference": {
+          "sample": 11,
+          "d_offset": 35,
+          "lcd_offset": 42,
+          "cpu_grant": 35,
+          "first": 47,
+          "last": 61,
+          "lcd_grant": 61,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "candidate": {
+          "sample": 11,
+          "d_offset": 35,
+          "lcd_offset": 42,
+          "cpu_grant": 36,
+          "first": 48,
+          "last": 62,
+          "lcd_grant": 62,
+          "overlap": 0,
+          "refresh": 0
+        },
+        "cpu_first_and_final_ack_delta": 1,
+        "lcd_grant_delta": 1
+      },
+      {
+        "reference": {
+          "sample": 12,
+          "d_offset": 744,
+          "lcd_offset": 740,
+          "cpu_grant": 758,
+          "first": 778,
+          "last": 792,
+          "lcd_grant": 740,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 12,
+          "d_offset": 744,
+          "lcd_offset": 740,
+          "cpu_grant": 758,
+          "first": 778,
+          "last": 792,
+          "lcd_grant": 740,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 13,
+          "d_offset": 744,
+          "lcd_offset": 741,
+          "cpu_grant": 759,
+          "first": 779,
+          "last": 793,
+          "lcd_grant": 741,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 13,
+          "d_offset": 744,
+          "lcd_offset": 741,
+          "cpu_grant": 759,
+          "first": 779,
+          "last": 793,
+          "lcd_grant": 741,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 14,
+          "d_offset": 744,
+          "lcd_offset": 742,
+          "cpu_grant": 760,
+          "first": 780,
+          "last": 794,
+          "lcd_grant": 742,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 14,
+          "d_offset": 744,
+          "lcd_offset": 742,
+          "cpu_grant": 760,
+          "first": 780,
+          "last": 794,
+          "lcd_grant": 742,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 15,
+          "d_offset": 744,
+          "lcd_offset": 743,
+          "cpu_grant": 761,
+          "first": 781,
+          "last": 795,
+          "lcd_grant": 743,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 15,
+          "d_offset": 744,
+          "lcd_offset": 743,
+          "cpu_grant": 761,
+          "first": 781,
+          "last": 795,
+          "lcd_grant": 743,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 16,
+          "d_offset": 744,
+          "lcd_offset": 744,
+          "cpu_grant": 762,
+          "first": 782,
+          "last": 796,
+          "lcd_grant": 744,
+          "overlap": 1,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 16,
+          "d_offset": 744,
+          "lcd_offset": 744,
+          "cpu_grant": 762,
+          "first": 782,
+          "last": 796,
+          "lcd_grant": 744,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 17,
+          "d_offset": 744,
+          "lcd_offset": 745,
+          "cpu_grant": 744,
+          "first": 756,
+          "last": 770,
+          "lcd_grant": 770,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 17,
+          "d_offset": 744,
+          "lcd_offset": 745,
+          "cpu_grant": 763,
+          "first": 783,
+          "last": 797,
+          "lcd_grant": 745,
+          "overlap": 1,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 27,
+        "lcd_grant_delta": -25
+      },
+      {
+        "reference": {
+          "sample": 18,
+          "d_offset": 744,
+          "lcd_offset": 746,
+          "cpu_grant": 744,
+          "first": 756,
+          "last": 770,
+          "lcd_grant": 770,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 18,
+          "d_offset": 744,
+          "lcd_offset": 746,
+          "cpu_grant": 745,
+          "first": 757,
+          "last": 771,
+          "lcd_grant": 771,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 1,
+        "lcd_grant_delta": 1
+      },
+      {
+        "reference": {
+          "sample": 19,
+          "d_offset": 744,
+          "lcd_offset": 747,
+          "cpu_grant": 744,
+          "first": 756,
+          "last": 770,
+          "lcd_grant": 770,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 19,
+          "d_offset": 744,
+          "lcd_offset": 747,
+          "cpu_grant": 745,
+          "first": 757,
+          "last": 771,
+          "lcd_grant": 771,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 1,
+        "lcd_grant_delta": 1
+      },
+      {
+        "reference": {
+          "sample": 20,
+          "d_offset": 744,
+          "lcd_offset": 748,
+          "cpu_grant": 744,
+          "first": 756,
+          "last": 770,
+          "lcd_grant": 770,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 20,
+          "d_offset": 744,
+          "lcd_offset": 748,
+          "cpu_grant": 745,
+          "first": 757,
+          "last": 771,
+          "lcd_grant": 771,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 1,
+        "lcd_grant_delta": 1
+      },
+      {
+        "reference": {
+          "sample": 21,
+          "d_offset": 744,
+          "lcd_offset": 749,
+          "cpu_grant": 744,
+          "first": 756,
+          "last": 770,
+          "lcd_grant": 770,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 21,
+          "d_offset": 744,
+          "lcd_offset": 749,
+          "cpu_grant": 745,
+          "first": 757,
+          "last": 771,
+          "lcd_grant": 771,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 1,
+        "lcd_grant_delta": 1
+      },
+      {
+        "reference": {
+          "sample": 22,
+          "d_offset": 744,
+          "lcd_offset": 750,
+          "cpu_grant": 744,
+          "first": 756,
+          "last": 770,
+          "lcd_grant": 770,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 22,
+          "d_offset": 744,
+          "lcd_offset": 750,
+          "cpu_grant": 745,
+          "first": 757,
+          "last": 771,
+          "lcd_grant": 771,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 1,
+        "lcd_grant_delta": 1
+      },
+      {
+        "reference": {
+          "sample": 23,
+          "d_offset": 744,
+          "lcd_offset": 751,
+          "cpu_grant": 744,
+          "first": 756,
+          "last": 770,
+          "lcd_grant": 770,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 23,
+          "d_offset": 744,
+          "lcd_offset": 751,
+          "cpu_grant": 745,
+          "first": 757,
+          "last": 771,
+          "lcd_grant": 771,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 1,
+        "lcd_grant_delta": 1
+      },
+      {
+        "reference": {
+          "sample": 24,
+          "d_offset": 754,
+          "lcd_offset": 750,
+          "cpu_grant": 775,
+          "first": 784,
+          "last": 798,
+          "lcd_grant": 750,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 24,
+          "d_offset": 754,
+          "lcd_offset": 750,
+          "cpu_grant": 775,
+          "first": 784,
+          "last": 798,
+          "lcd_grant": 750,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 25,
+          "d_offset": 754,
+          "lcd_offset": 751,
+          "cpu_grant": 775,
+          "first": 784,
+          "last": 798,
+          "lcd_grant": 751,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 25,
+          "d_offset": 754,
+          "lcd_offset": 751,
+          "cpu_grant": 775,
+          "first": 784,
+          "last": 798,
+          "lcd_grant": 751,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 26,
+          "d_offset": 754,
+          "lcd_offset": 752,
+          "cpu_grant": 775,
+          "first": 784,
+          "last": 798,
+          "lcd_grant": 752,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 26,
+          "d_offset": 754,
+          "lcd_offset": 752,
+          "cpu_grant": 775,
+          "first": 784,
+          "last": 798,
+          "lcd_grant": 752,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 27,
+          "d_offset": 754,
+          "lcd_offset": 753,
+          "cpu_grant": 775,
+          "first": 784,
+          "last": 798,
+          "lcd_grant": 753,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 27,
+          "d_offset": 754,
+          "lcd_offset": 753,
+          "cpu_grant": 775,
+          "first": 784,
+          "last": 798,
+          "lcd_grant": 753,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 28,
+          "d_offset": 754,
+          "lcd_offset": 754,
+          "cpu_grant": 775,
+          "first": 784,
+          "last": 798,
+          "lcd_grant": 754,
+          "overlap": 1,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 28,
+          "d_offset": 754,
+          "lcd_offset": 754,
+          "cpu_grant": 775,
+          "first": 784,
+          "last": 798,
+          "lcd_grant": 754,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 29,
+          "d_offset": 754,
+          "lcd_offset": 755,
+          "cpu_grant": 754,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 29,
+          "d_offset": 754,
+          "lcd_offset": 755,
+          "cpu_grant": 775,
+          "first": 784,
+          "last": 798,
+          "lcd_grant": 755,
+          "overlap": 1,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 15,
+        "lcd_grant_delta": -28
+      },
+      {
+        "reference": {
+          "sample": 30,
+          "d_offset": 754,
+          "lcd_offset": 756,
+          "cpu_grant": 754,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 30,
+          "d_offset": 754,
+          "lcd_offset": 756,
+          "cpu_grant": 755,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 31,
+          "d_offset": 754,
+          "lcd_offset": 757,
+          "cpu_grant": 754,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 31,
+          "d_offset": 754,
+          "lcd_offset": 757,
+          "cpu_grant": 755,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 32,
+          "d_offset": 754,
+          "lcd_offset": 758,
+          "cpu_grant": 754,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 32,
+          "d_offset": 754,
+          "lcd_offset": 758,
+          "cpu_grant": 755,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 33,
+          "d_offset": 754,
+          "lcd_offset": 759,
+          "cpu_grant": 754,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 33,
+          "d_offset": 754,
+          "lcd_offset": 759,
+          "cpu_grant": 755,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 34,
+          "d_offset": 754,
+          "lcd_offset": 760,
+          "cpu_grant": 754,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 34,
+          "d_offset": 754,
+          "lcd_offset": 760,
+          "cpu_grant": 755,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      },
+      {
+        "reference": {
+          "sample": 35,
+          "d_offset": 754,
+          "lcd_offset": 761,
+          "cpu_grant": 754,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "candidate": {
+          "sample": 35,
+          "d_offset": 754,
+          "lcd_offset": 761,
+          "cpu_grant": 755,
+          "first": 769,
+          "last": 783,
+          "lcd_grant": 783,
+          "overlap": 0,
+          "refresh": 1
+        },
+        "cpu_first_and_final_ack_delta": 0,
+        "lcd_grant_delta": 0
+      }
+    ]
+  },
+  "timer_timing_witness": {
+    "13": {
+      "run": 45824513460,
+      "selected_sources": 133,
+      "corners": {
+        "corner-1": {
+          "line_candidate_launches": 0,
+          "worst_launch": null,
+          "worst_setup": {
+            "rank": "1",
+            "slack_ns": "-2.168",
+            "data_delay_ns": "11.003",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_half_tag_ram:u_zap_cache_tag_ram|ngage2_zap_dcache_half_metadata_lanes:g_metadata[1].g_dirty.g_dirty_lanes.dirty_rams|altsyncram:g_ram.u_ram|altsyncram_e852:auto_generated|ram_block1a64~porta_bytena_reg2"
+          },
+          "worst_scheduler_setup": {
+            "rank": "173",
+            "slack_ns": "-1.410",
+            "data_delay_ns": "10.127",
+            "logic_levels": "9",
+            "from": "emu:emu|ngage_mister:core|ngage_cflash:user_flash|state[1]",
+            "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[22]"
+          },
+          "shared_scalar_reservation": {
+            "rank": "18",
+            "slack_ns": "-1.830",
+            "data_delay_ns": "10.655",
+            "logic_levels": "10",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_lcd_stream:fast_lcd.stream|reserved"
+          },
+          "upstream_d_tlb_classification": {
+            "rank": "34",
+            "slack_ns": "-1.716",
+            "data_delay_ns": "10.511",
+            "logic_levels": "6",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[29]",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate"
+          }
+        },
+        "corner-2": {
+          "line_candidate_launches": 0,
+          "worst_launch": null,
+          "worst_setup": {
+            "rank": "1",
+            "slack_ns": "-2.214",
+            "data_delay_ns": "10.994",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[6]",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+          },
+          "worst_scheduler_setup": {
+            "rank": "94",
+            "slack_ns": "-1.404",
+            "data_delay_ns": "10.103",
+            "logic_levels": "9",
+            "from": "emu:emu|ngage_mister:core|ngage_cflash:user_flash|state[1]",
+            "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]"
+          }
+        },
+        "corner-3": {
+          "line_candidate_launches": 0,
+          "worst_launch": null,
+          "worst_setup": {
+            "rank": "1",
+            "slack_ns": "2.572",
+            "data_delay_ns": "6.705",
+            "logic_levels": "5",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[151]",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|check_ff[6]"
+          },
+          "worst_scheduler_setup": {
+            "rank": "384",
+            "slack_ns": "3.412",
+            "data_delay_ns": "5.711",
+            "logic_levels": "10",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+            "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_valid"
+          }
+        },
+        "corner-4": {
+          "line_candidate_launches": 0,
+          "worst_launch": null,
+          "worst_setup": {
+            "rank": "1",
+            "slack_ns": "3.679",
+            "data_delay_ns": "2.630",
+            "logic_levels": "1",
+            "from": "shadowmask:HDMI_shadowmask|g4[8]",
+            "to": "shadowmask:HDMI_shadowmask|dout[10]"
+          },
+          "worst_scheduler_setup": null
+        }
+      }
+    },
+    "43": {
+      "run": 45824520116,
+      "selected_sources": 133,
+      "corners": {
+        "corner-1": {
+          "line_candidate_launches": 5,
+          "worst_launch": {
+            "rank": "849",
+            "slack_ns": "-1.118",
+            "data_delay_ns": "9.999",
+            "logic_levels": "9",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|fill[3]~0_OTERM10738_OTERM12568"
+          },
+          "worst_setup": {
+            "rank": "1",
+            "slack_ns": "-2.403",
+            "data_delay_ns": "11.612",
+            "logic_levels": "10",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage_arm9v2_refill:refill|cpu_ack~1_OTERM10890",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[6]"
+          },
+          "worst_scheduler_setup": {
+            "rank": "123",
+            "slack_ns": "-1.789",
+            "data_delay_ns": "10.575",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|Equal38~1_OTERM6861DUPLICATE",
+            "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]"
+          }
+        },
+        "corner-2": {
+          "line_candidate_launches": 13,
+          "worst_launch": {
+            "rank": "86",
+            "slack_ns": "-1.688",
+            "data_delay_ns": "10.585",
+            "logic_levels": "9",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate",
+            "to": "emu:emu|ngage_dma_route:dma_route|local_response_data[3]"
+          },
+          "worst_setup": {
+            "rank": "1",
+            "slack_ns": "-2.337",
+            "data_delay_ns": "11.103",
+            "logic_levels": "10",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|check_ff[12]",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_hit_ok_short"
+          },
+          "worst_scheduler_setup": {
+            "rank": "94",
+            "slack_ns": "-1.673",
+            "data_delay_ns": "10.459",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|Equal38~1_OTERM6861DUPLICATE",
+            "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]"
+          }
+        },
+        "corner-3": {
+          "line_candidate_launches": 0,
+          "worst_launch": null,
+          "worst_setup": {
+            "rank": "1",
+            "slack_ns": "2.539",
+            "data_delay_ns": "6.534",
+            "logic_levels": "6",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|ldfmt[4]",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_zap_writeback:u_zap_writeback|ngage2_zap_register_file:u_zap_register_file|g_write_ff.held_data_b[30]"
+          },
+          "worst_scheduler_setup": {
+            "rank": "351",
+            "slack_ns": "3.337",
+            "data_delay_ns": "5.735",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ctl_written",
+            "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[18]"
+          }
+        },
+        "corner-4": {
+          "line_candidate_launches": 0,
+          "worst_launch": null,
+          "worst_setup": {
+            "rank": "1",
+            "slack_ns": "3.579",
+            "data_delay_ns": "2.952",
+            "logic_levels": "3",
+            "from": "ascal:ascal|o_vcpt_pre3[2]",
+            "to": "ascal:ascal|o_bibu"
+          },
+          "worst_scheduler_setup": null
+        }
+      }
+    },
+    "31337": {
+      "run": 45824525843,
+      "selected_sources": 133,
+      "corners": {
+        "corner-1": {
+          "line_candidate_launches": 0,
+          "worst_launch": null,
+          "worst_setup": {
+            "rank": "1",
+            "slack_ns": "-2.452",
+            "data_delay_ns": "11.180",
+            "logic_levels": "6",
+            "from": "emu:emu|ngage_mister:core|ngage_cflash:user_flash|state[1]",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage_arm9v2_refill:refill|cpu_ack~1_OTERM10916"
+          },
+          "worst_scheduler_setup": {
+            "rank": "40",
+            "slack_ns": "-1.867",
+            "data_delay_ns": "10.708",
+            "logic_levels": "9",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_lcd_display:display.lcd|cursor[7]",
+            "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[17]"
+          }
+        },
+        "corner-2": {
+          "line_candidate_launches": 23,
+          "worst_launch": {
+            "rank": "167",
+            "slack_ns": "-1.425",
+            "data_delay_ns": "10.340",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_icu:icu|Add0~13_OTERM11929"
+          },
+          "worst_setup": {
+            "rank": "1",
+            "slack_ns": "-2.356",
+            "data_delay_ns": "11.066",
+            "logic_levels": "6",
+            "from": "emu:emu|ngage_mister:core|ngage_cflash:user_flash|state[1]",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage_arm9v2_refill:refill|cpu_ack~1_OTERM10916"
+          },
+          "worst_scheduler_setup": {
+            "rank": "20",
+            "slack_ns": "-1.991",
+            "data_delay_ns": "10.833",
+            "logic_levels": "9",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_lcd_display:display.lcd|cursor[7]",
+            "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[17]"
+          }
+        },
+        "corner-3": {
+          "line_candidate_launches": 0,
+          "worst_launch": null,
+          "worst_setup": {
+            "rank": "1",
+            "slack_ns": "2.579",
+            "data_delay_ns": "6.550",
+            "logic_levels": "6",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|state_ff[9]",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_zap_writeback:u_zap_writeback|ngage2_zap_register_file:u_zap_register_file|g_write_ff.held_data_a[5]"
+          },
+          "worst_scheduler_setup": {
+            "rank": "506",
+            "slack_ns": "3.374",
+            "data_delay_ns": "5.891",
+            "logic_levels": "10",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+            "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[17]"
+          }
+        },
+        "corner-4": {
+          "line_candidate_launches": 0,
+          "worst_launch": null,
+          "worst_setup": {
+            "rank": "1",
+            "slack_ns": "3.613",
+            "data_delay_ns": "2.892",
+            "logic_levels": "4",
+            "from": "ascal:ascal|o_state.sREAD",
+            "to": "ascal:ascal|o_off[1][3]"
+          },
+          "worst_scheduler_setup": null
+        }
+      }
+    }
+  },
+  "candidate_routed": false
+}

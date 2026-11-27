@@ -12,6 +12,14 @@ cause of the difference from earlier prompted boots remain unverified. Keep
 the working session intact and observe the next ordinary boot before injecting
 any setup confirmations. No additional clock patch follows from this report.
 
+## 2026-11-20: Alarm status acknowledgement
+
+The fitted Bomberman crash image always reported UEM status `0x35` bit 3
+high, including after acknowledgement. Stock ecust checks that bit before
+doing its time-to-alarm calculation and requests NOS reset `0x15` during
+power-off when it reads high. The local RTL now reports the latched bit and
+honors its existing write-one-to-clear path. The staged boot alarm event
+still uses the existing one-shot delay. [Board trace and controls](ddr-diagnostics.md#bomberman-binary-and-uem-alarm)
 
 ## 2026-11-15 follow-up: native calendar restore still rejects saved state
 
@@ -78,9 +86,9 @@ NOS startup work and uses a different CPU. No measured split of our reported
 40second boot into CPU work, loading and protocol/timeouts exists yet; do not
 attribute that entire delay to the clock or promise a donor-like boot time.
 
-Separately, UEM status35 still unconditionally reports alarm bit3, and the old
-alarm implementation is a one-shot delay rather than comparison against the
-wall clock. These are established modeling limitations; their causal role in
+At the time of this capture, UEM status35 unconditionally reported alarm bit3,
+and the alarm implementation used a one-shot delay rather than comparison
+against the wall clock. These are established modeling limitations; their causal role in
 the date prompt is unverified. The8-bit day counter also cannot reconstruct an
 absolute calendar from a stale2003PMM base. The next functional correction must
 follow observed native persistence/RTC behavior, not a forced-valid flag.

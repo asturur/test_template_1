@@ -1,0 +1,45 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index 1b1c92872a664394038497e9d0608a2556b2c7c6..ca083c40732fdf283cf19a9dbdb30cd098ef1bd1 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -2140,8 +2140,7 @@ module ngage2_arm9v2_decode (
+ 	(* dont_retime *) reg [372:0] d2_q;
+ 	(* dont_retime *) reg [372:0] issued;
+ 	reg [372:0] d2;
+-    wire [4:0] base_address_hint = i_wen && i_wr_pair && i_wr_tag_b == d2_q[100+:6] ? i_wr_data_b[4:0] :
+-        i_wen && i_wr_tag_a == d2_q[100+:6] ? i_wr_data_a[4:0] : i_rf_value[4:0];
++    wire [4:0] base_address_hint = i_rf_value[4:0];
+ 	(* dont_retime *) reg [240:0] d2_bank [0:1];
+ 	(* dont_retime, maxfan = 32 *) reg d2_owner;
+ 	always @(*) begin
+@@ -2150,7 +2149,7 @@ module ngage2_arm9v2_decode (
+ 		d2 = d2_q;
+ 		if (D2_BANKS)
+ 			d2[372-:241] = d2_bank[d2_owner];
+-        // Use the low bits of the base available in decode as a hint only.
++        // Use the register file's latest clocked base as an admission hint.
+         // W rechecks the effective address after operand forwarding.
+         if (d2[131-:4] == K_BLOCK && d2[43] && d2[42] && d2[40-:5] == 2 &&
+             d2[79] && (base_address_hint[1:0] != 0 || base_address_hint[4:2] == 7)) begin
+diff --git a/tools/arm9v2_issue_ldm.py b/tools/arm9v2_issue_ldm.py
+index be9d778ec338d721ce266ba31ec2d4f577f47621..eef2990aeb3b15d887a7d1019e8e78d6b94db578 100644
+--- a/tools/arm9v2_issue_ldm.py
++++ b/tools/arm9v2_issue_ldm.py
+@@ -90,15 +90,14 @@ def issue_decode_overlay(decode, edit):
+ 
+ def avoid_known_crossings(decode, edit):
+     return edit(decode, '\t\t\td2[372-:241] = d2_bank[d2_owner];', '''\t\t\td2[372-:241] = d2_bank[d2_owner];
+-        // Use the low bits of the base available in decode as a hint only.
++        // Use the register file's latest clocked base as an admission hint.
+         // W rechecks the effective address after operand forwarding.
+         if (d2[131-:4] == K_BLOCK && d2[43] && d2[42] && d2[40-:5] == 2 &&
+             d2[79] && (base_address_hint[1:0] != 0 || base_address_hint[4:2] == 7)) begin
+             d2[42] = 0;
+             d2[79] = 0;
+         end''').replace('reg [372:0] d2;', '''reg [372:0] d2;
+-    wire [4:0] base_address_hint = i_wen && i_wr_pair && i_wr_tag_b == d2_q[100+:6] ? i_wr_data_b[4:0] :
+-        i_wen && i_wr_tag_a == d2_q[100+:6] ? i_wr_data_a[4:0] : i_rf_value[4:0];''')
++    wire [4:0] base_address_hint = i_rf_value[4:0];''')
+ 
+ 
+ def issue_core_overlay(core, edit):

@@ -41,9 +41,9 @@ inspect-boot:
 ORACLE_PYTHON ?= build/oracle/venv/bin/python
 .PHONY: oracle-setup sim-oracle sim-oracle-ideal-clocks sim-oracle-lcd sim-firmware-lcd
 oracle-setup:
-	mkdir -p build/python-tmp build/tool-cache/pip build/oracle
+	mkdir -p scratch/python-tmp scratch/pip-cache build/oracle
 	$(PYTHON) -m venv build/oracle/venv
-	TMPDIR="$(CURDIR)/build/python-tmp" PIP_CACHE_DIR="$(CURDIR)/build/tool-cache/pip" $(ORACLE_PYTHON) -m pip install -r sim/requirements-oracle.txt
+	TMPDIR="$(CURDIR)/scratch/python-tmp" PIP_CACHE_DIR="$(CURDIR)/scratch/pip-cache" $(ORACLE_PYTHON) -m pip install -r sim/requirements-oracle.txt
 
 sim-oracle:
 	$(ORACLE_PYTHON) sim/oracle.py

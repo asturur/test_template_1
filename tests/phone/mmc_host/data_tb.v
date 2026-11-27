@@ -106,12 +106,15 @@ module tb;
         reg [39:0] head;
         integer bit_index;
         begin
-            wait(cmd_oe);
+            // OE can become active on the first visible pin edge.
+            @(posedge mmc_clk);
+            while(!cmd_oe) @(posedge mmc_clk);
             if(ordering==1&&!rx_finished)$fatal(1,"type10 command preceded final RX end bit");
             if(ordering==2&&!tx_finished)$fatal(1,"type7 command preceded TX busy release");
             packet=0;
             for(bit_index=0;bit_index<48;bit_index=bit_index+1)begin
-                @(posedge mmc_clk);packet={packet[46:0],cmd_o};
+                packet={packet[46:0],cmd_o};
+                if(bit_index!=47) @(posedge mmc_clk);
             end
             if(packet[47:46]!==2'b01||packet[45:40]!==command[5:0]||packet[39:8]!==32'h12340000||
                 packet[7:1]!==crc7(packet[47:8])||!packet[0])$fatal(1,"command wire frame %h",packet);
@@ -190,10 +193,13 @@ module tb;
         reg [4:0] token;
         integer n,i,k;
         begin
-            wait(dat_oe);bits=0;n=0;tx_seen=0;
+            bits=0;n=0;tx_seen=0;
+            // Check OE at each pin edge, including the first data bit.
+            @(posedge mmc_clk);
+            while(!dat_oe) @(posedge mmc_clk);
             while(dat_oe)begin
+                bits={bits[8190:0],dat_o};n=n+1;tx_seen=n;
                 @(posedge mmc_clk);
-                if(dat_oe)begin bits={bits[8190:0],dat_o};n=n+1;tx_seen=n;end
             end
             if(n!=count*8+18||bits[n-1]!==0||bits[0]!==1)$fatal(1,"TX logical length%0d wirebits%0d",count,n);
             for(k=0;k<count;k=k+1)if(bits[n-2-k*8-:8]!==pattern(k,tag))$fatal(1,"TX data/padding changed byte%0d",k);

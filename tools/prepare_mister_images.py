@@ -20,8 +20,8 @@ ROOT = Path(__file__).resolve().parents[1]
 SPECS = (
     ('core', 'build/firmware/nem4-factory/core.bin', 0x11c0000, 0, 'be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524'),
     ('extension', 'build/firmware/nem4-factory/extension.bin', 0x230000, 0x11c0000, 'cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3'),
-    ('cdrive', 'runtime/boot/cdrive-11b.img', 0x400000, 0x1400000, 'af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47'),
-    ('pmm', 'runtime/boot/pmm-aan.bin', 0x10000, 0x1800000, 'c7075d001311f5f122137fc891b2ade159fb39931810ae0d9965aea2a07e2496'),
+    ('cdrive', 'scratch/overnight/cdrive-11b.img', 0x400000, 0x1400000, 'af5017dcc0d4979ae9c7313a3a77295922009f08e26fbb559bd90d9539190a47'),
+    ('pmm', 'scratch/overnight/pmm-aan.bin', 0x10000, 0x1800000, 'c7075d001311f5f122137fc891b2ade159fb39931810ae0d9965aea2a07e2496'),
 )
 
 def metadata(data):

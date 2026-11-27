@@ -45,7 +45,7 @@ The following are explicit fixture boundaries:
   ISR/DFC path, P4 transition and board ICU assignments are outside this test.
 
 Generated private instructions, manifest, build and run logs stay under
-`build/sim/phone-tests/p2/original/`. No long-running phone simulation or
+`scratch/ngage2-integration/p2/original/`. No long-running phone simulation or
 checkpoint is opened or changed.
 
 Observed locally on 2026-11-11: all four cases passed with zero memory waits

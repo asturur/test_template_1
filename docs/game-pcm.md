@@ -31,6 +31,48 @@ fixture passed with 64 sample reads, including one while MMC was active.
 Routed timing and a full Sega Rally run on MiSTer with the original firmware
 are still unverified.
 
+V5 backports the stock route from master `82fd2a6` as `913d90e`. The stock
+NOS replay passed with the original ROM bytes unchanged. The actual v5
+ARM9V2 passed the original MDI routine fixture at waits 0 and 3 in 70,453
+and 81,364 CPU clocks. The PCM/MMC fixture also passed with 64 signed PCM
+reads, two during MMC, and DONE IRQ. The Quartus source graph passed with
+135 inputs and nine QIPs. V5 builds include PCM by default. A full unmodified-ROM session on a v5 RBF
+remains open.
+
+## V5 diagnostic firmware overlay
+
+V5 carries master PCM commit `3449395` as `28622a9` and the shared timer IRQ
+fix `4d80f64` as `fb10e26`. Both applied without a conflict. The rebuilt
+NEM-4 installer produced the same firmware and payload hashes as master.
+The exact-ROM test passed native send, reply routing, IRQ/DFC, work ring,
+stop/restart, coalesced completions and shared timer/FIQ checks.
+
+The shared signed-stereo fixture with the v5 ARM9V2 selected returned all
+64 PCM reads, including two while MMC was active, and signaled DONE. The
+separate v5 coexistence fixture checked all 18,304 words of a 176×208 frame,
+128 PCM reads and all 512 bytes of the MMC CMD24/TX2 write and readback.
+It observed 435 LCD writes and one nonzero PCM tick during the acknowledged
+MMC write. There were zero underruns or overwritten sample requests before
+completion. Corrupting the last stored halfword failed the backing oracle.
+The first overlap probe watched the host request pulse. The accepted probe
+counts the acknowledged transfer, including the subsequent sector data.
+[Coexistence test](../tests/phone/mmc_write_diagnosis/README.md).
+
+The restarted original Sega Rally guest sent two starts, two first buffers
+and 1,235 refills with the shared PCM stream logic under NGVM. Both launches
+produced non-silent audio. The signed 48 kHz RTL replay of 32,000 captured
+game samples passed the independent frame and resampler checks. The bench
+drops 40 frames in its deliberately stalled restart scenario. Private
+recordings and logs are under `build/sim/game-pcm-v5-sega-restart/`.
+
+The original FileServer cold-file replay passed again on a new disposable
+MMC copy. It reproduced the exact 1,739 bytes and saved-image hash. This
+replay uses the reference kernel for its drive interface. Physical PCM and
+cold-remount results below are from master. V5 board assets are staged
+under `build/board/ngage-v5-game-pcm-20261118/`.
+[MMC results](mmc-write-diagnosis.md) ·
+[V5 matched fit](https://github.com/asturur/test_template_1/actions/runs/44342341495).
+
 ## Original NEM-4 stream
 
 Sega Rally ran from a private copy of its 16 MB card under the reference
@@ -207,6 +249,7 @@ Logs, game media and generated WAVs stay under ignored `build/sim/`.
 
 ```sh
 python3 tests/phone/game_pcm/integration.py game-pcm-board
+python3 tests/phone/game_pcm/integration.py game-pcm-v5-board --cpu arm9v2
 sh tests/phone/native_mdi/run.sh
 docker run --rm --pull never --network none --platform linux/arm64 \
   -v "$PWD:/work" -w /work -e PYTHONPATH=/work/build/tool-cache/linux-unicorn/site \

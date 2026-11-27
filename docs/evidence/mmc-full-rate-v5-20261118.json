@@ -1,0 +1,815 @@
+{
+  "source_candidate": "893b1095d070fa0ca33b3b10cacd8dbd0e1bb73e",
+  "control": "15d3cfea8db7342c0b4ff4f182e484975bbb7d5f",
+  "control_fit": {
+    "run": 44370323925,
+    "setup_slack_ns": 0.096,
+    "sys_clock_hz": 78000000
+  },
+  "candidate_fit": null,
+  "reads": {
+    "cmd17_4k": {
+      "39": {
+        "card_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+        "first_lba": 32,
+        "bytes": 4096,
+        "mmc_div": 2,
+        "flash_cache_bytes": 8192,
+        "cpu_hz": 78000000,
+        "payload_sha256": "9ffd9fccafa9d2a34c550c19730873d55a5df7a27700c553a4554ff51d571ebb",
+        "payload_crc32": "98ac2258",
+        "counters": {
+          "elapsed": 74904,
+          "total": 95367,
+          "HPS_reads": 9,
+          "DDR_reads": 21,
+          "DDR_beats": 84,
+          "min_mmc_period": 2
+        },
+        "flash_window": {
+          "DDR_reads": 4,
+          "hits": 4995,
+          "misses": 4,
+          "flash_wait": 25015
+        }
+      },
+      "78": {
+        "card_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+        "first_lba": 32,
+        "bytes": 4096,
+        "mmc_div": 1,
+        "flash_cache_bytes": 8192,
+        "cpu_hz": 78000000,
+        "payload_sha256": "9ffd9fccafa9d2a34c550c19730873d55a5df7a27700c553a4554ff51d571ebb",
+        "payload_crc32": "98ac2258",
+        "counters": {
+          "elapsed": 68938,
+          "total": 88853,
+          "HPS_reads": 9,
+          "DDR_reads": 21,
+          "DDR_beats": 84,
+          "min_mmc_period": 1
+        },
+        "flash_window": {
+          "DDR_reads": 4,
+          "hits": 4683,
+          "misses": 4,
+          "flash_wait": 23455
+        }
+      }
+    },
+    "cmd18_4k": {
+      "39": {
+        "card_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+        "first_lba": 32,
+        "bytes": 4096,
+        "mmc_div": 2,
+        "flash_cache_bytes": 8192,
+        "cpu_hz": 78000000,
+        "read_command": 18,
+        "extra_ack_clocks": 0,
+        "payload_sha256": "9ffd9fccafa9d2a34c550c19730873d55a5df7a27700c553a4554ff51d571ebb",
+        "payload_crc32": "98ac2258",
+        "counters": {
+          "elapsed": 68833,
+          "total": 89296,
+          "HPS_reads": 3,
+          "HPS_4k_reads": 2,
+          "DDR_reads": 23,
+          "DDR_beats": 92,
+          "min_mmc_period": 2,
+          "mmc_bits": 33481
+        },
+        "flash_window": {
+          "DDR_reads": 6,
+          "hits": 4471,
+          "misses": 6,
+          "flash_wait": 22417
+        }
+      },
+      "78": {
+        "card_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+        "first_lba": 32,
+        "bytes": 4096,
+        "mmc_div": 1,
+        "flash_cache_bytes": 8192,
+        "cpu_hz": 78000000,
+        "read_command": 18,
+        "extra_ack_clocks": 0,
+        "payload_sha256": "9ffd9fccafa9d2a34c550c19730873d55a5df7a27700c553a4554ff51d571ebb",
+        "payload_crc32": "98ac2258",
+        "counters": {
+          "elapsed": 64562,
+          "total": 84477,
+          "HPS_reads": 3,
+          "HPS_4k_reads": 2,
+          "DDR_reads": 23,
+          "DDR_beats": 92,
+          "min_mmc_period": 1,
+          "mmc_bits": 33891
+        },
+        "flash_window": {
+          "DDR_reads": 6,
+          "hits": 4258,
+          "misses": 6,
+          "flash_wait": 21352
+        }
+      }
+    },
+    "cmd18_32k": {
+      "39": {
+        "card_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+        "first_lba": 32,
+        "bytes": 32768,
+        "mmc_div": 2,
+        "flash_cache_bytes": 8192,
+        "cpu_hz": 78000000,
+        "read_command": 18,
+        "extra_ack_clocks": 0,
+        "payload_sha256": "9db23d8550254bedcd90d3689bc724e3a2f02a6b9e343c3b5a964a984981eab3",
+        "payload_crc32": "71176477",
+        "counters": {
+          "elapsed": 541081,
+          "total": 561544,
+          "HPS_reads": 10,
+          "HPS_4k_reads": 9,
+          "DDR_reads": 23,
+          "DDR_beats": 92,
+          "min_mmc_period": 2,
+          "mmc_bits": 263977
+        },
+        "flash_window": {
+          "DDR_reads": 6,
+          "hits": 34991,
+          "misses": 6,
+          "flash_wait": 175017
+        }
+      },
+      "78": {
+        "card_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+        "first_lba": 32,
+        "bytes": 32768,
+        "mmc_div": 1,
+        "flash_cache_bytes": 8192,
+        "cpu_hz": 78000000,
+        "read_command": 18,
+        "extra_ack_clocks": 0,
+        "payload_sha256": "9db23d8550254bedcd90d3689bc724e3a2f02a6b9e343c3b5a964a984981eab3",
+        "payload_crc32": "71176477",
+        "counters": {
+          "elapsed": 509202,
+          "total": 529117,
+          "HPS_reads": 10,
+          "HPS_4k_reads": 9,
+          "DDR_reads": 23,
+          "DDR_beats": 92,
+          "min_mmc_period": 1,
+          "mmc_bits": 264443
+        },
+        "flash_window": {
+          "DDR_reads": 6,
+          "hits": 33434,
+          "misses": 6,
+          "flash_wait": 167232
+        }
+      }
+    },
+    "cmd18_32k_slow_backing": {
+      "39": {
+        "card_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+        "first_lba": 32,
+        "bytes": 32768,
+        "mmc_div": 2,
+        "flash_cache_bytes": 8192,
+        "cpu_hz": 78000000,
+        "read_command": 18,
+        "extra_ack_clocks": 19500,
+        "payload_sha256": "9db23d8550254bedcd90d3689bc724e3a2f02a6b9e343c3b5a964a984981eab3",
+        "payload_crc32": "71176477",
+        "counters": {
+          "elapsed": 560581,
+          "total": 581044,
+          "HPS_reads": 10,
+          "HPS_4k_reads": 9,
+          "DDR_reads": 23,
+          "DDR_beats": 92,
+          "min_mmc_period": 2,
+          "mmc_bits": 273727
+        },
+        "flash_window": {
+          "DDR_reads": 6,
+          "hits": 36878,
+          "misses": 6,
+          "flash_wait": 184452
+        }
+      },
+      "78": {
+        "card_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+        "first_lba": 32,
+        "bytes": 32768,
+        "mmc_div": 1,
+        "flash_cache_bytes": 8192,
+        "cpu_hz": 78000000,
+        "read_command": 18,
+        "extra_ack_clocks": 19500,
+        "payload_sha256": "9db23d8550254bedcd90d3689bc724e3a2f02a6b9e343c3b5a964a984981eab3",
+        "payload_crc32": "71176477",
+        "counters": {
+          "elapsed": 528701,
+          "total": 548616,
+          "HPS_reads": 10,
+          "HPS_4k_reads": 9,
+          "DDR_reads": 23,
+          "DDR_beats": 92,
+          "min_mmc_period": 1,
+          "mmc_bits": 283943
+        },
+        "flash_window": {
+          "DDR_reads": 6,
+          "hits": 35321,
+          "misses": 6,
+          "flash_wait": 176667
+        }
+      }
+    }
+  },
+  "writes": {
+    "39": [
+      {
+        "case": "normal",
+        "exit_code": 0,
+        "evidence": [
+          "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=250288 reads=4 writes=1"
+        ]
+      },
+      {
+        "case": "corrupt-persist",
+        "exit_code": 1,
+        "evidence": [
+          "[2502925000] %Fatal: tb.v:152: Assertion failed in tb: independent persisted oracle mismatch halfword1023"
+        ]
+      }
+    ],
+    "78": [
+      {
+        "case": "normal",
+        "exit_code": 0,
+        "evidence": [
+          "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=247478 reads=4 writes=1"
+        ]
+      },
+      {
+        "case": "corrupt-persist",
+        "exit_code": 1,
+        "evidence": [
+          "[2474825000] %Fatal: tb.v:152: Assertion failed in tb: independent persisted oracle mismatch halfword1023"
+        ]
+      }
+    ]
+  },
+  "host_peer_cases": {
+    "1": {
+      "DIV": 1,
+      "FIFO": 16,
+      "cases": 28,
+      "clocks": 20723
+    },
+    "2": {
+      "DIV": 2,
+      "FIFO": 16,
+      "cases": 28,
+      "clocks": 41152
+    },
+    "4": {
+      "DIV": 4,
+      "FIFO": 16,
+      "cases": 28,
+      "clocks": 82004
+    },
+    "12": {
+      "DIV": 12,
+      "FIFO": 8,
+      "cases": 28,
+      "clocks": 244751
+    }
+  },
+  "full_rate_pcm_lcd_mmc": [
+    {
+      "case": "normal",
+      "exit_code": 0,
+      "evidence": [
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=360 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1202356 reads=4 writes=1"
+      ]
+    },
+    {
+      "case": "corrupt-persist",
+      "exit_code": 1,
+      "evidence": [
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=360 PCM ticks=1 underflows=0 overwritten=0",
+        "[12023605000] %Fatal: tb.v:198: Assertion failed in tb: independent persisted oracle mismatch halfword1023"
+      ]
+    }
+  ],
+  "unit_timer_rates": [
+    {
+      "CPU": 78000000,
+      "GPT_div": 3,
+      "OS_period": 1218750,
+      "NOS_hz": 64,
+      "NOS_period": 1218750,
+      "NOS_IRQs": 1,
+      "fast_period": 2380,
+      "fast_increments": 1024
+    },
+    {
+      "CPU": 78000000,
+      "GPT_div": 3,
+      "OS_period": 1218750,
+      "NOS_hz": 128,
+      "NOS_period": 609375,
+      "NOS_IRQs": 1,
+      "fast_period": 2380,
+      "fast_increments": 1024
+    },
+    {
+      "CPU": 78000000,
+      "GPT_div": 3,
+      "OS_period": 1218750,
+      "NOS_hz": 32,
+      "NOS_period": 2437500,
+      "NOS_IRQs": 1,
+      "fast_period": 2380,
+      "fast_increments": 2048
+    },
+    {
+      "CPU": 104000000,
+      "GPT_div": 4,
+      "OS_period": 1625000,
+      "NOS_hz": 64,
+      "NOS_period": 1625000,
+      "NOS_IRQs": 1,
+      "fast_period": 3174,
+      "fast_increments": 1023
+    },
+    {
+      "CPU": 104000000,
+      "GPT_div": 4,
+      "OS_period": 1625000,
+      "NOS_hz": 128,
+      "NOS_period": 812500,
+      "NOS_IRQs": 1,
+      "fast_period": 3174,
+      "fast_increments": 1023
+    },
+    {
+      "CPU": 104000000,
+      "GPT_div": 4,
+      "OS_period": 1625000,
+      "NOS_hz": 32,
+      "NOS_period": 3250000,
+      "NOS_IRQs": 1,
+      "fast_period": 3174,
+      "fast_increments": 2047
+    }
+  ],
+  "stock_nos_deadlines": {
+    "64": {
+      "NOS_Hz": 64,
+      "firmware_delta": 47,
+      "cycles_per_tick": 1218750,
+      "programmed_at": 2571,
+      "irq_at": 57281250,
+      "waited": 57278679,
+      "remaining": 0
+    },
+    "128": {
+      "NOS_Hz": 128,
+      "firmware_delta": 47,
+      "cycles_per_tick": 609375,
+      "programmed_at": 2571,
+      "irq_at": 28640625,
+      "waited": 28638054,
+      "remaining": 0
+    }
+  },
+  "stock_nos_hash": "e5870e918c90d9c7a6403eb0ee305d174e906aeae0a7fa8069e85a18aeec7aa1",
+  "cold_stock_boots": {
+    "64": {
+      "source_identity": "d515f1b7a168dfdcfac2d976cf86f8cdd9b024be84524ee1e53c62c1fea8faff",
+      "cycles": 340000000,
+      "pc": "50387e70",
+      "retired": 259715698,
+      "lcd_words": 36689,
+      "bus_errors": 3,
+      "data_errors": 0,
+      "first_logo": {
+        "cycle": 295684044,
+        "words": 36689,
+        "reads": 670833,
+        "beats": 2683332,
+        "hits": 57813,
+        "misses": 670833,
+        "scalar_wait": 236749,
+        "line_wait": 6077640,
+        "sweep": 256
+      },
+      "timing": {
+        "cycles": 340000000,
+        "ticks": 278,
+        "programs": 32,
+        "matches": 3,
+        "timer_assertions": 3,
+        "gpt_assertions": 66,
+        "irq_entries": 82,
+        "irq_clocks": 250788
+      },
+      "framebuffer_sha256": "1d149e0386df43c8373c92d4c8832b5e5c419aa508617d7325580797e4030439"
+    },
+    "128": {
+      "source_identity": "22dc1667a592e00eb3a4e41579b0bb07bd49f8852f9cbdb22c58217c2d52ff72",
+      "cycles": 340000000,
+      "pc": "50386634",
+      "retired": 254638300,
+      "lcd_words": 36689,
+      "bus_errors": 3,
+      "data_errors": 0,
+      "first_logo": {
+        "cycle": 283515747,
+        "words": 36689,
+        "reads": 671078,
+        "beats": 2684312,
+        "hits": 57868,
+        "misses": 671078,
+        "scalar_wait": 236749,
+        "line_wait": 6080010,
+        "sweep": 256
+      },
+      "timing": {
+        "cycles": 340000000,
+        "ticks": 557,
+        "programs": 112,
+        "matches": 27,
+        "timer_assertions": 27,
+        "gpt_assertions": 66,
+        "irq_entries": 108,
+        "irq_clocks": 349065
+      },
+      "framebuffer_sha256": "1d149e0386df43c8373c92d4c8832b5e5c419aa508617d7325580797e4030439"
+    }
+  },
+  "cold_stock_inputs": {
+    "core": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+    "extension": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3",
+    "cdrive": "8f7ce5de2a20a8cfcbb4967d77f89c40315ff97411ada9944fe65f8ca87b0482"
+  },
+  "native_mdi": {
+    "64": {
+      "NOS_hz": 64,
+      "announce_clock": 24375005,
+      "pcm_output_period": 1625
+    },
+    "128": {
+      "NOS_hz": 128,
+      "announce_clock": 12187505,
+      "pcm_output_period": 1625
+    }
+  },
+  "payloads": {
+    "cpu_hz": 78000000,
+    "profiles": [
+      {
+        "mmc_hz": 39000000,
+        "nos_hz": 64
+      },
+      {
+        "mmc_hz": 78000000,
+        "nos_hz": 64
+      },
+      {
+        "mmc_hz": 39000000,
+        "nos_hz": 128
+      },
+      {
+        "mmc_hz": 78000000,
+        "nos_hz": 128
+      }
+    ],
+    "d2_bytes": 8192,
+    "d2_line_bytes": 32,
+    "d2_lines": 256,
+    "cases": {
+      "matrix4": {
+        "median_cycles": 17909,
+        "clocks_by_window": [
+          19027,
+          17909,
+          17909,
+          17909,
+          17909,
+          17909,
+          17909
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "native_payload_instructions": 14176,
+        "helper_instructions": 0
+      },
+      "transpose4": {
+        "median_cycles": 2868,
+        "clocks_by_window": [
+          2986,
+          2868,
+          2868,
+          2868,
+          2868,
+          2868,
+          2868
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "native_payload_instructions": 800,
+        "helper_instructions": 0
+      },
+      "triangle_edges": {
+        "median_cycles": 13289,
+        "clocks_by_window": [
+          14294,
+          13289,
+          13289,
+          13289,
+          13289,
+          13289,
+          13289
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "native_payload_instructions": 6656,
+        "helper_instructions": 1872
+      },
+      "fill16_frame": {
+        "median_cycles": 170110,
+        "clocks_by_window": [
+          170210,
+          170110,
+          170110,
+          170110,
+          170110,
+          170110,
+          170110
+        ],
+        "nos_ticks_by_profile": [
+          9,
+          9,
+          19,
+          19
+        ],
+        "native_payload_instructions": 22896,
+        "helper_instructions": 0
+      },
+      "fill16_tail": {
+        "median_cycles": 741,
+        "clocks_by_window": [
+          874,
+          741,
+          741,
+          741,
+          741,
+          741,
+          741
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "native_payload_instructions": 654,
+        "helper_instructions": 0
+      },
+      "fill8_tail": {
+        "median_cycles": 732,
+        "clocks_by_window": [
+          892,
+          732,
+          732,
+          732,
+          732,
+          732,
+          732
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "native_payload_instructions": 667,
+        "helper_instructions": 0
+      },
+      "monkey-forward": {
+        "median_cycles": 16431,
+        "clocks_by_window": [
+          16540,
+          16431,
+          16431,
+          16431,
+          16431,
+          16431,
+          16431
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "native_payload_instructions": 10241,
+        "helper_instructions": 0
+      },
+      "monkey-reverse": {
+        "median_cycles": 16431,
+        "clocks_by_window": [
+          16540,
+          16431,
+          16431,
+          16431,
+          16431,
+          16431,
+          16431
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "native_payload_instructions": 10241,
+        "helper_instructions": 0
+      },
+      "sega-span": {
+        "median_cycles": 15928,
+        "clocks_by_window": [
+          16076,
+          15928,
+          15928,
+          15928,
+          15928,
+          15928,
+          15928
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "native_payload_instructions": 10241,
+        "helper_instructions": 0
+      },
+      "sega-fill": {
+        "median_cycles": 2614,
+        "clocks_by_window": [
+          2735,
+          2614,
+          2614,
+          2614,
+          2614,
+          2614,
+          2614
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "native_payload_instructions": 2561,
+        "helper_instructions": 0
+      },
+      "asphalt-table": {
+        "median_cycles": 21787,
+        "clocks_by_window": [
+          21911,
+          21787,
+          21787,
+          21787,
+          21787,
+          21787,
+          21787
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "native_payload_instructions": 13313,
+        "helper_instructions": 0
+      },
+      "asphalt-double": {
+        "median_cycles": 12535,
+        "clocks_by_window": [
+          12712,
+          12535,
+          12535,
+          12535,
+          12535,
+          12535,
+          12535
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "native_payload_instructions": 9729,
+        "helper_instructions": 0
+      },
+      "asphalt-single": {
+        "median_cycles": 8270,
+        "clocks_by_window": [
+          8449,
+          8270,
+          8270,
+          8270,
+          8270,
+          8270,
+          8270
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "native_payload_instructions": 6145,
+        "helper_instructions": 0
+      },
+      "sega-scan": {
+        "median_cycles": 3975090,
+        "clocks_by_window": [
+          3975454,
+          3975090,
+          3975090,
+          3975090,
+          3975090,
+          3975090,
+          3975090
+        ],
+        "nos_ticks_by_profile": [
+          40,
+          40,
+          80,
+          80
+        ],
+        "native_payload_instructions": 640677,
+        "helper_instructions": 787302
+      },
+      "diffuse_m10_8x8_jpeg": {
+        "median_cycles": 35917,
+        "clocks_by_window": [
+          37034,
+          35917,
+          35917,
+          35917,
+          35917,
+          35917,
+          35917
+        ],
+        "nos_ticks_by_profile": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "native_payload_instructions": 23405,
+        "helper_instructions": 0
+      }
+    },
+    "repeats_per_case_per_profile": 2,
+    "wrong_output_controls": 60,
+    "equal_cycles_all_windows": true,
+    "equal_ddr_and_execution_counts": true,
+    "mmc_wire_bits": 0,
+    "nos_compare_matches": 0,
+    "irq_mode_clocks": 0,
+    "cpu_only_reference_index": {
+      "0:0": 100.0,
+      "2:9": 100.0
+    }
+  }
+}

@@ -1,0 +1,172 @@
+{
+  "status": "PASS",
+  "fit_disposition": "PARK",
+  "production_capture_enabled": false,
+  "production_s_agu": false,
+  "base": "ab75a622a80a5aedae347f63ae195f3da965815a",
+  "base_tree": "57cc1a796acc9b15a61522ccf2397230f38e9799",
+  "candidate_tree": "3cda36842d97f591bd9f46513e98cecdfe6d4cad",
+  "design_patch_sha256": "b4c96454dc4d7b221d94a217374ab48aadc1d614fe3c4061056437223c591819",
+  "replay_patch_sha256": "3c8f263f037a3d07e71e90d013b60b08cd425434cba7675a138979090db8a9b4",
+  "reference_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "4aa8037c0051b43819de2dc9d9f96322ea2e2bb2d91c82df1383ad6840d5d37e",
+    "tools/gen_arm9v2_phone.py": "88613ebf9a8c15b63411992fd7e551bc31f953bb8cd3f9178f3c7ba13caf8b7f"
+  },
+  "source_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "ee72d15a31eaea562925d3e516cf84316f0d7271116d603f977e553040f72700",
+    "tools/gen_arm9v2_phone.py": "acae931924916ad61d44befa49a0ff9d0b2306a3d0be43bf14f6c0b2a2ddfaba"
+  },
+  "unchanged_hinted_ldm_sha256": "faf50bc312e761027ca16421177b6f10d47b646d816cd4b55c39d936f7edf835",
+  "proof": {
+    "0": {
+      "counters": {
+        "mode": 0,
+        "clocks": 50000,
+        "admitted": 6967,
+        "replaced": 614,
+        "blocked_space": 29484,
+        "prepared": 11568,
+        "live_return": 401,
+        "held_return": 1109,
+        "dual_return": 395,
+        "nohit_block": 8605,
+        "hit_block": 8439,
+        "hit_release": 1523,
+        "flush": 789,
+        "redirect": 575,
+        "product": 853,
+        "smull": 393,
+        "imm12": 782,
+        "imm8": 391,
+        "block": 427,
+        "bx_swp": 873,
+        "suffix": 489,
+        "vacant_diff": 0
+      },
+      "sha256": "e3f147d01e4a1b73ba4339bb1c7413df87fc89a7d88db518f289ddd38b0464b1"
+    },
+    "1": {
+      "counters": {
+        "mode": 1,
+        "clocks": 50000,
+        "admitted": 6967,
+        "replaced": 614,
+        "blocked_space": 29484,
+        "prepared": 11568,
+        "live_return": 401,
+        "held_return": 1109,
+        "dual_return": 395,
+        "nohit_block": 8605,
+        "hit_block": 8439,
+        "hit_release": 1523,
+        "flush": 789,
+        "redirect": 575,
+        "product": 853,
+        "smull": 393,
+        "imm12": 782,
+        "imm8": 391,
+        "block": 427,
+        "bx_swp": 873,
+        "suffix": 489,
+        "vacant_diff": 30566
+      },
+      "sha256": "f294750d20426c4bb3d4cb70584a0d506033ba3e7d46a405250bde74d5990580"
+    }
+  },
+  "production_geometry_execute_witness": {
+    "0": {
+      "prior_address": "00000004",
+      "vacant_address": "00000004",
+      "sha256": "ec0aaadf877316364b9bc5698a56a4f2aa5f756b5bed8f67ce7ea912954d50c3"
+    },
+    "1": {
+      "prior_address": "00000004",
+      "vacant_address": "000000c4",
+      "sha256": "748c2c2cefbe436a0d1d358d1f5c72ce76b79a5f75501703c3cdedd608014fcc"
+    }
+  },
+  "boards": {
+    "normal": {
+      "burst-0-wait-0.trace": {
+        "cycles": 33464,
+        "trace_sha256": "5eb36a2549bc68ac5e750b70d2e5ddb95e97900ce3d5a39ecfa59971bdc46c57"
+      },
+      "burst-0-wait-5.trace": {
+        "cycles": 67865,
+        "trace_sha256": "6d7c90428c2072dcba11c44b696e1e2d19b8d6f46f38973b840f09f1ecfed809"
+      },
+      "burst-1-wait-0.trace": {
+        "cycles": 28464,
+        "trace_sha256": "31cd1b51eb82c54931c436fcfa8b933f8fba7b6dcac00d9bb26f3df437b0f2ee"
+      },
+      "burst-1-wait-5.trace": {
+        "cycles": 42543,
+        "trace_sha256": "12349a2fe3c61600eb64ba3f1214fbdc25324d5fb59e6f5a90e96511eb6d26f4"
+      }
+    },
+    "abort_alignment": {
+      "burst-0-wait-0.trace": {
+        "cycles": 33755,
+        "trace_sha256": "ed09df3720c984f198b4db3a1758a59f0e3e025540928406c0c3c026af09931d"
+      },
+      "burst-0-wait-5.trace": {
+        "cycles": 68452,
+        "trace_sha256": "f795417c6057fee6a931c288c4cbb83196071da98c0f8dc7daa7b88c7e0a9cb5"
+      },
+      "burst-1-wait-0.trace": {
+        "cycles": 28734,
+        "trace_sha256": "88ede9fb41091ff792672402d597a906e12937fcfb89eb4355c5f18930ca8242"
+      },
+      "burst-1-wait-5.trace": {
+        "cycles": 43011,
+        "trace_sha256": "ad8976862e4aa0fdc4109a96c5a18ff29b2593ab6b05bad0fab357667ad8da3e"
+      }
+    }
+  },
+  "workloads": {
+    "fixed": {
+      "count": 105,
+      "receipt_sha256": "edf531d13fa5b1f965f640a5b9a7fb0c6c06711785859c03766d843bc5980de4",
+      "repeated": 15,
+      "wrong_output_checks": 15
+    },
+    "native": {
+      "count": 4,
+      "receipt_sha256": "825bddb68303d8e53ed2f1fd510cf825a1aec281e80ac68e5606b24e14c6812c",
+      "frame_cycles": [
+        14391395,
+        14467552,
+        14346201,
+        14303223
+      ],
+      "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77"
+    }
+  },
+  "physical": {
+    "normal": {
+      "events": 171496,
+      "clocks": 1201547,
+      "sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26"
+    },
+    "timer_mmc_lcd": {
+      "events": 171497,
+      "clocks": 1201528,
+      "sha256": "0e9fb47c965bab211b315c129e08effab414ed1ccc9e579aee4d56d9d29ba824"
+    },
+    "cpu_block_eviction": {
+      "events": 172060,
+      "clocks": 1204706,
+      "sha256": "c179009830b72ecb8aa10278e73e878c3cd1b0c34d2f3bab7afacaf084766317"
+    },
+    "warm_hold": {
+      "events": 171518,
+      "clocks": 1203504,
+      "sha256": "07177926dd5e174b19db23220b807531c2f7b8f0c6ca13316641d7b50e2d6a80"
+    }
+  },
+  "mixed_source_count": 114,
+  "compiled_cpu_fingerprint": "7nLRWjHq6lYpJdPlFsAEMW8NcnERbWABl35VMED3",
+  "simulator_image": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "routes_sha256": "6a8e250a27b5895d53d9ff38e1a85940d4cc114c2bd13c88a77bd1fc9347ce6b",
+  "candidate_routed": false
+}

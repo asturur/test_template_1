@@ -1,0 +1,113 @@
+{
+  "status": "PASS",
+  "public_parent": "ab75a622a80a5aedae347f63ae195f3da965815a",
+  "timer": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+  "restore": "63bb12f3486bb46000825b85542253c270653dee",
+  "private_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/upp-claim-refill-payload/dispatch-20261126/objects",
+  "alternate_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/refill-payload-after-a-only/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/.git/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/a-only-product-ram-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/tlb-fifo-refill-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/refill-payload-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/sdram-block-payload/followup-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-dirty-compact-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-compact-owner-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-footer-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/timer-live-trust-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-live-trust/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lltune-clock/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lane13-mmc-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-count-prepare/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/wb-reply-class/dispatch-20261126/objects",
+  "proof_sha256": "7eab96a46ea307256ba05aeb25029b39ee3de73e426afc2ac1ff66e047f291e1",
+  "design_patch_sha256": "92b51694d53948728a09f0875084371386626ace0e0e3369495b8cb1385aa8b7",
+  "variants": {
+    "claim-on-timer": {
+      "sha": "af86e9674613a1a09ce081e8e8135ae66a52aff9",
+      "parent": "63bb12f3486bb46000825b85542253c270653dee",
+      "tree": "dd90394f2bbd952eb8df84fc7df09efcc40b517d",
+      "paths_since_parent": [
+        "rtl/ngage_upp_peripherals.v"
+      ],
+      "sha256_from_timer": {
+        "rtl/ngage_upp_peripherals.v": "9dac7a372428e6e422eaf8e57894febe415fc9d65a76fb0a17667621df0db80c"
+      },
+      "production": {
+        "13": {
+          "control_run": 45824513460,
+          "control_source": "archived timer fit",
+          "seed": 13,
+          "debugger": false,
+          "mhz": 104,
+          "selected_source_count": 133,
+          "delta": {
+            "rtl/ngage_upp_peripherals.v": "9dac7a372428e6e422eaf8e57894febe415fc9d65a76fb0a17667621df0db80c"
+          },
+          "manifest_sha256": "ba355210f2f5618ff44a17338b97aad1bf06f79116eb877f2371ae7bc5158bd6"
+        },
+        "43": {
+          "control_run": 45824520116,
+          "control_source": "archived timer fit",
+          "seed": 43,
+          "debugger": false,
+          "mhz": 104,
+          "selected_source_count": 133,
+          "delta": {
+            "rtl/ngage_upp_peripherals.v": "9dac7a372428e6e422eaf8e57894febe415fc9d65a76fb0a17667621df0db80c"
+          },
+          "manifest_sha256": "a10bb5f877b30f3940199baeee787e8d70db84b2354cd90bf6f82d378e09efa0"
+        },
+        "31337": {
+          "control_run": 45824525843,
+          "control_source": "archived timer fit",
+          "seed": 31337,
+          "debugger": false,
+          "mhz": 104,
+          "selected_source_count": 133,
+          "delta": {
+            "rtl/ngage_upp_peripherals.v": "9dac7a372428e6e422eaf8e57894febe415fc9d65a76fb0a17667621df0db80c"
+          },
+          "manifest_sha256": "f96430bb31e752a729560f5e9253571d50d503b1942b1b6a404cfa8b710dc445"
+        }
+      }
+    },
+    "claim-on-two-cut": {
+      "sha": "96d108d2e44b3e3b630820fe2fa43f9e13cce702",
+      "parent": "ab75a622a80a5aedae347f63ae195f3da965815a",
+      "tree": "f39825ce22645805f4176bba4fd19d244ef046dc",
+      "paths_since_parent": [
+        "rtl/ngage_upp_peripherals.v"
+      ],
+      "sha256_from_timer": {
+        "rtl/ngage_upp_peripherals.v": "9dac7a372428e6e422eaf8e57894febe415fc9d65a76fb0a17667621df0db80c",
+        "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6",
+        "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+        "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11"
+      },
+      "production": {
+        "13": {
+          "control_run": 45879015397,
+          "control_source": "sealed two-cut preflight",
+          "seed": 13,
+          "debugger": false,
+          "mhz": 104,
+          "selected_source_count": 133,
+          "delta": {
+            "rtl/ngage_upp_peripherals.v": "9dac7a372428e6e422eaf8e57894febe415fc9d65a76fb0a17667621df0db80c"
+          },
+          "manifest_sha256": "9a946b63faed74e184ed361787605991946165dd29cd7d48b5e0048637acbf0a"
+        },
+        "43": {
+          "control_run": 45879019116,
+          "control_source": "sealed two-cut preflight",
+          "seed": 43,
+          "debugger": false,
+          "mhz": 104,
+          "selected_source_count": 133,
+          "delta": {
+            "rtl/ngage_upp_peripherals.v": "9dac7a372428e6e422eaf8e57894febe415fc9d65a76fb0a17667621df0db80c"
+          },
+          "manifest_sha256": "43a8f7e9aa317e1826fea69c2b0114b2940bed5d6cf8fa9119fbb199c93fb1e6"
+        },
+        "31337": {
+          "control_run": 45879022396,
+          "control_source": "sealed two-cut preflight",
+          "seed": 31337,
+          "debugger": false,
+          "mhz": 104,
+          "selected_source_count": 133,
+          "delta": {
+            "rtl/ngage_upp_peripherals.v": "9dac7a372428e6e422eaf8e57894febe415fc9d65a76fb0a17667621df0db80c"
+          },
+          "manifest_sha256": "686f4e3a83b7e1a7dc8f60a3860c099287122279316831810ce99cd07bedff4c"
+        }
+      }
+    }
+  }
+}

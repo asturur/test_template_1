@@ -1,0 +1,46 @@
+--- a/rtl/ngage_upp.v
++++ b/rtl/ngage_upp.v
+@@ -414,13 +414,42 @@
+             // Reuse that request boundary; retain the registered response.
+             // The route qualifies admission through STB. Once active, CYC
+             // follows requester withdrawal and the existing DMA exclusion.
++            // Simulation-only admission pacing. Once admitted, the
++            // request and reply use the original 104 MHz handshake.
++            integer pace_div = 1, pace_mask = 0, pace_offset = 0, pace_phase = 0;
++            initial begin
++                if ($value$plusargs("pace_div=%d", pace_div) && (pace_div < 1 || pace_div > 3))
++                    $fatal(1, "invalid phase divisor");
++                if ($value$plusargs("pace_mask=%d", pace_mask) && (pace_mask < 0 || pace_mask > 7))
++                    $fatal(1, "invalid phase scope");
++                if ($value$plusargs("pace_offset=%d", pace_offset) && (pace_offset < 0 || pace_offset >= pace_div))
++                    $fatal(1, "invalid phase offset");
++            end
++            always @(posedge clk) begin
++                if (rst) pace_phase <= pace_offset;
++                else if (pace_phase == pace_div - 1) pace_phase <= 0;
++                else pace_phase <= pace_phase + 1;
++            end
++            // The GPIO scope is the keypad, NOS-family and EUART window,
++            // plus the GPIO30 bank. The MMC scope is the exact host MMIO
++            // window. Neither includes native DMA nor external MMC pins.
++            wire pace_gpio = !master_code && (
++                (master_address[31:12] == 20'h0c150 && master_address[11:0] < 12'h600) ||
++                (master_address[31:5] == (32'h0c120c00 >> 5))
++            );
++            wire pace_mmc = !master_code && master_address[31:6] == (32'h0c120600 >> 6);
++            wire pace_mmio = !master_code && master_address[31:24] == 8'h0c &&
++                master_address[31:16] != 16'h0c03 && master_address[31:16] != 16'h0c10;
++            wire pace_selected = (pace_mask[0] && pace_gpio) || (pace_mask[1] && pace_mmc) ||
++                (pace_mask[2] && pace_mmio);
++            wire pace_admit = !pace_selected || pace_phase == 0;
+             ngage_upp_bus_bridge #(
+                 .REGISTERED_MASTER(1)
+             ) bridge (
+                 .clk             (clk),
+                 .reset           (rst),
+                 .master_cyc      (master_cyc && !cpu_suspended),
+-                .master_stb      (slow_master_stb && !block_cpu),
++                .master_stb      (slow_master_stb && !block_cpu && pace_admit),
+                 .master_we       (master_we),
+                 .master_code     (master_code),
+                 .master_address  (master_address),

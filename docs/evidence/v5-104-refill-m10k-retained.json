@@ -1,0 +1,25 @@
+{
+  "base": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+  "archived_wrapper_commit": "13a471b684c6730c37d9890c057c95e966a50ec0",
+  "wrapper_sha256": "26abcd7dd037e9821769fa740cca3a0ae6f58a41e656180336e4681c36ffc7dd",
+  "fixed": {
+    "cases": 15,
+    "windows": 105,
+    "total_window_clocks": 18750743,
+    "receipt_sha256": "f83346362e6ca172b5a44e678b5a30131bf41ea4e7ec8dbd74e8141a2d4c5130"
+  },
+  "native": {
+    "cases": 1,
+    "windows": 4,
+    "total_window_clocks": 57508371,
+    "receipt_sha256": "88e49460f61a84fd1f0ea580bdf42d06019679b1e26aa9c67854a54d8de19bf5"
+  },
+  "directed": [
+    "PASS refill RAM responses=8987 errors=952 wide=1999 narrow=10484 bubbles=9707 lines=1200",
+    "PASS refill RAM responses=8987 errors=952 wide=1999 narrow=10484 bubbles=9707 lines=1200"
+  ],
+  "mixed": {
+    "events": 171496,
+    "sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26"
+  }
+}

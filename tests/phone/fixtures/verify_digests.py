@@ -16,7 +16,7 @@ actual = hashlib.md5(linear[lo:hi]).digest()
 if actual != linear[0x8f08:0x8f18]:
     raise SystemExit('extension descriptor does not match selected inputs')
 print('PASS extension digest', actual.hex(), flush=True)
-path = ROOT / 'tests/phone/reference/flash-cipher-r4/reproduce_stock_digest.py'
+path = ROOT / 'scratch/flash-cipher-r4/reproduce_stock_digest.py'
 spec = importlib.util.spec_from_file_location('ngage_stock_digest', path)
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)

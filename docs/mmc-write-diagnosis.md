@@ -1,5 +1,27 @@
 # MMC write diagnosis and persistence
 
+## 18 November — v5 replay
+
+V5 picked up master test commit `4f40489` as `50bf768`. The original
+FileServer replay on a disposable image produced the same full-image SHA-256
+as master. A fresh guest reopened and checked all 1,739 bytes. The read-only
+write returned `-21` with zero backing writes. The independent checker
+rejected both a changed file byte and a change in the adjacent sector.
+The ARM fixture was built on the host and run with Linux Unicorn in the
+existing simulator image. The reference kernel supplied the drive interface.
+
+The separate CMD24 probe selected `NGAGE_ARM9V2` with the actual v5 CPU RTL
+and simulation RAM primitives. It passed in 269,479 clocks with four backing
+reads, one TX2 DMA write and 512 bytes checked through the backing peer and
+through guest PIO readback. A corrupted last backing halfword failed the
+oracle. This probe used synthetic MMC contents and the testbench's
+halfword interface. The native MiSTer cold remount below used the master
+RBF. V5 physical cold remount is pending.
+
+Local results are under `build/sim/mmc-file-roundtrip-v5-offline/` and
+`build/sim/mmc-write-arm9v2-offline/`. The latter keeps the probe runner
+with v5 source selection, its selected-source hashes and the recorded results.
+
 ## 18 November — native file copy survives a cold remount on master
 
 The installed 78 MHz RBF matches the archived `1928aee` fit from run

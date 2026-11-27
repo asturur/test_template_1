@@ -1,0 +1,94 @@
+{
+  "status": "PASS",
+  "base": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+  "base_tree": "0ccd13d8cd502bc14d3b89c6431ff0ebe4745612",
+  "design_patch_sha256": "abab9bfe0e0a7bb369e52baa3f7d8654d48d2ef0199f9646658283403e61e530",
+  "fixture_patch_sha256": "8994066e751f7c100670a5e8323c2e1ea4caa0e08af6fc94be59cedd69080dd2",
+  "source_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "6157eab5bae7a7bf3d4588424fab8f65f8b6032611cf22e8295e5737d3ed576b",
+    "tools/gen_arm9v2_phone.py": "547402049a1350c7cff102a673b4a8e25c547af978d55c93aadd8d44aef2e6b4"
+  },
+  "reference_sha256": {
+    "rtl/arm9v2/arm925t_phone.v": "4aa8037c0051b43819de2dc9d9f96322ea2e2bb2d91c82df1383ad6840d5d37e",
+    "tools/gen_arm9v2_phone.py": "88613ebf9a8c15b63411992fd7e551bc31f953bb8cd3f9178f3c7ba13caf8b7f"
+  },
+  "stock_sha256": "087714b2a692fb949bf8a0586674742118383eb18452f1357c4b4e786a69ab4c",
+  "simulator": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "compiled_candidate_fingerprint": "YVfqtbrnp789RYhCT6uPZfi2AyYRzyLoKV5XN9Pt",
+  "compiled_reference_fingerprint": "SqgDfABRtDgZ3i3J2fljIuouK7LZHILfE4OtaEDV",
+  "state_proof": [
+    "PASS next_state_cases=262203 lock_admission_cases=576 resets=2"
+  ],
+  "original_exhaustive_formula": [
+    "PASS scalar valid equals bitmap nonempty over 1064960 transitions"
+  ],
+  "original_directed": [
+    "PASS background load tags fills=65 returns=65 hits_under_miss=64 aborts=2 reset=1"
+  ],
+  "paired_fsm": [
+    "PASS compact lock comparison cycles=1281 simultaneous=2 cached_errors=1",
+    "PASS background load tags fills=66 returns=66 hits_under_miss=64 aborts=2 reset=1"
+  ],
+  "paired_fsm_fixture_sha256": "76579741170a528fb6ee947744d7a0e1ef569fa52d9115e75d5c910b84707c03",
+  "board": {
+    "burst-0-wait-0.trace": {
+      "sha256": "5eb36a2549bc68ac5e750b70d2e5ddb95e97900ce3d5a39ecfa59971bdc46c57",
+      "pass": "PASS cycles=33464 scalar_wait_cycles=13853 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+    },
+    "burst-0-wait-5.trace": {
+      "sha256": "6d7c90428c2072dcba11c44b696e1e2d19b8d6f46f38973b840f09f1ecfed809",
+      "pass": "PASS cycles=67865 scalar_wait_cycles=48355 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+    },
+    "burst-1-wait-0.trace": {
+      "sha256": "31cd1b51eb82c54931c436fcfa8b933f8fba7b6dcac00d9bb26f3df437b0f2ee",
+      "pass": "PASS cycles=28464 scalar_wait_cycles=4573 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+    },
+    "burst-1-wait-5.trace": {
+      "sha256": "12349a2fe3c61600eb64ba3f1214fbdc25324d5fb59e6f5a90e96511eb6d26f4",
+      "pass": "PASS cycles=42543 scalar_wait_cycles=15875 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+    }
+  },
+  "workload": {
+    "fixed": {
+      "count": 105,
+      "upstream_receipt_sha256": "6a863ea30d8b9ef1cb357dee9ad67afa863c159d62921dd1f9ec5b995e13ab4b"
+    },
+    "native": {
+      "count": 4,
+      "upstream_receipt_sha256": "2bd3d2020aabf17fab0086f0a3514d77f037c1df7f9f6bafe657c01368337b67",
+      "cycles": [
+        14391395,
+        14467552,
+        14346201,
+        14303223
+      ],
+      "guest_result_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77"
+    }
+  },
+  "physical_input_count": 114,
+  "physical_replays": {
+    "normal": {
+      "events": 171496,
+      "cycles": 1201547,
+      "traffic_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+      "passes": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+      ]
+    },
+    "timer_overlap": {
+      "events": 171497,
+      "cycles": 1201528,
+      "traffic_sha256": "0e9fb47c965bab211b315c129e08effab414ed1ccc9e579aee4d56d9d29ba824",
+      "passes": [
+        "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+        "PASS native LCD grants=4576 completed=4576",
+        "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+        "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201528 reads=4 writes=1"
+      ]
+    }
+  },
+  "routed_baseline_census_sha256": "a3de628510919c752518746530d773cc3d3aabbc784b20be66f7bb295936aa23"
+}

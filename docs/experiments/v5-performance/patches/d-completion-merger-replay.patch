@@ -1,0 +1,1631 @@
+diff --git a/scratch/v5-fit-loop/d-completion-merger/architectural_trace.vh b/scratch/v5-fit-loop/d-completion-merger/architectural_trace.vh
+new file mode 100644
+index 0000000..88b6546
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/architectural_trace.vh
+@@ -0,0 +1,69 @@
++`define RESUPP dut.board.upp.cpu_inside
++`define RESZAP `RESUPP.cpu.u_arm925t.u_zap
++`define RESCORE `RESZAP.g_arm9.u_arm9_core
++`define RESFETCH `RESCORE.u_front_decode.u_fetch
++
++reg [31:0] res_begin, res_end;
++integer res_window = 0;
++integer res_retired, res_data, res_mmio, res_recover;
++reg res_active = 0;
++reg [63:0] res_retire_hash, res_data_hash, res_mmio_hash;
++localparam [63:0] RES_INITIAL = 64'hcbf29ce484222325;
++initial begin
++    if (!$value$plusargs("begin_pc=%h", res_begin) || !$value$plusargs("end_pc=%h", res_end))
++        $fatal(1, "Missing architectural digest window");
++end
++
++function automatic [63:0] res_mix(input [63:0] digest, input [63:0] data);
++    res_mix = (digest ^ data) * 64'h00000100000001b3;
++endfunction
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        res_active = 1;
++        res_retired = 0;
++        res_data = 0;
++        res_mmio = 0;
++        res_recover = 0;
++        res_retire_hash = RES_INITIAL;
++        res_data_hash = RES_INITIAL;
++        res_mmio_hash = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && res_active) begin
++        $display("RES_ARCH window=%0d retired=%0d data=%0d mmio=%0d recover=%0d retire_hash=%016x data_hash=%016x mmio_hash=%016x",
++                 res_window, res_retired, res_data, res_mmio, res_recover,
++                 res_retire_hash, res_data_hash, res_mmio_hash);
++        res_window++;
++        res_active = 0;
++    end else if (res_active) begin
++        if (`RESCORE.wb_complete) begin
++            res_retired++;
++            res_retire_hash = res_mix(res_retire_hash, {`RESCORE.w[526:495], `RESCORE.w[494:463]});
++            res_retire_hash = res_mix(res_retire_hash, {25'b0, exceptions, `RESCORE.cpsr_next});
++            if (`RESCORE.wb_valid) begin
++                if (`RESCORE.wb_tag0 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {26'b0, `RESCORE.wb_tag0, `RESCORE.wb_data0});
++                if (`RESCORE.wb_pair && `RESCORE.wb_tag1 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {25'b0, 1'b1, `RESCORE.wb_tag1, `RESCORE.wb_data1});
++            end
++        end
++        if (`RESZAP.o_dbg_d_done) begin
++            res_data++;
++            res_data_hash = res_mix(res_data_hash, {26'b0, `RESZAP.data_err, `RESZAP.o_dbg_d_we,
++                                                   `RESZAP.o_dbg_d_sel, `RESZAP.o_dbg_d_va});
++            res_data_hash = res_mix(res_data_hash, {32'b0, `RESZAP.o_dbg_d_we ?
++                                                   `RESZAP.o_dbg_d_wdata : `RESZAP.o_dbg_d_rdata});
++        end
++        if (`RESUPP.master_cyc && `RESUPP.master_stb && !`RESUPP.master_code &&
++            (`RESUPP.slow_ack || `RESUPP.slow_error)) begin
++            res_mmio++;
++            res_mmio_hash = res_mix(res_mmio_hash, {26'b0, `RESUPP.slow_error, `RESUPP.master_we,
++                                                   `RESUPP.master_sel, `RESUPP.master_address});
++            res_mmio_hash = res_mix(res_mmio_hash, {32'b0, `RESUPP.master_we ?
++                                                   `RESUPP.master_data : `RESUPP.slow_read_data});
++        end
++    end
++end
++`undef RESFETCH
++`undef RESCORE
++`undef RESZAP
++`undef RESUPP
+diff --git a/scratch/v5-fit-loop/d-completion-merger/wb-write-trace.vh b/scratch/v5-fit-loop/d-completion-merger/wb-write-trace.vh
+new file mode 100644
+index 0000000..e4ee4c7
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/wb-write-trace.vh
+@@ -0,0 +1,98 @@
++`define WC dut.board.upp.cpu_inside.cpu
++`define WZ `WC.u_arm925t.u_zap
++`define WD `WZ.l_generate_with_cache_mmu.u_data_cache
++`define WM `WZ.l_merger_for_core_with_cache_mmu.u_zap_wb_merger
++wire obs_bus_on = `WM.o_wb_cyc && `WM.o_wb_stb;
++wire obs_write = obs_bus_on && `WM.o_wb_wen;
++wire obs_ack = obs_bus_on && `WM.i_wb_ack && !`WM.i_wb_err;
++wire obs_err = obs_bus_on && `WM.i_wb_err;
++wire obs_native = obs_write && `WC.wb_write_block;
++wire [3:0] obs_owner = `WM.o_dbg_data_owner ? `WD.state_ff : 4'b0;
++wire [7:0] obs_ctl = {`WM.o_wb_cti, `WM.o_wb_sel, obs_native};
++wire [31:0] obs_adr = `WM.o_wb_adr;
++wire [31:0] obs_data = `WM.o_wb_dat;
++wire [127:0] obs_block = obs_native ? `WC.wb_block_data : 128'b0;
++wire [199:0] obs_payload = {obs_adr, obs_ctl, obs_data, obs_block};
++wire [2:0] obs_source = {obs_native, `WD.u_zap_cache_fsm.state_ff[`WD.u_zap_cache_fsm.CLEAN_SINGLE], `WM.o_dbg_data_owner};
++
++integer wbt_window = 0;
++integer wbt_clock, wbt_writes, wbt_stalls, wbt_read_acks, wbt_write_acks, wbt_errors;
++integer wbt_read_to_write, wbt_write_next_changed, wbt_owner_changes;
++integer wbt_tag_changed, wbt_cch_changed, wbt_native_changed, wbt_post_changed, wbt_unc_changed;
++integer wbt_tag, wbt_cch, wbt_native, wbt_post, wbt_unc;
++reg wbt_active = 0;
++reg wbt_prev_read_ack, wbt_prev_write_ack, wbt_prev_stalled;
++reg [3:0] wbt_prev_owner;
++reg [199:0] wbt_prev_payload;
++reg [63:0] wbt_digest;
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        wbt_active = 1;
++        wbt_clock = 0;
++        wbt_writes = 0; wbt_stalls = 0; wbt_read_acks = 0; wbt_write_acks = 0; wbt_errors = 0;
++        wbt_read_to_write = 0; wbt_write_next_changed = 0; wbt_owner_changes = 0;
++        wbt_tag_changed = 0; wbt_cch_changed = 0; wbt_native_changed = 0;
++        wbt_post_changed = 0; wbt_unc_changed = 0;
++        wbt_tag = 0; wbt_cch = 0; wbt_native = 0; wbt_post = 0; wbt_unc = 0;
++        wbt_prev_read_ack = 0; wbt_prev_write_ack = 0; wbt_prev_stalled = 0;
++        wbt_prev_owner = 0; wbt_prev_payload = 0;
++        wbt_digest = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && wbt_active) begin
++        $display("RES_WB window=%0d offer=%0d stall=%0d read_ack=%0d write_ack=%0d write_error=%0d read_to_write=%0d changed_after_write_ack=%0d owner_changes=%0d tag=%0d evict_scalar=%0d evict_native=%0d post=%0d unc=%0d tag_changed=%0d evict_scalar_changed=%0d evict_native_changed=%0d post_changed=%0d unc_changed=%0d write_hash=%016x",
++                 wbt_window,wbt_writes,wbt_stalls,wbt_read_acks,wbt_write_acks,wbt_errors,
++                 wbt_read_to_write,wbt_write_next_changed,wbt_owner_changes,
++                 wbt_tag,wbt_cch,wbt_native,wbt_post,wbt_unc,wbt_tag_changed,
++                 wbt_cch_changed,wbt_native_changed,wbt_post_changed,wbt_unc_changed,wbt_digest);
++        wbt_window++;
++        wbt_active = 0;
++    end else if (wbt_active) begin
++        wbt_clock++;
++        if (obs_ack && !obs_write) wbt_read_acks++;
++        if (wbt_prev_stalled && !obs_write) $fatal(1, "write withdrawn while stalled");
++        if (obs_write) begin
++            wbt_writes++;
++            if (wbt_prev_stalled && obs_payload !== wbt_prev_payload)
++                $fatal(1, "stalled write changed payload");
++            if (obs_ack) begin
++                wbt_write_acks++;
++                case (obs_owner)
++                    4'b0010: wbt_tag++;
++                    4'b1000: wbt_post++;
++                    4'b0001: if (obs_native) wbt_native++; else if (obs_source[1]) wbt_cch++; else wbt_unc++;
++                    default: $fatal(1, "unexpected write owner %b", obs_owner);
++                endcase
++            end else if (obs_err) wbt_errors++;
++            else wbt_stalls++;
++            if (wbt_prev_read_ack) wbt_read_to_write++;
++            if (wbt_prev_write_ack) begin
++                if (wbt_prev_owner != obs_owner) wbt_owner_changes++;
++                if (obs_payload[159:0] != wbt_prev_payload[159:0]) begin
++                    wbt_write_next_changed++;
++                    if (wbt_prev_owner == obs_owner)
++                        case (obs_owner)
++                            4'b0010: wbt_tag_changed++;
++                            4'b1000: wbt_post_changed++;
++                            4'b0001: if (obs_native) wbt_native_changed++; else if (obs_source[1]) wbt_cch_changed++; else wbt_unc_changed++;
++                            default: ;
++                        endcase
++                end
++            end
++            wbt_digest = res_mix(wbt_digest, {obs_adr, wbt_clock[21:0], obs_ctl, obs_ack, obs_err});
++            wbt_digest = res_mix(wbt_digest, {31'b0, `WC.wb_lock, obs_data});
++            if (obs_native) begin
++                wbt_digest = res_mix(wbt_digest, obs_block[63:0]);
++                wbt_digest = res_mix(wbt_digest, obs_block[127:64]);
++            end
++        end
++        wbt_prev_read_ack = obs_ack && !obs_write;
++        wbt_prev_write_ack = obs_ack && obs_write;
++        wbt_prev_stalled = obs_write && !obs_ack && !obs_err;
++        wbt_prev_owner = obs_owner;
++        wbt_prev_payload = obs_payload;
++    end
++end
++`undef WM
++`undef WD
++`undef WZ
++`undef WC
+diff --git a/scratch/v5-fit-loop/d-completion-merger/replay.py b/scratch/v5-fit-loop/d-completion-merger/replay.py
+new file mode 100644
+index 0000000..02d66dc
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/replay.py
+@@ -0,0 +1,188 @@
++"""Replay native refill occupancy and SDRAM block capture against the retained 104 MHz control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = repo / 'build/sim/v5-104-d-completion-merger' / args.output
++work.mkdir(parents=True, exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(stage / 'source/tests/cpu/arm9v2_board'))
++import payload_clocks
++payload_clocks.OUT = repo / "build/sim"
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    assert bench.count('.CPU_BLOCK_WRITES(1)') == 1
++    bench = bench.replace('.CPU_BLOCK_WRITES(1)', '.CPU_BLOCK_WRITES(1), .PRECAPTURE_BLOCK_DATA(1)')
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_upp_peripherals.v', 'rtl/ngage_keypad.v', 'rtl/ngage_upp_euart.v', 'rtl/ngage_timers.v', 'rtl/ngage_sdram_arbiter.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    options.append(frozen(stage / 'beat-observer.sv'))
++    if '--assert' not in options:
++        options.insert(0, '--assert')
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/d-completion-merger/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_upp_peripherals.v', 'ngage_keypad.v', 'ngage_upp_euart.v', 'ngage_timers.v', 'ngage_sdram_arbiter.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/d-completion-merger/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    assert 'CCH_PREP enabled=1' in log.read_text(), log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((repo / 'build/sim/v5-104-refill-payload-combined/qualification' / f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                source_sha256={name:digest(stage / 'source/rtl' / name) for name in ('ngage_upp.v','ngage_upp_peripherals.v','ngage_upp_euart.v', 'ngage_timers.v','ngage_keypad.v','ngage_sdram_arbiter.v')}, rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/d-completion-merger/mixed.py b/scratch/v5-fit-loop/d-completion-merger/mixed.py
+new file mode 100644
+index 0000000..65f07df
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/mixed.py
+@@ -0,0 +1,36 @@
++"""Stage the frozen physical-SDRAM replay with parallel UPP claim presence."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-refill-payload-combined/mixed')
++trial = Path('build/sim/v5-104-d-completion-merger/mixed')
++changed = {'rtl/arm9v2/arm925t_phone.v'}
++peer = 'tests/phone/upp_ddr_ram/peer.v'
++
++trial.mkdir(parents=True, exist_ok=True)
++shutil.copytree(base / 'source', trial / 'source', dirs_exist_ok=True)
++for name in ('stress.hex', 'image.hex', 'program.hex'):
++    shutil.copyfile(base / name, trial / name)
++(trial / 'source' / peer).parent.mkdir(parents=True, exist_ok=True)
++shutil.copyfile(stage / 'source' / peer, trial / 'source' / peer)
++for name in changed:
++    shutil.copyfile(stage / 'source' / name, trial / 'source' / name)
++
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert changed <= hashes.keys() and peer in hashes
++for name, reference in hashes.items():
++    if name.startswith('rtl/'):
++        assert sha256((stage / 'reference' / name).read_bytes()).hexdigest() == reference, name
++    actual = sha256((trial / 'source' / name).read_bytes()).hexdigest()
++    assert (actual != reference) == (name in changed), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++
++build = (base / 'build.sh').read_text().replace(str(base), str(trial))
++[destination] = [part for part in build.split() if part.endswith('/build.log')]
++build = build.replace(f' > {destination}', f' {stage.relative_to(Path.cwd())}/beat-observer.sv > {destination}')
++(trial / 'build.sh').write_text(build)
+diff --git a/scratch/v5-fit-loop/d-completion-merger/pins.sh b/scratch/v5-fit-loop/d-completion-merger/pins.sh
+new file mode 100644
+index 0000000..7706806
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/pins.sh
+@@ -0,0 +1,33 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/d-completion-merger
++out=build/sim/v5-104-d-completion-merger
++base=build/sim/v5-104-refill-payload-combined
++guest_source=build/sim/v5-104-sdram-block-payload
++guest_path=build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed/stress.hex
++mixed="$out/mixed"
++image=jotego/simulator:arm64
++mkdir -p "$out/coexistence" "$out/block-guest"
++python3 -B "$area/mixed.py"
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -w /work --entrypoint sh "$image" -ec "sh '$mixed/build.sh'
++'$mixed/obj/Vtb' +upp_stress '+compare_trace=$mixed/traffic.log' > '$mixed/replay.log'"
++cmp "$base/mixed/traffic.log" "$mixed/traffic.log"
++grep '^PASS ' "$mixed/replay.log"
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -v "$PWD/$guest_source/coexistence/stress-timer.hex:/work/$guest_path:ro" \
++  -w /work --entrypoint "/work/$mixed/obj/Vtb" "$image" \
++  +upp_stress "+compare_trace=$out/coexistence/candidate.trace" > "$out/coexistence/candidate.log"
++cmp "$base/coexistence/candidate.trace" "$out/coexistence/candidate.trace"
++grep '^PASS ' "$out/coexistence/candidate.log"
++
++docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++  -v "$PWD/$guest_source/block-guest/block-guest.hex:/work/$guest_path:ro" -w /work \
++  --entrypoint "/work/$mixed/obj/Vtb" "$image" +upp_stress \
++  "+compare_trace=$out/block-guest/source.trace" > "$out/block-guest/source.log"
++cmp "$base/block-guest/source.trace" "$out/block-guest/source.trace"
++awk '$1 == "Q" && $3 == "110" && ($4 == "001740" || $4 == "001744")' "$out/block-guest/source.trace"
++wc -l "$out/block-guest/source.trace"
++grep '^PASS ' "$out/block-guest/source.log"
+diff --git a/scratch/v5-fit-loop/d-completion-merger/prepare-hold.py b/scratch/v5-fit-loop/d-completion-merger/prepare-hold.py
+new file mode 100644
+index 0000000..58d0c66
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/prepare-hold.py
+@@ -0,0 +1,29 @@
++"""Match both exact legs against the timer's measured PCM phase after CPU Hold."""
++from pathlib import Path
++
++
++build = Path('build/sim')
++base = build / 'v5-104-refill-payload-combined/mixed'
++candidate = build / 'v5-104-d-completion-merger/mixed'
++out = candidate.parent / 'hold'
++out.mkdir(parents=True, exist_ok=True)
++bench = 'source/tests/phone/mmc_mister/tb.v'
++source = (base / bench).read_text()
++assert source == (candidate / bench).read_text()
++needle = "sample_hash !== 32'h175ee178"
++assert source.count(needle) == 1
++# The original no-hold pin fixture expects independently fixed PCM phase.
++# A verified compare of a warm hold uses the same baseline PCM witness.
++source = source.replace(needle, "sample_hash !== ($test$plusargs(\"hold\") ? 32'h015ec64f : 32'h175ee178)")
++patched = out / 'tb.v'
++patched.write_text(source)
++for label, leg in (('reference', base), ('trial', candidate)):
++    command = (leg / 'build.sh').read_text()
++    old_bench = str(leg / bench)
++    old_object = str(leg / 'obj')
++    old_log = str(leg / 'build.log')
++    assert all(command.count(text) == 1 for text in (old_bench, old_object, old_log))
++    command = command.replace(old_bench, str(patched))
++    command = command.replace(old_object, str(out / f'{label}-obj'))
++    command = command.replace(old_log, str(out / f'{label}-build.log'))
++    (out / f'{label}-build.sh').write_text(command)
+diff --git a/scratch/v5-fit-loop/d-completion-merger/hold.sh b/scratch/v5-fit-loop/d-completion-merger/hold.sh
+new file mode 100644
+index 0000000..0761419
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/hold.sh
+@@ -0,0 +1,16 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/d-completion-merger
++out=build/sim/v5-104-d-completion-merger/hold
++python3 -B "$area/prepare-hold.py"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -ec "
++    for leg in reference trial; do
++        sh '$out/'\$leg-build.sh
++        '$out/'\$leg-obj/Vtb +upp_stress +hold '+compare_trace=$out/'\$leg.trace > '$out/'\$leg.log
++        grep '^PASS ' '$out/'\$leg.log > '$out/'\$leg.pass
++    done"
++cmp "$out/reference.trace" "$out/trial.trace"
++cmp "$out/reference.pass" "$out/trial.pass"
++cat "$out/trial.pass"
++wc -l "$out/trial.trace"
+diff --git a/scratch/v5-fit-loop/d-completion-merger/board.sh b/scratch/v5-fit-loop/d-completion-merger/board.sh
+new file mode 100644
+index 0000000..6199cde
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/board.sh
+@@ -0,0 +1,50 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/d-completion-merger
++out=build/sim/v5-104-d-completion-merger/board
++fixture=tests/cpu/arm9v2_board
++mkdir -p "$out"
++cp "$area/beat-observer.sv" "$out/"
++arm-none-eabi-gcc -c -mcpu=arm920t -marm -DEXPECTED_CTYPE=0x0514a14a -DASSOC_WAYS=2 \
++    -DSECTION_INDEX_TEST "$area/reference/$fixture/contract.S" -o "$out/guest.o"
++arm-none-eabi-ld -T "$area/reference/sim/programs/link.ld" "$out/guest.o" -o "$out/guest.elf"
++arm-none-eabi-objcopy -O binary "$out/guest.elf" "$out/guest.bin"
++python3 -B - "$out" <<'PY'
++from pathlib import Path
++import struct
++import sys
++
++out = Path(sys.argv[1])
++words = struct.iter_unpack('<I', (out / 'guest.bin').read_bytes())
++(out / 'guest.hex').write_text(''.join(f'{word:08x}\n' for (word,) in words))
++PY
++
++for leg in reference source; do
++    mkdir -p "$out/$leg"
++    docker run --rm --pull=never --network none --platform linux/arm64 \
++        -v "$PWD/$area/$leg:/work:ro" -v "$PWD/$out:/results" -w /work \
++        --entrypoint sh jotego/simulator:arm64 -ec '
++        out=/results/$1
++        observer=
++        if [ "$1" = source ]; then observer=/results/beat-observer.sv; fi
++        verilator --binary --timing --assert -j 2 \
++            -Wno-fatal -Wno-lint -DNGAGE_ARM9V2 --top-module contract --Mdir "$out/obj" \
++            rtl/ngage_cpu.sv rtl/ngage_upp.v rtl/arm9v2/arm925t_phone.v \
++            rtl/arm9v2/upstream/sim/stubs/*.sv tests/cpu/arm9v2_board/contract.v $observer > "$out/build.log" 2>&1
++        for burst in 0 1; do
++            for wait in 0 5; do
++                log="$out/burst-$burst-wait-$wait.log"
++                "$out/obj/Vcontract" +program=/results/guest.hex "+wait=$wait" "+burst=$burst" \
++                    +half-writeback +section-reads=2 > "$log" 2>&1
++                grep -E "^(PASS|LINES|ASSOC|SECTION|DATA_FAULT|REFILL_FAULT) " "$log" > "${log%.log}.trace"
++                grep -q "^PASS " "$log"
++            done
++        done' board "$leg"
++done
++for burst in 0 1; do
++    for wait in 0 5; do
++        name=burst-$burst-wait-$wait.trace
++        cmp "$out/reference/$name" "$out/source/$name"
++        grep '^PASS ' "$out/source/$name"
++    done
++done
+diff --git a/scratch/v5-fit-loop/d-completion-merger/board-phase.sh b/scratch/v5-fit-loop/d-completion-merger/board-phase.sh
+new file mode 100644
+index 0000000..8400ff9
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/board-phase.sh
+@@ -0,0 +1,90 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/d-completion-merger
++board=build/sim/v5-104-d-completion-merger/board
++out=$board/trusted-waw
++fixture=$area/reference/tests/cpu/arm9v2_board
++mkdir -p "$out"
++python3 -B - "$fixture/contract.S" "$out/guest.S" <<'PY'
++from pathlib import Path
++import sys
++
++original, guest = map(Path, sys.argv[1:])
++source = original.read_text()
++marker = "    mov r6,#0\n    ldr r4,[r7,#32]\n"
++assert source.count(marker) == 1
++aligned = """    // An alignment abort must leave the older destination intact.
++    mrc p15,0,r3,c1,c0,0
++    orr r2,r3,#2
++    mcr p15,0,r2,c1,c0,0
++    mov r6,#0
++    mov r4,#0x51
++    add r2,r8,#1
++    ldr r4,[r2]
++    cmp r4,#0x51
++    bne fail
++    cmp r6,#1
++    bne fail
++    mrc p15,0,r4,c5,c0,0
++    and r4,r4,#15
++    cmp r4,#1
++    bne fail
++    mcr p15,0,r3,c1,c0,0
++
++"""
++waw = """    mov r6,#0
++    mov r4,#0x55
++    ldr r4,[r7,#32]
++trusted_waw_follower:
++    ldr r4,[r7,#40]
++    cmp r4,#0
++    bne fail
++"""
++handler_marker = "data_abort:\n"
++assert source.count(handler_marker) == 1
++handler_check = """    ldr r6,=trusted_waw_follower+4
++    cmp lr,r6
++    bne 1f
++    cmp r4,#0x55
++    bne fail
++1:
++"""
++guest.write_text(source.replace(marker, aligned + waw).replace(
++    handler_marker, handler_marker + handler_check))
++PY
++arm-none-eabi-gcc -c -mcpu=arm920t -marm -DEXPECTED_CTYPE=0x0514a14a -DASSOC_WAYS=2 \
++    -DSECTION_INDEX_TEST -I "$fixture" "$out/guest.S" -o "$out/guest.o"
++arm-none-eabi-ld -T "$area/reference/sim/programs/link.ld" "$out/guest.o" -o "$out/guest.elf"
++arm-none-eabi-objcopy -O binary "$out/guest.elf" "$out/guest.bin"
++python3 -B - "$out" <<'PY'
++from pathlib import Path
++import struct
++import sys
++
++out = Path(sys.argv[1])
++(out / 'guest.hex').write_text(''.join(f'{word:08x}\n'
++    for (word,) in struct.iter_unpack('<I', (out / 'guest.bin').read_bytes())))
++PY
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD/$board:/results" -w /results --entrypoint sh jotego/simulator:arm64 -ec '
++    for leg in reference source; do
++        for burst in 0 1; do
++            for wait in 0 5; do
++                log="trusted-waw/$leg-burst-$burst-wait-$wait.log"
++                "$leg/obj/Vcontract" +program=/results/trusted-waw/guest.hex \
++                    "+wait=$wait" "+burst=$burst" +half-writeback +section-reads=2 > "$log" 2>&1
++                grep -q "^PASS " "$log"
++            done
++        done
++    done'
++for burst in 0 1; do
++    for wait in 0 5; do
++        name=burst-$burst-wait-$wait.log
++        for leg in reference source; do
++            grep -E '^(PASS|LINES|ASSOC|SECTION|DATA_FAULT|REFILL_FAULT) ' \
++                "$out/$leg-$name" > "$out/$leg-${name%.log}.trace"
++        done
++        cmp "$out/reference-${name%.log}.trace" "$out/source-${name%.log}.trace"
++        grep '^PASS ' "$out/source-${name%.log}.trace"
++    done
++done
+diff --git a/scratch/v5-fit-loop/d-completion-merger/check-generator.sh b/scratch/v5-fit-loop/d-completion-merger/check-generator.sh
+new file mode 100644
+index 0000000..259f770
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/check-generator.sh
+@@ -0,0 +1,13 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/d-completion-merger
++stock="$PWD/build/arm9v2-assoc/stock-pinned.v"
++for leg in reference source; do
++    python3 -B "$area/$leg/tools/gen_arm9v2_phone.py" --stock "$stock" --check
++    alt="$area/hinted/$leg"
++    mkdir -p "$alt/tools" "$alt/rtl/arm9v2"
++    cp -R "$area/$leg/tools/." "$alt/tools"
++    python3 -B "$alt/tools/gen_arm9v2_phone.py" --stock "$stock" --hinted-ldm
++    python3 -B "$alt/tools/gen_arm9v2_phone.py" --stock "$stock" --hinted-ldm --check
++done
++cmp "$area/hinted/reference/rtl/arm9v2/arm925t_phone.v" "$area/hinted/source/rtl/arm9v2/arm925t_phone.v"
+diff --git a/scratch/v5-fit-loop/d-completion-merger/beat-observer.sv b/scratch/v5-fit-loop/d-completion-merger/beat-observer.sv
+new file mode 100644
+index 0000000..1e5e8e7
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/beat-observer.sv
+@@ -0,0 +1,59 @@
++module prepared_d_cache_observer (
++    input wire clk,
++    input wire reset,
++    input wire enabled,
++    input wire clean,
++    input wire fetch,
++    input wire take,
++    input wire native_write,
++    input wire error_reply,
++    input wire strobe_before,
++    input wire strobe_after
++);
++    integer clean_hold = 0;
++    integer clean_advance = 0;
++    integer clean_end = 0;
++    integer native_advance = 0;
++    integer native_end = 0;
++    integer fetch_hold = 0;
++    integer fetch_advance = 0;
++    integer fetch_end = 0;
++    integer ack_errors = 0;
++    integer active_resets = 0;
++    initial begin
++        if (!enabled) $fatal(1, "D-cache beat preparation must be active");
++        $display("CCH_PREP enabled=1");
++    end
++    always @(posedge clk) begin
++        if (reset && (clean || fetch)) active_resets <= active_resets + 1;
++        if (!reset && clean && strobe_before) begin
++            if (!take && strobe_after) clean_hold <= clean_hold + 1;
++            if (take && strobe_after) begin
++                clean_advance <= clean_advance + 1;
++                if (native_write) native_advance <= native_advance + 1;
++            end
++            if (take && !strobe_after) begin
++                clean_end <= clean_end + 1;
++                if (native_write) native_end <= native_end + 1;
++            end
++        end
++        if (!reset && fetch && strobe_before) begin
++            if (!take && strobe_after) fetch_hold <= fetch_hold + 1;
++            if (take && strobe_after) fetch_advance <= fetch_advance + 1;
++            if (take && !strobe_after) fetch_end <= fetch_end + 1;
++        end
++        if (!reset && (clean || fetch) && take && error_reply)
++            ack_errors <= ack_errors + 1;
++    end
++    final
++        $display("CCH_PREP clean_hold=%0d clean_advance=%0d clean_end=%0d native_advance=%0d native_end=%0d fetch_hold=%0d fetch_advance=%0d fetch_end=%0d errors=%0d resets=%0d",
++                 clean_hold, clean_advance, clean_end, native_advance, native_end, fetch_hold,
++                 fetch_advance, fetch_end, ack_errors, active_resets);
++endmodule
++
++bind ngage2_zap_dcache_fsm prepared_d_cache_observer test_prepared_beat (
++    .clk(i_clk), .reset(i_reset), .enabled(PREPARE_BEAT != 0),
++    .clean(state_ff[CLEAN_SINGLE]), .fetch(state_ff[FETCH_SINGLE]),
++    .take(take), .native_write(block_beat), .error_reply(i_wb_err),
++    .strobe_before(o_wb_stb_ff), .strobe_after(o_wb_stb_nxt)
++);
+diff --git a/scratch/v5-fit-loop/d-completion-merger/beat-errors.sv b/scratch/v5-fit-loop/d-completion-merger/beat-errors.sv
+new file mode 100644
+index 0000000..0628cd9
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/beat-errors.sv
+@@ -0,0 +1,135 @@
++`timescale 1ns/1ps
++module prepared_cch_errors;
++    reg clk = 0;
++    reg reset = 1;
++    reg read_request = 0;
++    reg ack = 0;
++    reg err = 0;
++    reg block_enable = 0;
++    reg [31:0] address = 0;
++    reg [1:0] dirty_halves = 0;
++    wire [45:0] cache_tag = {address[31:5], 19'b0};
++    integer clean_acks = 0, clean_errors = 0, fetch_acks = 0, fetch_errors = 0;
++    integer late_errors = 0, comparisons = 0;
++
++`define CCH_PORTS \
++        .i_clk(clk), .i_reset(reset), .i_rd(read_request), .i_wr(1'b0), \
++        .i_address(address), .i_address_check(address), .i_phy_addr(address), \
++        .i_va(address), .i_cache_en(1'b1), .i_cacheable(1'b1), \
++        .i_cache_tag_valid(1'b1), .i_cache_tag_dirty(1'b1), .i_cache_tag(cache_tag), \
++        .i_cache_victim_halves(dirty_halves), .i_cache_hit(1'b0), .i_hit_ok(1'b1), \
++        .i_cache_line(256'h99112233_a4556677_88888888_f9999999_dd999999_ee883377_cc337788_88552233), \
++        .i_ben(4'hf), .i_reg_idx(64'h8), .i_reg_idx_bin(6'd3), \
++        .i_block_enable(block_enable), .i_wb_ack(ack), .i_wb_err(err), \
++        .i_wb_dat(32'h1122_3344)
++    reference_cch #(.CACHE_SIZE(16384), .WAYS(2), .CACHE_LINE(32), .HALF_WRITEBACK(1)) old_dut (
++        `CCH_PORTS
++    );
++    ngage2_zap_dcache_fsm #(.CACHE_SIZE(16384), .WAYS(2), .CACHE_LINE(32), .HALF_WRITEBACK(1), .PREPARE_BEAT(1)) new_dut (
++        `CCH_PORTS
++    );
++`undef CCH_PORTS
++
++    task compare;
++        begin
++            comparisons++;
++            if ({old_dut.state_ff, old_dut.state_nxt, old_dut.adr_ctr_ff, old_dut.adr_ctr_nxt,
++                 old_dut.o_wb_cyc_nxt, old_dut.o_wb_stb_nxt, old_dut.o_wb_adr_nxt, old_dut.o_wb_sel_nxt,
++                 old_dut.o_wb_dat_nxt, old_dut.o_wb_wen_nxt, old_dut.o_wb_cti_nxt,
++                 old_dut.o_wb_cyc_ff, old_dut.o_wb_stb_ff, old_dut.o_wb_adr_ff, old_dut.o_wb_sel_ff,
++                 old_dut.o_wb_dat_ff, old_dut.o_wb_wen_ff, old_dut.o_wb_cti_ff,
++                 old_dut.o_fill_busy_nxt, old_dut.o_writeback_busy, old_dut.o_wb_line_candidate_nxt,
++                 old_dut.o_ack, old_dut.o_err, old_dut.o_err2}
++                !==
++                {new_dut.state_ff, new_dut.state_nxt, new_dut.adr_ctr_ff, new_dut.adr_ctr_nxt,
++                 new_dut.o_wb_cyc_nxt, new_dut.o_wb_stb_nxt, new_dut.o_wb_adr_nxt, new_dut.o_wb_sel_nxt,
++                 new_dut.o_wb_dat_nxt, new_dut.o_wb_wen_nxt, new_dut.o_wb_cti_nxt,
++                 new_dut.o_wb_cyc_ff, new_dut.o_wb_stb_ff, new_dut.o_wb_adr_ff, new_dut.o_wb_sel_ff,
++                 new_dut.o_wb_dat_ff, new_dut.o_wb_wen_ff, new_dut.o_wb_cti_ff,
++                 new_dut.o_fill_busy_nxt, new_dut.o_writeback_busy, new_dut.o_wb_line_candidate_nxt,
++                 new_dut.o_ack, new_dut.o_err, new_dut.o_err2})
++                $fatal(1, "CCH comparison differs on edge %0d", comparisons);
++        end
++    endtask
++
++    task pulse;
++        begin
++            #4 compare();
++            #1 clk = 1;
++            #4 compare();
++            #1 clk = 0;
++        end
++    endtask
++
++    task late_error;
++        begin
++            ack = 0;
++            err = 1;
++            #1;
++            if (old_dut.take || new_dut.take) $fatal(1, "Late error found an unowned beat");
++            late_errors++;
++            pulse();
++            err = 0;
++        end
++    endtask
++
++    task exercise(input use_block, input [31:0] base, input [1:0] mask);
++        integer beat, clean_count;
++        begin
++            reset = 1;
++            read_request = 0;
++            address = base;
++            block_enable = use_block;
++            dirty_halves = mask;
++            pulse();
++            reset = 0;
++            read_request = 1;
++            pulse();
++            read_request = 0;
++            if (!new_dut.state_ff[new_dut.CLEAN_SINGLE] || new_dut.o_wb_stb_ff)
++                $fatal(1, "Entry into unissued dirty writeback was missed");
++            late_error();
++            clean_count = (mask == 2'b11 ? 2 : 1) * (use_block ? 1 : 4);
++            for (beat = 0; beat < clean_count; beat = beat + 1) begin
++                if (!new_dut.o_wb_stb_ff || !new_dut.o_wb_wen_ff)
++                    $fatal(1, "Expected held clean beat %0d", beat);
++                pulse(); // Confirm the same packet survives a stalled clock.
++                err = beat == 0 || beat == clean_count - 1;
++                ack = !err;
++                if (err) clean_errors++; else clean_acks++;
++                pulse();
++                err = 0;
++                ack = 0;
++            end
++            if (!new_dut.state_ff[new_dut.FETCH_SINGLE] || new_dut.o_wb_stb_ff)
++                $fatal(1, "Clean completion failed to enter a fresh fill");
++            late_error();
++            for (beat = 0; beat < 8; beat = beat + 1) begin
++                if (!new_dut.o_wb_stb_ff || new_dut.o_wb_wen_ff)
++                    $fatal(1, "Expected held fetch beat %0d", beat);
++                pulse();
++                err = beat == 3 || beat == 7;
++                ack = !err;
++                if (err) fetch_errors++; else fetch_acks++;
++                pulse();
++                err = 0;
++                ack = 0;
++            end
++            if (!new_dut.state_ff[new_dut.UNLOCK_REG] || new_dut.o_wb_stb_ff)
++                $fatal(1, "Fill completion did not release the bus");
++            late_error();
++        end
++    endtask
++
++    initial begin
++        exercise(0, 32'h0a00_3000, 2'b11);
++        exercise(0, 32'h0aff_ffe0, 2'b10);
++        exercise(1, 32'h0a00_3000, 2'b11);
++        exercise(1, 32'h0aff_ffe0, 2'b10);
++        if (clean_acks != 8 || clean_errors != 7 || fetch_acks != 24 || fetch_errors != 8 || late_errors != 12)
++            $fatal(1, "Error acceptance coverage differs");
++        $display("PASS clean_acks=%0d clean_errors=%0d fetch_acks=%0d fetch_errors=%0d late_errors=%0d comparisons=%0d",
++                 clean_acks, clean_errors, fetch_acks, fetch_errors, late_errors, comparisons);
++        $finish;
++    end
++endmodule
+diff --git a/scratch/v5-fit-loop/d-completion-merger/beat-errors.sh b/scratch/v5-fit-loop/d-completion-merger/beat-errors.sh
+new file mode 100644
+index 0000000..09f8b0e
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/beat-errors.sh
+@@ -0,0 +1,26 @@
++#!/bin/sh
++set -eu
++area="scratch/v5-fit-loop/${1:-d-completion-merger}"
++out="build/sim/v5-104-${1:-d-completion-merger}/beat-errors"
++mkdir -p "$out"
++python3 -B - "$area" "$out" <<'PY'
++from pathlib import Path
++import re
++import sys
++
++area, out = map(Path, sys.argv[1:])
++rtl = 'rtl/arm9v2/arm925t_phone.v'
++old = (area / 'reference' / rtl).read_text()
++pattern = r'^module ngage2_zap_dcache_fsm .*?^endmodule'
++source = re.search(pattern, old, re.M | re.S)[0]
++(out / 'reference.v').write_text(source.replace('module ngage2_zap_dcache_fsm ', 'module reference_cch ', 1))
++PY
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -euc '
++    ulimit -c 0
++    verilator --binary --timing --assert -j 2 -Wno-fatal --top-module prepared_cch_errors \
++        --Mdir "$2/obj" "$1/source/rtl/arm9v2/arm925t_phone.v" "$2/reference.v" \
++        scratch/v5-fit-loop/d-completion-merger/beat-errors.sv > "$2/build.log" 2>&1
++    "$2/obj/Vprepared_cch_errors" > "$2/replay.log" 2>&1
++    grep "^PASS " "$2/replay.log"' sh "$area" "$out"
+diff --git a/scratch/v5-fit-loop/d-completion-merger/board-write.sh b/scratch/v5-fit-loop/d-completion-merger/board-write.sh
+new file mode 100644
+index 0000000..f8228ee
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/board-write.sh
+@@ -0,0 +1,76 @@
++#!/bin/sh
++# Run from the project root with ARM GNU binutils and the installed Jotego image.
++set -eu
++out=build/sim/v5-104-d-completion-merger/wb-data
++fixture=scratch/v5-fit-loop/d-completion-merger/source/tests/cpu/arm9v2_board
++mkdir -p "$(dirname "$out")"
++mkdir -p "$out"
++python3 -B "$fixture/prepare_wb_data_contract.py" "$out"
++
++python3 -B scratch/v5-fit-loop/d-completion-merger/prepare-eviction-reset.py "$out" "$fixture"
++arm-none-eabi-gcc -c -mcpu=arm920t -marm -DASSOC_WAYS=2 -DSECTION_INDEX_TEST \
++    -I"$fixture" "$out/contract.S" -o "$out/guest.o"
++arm-none-eabi-ld -T scratch/v5-fit-loop/d-completion-merger/source/sim/programs/link.ld "$out/guest.o" -o "$out/guest.elf"
++arm-none-eabi-objcopy -O binary "$out/guest.elf" "$out/guest.bin"
++python3 - "$out" <<'PY'
++from pathlib import Path
++from struct import iter_unpack
++import sys
++out = Path(sys.argv[1])
++words = iter_unpack('<I', (out/'guest.bin').read_bytes())
++(out/'guest.hex').write_text(''.join(f'{word:08x}\n' for (word,) in words))
++PY
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -euc '
++out=build/sim/v5-104-d-completion-merger/wb-data
++fixture=scratch/v5-fit-loop/d-completion-merger/source/tests/cpu/arm9v2_board
++ulimit -c 0
++for mode in word block; do
++    block=
++    if [ "$mode" = block ]; then block=-DNGAGE_BLOCK_WRITEBACK; fi
++    for leg in reference candidate; do
++        area=scratch/v5-fit-loop/d-completion-merger
++        source=$area/$leg/rtl/arm9v2/arm925t_phone.v
++        observer=
++        if [ "$leg" = candidate ]; then
++            source=$area/source/rtl/arm9v2/arm925t_phone.v
++            observer=$area/beat-observer.sv
++        fi
++        stem="$out/$mode-$leg"
++        verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
++            -DNGAGE_ARM9V2 $block --top-module contract --Mdir "$stem-obj" \
++            -I"$out" -I"$fixture" "$area/source/rtl/ngage_cpu.sv" "$area/source/rtl/ngage_upp.v" "$source" $observer \
++            "$area/source/rtl/arm9v2/upstream"/sim/stubs/*.sv "$out/contract.v" > "$stem-build.log" 2>&1
++        for burst in 0 1; do
++            for wait in 0 5; do
++                name="$stem-burst$burst-wait$wait"
++                "$stem-obj/Vcontract" "+program=$out/guest.hex" "+burst=$burst" "+wait=$wait" +section-reads=2 +half-writeback > "$name.log" 2>&1 || {
++                    tail -20 "$name.log"
++                    exit 1
++                }
++                grep -E "^(WB_DATA|PASS|LINES|ASSOC|SECTION|DATA_FAULT|REFILL_FAULT) " "$name.log" > "$name.trace"
++            done
++        done
++        reset_log="$stem-reset"
++        "$stem-obj/Vcontract" "+program=$out/guest.hex" +burst=1 +wait=5 \
++            +section-reads=2 +half-writeback +reset-in-write > "$reset_log.log" 2>&1 || {
++                tail -20 "$reset_log.log"
++                exit 1
++            }
++        grep -E "^(WB_DATA|PASS|LINES|ASSOC|SECTION|DATA_FAULT|REFILL_FAULT) " \
++            "$reset_log.log" > "$reset_log.trace"
++    done
++    cmp "$out/$mode-reference-reset.trace" "$out/$mode-candidate-reset.trace"
++    printf "%s reset " "$mode"
++    grep "^WB_DATA " "$out/$mode-candidate-reset.trace"
++    for burst in 0 1; do
++        for wait in 0 5; do
++            profile="burst$burst-wait$wait"
++            cmp "$out/$mode-reference-$profile.trace" "$out/$mode-candidate-$profile.trace"
++            printf "%s %s " "$mode" "$profile"
++            grep "^WB_DATA " "$out/$mode-candidate-$profile.trace"
++        done
++    done
++done
++' sh "$out" "$fixture"
+diff --git a/scratch/v5-fit-loop/d-completion-merger/prepare-eviction-reset.py b/scratch/v5-fit-loop/d-completion-merger/prepare-eviction-reset.py
+new file mode 100644
+index 0000000..3d77f66
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/prepare-eviction-reset.py
+@@ -0,0 +1,33 @@
++"""Move the existing stalled-write reset to a stalled D-cache victim write."""
++from pathlib import Path
++import sys
++
++
++out = Path(sys.argv[1])
++fixture = Path(sys.argv[2])
++header = (fixture / 'wb_data_contract_observe.vh').read_text()
++needle = 'wait (ram_pending && ram_saved_write && !ram_ack && stalled);'
++assert header.count(needle) == 1
++header = header.replace(needle, 'wait (ram_pending && ram_saved_write && !ram_ack && stalled && eviction && obs_owner[0]);')
++(out / 'wb_data_contract_observe.vh').write_text(header)
++
++bench = out / 'contract.v'
++source = bench.read_text()
++reset = '      slow_delay <= 0;\n    end else begin'
++assert source.count(reset) == 1
++tests = [
++    'cycle', 'wait_words', 'scalar_faults', 'refill_faults', 'refill_words', 'clean_writes',
++    'swap_beats', 'irq_writes', 'fiq_writes', 'irq', 'fiq', 'translation_walks', 'prefetch_aborts',
++    'section_reads', 'section_checks', 'observe_sections', 'capacity_markers', 'verify_resident',
++    'line_active', 'line_reject', 'ram_lines', 'rom_lines', 'rejected_lines',
++    'assoc_phase', 'assoc_words', 'assoc_fills', 'assoc_empty_groups',
++    'write_errors', 'eviction_checks', 'native_blocks',
++]
++reboot = '''      slow_delay <= 0;
++      // This injection happens after SWP and CP15 tests have already run.
++      // Restart their peer census and the scratch RAM for the second boot.
++      if ($test$plusargs("reset-in-write")) begin
++''' + ''.join(f'        {field} <= 0;\n' for field in tests) + '''        for (integer word = 0; word < 16384; word = word + 1) ram[word] <= 0;
++      end
++    end else begin'''
++bench.write_text(source.replace(reset, reboot))
+diff --git a/scratch/v5-fit-loop/d-completion-merger/check-beat-arithmetic.py b/scratch/v5-fit-loop/d-completion-merger/check-beat-arithmetic.py
+new file mode 100644
+index 0000000..4736011
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/check-beat-arithmetic.py
+@@ -0,0 +1,42 @@
++"""Check both prepared packet choices, including configured widths and modulo wrap."""
++from itertools import product
++from pathlib import Path
++
++
++source = (Path(__file__).resolve().parent / 'source/rtl/arm9v2/arm925t_phone.v').read_text()
++for expression in (
++    'wire [EVICT_INDEX_BITS-1:0] next_word = i_reset ? 0 : adr_ctr_nxt;',
++    'wire next_victim_high = state_ff[IDLE] ? i_cache_victim_halves[1] : victim_halves[1];',
++    'assign clean_valid = block_target ? clean_block : clean_scalar;',
++    'o_wb_adr_nxt = take ? clean_address_next : clean_address_hold;',
++    'o_wb_adr_nxt = take ? fetch_address_next : fetch_address_hold;',
++):
++    assert source.count(expression) == 1, expression
++checks = 0
++for line in (8, 16, 32, 64):
++    words = line // 4
++    modulus = 2 * words
++    for counter, half, current_hi, offered_hi, idle, reset, block, take in product(
++        range(modulus), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1), (0, 1),
++    ):
++        new_counter = 0 if reset else counter
++        new_hi = offered_hi if idle else current_hi
++        scalar_limit = words // 2 - 1 if half and not new_hi else words - 1
++        block_limit = (scalar_limit - 3) % modulus
++        block_target = block and line == 32
++        limit = block_limit if block_target else scalar_limit
++        incremented = (new_counter + (4 if block_target else 1)) % modulus
++        old_clean = (incremented if take else new_counter) <= limit
++        old_fetch = ((new_counter + 1) % modulus if take else new_counter) < words
++        scalar = (new_counter <= scalar_limit, (new_counter + 1) % modulus <= scalar_limit)
++        native = (new_counter <= block_limit, (new_counter + 4) % modulus <= block_limit)
++        fetch = (new_counter < words, (new_counter + 1) % modulus < words)
++        clean = native if block_target else scalar
++        assert clean[take] == old_clean and fetch[take] == old_fetch
++        for high_address in (0, 0x0a000000, 0x0b000000 - line, 0xffffffff - line + 1):
++            addresses = tuple((high_address + index * 4) % (1 << 32) for index in (new_counter, incremented))
++            assert (addresses[take] if old_clean else 0) == tuple(
++                address if valid else 0 for address, valid in zip(addresses, clean, strict=True)
++            )[take]
++            checks += 2
++print(f'PASS prepared clean/fetch register geometry checks={checks}')
+diff --git a/scratch/v5-fit-loop/d-completion-merger/routes.py b/scratch/v5-fit-loop/d-completion-merger/routes.py
+new file mode 100644
+index 0000000..8c097b0
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/routes.py
+@@ -0,0 +1,65 @@
++"""Identify SDRAM ACK to cache and merger timing paths on the two-cut source."""
++import csv
++import json
++from pathlib import Path
++import re
++
++
++area = Path(__file__).resolve().parent
++base = 'ab75a622a80a5aedae347f63ae195f3da965815a'
++audit_runs = {13: 45879015397, 43: 45879019116, 31337: 45879022396}
++audit = {}
++for seed, run in audit_runs.items():
++    outputs = Path(f'build/timing-audit-{run}/output_files')
++    manifest = json.loads((outputs / 'resident-fit-manifest.json').read_bytes())
++    assert (manifest['actual_commit'], manifest['physical_cpu_mhz'], manifest['debugger'], manifest['seed']) == (
++        base, 104, False, seed)
++    corners = {}
++    for corner in sorted((outputs / 'timing/resident-store/104').glob('corner-*')):
++        with (corner / 'setup.csv').open() as csv_file:
++            paths = {int(path['rank']): path for path in csv.DictReader(csv_file)}
++        chunks = re.split(r'(?m)^Path #(\d+): Setup slack is ', (corner / 'setup.rpt').read_text(errors='replace'))
++        details = dict(zip(map(int, chunks[1::2]), chunks[2::2], strict=True))
++        assert len(paths) == 1000 and len(details) == 100
++        families = {name: [] for name in ('code_strobe', 'data_strobe', 'other')}
++        for rank, detail in details.items():
++            path = paths[rank]
++            cells = [line.split(';')[-2].strip().removesuffix('|combout')
++                     for line in detail.splitlines() if '|combout' in line and 'CELL' in line]
++            if not any(re.search(r'\|phone_sdram\|ack(?:~|$)', cell) for cell in cells):
++                continue
++            if not re.search(r'\|ngage2_zap_wb_merger:[^|]+\|o_wb_adr\[\d+\]$', path['to']):
++                continue
++            if any('u_code_cache' in cell and 'o_wb_stb_nxt' in cell for cell in cells):
++                name = 'code_strobe'
++            elif any('u_data_cache' in cell and 'o_wb_stb_nxt' in cell for cell in cells):
++                name = 'data_strobe'
++            else:
++                name = 'other'
++            assert not (name == 'code_strobe' and any('u_data_cache' in cell and 'o_wb_stb_nxt' in cell
++                                                       for cell in cells))
++            families[name].append({**path, 'cells': cells})
++        corners[corner.name] = {'total_ranked': len(paths), 'detailed': len(details), 'paths': families,
++                                'counts_below_minus_1_5': {name: sum(float(row['slack_ns']) < -1.5 for row in rows)
++                                                           for name, rows in families.items()}}
++    assert len(corners) == 4
++    audit[seed] = {'run': run, 'corners': corners}
++
++for corner, slack, start in (('corner-1', '-1.978', 'state.WRITE_LOCKED'), ('corner-2', '-1.984', 'seen')):
++    entry = audit[13]['corners'][corner]
++    assert not entry['paths']['code_strobe']
++    first = entry['paths']['data_strobe'][0]
++    assert first['rank'] == '2' and first['slack_ns'] == slack and first['from'].endswith(f'|{start}')
++    assert first['to'].endswith('|o_wb_adr[9]')
++    assert any('|u_zap_cache_fsm|take~' in cell for cell in first['cells'])
++    assert any('|u_zap_cache_fsm|o_wb_cyc_nxt~' in cell for cell in first['cells'])
++for corner, count in (('corner-1', 23), ('corner-2', 25)):
++    entry = audit[43]['corners'][corner]
++    assert entry['counts_below_minus_1_5']['code_strobe'] == count
++    first = entry['paths']['code_strobe'][0]
++    assert first['rank'] == '2' and first['to'].endswith('|o_wb_adr[15]')
++    assert any('|refill|cpu_ack~' in cell for cell in first['cells'])
++assert all(not corner['paths']['code_strobe'] for seed in (13, 31337)
++           for corner in audit[seed]['corners'].values())
++(area / 'routes.json').write_text(json.dumps({'base': base, 'seeds': audit}, indent=2) + '\n')
++print('PASS four-corner SDRAM ACK, D/I cache strobe and merger address route audit')
+diff --git a/scratch/v5-fit-loop/d-completion-merger/record.py b/scratch/v5-fit-loop/d-completion-merger/record.py
+new file mode 100644
+index 0000000..489c63c
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/record.py
+@@ -0,0 +1,181 @@
++"""Seal the prepared D-cache beat and exact production replays."""
++import argparse
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++
++
++parser = argparse.ArgumentParser()
++parser.add_argument('configuration', choices=('standalone', 'stacked'))
++args = parser.parse_args()
++area = Path(__file__).resolve().parent
++stacked = args.configuration == 'stacked'
++trial = area.parent / ('d-completion-w-prepare' if stacked else 'd-completion-merger')
++base_out = Path('build/sim') / ('v5-104-w-completion-prepare' if stacked else 'v5-104-refill-payload-combined')
++out = Path('build/sim') / f'v5-104-{trial.name}'
++rtl = 'rtl/arm9v2/arm925t_phone.v'
++generator = 'tools/gen_arm9v2_phone.py'
++paths = [rtl, generator]
++
++
++def digest(path):
++    return sha256(path.read_bytes()).hexdigest()
++
++
++def load(path):
++    return json.loads(path.read_bytes())
++
++
++def match(trial, control):
++    assert trial.read_bytes() == control.read_bytes(), (trial, control)
++    return digest(trial)
++
++
++def fingerprint(manifest, path):
++    [row] = [shlex.split(line) for line in manifest.read_text().splitlines()
++             if line.startswith('S ') and shlex.split(line)[-1].endswith(path)]
++    return row[-2]
++
++
++def observed(path):
++    lines = path.read_text().splitlines()
++    assert lines.count('CCH_PREP enabled=1') == 1, path
++    [coverage] = [line for line in lines if line.startswith('CCH_PREP clean_hold=')]
++    counts = {name: int(value) for name, value in re.findall(r'(\w+)=(\d+)', coverage)}
++    assert len(counts) == 10
++    return counts
++
++
++def modules(source):
++    return {match[1]: match[0] for match in re.finditer(rb'^module (\w+) .*?^endmodule', source, re.M | re.S)}
++
++
++prepare = load(area / 'followup-20261126/prepare.json')
++label = 'd-beat-on-w' if stacked else 'd-beat-on-two-cut'
++lineage = prepare['variants'][label]
++staging = load(area / 'staged-source.json')
++w_proof = load(area.parent / 'w-completion-prepare/qualification.json')
++expected_before = w_proof['source_sha256'] if stacked else staging['reference_sha256']
++for path in paths:
++    assert digest(trial / 'source' / path) == lineage['sha256_from_two_cut'][path]
++    assert digest(trial / 'reference' / path) == expected_before[path]
++old_modules, new_modules = [modules((trial / leg / rtl).read_bytes()) for leg in ('reference', 'source')]
++assert old_modules.keys() == new_modules.keys()
++assert {name for name in old_modules if old_modules[name] != new_modules[name]} == {
++    b'ngage2_zap_dcache_fsm', b'ngage2_zap_dcache', b'ngage2_zap_top',
++}
++hinted = match(trial / 'hinted/source' / rtl, trial / 'hinted/reference' / rtl)
++assert b'PREPARE_BEAT' not in (trial / 'hinted/source' / rtl).read_bytes()
++
++geometry = (out / 'arithmetic.log').read_text().strip()
++assert geometry == 'PASS prepared clean/fetch register geometry checks=61440'
++error_log = out / 'beat-errors/replay.log'
++[errors] = [line for line in error_log.read_text().splitlines() if line.startswith('PASS ')]
++assert errors.startswith('PASS clean_acks=8 clean_errors=7 fetch_acks=24 fetch_errors=8 late_errors=12 comparisons=')
++
++boards = {}
++for phase in ('normal', 'abort_alignment'):
++    suite = {}
++    for burst in (0, 1):
++        for wait in (0, 5):
++            profile = f'burst-{burst}-wait-{wait}.trace'
++            if phase == 'normal':
++                ref = out / 'board/reference' / profile
++                trial_path = out / 'board/source' / profile
++            else:
++                ref = out / 'board/trusted-waw' / f'reference-{profile}'
++                trial_path = out / 'board/trusted-waw' / f'source-{profile}'
++            data = trial_path.read_text()
++            assert 'swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1' in data
++            suite[profile] = {'trace_sha256': match(trial_path, ref),
++                              'coverage': observed(trial_path.with_suffix('.log')),
++                              'cycles': int(re.search(r'^PASS cycles=(\d+)', data, re.M)[1])}
++    boards[phase] = suite
++
++for mode in ('word', 'block'):
++    suite = {}
++    for profile in ('burst0-wait0', 'burst0-wait5', 'burst1-wait0', 'burst1-wait5', 'reset'):
++        ref = out / 'wb-data' / f'{mode}-reference-{profile}.trace'
++        trial_path = out / 'wb-data' / f'{mode}-candidate-{profile}.trace'
++        coverage = observed(trial_path.with_suffix('.log'))
++        assert coverage['clean_advance'] and coverage['clean_end'] and coverage['clean_hold']
++        assert bool(coverage['native_end']) == (mode == 'block')
++        assert coverage['resets'] == int(profile == 'reset')
++        [data] = [line for line in trial_path.read_text().splitlines() if line.startswith('WB_DATA ')]
++        assert f"stalled_resets={int(profile == 'reset')}" in data
++        suite[profile] = {'trace_sha256': match(trial_path, ref), 'census': data, 'coverage': coverage}
++    boards[mode] = suite
++
++mixed = out / 'mixed'
++manifest = load(mixed / 'source-hashes.json')
++original = load(base_out / 'mixed/source-hashes.json')
++assert manifest.keys() == original.keys() and len(manifest) == 114
++assert {name: value for name, value in manifest.items()
++        if value != original[name]} == {rtl: lineage['sha256_from_two_cut'][rtl]}
++assert all(digest(mixed / 'source' / name) == sha for name, sha in manifest.items())
++compiled = fingerprint(mixed / 'obj/Vtb__verFiles.dat', rtl)
++assert fingerprint(out / 'board/source/obj/Vcontract__verFiles.dat', rtl) == compiled
++assert fingerprint(out / 'board/reference/obj/Vcontract__verFiles.dat', rtl) != compiled
++assert fingerprint(out / 'hold/trial-obj/Vtb__verFiles.dat', rtl) == compiled
++for mode in ('word', 'block'):
++    assert fingerprint(out / f'wb-data/{mode}-candidate-obj/Vcontract__verFiles.dat', rtl) == compiled
++
++physical = {}
++for label, name, control, count, cycles in (
++    ('normal', 'mixed/traffic.log', base_out / 'mixed/traffic.log', 171496, 1201547),
++    ('timer_mmc_lcd', 'coexistence/candidate.trace', base_out / 'coexistence/candidate.trace', 171497, 1201528),
++    ('cpu_block_eviction', 'block-guest/source.trace', base_out / 'block-guest/source.trace', 172060, 1204706),
++    ('warm_hold', 'hold/trial.trace', out / 'hold/reference.trace', 171518, 1203504),
++):
++    trace = out / name
++    log = mixed / 'replay.log' if label == 'normal' else trace.with_suffix('.log')
++    assert len(trace.read_bytes().splitlines()) == count
++    assert f'persisted512bytes+PIOreadback cycles={cycles}' in log.read_text()
++    physical[label] = {'events': count, 'clocks': cycles, 'sha256': match(trace, control), 'coverage': observed(log)}
++assert match(out / 'hold/reference.pass', out / 'hold/trial.pass')
++assert physical['warm_hold']['sha256'] == load(area.parent / 'upp-claim-refill-payload/qualification.json')['physical']['warm_hold']['trace_sha256']
++assert physical['cpu_block_eviction']['coverage']['native_end'] == 1
++
++workloads = {}
++for kind, field, count in (('fixed', 'windows', 105), ('native', 'frames', 4)):
++    receipt = out / f'qualification/{kind}.json'
++    result, old = [load(path) for path in (receipt, base_out / f'qualification/{kind}.json')]
++    assert result['status'] == old['status'] == 'PASS' and result['rows'] == old['rows']
++    assert result['netlist_sha256'] == lineage['sha256_from_two_cut'][rtl] and old['netlist_sha256'] == expected_before[rtl]
++    assert result['wrapper_sha256'] == old['wrapper_sha256'] and result['source_sha256'] == old['source_sha256']
++    copied = out / f'qualification/{kind}-candidate-cpu.v'
++    assert digest(copied) == result['netlist_sha256']
++    assert fingerprint(out / f'qualification/obj-{kind}/Vtb__verFiles.dat', f'/work/{copied.name}') == compiled
++    assert sum(len(row['candidate'][field]) for row in result['rows']) == count
++    workloads[kind] = {'count': count, 'receipt_sha256': digest(receipt), 'coverage': {}}
++    for row in result['rows']:
++        case = row['candidate']['case']
++        workloads[kind]['coverage'][case] = observed(out / f'qualification/{case}-00-0.log')
++        if kind == 'fixed':
++            assert observed(out / f'qualification/{case}-00-1.log') == workloads[kind]['coverage'][case]
++            assert 'Guest output check rejected payload' in (out / f'qualification/{case}-00-0-wrong.log').read_text()
++    if kind == 'fixed':
++        assert len(workloads[kind]['coverage']) == 15
++        workloads[kind].update(repeated=15, wrong_output_checks=15)
++    else:
++        native = result['rows'][0]['candidate']
++        frame_cycles = [x['clocks'] for x in native['frames']]
++        assert frame_cycles == [14391395, 14467552, 14346201, 14303223]
++        workloads[kind].update(frame_cycles=frame_cycles, output_sha256=native['output_sha256'])
++
++private = area / 'followup-20261126'
++stack_patch = private / 'd-beat-on-w.patch'
++replay_patch = area / 'd-completion-merger-replay.patch'
++summary = {'status': 'PASS', 'production_prepare_beat': True, 'candidate': lineage['sha'], 'base': lineage['parent'],
++           'tree': lineage['tree'], 'design_patch_sha256': digest(stack_patch if stacked else area / 'd-completion-merger.patch'),
++           'replay_patch_sha256': digest(replay_patch), 'reference_sha256': expected_before,
++           'source_sha256': lineage['sha256_from_two_cut'], 'unchanged_hinted_ldm_sha256': hinted,
++           'numeric_checks': geometry, 'paired_cch_error_edges': errors, 'boards': boards, 'workloads': workloads,
++           'physical': physical, 'mixed_source_count': len(manifest), 'compiled_cpu_fingerprint': compiled,
++           'simulator_image': (out / 'image.id').read_text().strip(),
++           'routes_sha256': digest(area / 'routes.json'), 'production_preflight': lineage['production'],
++           'candidate_routed': False}
++(trial / 'qualification.json').write_text(json.dumps(summary, indent=2) + '\n')
++print(f'PASS {args.configuration} active prepared D-cache beat directed, workloads and physical pin replay')
+diff --git a/scratch/v5-fit-loop/d-completion-merger/prepare-fit.py b/scratch/v5-fit-loop/d-completion-merger/prepare-fit.py
+new file mode 100644
+index 0000000..fe1c992
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/prepare-fit.py
+@@ -0,0 +1,241 @@
++"""Prepare both private prepared D-cache beat histories and verify the production source manifests."""
++from hashlib import sha256
++import json
++import os
++from pathlib import Path
++import re
++import subprocess
++
++
++area = Path(__file__).resolve().parent
++root = area.parents[2]
++w_area = area.parent / 'w-completion-prepare'
++prior = area.parent / 'w-completion-upp/dispatch-20261126'
++private = area / 'followup-20261126'
++objects = private / 'objects'
++objects.mkdir(parents=True, exist_ok=True)
++combined = area.parent / 'd-completion-w-prepare'
++base = 'ab75a622a80a5aedae347f63ae195f3da965815a'
++public_w = 'e2249e46c0bd47ab85539cff9416a51214c1ea05'
++rtl = 'rtl/arm9v2/arm925t_phone.v'
++generator = 'tools/gen_arm9v2_phone.py'
++changed = [rtl, generator]
++design = area / 'd-completion-merger.patch'
++
++
++def sha(data):
++    return sha256(data).hexdigest()
++
++
++def load(path):
++    return json.loads(path.read_bytes())
++
++
++alternates = os.pathsep.join(dict.fromkeys(
++    [str(prior / 'objects'), *(prior / 'alternate-objects.txt').read_text().strip().split(os.pathsep)]))
++assert all(Path(path).is_absolute() and Path(path).is_dir() for path in alternates.split(os.pathsep))
++(private / 'alternate-objects.txt').write_text(alternates + '\n')
++
++
++def env_for(label):
++    return os.environ | {'GIT_OBJECT_DIRECTORY': str(objects), 'GIT_ALTERNATE_OBJECT_DIRECTORIES': alternates,
++                         'GIT_INDEX_FILE': str(private / f'index-{label}')}
++
++
++def git(*args, env, data=None):
++    return subprocess.check_output(['git', '-C', str(root), *args], env=env, input=data)
++
++
++def revision(value, env):
++    return git('rev-parse', value, env=env).decode().strip()
++
++
++def tree(value, env):
++    return revision(f'{value}^{{tree}}', env)
++
++
++def files(before, after, env):
++    return git('diff', '--name-only', before, after, env=env).decode().splitlines()
++
++
++def blob(rev, path, env):
++    return git('show', f'{rev}:{path}', env=env)
++
++
++def commit(tree_id, parent, message, env):
++    timestamp = int(git('show', '-s', '--format=%ct', parent, env=env)) + 1
++    date = f'@{timestamp} +0000'
++    result = git('commit-tree', tree_id, '-p', parent, '-m', message,
++                 env=env | {'GIT_AUTHOR_DATE': date, 'GIT_COMMITTER_DATE': date}).decode().strip()
++    assert revision(f'{result}^', env) == parent and tree(result, env) == tree_id
++    return result
++
++
++def modules(source):
++    return {match[1]: match[0] for match in re.finditer(rb'^module (\w+) .*?^endmodule', source, re.M | re.S)}
++
++
++def replace_once(text, old, new):
++    assert text.count(old) == 1, old
++    return text.replace(old, new, 1)
++
++
++def combine_generator(base_blob, d_source, w_source):
++    d_function = re.search(rb'^def prepare_data_cache_beats\(phone\):.*?(?=^def )', d_source, re.M | re.S)[0]
++    w_function = re.search(rb'^def prepare_w_completion\(phone\):.*?(?=^def )', w_source, re.M | re.S)[0]
++    d_call = b'    if not args.hinted_ldm:\n        generated = prepare_data_cache_beats(generated)\n'
++    w_call = b'    else:\n        generated = prepare_w_completion(generated)\n'
++    assert replace_once(replace_once(d_source, d_function, b''), d_call, b'') == base_blob
++    assert replace_once(replace_once(w_source, w_function, b''), w_call, b'') == base_blob
++    anchor = b'    generated = prepare_wishbone_write_data(generated)\n'
++    merged = replace_once(replace_once(w_source, b'def main():', d_function + b'def main():'),
++                          anchor, anchor + d_call)
++    assert replace_once(replace_once(merged, w_function, b''), w_call, b'') == d_source
++    return merged
++
++
++proof = load(area / 'staged-source.json')
++w_proof = load(w_area / 'qualification.json')
++dispatch = load(prior / 'dispatch.json')
++assert proof['status'] == 'STAGED' and w_proof['status'] == 'PASS' and proof['base'] == w_proof['base'] == base
++assert dispatch['candidate'] == public_w == (prior / 'published.sha').read_text().strip()
++assert sha(design.read_bytes()) == proof['design_patch_sha256']
++common = env_for('verify')
++assert tree(base, common) == proof['base_tree']
++assert tree(public_w, common) == w_proof['candidate_tree'] == dispatch['tree']
++assert tree(revision(f'{public_w}^', common), common) == proof['base_tree']
++assert files(base, public_w, common) == changed
++for path in changed:
++    assert sha(blob(base, path, common)) == proof['reference_sha256'][path] == w_proof['reference_sha256'][path]
++    assert sha(blob(public_w, path, common)) == w_proof['source_sha256'][path]
++
++restore = commit(proof['base_tree'], public_w, 'revert: restore the measured two-cut RTL', common)
++assert files(public_w, restore, common) == changed and not files(base, restore, common)
++(private / 'restore.sha').write_text(restore + '\n')
++variants = {}
++for label, parent in (('d-beat-on-two-cut', restore), ('d-beat-on-w', public_w)):
++    env = env_for(label)
++    git('read-tree', parent, env=env)
++    if parent == restore:
++        git('apply', '--cached', '--check', str(design), env=env)
++        git('apply', '--cached', str(design), env=env)
++    else:
++        git('apply', '--cached', '--check', f'--include={rtl}', str(design), env=env)
++        git('apply', '--cached', f'--include={rtl}', str(design), env=env)
++        d_generator = (area / 'source' / generator).read_bytes()
++        assert sha(d_generator) == proof['source_sha256'][generator]
++        merged = combine_generator(blob(base, generator, env), d_generator, blob(public_w, generator, env))
++        digest = git('hash-object', '-w', '--stdin', env=env, data=merged).decode().strip()
++        git('update-index', '--cacheinfo', f'100755,{digest},{generator}', env=env)
++    candidate_tree = git('write-tree', env=env).decode().strip()
++    if parent == restore:
++        assert candidate_tree == proof['candidate_tree']
++    candidate = commit(candidate_tree, parent, 'perf(cpu): prepare D-cache Wishbone beat boundaries', env)
++    assert files(parent, candidate, env) == changed
++    assert files(base, candidate, env) == changed
++    git('diff', '--check', parent, candidate, env=env)
++    git('merge-base', '--is-ancestor', public_w, candidate, env=env)
++    assert blob(candidate, '.github/workflows/ci_build.yml', env) == blob(base, '.github/workflows/ci_build.yml', env)
++    exact = {path: sha(blob(candidate, path, env)) for path in changed}
++    if parent == restore:
++        assert exact == proof['source_sha256']
++    else:
++        d_rtl = (area / 'source' / rtl).read_bytes()
++        assert sha(d_rtl) == proof['source_sha256'][rtl]
++        original, w_edit, d_edit, both = map(modules, (blob(base, rtl, env), blob(public_w, rtl, env),
++                                                    d_rtl, blob(candidate, rtl, env)))
++        assert original.keys() == w_edit.keys() == d_edit.keys() == both.keys()
++        w_changed = {name for name in original if original[name] != w_edit[name]}
++        d_changed = {name for name in original if original[name] != d_edit[name]}
++        assert w_changed == {b'ngage2_arm9v2_core'}
++        assert d_changed == {b'ngage2_zap_dcache', b'ngage2_zap_dcache_fsm', b'ngage2_zap_top'}
++        for name in original:
++            assert both[name] == (d_edit[name] if name in d_changed else w_edit[name]), name
++        (private / 'd-beat-on-w.patch').write_bytes(git('diff', '--binary', parent, candidate, env=env))
++        for leg, rev in (('reference', parent), ('source', candidate)):
++            target = combined / leg
++            target.mkdir(parents=True, exist_ok=True)
++            archive = git('archive', rev, 'Template.sv', 'rtl', 'tools', 'files.qip',
++                          '.rules.verible_format', 'tests', 'sim/programs/link.ld', env=env)
++            subprocess.run(['tar', '-x', '-C', str(target)], check=True, input=archive)
++        (combined / 'ngage_cpu.sv').write_bytes((combined / 'source/rtl/ngage_cpu.sv').read_bytes())
++    (private / f'{label}.sha').write_text(candidate + '\n')
++    variants[label] = {'sha': candidate, 'parent': parent, 'tree': candidate_tree,
++                       'paths_since_parent': changed, 'sha256_from_two_cut': exact, 'production': {}}
++
++tools = ('set_quartus_seed', 'set_quartus_debug', 'record_fit_inputs')
++for label, variant in variants.items():
++    env = env_for(label)
++    candidate = variant['sha']
++    for seed, upstream in dispatch['runs'].items():
++        base_run = upstream['control_run']
++        base_dir = root / f'build/timing-audit-{base_run}/output_files'
++        control = load(base_dir / 'resident-fit-manifest.json')
++        assert control['actual_commit'] == base
++        original = control
++        run = base_run
++        origin = 'routed two-cut control'
++        if label == 'd-beat-on-w':
++            run = upstream['id']
++            path = root / f'build/timing-audit-{run}/output_files/resident-fit-manifest.json'
++            origin = 'routed W control'
++            if not path.is_file():
++                origin = 'sealed W control preflight'
++                path = prior / f'preflight/w-on-two-cut/{seed}/output_files/resident-fit-manifest.json'
++                assert sha(path.read_bytes()) == upstream['candidate_preflight_manifest_sha256']
++            control = load(path)
++            assert control['actual_commit'] == public_w
++            control_inputs = control['compiled_source_sha256']
++            assert control_inputs.keys() == original['compiled_source_sha256'].keys()
++            assert {name: value for name, value in control_inputs.items()
++                    if value != original['compiled_source_sha256'][name]} == {rtl: w_proof['source_sha256'][rtl]}
++        selected = control['compiled_source_sha256']
++        assert int(seed) == control['seed'] and control['physical_cpu_mhz'] == 104 and control['debugger'] is False
++        assert len(selected) == 133 and generator not in selected
++        run_dir = private / 'preflight' / label / seed
++        outputs = run_dir / 'output_files'
++        outputs.mkdir(parents=True, exist_ok=True)
++        graph = (base_dir / 'source-graph.txt').read_text()
++        assert {line.removeprefix('SOURCE /project/') for line in graph.splitlines()
++                if line.startswith('SOURCE ')} == selected.keys()
++        (outputs / 'source-graph.txt').write_text(graph)
++        for name in (*selected, *(f'tools/{tool}.py' for tool in tools)):
++            assert not Path(name).is_absolute() and '..' not in Path(name).parts
++            target = run_dir / name
++            target.parent.mkdir(parents=True, exist_ok=True)
++            target.write_bytes(blob(candidate, name, env))
++        local = os.environ | {'GITHUB_SHA': candidate}
++        for name in ('GITHUB_STEP_SUMMARY', 'GITHUB_RUN_ID'):
++            local.pop(name, None)
++        for tool, *arguments in (('set_quartus_seed', 'Template.qsf', '--seed', seed),
++                                  ('set_quartus_debug', 'Template.qsf', '--enabled', 'false')):
++            subprocess.run(['python3', '-B', f'tools/{tool}.py', *arguments],
++                           cwd=run_dir, env=local, check=True, stdout=subprocess.PIPE)
++        qsf = run_dir / 'Template.qsf'
++        qsf.write_bytes(qsf.read_bytes().replace(b'LAST_QUARTUS_VERSION "17.0.2 Standard Edition"\r\n',
++                                                 b'LAST_QUARTUS_VERSION "17.0.2 Lite Edition"\n'))
++        subprocess.run(['python3', '-B', 'tools/record_fit_inputs.py'],
++                       cwd=run_dir, env=local, check=True, stdout=subprocess.PIPE)
++        preflight = outputs / 'resident-fit-manifest.json'
++        actual = load(preflight)
++        assert actual['actual_commit'] == candidate
++        inputs = actual['compiled_source_sha256']
++        assert inputs.keys() == selected.keys()
++        delta = {name: value for name, value in inputs.items() if value != selected[name]}
++        assert delta == {rtl: variant['sha256_from_two_cut'][rtl]}
++        assert all(actual[key] == control[key]
++                   for key in control.keys() - {'actual_commit', 'compiled_source_sha256', 'github_run_id'})
++        variant['production'][seed] = {'control_run': run, 'control_origin': origin, 'mhz': actual['physical_cpu_mhz'],
++                                       'debugger': actual['debugger'], 'source_count': len(inputs),
++                                       'delta': delta, 'manifest_sha256': sha(preflight.read_bytes())}
++        print(f'PASS {label} seed {seed} at 104 MHz DDR debug off, exact 133-input manifest', flush=True)
++
++receipt = {'status': 'PASS', 'production_qualified': 'preflight', 'two_cut': base, 'public_parent': public_w, 'restore': restore,
++           'private_objects': str(objects), 'alternate_objects': alternates,
++           'staged_source_sha256': sha((area / 'staged-source.json').read_bytes()),
++           'design_patch_sha256': sha(design.read_bytes()), 'stack_patch_sha256': sha((private / 'd-beat-on-w.patch').read_bytes()),
++           'variants': variants}
++(private / 'prepare.json').write_text(json.dumps(receipt, indent=2) + '\n')
++print('Restore', restore)
++for label, value in variants.items():
++    print(label, value['sha'], value['tree'])
+diff --git a/scratch/v5-fit-loop/d-completion-merger/prepare-stack-replay.sh b/scratch/v5-fit-loop/d-completion-merger/prepare-stack-replay.sh
+new file mode 100644
+index 0000000..c3f0364
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/prepare-stack-replay.sh
+@@ -0,0 +1,10 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/d-completion-merger
++both=scratch/v5-fit-loop/d-completion-w-prepare
++mkdir -p "$both" build/sim/v5-104-d-completion-w-prepare
++cp "$area/architectural_trace.vh" "$area/wb-write-trace.vh" "$area/beat-observer.sv" "$both/"
++for file in replay.py mixed.py pins.sh prepare-hold.py hold.sh board.sh board-phase.sh check-generator.sh board-write.sh prepare-eviction-reset.py; do
++    sed -e 's/d-completion-merger/d-completion-w-prepare/g' \
++        -e 's/v5-104-refill-payload-combined/v5-104-w-completion-prepare/g' "$area/$file" > "$both/$file"
++done
+diff --git a/scratch/v5-fit-loop/d-completion-merger/staged-source.json b/scratch/v5-fit-loop/d-completion-merger/staged-source.json
+new file mode 100644
+index 0000000..7102051
+--- /dev/null
++++ b/scratch/v5-fit-loop/d-completion-merger/staged-source.json
+@@ -0,0 +1,15 @@
++{
++  "status": "STAGED",
++  "base": "ab75a622a80a5aedae347f63ae195f3da965815a",
++  "base_tree": "57cc1a796acc9b15a61522ccf2397230f38e9799",
++  "candidate_tree": "6dd7930e0036b06f2513d0e8ade7c994e55d2048",
++  "design_patch_sha256": "bf7ee9913c27623ac618164729752fd7a1a3bfa807e128af3482c3cda09a8386",
++  "reference_sha256": {
++    "rtl/arm9v2/arm925t_phone.v": "4aa8037c0051b43819de2dc9d9f96322ea2e2bb2d91c82df1383ad6840d5d37e",
++    "tools/gen_arm9v2_phone.py": "88613ebf9a8c15b63411992fd7e551bc31f953bb8cd3f9178f3c7ba13caf8b7f"
++  },
++  "source_sha256": {
++    "rtl/arm9v2/arm925t_phone.v": "399706e26164f8d205c3a7c8114f2004536d54a91ebbf6f9e4f42b511104c692",
++    "tools/gen_arm9v2_phone.py": "65830f179f5874262681d4fb8a9d6d61e11b1765dcbc3b2aaa2dcdea52ca53d1"
++  }
++}

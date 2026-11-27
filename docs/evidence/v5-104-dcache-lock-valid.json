@@ -1,0 +1,243 @@
+{
+  "base": "81fa7685de2d43b4c60aad9e312bc454a49bef09",
+  "netlist_sha256": "881868d746e577c1a42297123cd4ca621e246371ded8fd78de71a90b358cf204",
+  "transition_test": "PASS scalar valid equals bitmap nonempty over 1064960 transitions",
+  "board_profiles": [
+    "PASS cycles=25816 scalar_wait_cycles=10307 swp_beats=2 clean_writes=1 walks=4 prefetch_aborts=1",
+    "LINES ram=0 rom=0 rejected=614 resident_capacity_bytes=16384",
+    "PASS cycles=51376 scalar_wait_cycles=35944 swp_beats=2 clean_writes=1 walks=4 prefetch_aborts=1",
+    "LINES ram=0 rom=0 rejected=614 resident_capacity_bytes=16384",
+    "PASS cycles=20449 scalar_wait_cycles=483 swp_beats=2 clean_writes=1 walks=4 prefetch_aborts=1",
+    "LINES ram=552 rom=63 rejected=0 resident_capacity_bytes=16384",
+    "PASS cycles=24497 scalar_wait_cycles=1560 swp_beats=2 clean_writes=1 walks=4 prefetch_aborts=1",
+    "LINES ram=552 rom=62 rejected=0 resident_capacity_bytes=16384"
+  ],
+  "mixed_trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+  "mixed_trace_lines": 171496,
+  "retained_tree": "8406276acdc60d658e189d09d31b0699217717ba",
+  "workloads": {
+    "fixed": {
+      "baseline_netlist_sha256": "4aa8037c0051b43819de2dc9d9f96322ea2e2bb2d91c82df1383ad6840d5d37e",
+      "case_count": 15,
+      "window_count": 105,
+      "receipt_sha256": "a808cea299eef914b377beeba58048790c3efcd86e11a9fa1dd35e9367fd74f5",
+      "matches_full_control": true,
+      "cases": [
+        {
+          "case": "sega-scan",
+          "clocks": [
+            2396210,
+            2395853,
+            2395905,
+            2395767,
+            2395767,
+            2395767,
+            2395767
+          ],
+          "median": 2395767
+        },
+        {
+          "case": "matrix4",
+          "clocks": [
+            17981,
+            16937,
+            16937,
+            16937,
+            16949,
+            16946,
+            16952
+          ],
+          "median": 16946
+        },
+        {
+          "case": "transpose4",
+          "clocks": [
+            3055,
+            2964,
+            2964,
+            2976,
+            2976,
+            2979,
+            2976
+          ],
+          "median": 2976
+        },
+        {
+          "case": "triangle_edges",
+          "clocks": [
+            13136,
+            12220,
+            12226,
+            12262,
+            12253,
+            12220,
+            12220
+          ],
+          "median": 12226
+        },
+        {
+          "case": "fill16_frame",
+          "clocks": [
+            122534,
+            122402,
+            122402,
+            122402,
+            122402,
+            122402,
+            122402
+          ],
+          "median": 122402
+        },
+        {
+          "case": "fill16_tail",
+          "clocks": [
+            876,
+            725,
+            725,
+            728,
+            725,
+            725,
+            725
+          ],
+          "median": 725
+        },
+        {
+          "case": "fill8_tail",
+          "clocks": [
+            903,
+            753,
+            753,
+            753,
+            753,
+            753,
+            753
+          ],
+          "median": 753
+        },
+        {
+          "case": "monkey-forward",
+          "clocks": [
+            16021,
+            15937,
+            15940,
+            15940,
+            15949,
+            15937,
+            15940
+          ],
+          "median": 15940
+        },
+        {
+          "case": "monkey-reverse",
+          "clocks": [
+            16021,
+            15937,
+            15940,
+            15940,
+            15949,
+            15937,
+            15940
+          ],
+          "median": 15940
+        },
+        {
+          "case": "sega-span",
+          "clocks": [
+            15585,
+            15430,
+            15430,
+            15430,
+            15430,
+            15430,
+            15430
+          ],
+          "median": 15430
+        },
+        {
+          "case": "sega-fill",
+          "clocks": [
+            2757,
+            2628,
+            2628,
+            2628,
+            2628,
+            2628,
+            2628
+          ],
+          "median": 2628
+        },
+        {
+          "case": "asphalt-table",
+          "clocks": [
+            21328,
+            21155,
+            21160,
+            21152,
+            21168,
+            21163,
+            21171
+          ],
+          "median": 21163
+        },
+        {
+          "case": "asphalt-double",
+          "clocks": [
+            12140,
+            11974,
+            11982,
+            11974,
+            11977,
+            11974,
+            11974
+          ],
+          "median": 11974
+        },
+        {
+          "case": "asphalt-single",
+          "clocks": [
+            7933,
+            7753,
+            7753,
+            7762,
+            7753,
+            7753,
+            7753
+          ],
+          "median": 7753
+        },
+        {
+          "case": "diffuse_m10_8x8_jpeg",
+          "clocks": [
+            36331,
+            35324,
+            35324,
+            35324,
+            35324,
+            35324,
+            35324
+          ],
+          "median": 35324
+        }
+      ]
+    },
+    "native": {
+      "baseline_netlist_sha256": "4aa8037c0051b43819de2dc9d9f96322ea2e2bb2d91c82df1383ad6840d5d37e",
+      "case_count": 1,
+      "window_count": 4,
+      "receipt_sha256": "1acf797028c9b479a1f6eb9bae5186e2ced9552a43a918c4bba08d83aa8c72ee",
+      "matches_full_control": true,
+      "cases": [
+        {
+          "case": "native",
+          "clocks": [
+            14391395,
+            14467552,
+            14346201,
+            14303223
+          ],
+          "median": 14346201
+        }
+      ]
+    }
+  }
+}

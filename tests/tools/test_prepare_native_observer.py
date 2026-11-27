@@ -25,31 +25,12 @@ class FreshHoldTests(unittest.TestCase):
             self.assertTrue(observer.held_fresh(words))
 
     def test_warm_or_running_cpu_is_rejected(self):
-        for index, value in ((8, 4), (9, 4), (10, 1), (12, 1), (13, 2),
+        for index, value in ((6, 1), (8, 4), (9, 4), (12, 1), (13, 2),
                              (18, 1), (19, 1), (29, 256), (30, 0)):
             with self.subTest(index=index):
                 words = self.fresh()
                 words[index] = value
                 self.assertFalse(observer.held_fresh(words))
-
-    def test_startup_reset_without_execution_is_allowed(self):
-        for generation in (1, 2, 17):
-            words = self.fresh()
-            words[6] = generation
-            self.assertTrue(observer.held_fresh(words))
-            for index in (10, 12, 18, 19):
-                active = words.copy()
-                active[index] = 1
-                self.assertFalse(observer.held_fresh(active))
-
-    def test_warm_reset_keeps_execution_history_rejected(self):
-        words = self.fresh()
-        words[6] = 1
-        # The RTL monitor retains these across CPU reset/Hold.
-        words[12] = 123456
-        words[9] = 0x50324294
-        words[10] = 0xeafffffe
-        self.assertFalse(observer.held_fresh(words))
 
     def test_restore_save_and_error_states_are_rejected(self):
         for bit in (0, 1, 2, 6, 7, 10, 26):

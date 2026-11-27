@@ -1,0 +1,904 @@
+{
+  "mame_binary": "/Users/andreabogazzi/develop/mame/ngagetest",
+  "mame_binary_sha256": "c735c61873b72a51daec5a7e740296b44c0ba380252d397bab94e30e4c6aa8eb",
+  "mame_version": "0.289 (mame0289-2410-gddbf0bd899b-dirty)",
+  "stock_rom_archives_sha256": {
+    "ngage.zip": "8e1b8e9e41420c4fea6070ae6f8a1b4e79b85d77cc61e305295e6767eeeece6c",
+    "ngage_adsp.zip": "3e73e412aeedcc9982f08a0b5bc67e7897d212c62535ad3f3f0984d76567b07c",
+    "ngageqd.zip": "f956cd37eeabcf74fe4eb0562ad1af4f4c534686eaed2796cda20696219f80a8"
+  },
+  "mame_checkout_head": "c2fd061fc8f084c47654a6a1e69402cb4c80331f",
+  "mame_local_driver_source_sha256": "58cbe6a51efa4b45f7707ef6a08a169299ce4a70d9612d8da7273b3d469238ef",
+  "ngage_board_comparison_base": "53b707b94efc",
+  "coverage": {
+    "address_space": "maincpu physical program address space with ARM920T interpreter (-nodrc)",
+    "tap_install_time_s": 0,
+    "ranges_inclusive": {
+      "upload": [
+        "0x0c030000",
+        "0x0c03ffff"
+      ],
+      "raw": [
+        "0x0c1003f0",
+        "0x0c10ffff"
+      ],
+      "mdi_ring": [
+        "0x0c100000",
+        "0x0c1003e7"
+      ],
+      "mdi_pointers": [
+        "0x0c1003e8",
+        "0x0c1003ef"
+      ],
+      "mdi_control": [
+        "0x0c14b004",
+        "0x0c14b007"
+      ]
+    },
+    "counts": "Each reads_writes pair is [reads, writes]. Tap calls include data reads and writes, MMU walks and opcode fetches if addressed into a window. Bus-width masks measure selected bytes.",
+    "time": "Emulated machine time, not physical FPGA cycle measurements.",
+    "ram_model": "Upload maps to on-chip RAM at 0x0c001000\u20130x0c0fffff; the raw 0x0c10 tail uses default m_upp[] register-bank storage behavior.",
+    "limitations": [
+      "MAME models UPP MDI and E8 PCM protocol without executing internal DSP instructions or simulating the ARM cache and FPGA memory timing.",
+      "MDI device-to-ring accesses update m_upp[] directly, outside the taps. MDI counts describe guest-side traffic.",
+      "MAME constrains modeled MMC/LCD DMA and PCM buffer accesses to SDRAM, outside both on-chip RAM windows. Other phone DMA/DSP masters are unverified.",
+      "The machine uses a boot stub for the undumped UPP internal ROM."
+    ]
+  },
+  "calibration": {
+    "passed": true,
+    "method": "Separate ARM guest fixture runs matching read/write taps on same binary with -nodrc. Guest asserts native RAM roundtrip and executes a BX LR from both windows. No fixture runs in the game traces.",
+    "address_mask_direction_count": [
+      [
+        "0x0c030000",
+        "0xffffffff",
+        "W",
+        1
+      ],
+      [
+        "0x0c030000",
+        "0xffffffff",
+        "R",
+        1
+      ],
+      [
+        "0x0c03fffc",
+        "0xffff0000",
+        "W",
+        1
+      ],
+      [
+        "0x0c03fffc",
+        "0xff000000",
+        "R",
+        1
+      ],
+      [
+        "0x0c030008",
+        "0xffffffff",
+        "W",
+        1
+      ],
+      [
+        "0x0c030008",
+        "0xffffffff",
+        "R",
+        1
+      ],
+      [
+        "0x0c1003f0",
+        "0xffffffff",
+        "W",
+        1
+      ],
+      [
+        "0x0c1003f0",
+        "0xffffffff",
+        "R",
+        1
+      ],
+      [
+        "0x0c10fffc",
+        "0xffff0000",
+        "W",
+        1
+      ],
+      [
+        "0x0c10fffc",
+        "0xff000000",
+        "R",
+        1
+      ],
+      [
+        "0x0c1003f8",
+        "0xffffffff",
+        "W",
+        1
+      ],
+      [
+        "0x0c1003f8",
+        "0xffffffff",
+        "R",
+        1
+      ]
+    ]
+  },
+  "reproduction": {
+    "runner_directory": "tests/phone/upp_ram_game_trace",
+    "runner_file_sha256": {
+      "run.sh": "aaead599e786cc02c75fffc78ffea3977feb623ad0274c93322b1d0ff3f6cc0d",
+      "trace.lua": "7a0aebfc240e82142a32d6b62a0f7ac2c3348f5c42b439d954201933b3fafbcc",
+      "calibration.S": "2a6a74983064ede7b2e77ddffe7608a952d78baf5697e778254f809933a89832",
+      "calibration.lua": "62c808828b8263f661c8276f4a84acae511b1f0ef89151ebaf657e9127743169",
+      "summarize.py": "eb465159a9ab67ba0bd7b606a0efb87762754daeb53114b402d2e87a95b8d6d0"
+    },
+    "game_runtime": "Set NGAGE_MAME and NGAGE_MAME_ROMPATH if needed. Follow the checked-in README to run calibration, then replay sega and sonic from private copies of prepared stock Test SIM profiles and MMC images.",
+    "capture_method": "Install non-mutating Lua read/write taps by inclusive ranges at emulated time zero. For each phase count physical word address plus lane mask and record first/last machine time. Count nonzero samples from the :pcm device hook and take snapshots around keypad actions. The fixture is a separate authored ARM920T session using -nodrc with the same windows, without game media.",
+    "instructions": "tests/phone/upp_ram_game_trace/README.md",
+    "verified_rerun": {
+      "aggregate": "build/upp-ram-game-trace-promoted/summary.json",
+      "result": "Both 150.009 s runs reproduced the RAM and MDI counts in every phase, cold RAM access widths and coverage, all 12 calibration observations, total elapsed and nonzero PCM sample counts, and selected gameplay RGB hashes. Sega Rally assigned 324 fewer nonzero samples to first_game_audio and 324 more to game_after_input."
+    }
+  },
+  "runs": {
+    "sega-extended": {
+      "artifact_dir": "build/upp-ram-game-trace/sega-extended",
+      "game": "Sega Rally Championship",
+      "mame_profile": "ngage",
+      "firmware": "NEM-4 4.03",
+      "media_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+      "emulated_arm_hz": 104000000,
+      "end_s": 150.00910769,
+      "phases": [
+        {
+          "phase": "cold_startup",
+          "time_s": [
+            0.0,
+            27.00615385
+          ],
+          "nonzero_emulated_pcm_samples": 0,
+          "reads_writes": {
+            "upload": [
+              0,
+              18124
+            ],
+            "raw": [
+              30,
+              32
+            ],
+            "mdi_ring": [
+              10,
+              189
+            ],
+            "mdi_pointers": [
+              62,
+              18
+            ],
+            "mdi_control": [
+              0,
+              2
+            ]
+          },
+          "ram_access_detail": {
+            "upload": {
+              "W": {
+                "accesses": 18124,
+                "by_width_bytes": {
+                  "2": 18124
+                },
+                "distinct_word_addresses": 9062,
+                "distinct_byte_addresses": 36248,
+                "byte_span": [
+                  "0x0c030100",
+                  "0x0c038e97"
+                ],
+                "first_s": 2.98323701,
+                "last_s": 2.98585085,
+                "first_seen_pc_count": 2,
+                "first_seen_pcs": [
+                  "0x514c1c9c",
+                  "0x514c1ca2"
+                ]
+              }
+            },
+            "raw": {
+              "R": {
+                "accesses": 30,
+                "by_width_bytes": {
+                  "1": 30
+                },
+                "distinct_word_addresses": 8,
+                "distinct_byte_addresses": 30,
+                "byte_span": [
+                  "0x0c100fe0",
+                  "0x0c100ffd"
+                ],
+                "first_s": 3.21657187,
+                "last_s": 3.21657857,
+                "first_seen_pc_count": 1,
+                "first_seen_pcs": [
+                  "0x515bfa42"
+                ]
+              },
+              "W": {
+                "accesses": 32,
+                "by_width_bytes": {
+                  "1": 30,
+                  "2": 2
+                },
+                "distinct_word_addresses": 9,
+                "distinct_byte_addresses": 34,
+                "byte_span": [
+                  "0x0c1003f0",
+                  "0x0c100ffd"
+                ],
+                "first_s": 3.2165719,
+                "last_s": 3.21657909,
+                "first_seen_pc_count": 3,
+                "first_seen_pcs": [
+                  "0x515bf370",
+                  "0x515bf37a",
+                  "0x515bfa44"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "phase": "phone_ui",
+          "time_s": [
+            27.00615385,
+            46.01526154
+          ],
+          "nonzero_emulated_pcm_samples": 0,
+          "reads_writes": {
+            "upload": [
+              0,
+              0
+            ],
+            "raw": [
+              0,
+              0
+            ],
+            "mdi_ring": [
+              0,
+              0
+            ],
+            "mdi_pointers": [
+              0,
+              0
+            ],
+            "mdi_control": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "phase": "game_launch_to_first_pcm",
+          "time_s": [
+            46.01526154,
+            65.2
+          ],
+          "nonzero_emulated_pcm_samples": 0,
+          "reads_writes": {
+            "upload": [
+              0,
+              0
+            ],
+            "raw": [
+              0,
+              0
+            ],
+            "mdi_ring": [
+              2716,
+              1408
+            ],
+            "mdi_pointers": [
+              4642,
+              974
+            ],
+            "mdi_control": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "phase": "first_game_audio",
+          "time_s": [
+            65.2,
+            74.00492308
+          ],
+          "nonzero_emulated_pcm_samples": 132380,
+          "reads_writes": {
+            "upload": [
+              0,
+              0
+            ],
+            "raw": [
+              0,
+              0
+            ],
+            "mdi_ring": [
+              2576,
+              1288
+            ],
+            "mdi_pointers": [
+              4410,
+              920
+            ],
+            "mdi_control": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "phase": "game_after_input",
+          "time_s": [
+            74.00492308,
+            105.0096
+          ],
+          "nonzero_emulated_pcm_samples": 383654,
+          "reads_writes": {
+            "upload": [
+              0,
+              0
+            ],
+            "raw": [
+              0,
+              0
+            ],
+            "mdi_ring": [
+              7469,
+              3731
+            ],
+            "mdi_pointers": [
+              12796,
+              2667
+            ],
+            "mdi_control": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "phase": "late_game_runtime",
+          "time_s": [
+            105.0096,
+            150.00910769
+          ],
+          "nonzero_emulated_pcm_samples": 13317,
+          "reads_writes": {
+            "upload": [
+              0,
+              0
+            ],
+            "raw": [
+              0,
+              0
+            ],
+            "mdi_ring": [
+              462,
+              231
+            ],
+            "mdi_pointers": [
+              786,
+              165
+            ],
+            "mdi_control": [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "audio": {
+        "source": "MAME :pcm device output before host mixer delivery",
+        "first_nonzero_s": 65.2,
+        "sample_rate_hz": 16000,
+        "total_elapsed_samples": 2400001,
+        "nonzero_samples": 529351
+      },
+      "screens": [
+        {
+          "time_s": 45.01563077,
+          "filename": "screen-45.png",
+          "rgb_sha256": "f3fa88eca707f33935066ec54bcfda5d66a0cc41a8a57a218451a16298cb908c",
+          "nonzero_emulated_pcm_samples_so_far": 0,
+          "observed_screen": "Symbian menu with Sega Rally selected"
+        },
+        {
+          "time_s": 53.01267692,
+          "filename": "screen-53.png",
+          "rgb_sha256": "adb9be698e0f8fc371dbf9b369a97fa7e93d8e0db956a8d3ba9bb106a8dc8633",
+          "nonzero_emulated_pcm_samples_so_far": 0,
+          "observed_screen": "N-Gage licensing screen"
+        },
+        {
+          "time_s": 62.00935385,
+          "filename": "screen-62.png",
+          "rgb_sha256": "7fbb9a2473787946742179244adaa7d9eb28e1a68c471b27146bab56ea9c6ac6",
+          "nonzero_emulated_pcm_samples_so_far": 0,
+          "observed_screen": "Sega Rally title"
+        },
+        {
+          "time_s": 70.0064,
+          "filename": "screen-70.png",
+          "rgb_sha256": "66c22c4da83f47c45118552c4768bdda0ed62eba4d327855b11e709923fae1f3",
+          "nonzero_emulated_pcm_samples_so_far": 68780,
+          "observed_screen": "Mode select with Championship highlighted"
+        },
+        {
+          "time_s": 76.00418462,
+          "filename": "screen-76.png",
+          "rgb_sha256": "b08b3b55541f1d795acf1c05161ede3c4f071c1ca90d7bf527609643ded4c943",
+          "nonzero_emulated_pcm_samples_so_far": 145014,
+          "observed_screen": "Mode select loading overlay"
+        },
+        {
+          "time_s": 80.00270769,
+          "filename": "screen-80.png",
+          "rgb_sha256": "302287aaa42c3b4892e6b9028ad3822ebecc05bec5f16a7e2a673f9d959b25c5",
+          "nonzero_emulated_pcm_samples_so_far": 156701,
+          "observed_screen": "Cup select"
+        },
+        {
+          "time_s": 86.00049231,
+          "filename": "screen-86.png",
+          "rgb_sha256": "f2403950596091789501cc0ec5213afe4def52e8eb44de050ec79927dc1463a3",
+          "nonzero_emulated_pcm_samples_so_far": 252688,
+          "observed_screen": "Car select in Desert Championship"
+        },
+        {
+          "time_s": 92.0144,
+          "filename": "screen-92.png",
+          "rgb_sha256": "e32992858d39ffc344a30024ce50234035b61dcb2c468b2ada284244f833f7f8",
+          "nonzero_emulated_pcm_samples_so_far": 348287,
+          "observed_screen": "Automatic or manual transmission selection"
+        },
+        {
+          "time_s": 99.01181538,
+          "filename": "screen-99.png",
+          "rgb_sha256": "ef77b892640765e09a20432baa66036cf3bc1a954fa89848150443475beab079",
+          "nonzero_emulated_pcm_samples_so_far": 459881,
+          "observed_screen": "Desert course information with Start Rally selected"
+        },
+        {
+          "time_s": 105.0096,
+          "filename": "screen-105.png",
+          "rgb_sha256": "fabc70904f04df2b17eaccd77659bd08228c198e5b2a636b459368aae8697f21",
+          "nonzero_emulated_pcm_samples_so_far": 516034
+        },
+        {
+          "time_s": 111.00738462,
+          "filename": "screen-111.png",
+          "rgb_sha256": "7fc04ba546c708863fdc02c862be4779e01a428a39262017668502a389972f56",
+          "nonzero_emulated_pcm_samples_so_far": 516034,
+          "observed_screen": "Racing countdown with live HUD"
+        },
+        {
+          "time_s": 118.0048,
+          "filename": "screen-118.png",
+          "rgb_sha256": "f1d04df2a634ddc798557a01dd3f28575627be81061b34b34b915c5c88a41508",
+          "nonzero_emulated_pcm_samples_so_far": 516034,
+          "observed_screen": "Desert race, 5.80 seconds on HUD and 4 km/h"
+        },
+        {
+          "time_s": 125.00221538,
+          "filename": "screen-125.png",
+          "rgb_sha256": "9c9c212cf6e45e15210920561bac77a016dd495532f8e0323d294aa17013357a",
+          "nonzero_emulated_pcm_samples_so_far": 516034,
+          "observed_screen": "Desert race, 13.60 seconds on HUD and changed course frame"
+        },
+        {
+          "time_s": 133.01538462,
+          "filename": "screen-133.png",
+          "rgb_sha256": "51a420d49a6a163ddd725146f3bf6dca80f8b8227dacc5a37b5b3f166113312f",
+          "nonzero_emulated_pcm_samples_so_far": 516034
+        },
+        {
+          "time_s": 142.01206154,
+          "filename": "screen-142.png",
+          "rgb_sha256": "540b82eec15a491b9be1823d66779b7049f7e4d2829a7c30a971c47d97bc3431",
+          "nonzero_emulated_pcm_samples_so_far": 516034,
+          "observed_screen": "Desert race, 33.00 seconds on HUD and changed course frame"
+        },
+        {
+          "time_s": 149.00947692,
+          "filename": "screen-149.png",
+          "rgb_sha256": "03da9031be74ca492a6e9c5d63cbda84eca6b48622d58fa112d00acea9f9ccfe",
+          "nonzero_emulated_pcm_samples_so_far": 529351,
+          "observed_screen": "Retirement after Desert stage time expired"
+        }
+      ]
+    },
+    "sonic-extended": {
+      "artifact_dir": "build/upp-ram-game-trace/sonic-extended",
+      "game": "SonicN",
+      "mame_profile": "ngageqd",
+      "firmware": "QD 4.10",
+      "media_sha256": "7fd800c9318ea86a3ba57b5ecd1189d2c3609c413358706b17a172c36d94733e",
+      "emulated_arm_hz": 104000000,
+      "end_s": 150.00910769,
+      "phases": [
+        {
+          "phase": "cold_startup",
+          "time_s": [
+            0.0,
+            27.00615385
+          ],
+          "nonzero_emulated_pcm_samples": 0,
+          "reads_writes": {
+            "upload": [
+              0,
+              18904
+            ],
+            "raw": [
+              30,
+              32
+            ],
+            "mdi_ring": [
+              10,
+              183
+            ],
+            "mdi_pointers": [
+              58,
+              17
+            ],
+            "mdi_control": [
+              0,
+              2
+            ]
+          },
+          "ram_access_detail": {
+            "upload": {
+              "W": {
+                "accesses": 18904,
+                "by_width_bytes": {
+                  "2": 18904
+                },
+                "distinct_word_addresses": 9452,
+                "distinct_byte_addresses": 37808,
+                "byte_span": [
+                  "0x0c030100",
+                  "0x0c0394af"
+                ],
+                "first_s": 3.59883917,
+                "last_s": 3.60156551,
+                "first_seen_pc_count": 2,
+                "first_seen_pcs": [
+                  "0x514c2f7a",
+                  "0x514c2f80"
+                ]
+              }
+            },
+            "raw": {
+              "R": {
+                "accesses": 30,
+                "by_width_bytes": {
+                  "1": 30
+                },
+                "distinct_word_addresses": 8,
+                "distinct_byte_addresses": 30,
+                "byte_span": [
+                  "0x0c100fe0",
+                  "0x0c100ffd"
+                ],
+                "first_s": 3.83091478,
+                "last_s": 3.83092147,
+                "first_seen_pc_count": 1,
+                "first_seen_pcs": [
+                  "0x515bebc6"
+                ]
+              },
+              "W": {
+                "accesses": 32,
+                "by_width_bytes": {
+                  "1": 30,
+                  "2": 2
+                },
+                "distinct_word_addresses": 9,
+                "distinct_byte_addresses": 34,
+                "byte_span": [
+                  "0x0c1003f0",
+                  "0x0c100ffd"
+                ],
+                "first_s": 3.83091481,
+                "last_s": 3.83092199,
+                "first_seen_pc_count": 3,
+                "first_seen_pcs": [
+                  "0x515be4f4",
+                  "0x515be4fe",
+                  "0x515bebc8"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "phase": "phone_ui",
+          "time_s": [
+            27.00615385,
+            37.00246154
+          ],
+          "nonzero_emulated_pcm_samples": 0,
+          "reads_writes": {
+            "upload": [
+              0,
+              0
+            ],
+            "raw": [
+              0,
+              0
+            ],
+            "mdi_ring": [
+              0,
+              134
+            ],
+            "mdi_pointers": [
+              36,
+              9
+            ],
+            "mdi_control": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "phase": "game_launch_to_first_pcm",
+          "time_s": [
+            37.00246154,
+            53.78
+          ],
+          "nonzero_emulated_pcm_samples": 0,
+          "reads_writes": {
+            "upload": [
+              0,
+              0
+            ],
+            "raw": [
+              0,
+              0
+            ],
+            "mdi_ring": [
+              4410,
+              2313
+            ],
+            "mdi_pointers": [
+              7576,
+              1582
+            ],
+            "mdi_control": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "phase": "first_game_audio",
+          "time_s": [
+            53.78,
+            58.01083077
+          ],
+          "nonzero_emulated_pcm_samples": 23885,
+          "reads_writes": {
+            "upload": [
+              0,
+              0
+            ],
+            "raw": [
+              0,
+              0
+            ],
+            "mdi_ring": [
+              1176,
+              588
+            ],
+            "mdi_pointers": [
+              2016,
+              420
+            ],
+            "mdi_control": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "phase": "game_after_input",
+          "time_s": [
+            58.01083077,
+            105.0096
+          ],
+          "nonzero_emulated_pcm_samples": 568463,
+          "reads_writes": {
+            "upload": [
+              0,
+              0
+            ],
+            "raw": [
+              0,
+              0
+            ],
+            "mdi_ring": [
+              13160,
+              6586
+            ],
+            "mdi_pointers": [
+              22564,
+              4701
+            ],
+            "mdi_control": [
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "phase": "late_game_runtime",
+          "time_s": [
+            105.0096,
+            150.00910769
+          ],
+          "nonzero_emulated_pcm_samples": 513647,
+          "reads_writes": {
+            "upload": [
+              0,
+              0
+            ],
+            "raw": [
+              0,
+              0
+            ],
+            "mdi_ring": [
+              12600,
+              6300
+            ],
+            "mdi_pointers": [
+              21594,
+              4500
+            ],
+            "mdi_control": [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "audio": {
+        "source": "MAME :pcm device output before host mixer delivery",
+        "first_nonzero_s": 53.78,
+        "sample_rate_hz": 16000,
+        "total_elapsed_samples": 2400001,
+        "nonzero_samples": 1105995
+      },
+      "screens": [
+        {
+          "time_s": 36.00283077,
+          "filename": "screen-36.png",
+          "rgb_sha256": "f0b815183c168ff59c0486b6cc61baf91a85f61d788c4f59d0eff91be50cc803",
+          "nonzero_emulated_pcm_samples_so_far": 0,
+          "observed_screen": "Symbian Phone screen with Game soft key"
+        },
+        {
+          "time_s": 44.016,
+          "filename": "screen-44.png",
+          "rgb_sha256": "a28ab03869d90d94ce32241f5b6b47871cd7c0138335ec8bc99eced833cc83fa",
+          "nonzero_emulated_pcm_samples_so_far": 0,
+          "observed_screen": "N-Gage QD game splash"
+        },
+        {
+          "time_s": 50.01378462,
+          "filename": "screen-50.png",
+          "rgb_sha256": "56f0bbc91f0f29e0af5d86afc4ccdf5c20d4a767f9ff00c326b6d376e31f57eb",
+          "nonzero_emulated_pcm_samples_so_far": 0,
+          "observed_screen": "Dimps logo"
+        },
+        {
+          "time_s": 56.01156923,
+          "filename": "screen-56.png",
+          "rgb_sha256": "dd154ad658acec002e31b38e52fad6e7cb16a2a799c7ab0a98d3fe4c30932363",
+          "nonzero_emulated_pcm_samples_so_far": 11529,
+          "observed_screen": "Sonic Team logo"
+        },
+        {
+          "time_s": 65.00824615,
+          "filename": "screen-65.png",
+          "rgb_sha256": "5a8d15ec82952b78ae117fb44903d958a2f9e6bf4b86d4269cc9fde5c4e05d64",
+          "nonzero_emulated_pcm_samples_so_far": 135072,
+          "observed_screen": "Animated Eggman introduction"
+        },
+        {
+          "time_s": 74.00492308,
+          "filename": "screen-74.png",
+          "rgb_sha256": "281a56fc54c957dde22ca677276c1bebc1bff835ecde94d1379bbb9c1e3b0ece",
+          "nonzero_emulated_pcm_samples_so_far": 278136,
+          "observed_screen": "Animated Eggman introduction"
+        },
+        {
+          "time_s": 79.00307692,
+          "filename": "screen-79.png",
+          "rgb_sha256": "d72a9418ca3a05809167c58cfd2695e1d871fcd0076f589b4389cbc23a9d3e8c",
+          "nonzero_emulated_pcm_samples_so_far": 357001,
+          "observed_screen": "Sonic in animated title sequence"
+        },
+        {
+          "time_s": 88.01587692,
+          "filename": "screen-88.png",
+          "rgb_sha256": "3f070b96e5e60929a83f977fa4d74ce533edf774997857f2b4a6b1dbd27e783e",
+          "nonzero_emulated_pcm_samples_so_far": 498715,
+          "observed_screen": "Tails in animated title sequence"
+        },
+        {
+          "time_s": 98.01218462,
+          "filename": "screen-98.png",
+          "rgb_sha256": "520d7871bd11bbf0b1ccb6d47af75040d185736bc893c97d9a7a1fef2b5cebfd",
+          "nonzero_emulated_pcm_samples_so_far": 587540,
+          "observed_screen": "SonicN title screen"
+        },
+        {
+          "time_s": 107.00886154,
+          "filename": "screen-107.png",
+          "rgb_sha256": "21a387a1a1c283c3c5371349281e74b35475664324f3f9dffc10ae85184697f8",
+          "nonzero_emulated_pcm_samples_so_far": 592348
+        },
+        {
+          "time_s": 113.00664615,
+          "filename": "screen-113.png",
+          "rgb_sha256": "1e5991e716d639d47ab3636f213df88ec9077c3950ec9657a24cc6d0535c579e",
+          "nonzero_emulated_pcm_samples_so_far": 597156
+        },
+        {
+          "time_s": 117.00516923,
+          "filename": "screen-117.png",
+          "rgb_sha256": "9f688f7194ea7866c27ea485510b1389490955c722ac82b9c446ae9519044308",
+          "nonzero_emulated_pcm_samples_so_far": 640123
+        },
+        {
+          "time_s": 122.00332308,
+          "filename": "screen-122.png",
+          "rgb_sha256": "ae24ab17c5c37798775200a142b3235a9ed67720c72b7c25a5f6ee8c968cfd2a",
+          "nonzero_emulated_pcm_samples_so_far": 705020,
+          "observed_screen": "Character selection with Tails highlighted"
+        },
+        {
+          "time_s": 127.00147692,
+          "filename": "screen-127.png",
+          "rgb_sha256": "7cd993481b0f11ef60ff557c93ad3868670a3288b1be68d9bb766266b86f13bb",
+          "nonzero_emulated_pcm_samples_so_far": 781773
+        },
+        {
+          "time_s": 132.01575385,
+          "filename": "screen-132.png",
+          "rgb_sha256": "43c5b507e2485a930041a9508330e9c7a4815c47bef40e6cd6c527f9d92562ae",
+          "nonzero_emulated_pcm_samples_so_far": 857671
+        },
+        {
+          "time_s": 137.01390769,
+          "filename": "screen-137.png",
+          "rgb_sha256": "1d1e47976215f295b173b28143ebdb2e8ca7c6bae79a49dad66ae1dc6063b174",
+          "nonzero_emulated_pcm_samples_so_far": 937504,
+          "observed_screen": "Sonic character confirmed"
+        },
+        {
+          "time_s": 143.01169231,
+          "filename": "screen-143.png",
+          "rgb_sha256": "b71b8ca9fa3bc1505042e46ce161886c64c285bec1f55e863481478a0692fc0b",
+          "nonzero_emulated_pcm_samples_so_far": 999930,
+          "observed_screen": "Active Sonic beach level at 2.02 seconds"
+        },
+        {
+          "time_s": 149.00947692,
+          "filename": "screen-149.png",
+          "rgb_sha256": "466c2a3ed1c1693248265aca73241e5852b227d32a683f644fb1f4419be1c09d",
+          "nonzero_emulated_pcm_samples_so_far": 1091270,
+          "observed_screen": "Active Sonic beach level at 8.52 seconds with changed player position"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,2948 @@
+{
+  "control": [
+    {
+      "run": 45301331404,
+      "sha": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+      "seed": 43,
+      "alms": 37318,
+      "m10ks": 321,
+      "registers": 40452,
+      "average_routing_pct": 46.0,
+      "peak_routing_pct": 72.4,
+      "core_setup_tns_sta_summary_ns": -6354.377,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.668,
+          "hold-summary": 0.189,
+          "recovery-summary": 1.169,
+          "removal-summary": 1.101,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.41
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.657,
+          "hold-summary": 0.08,
+          "recovery-summary": 1.563,
+          "removal-summary": 1.054,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.49
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.453,
+          "hold-summary": 0.097,
+          "recovery-summary": 4.992,
+          "removal-summary": 0.526,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.63
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.477,
+          "hold-summary": 0.067,
+          "recovery-summary": 5.307,
+          "removal-summary": 0.467,
+          "min-pulse": 0.961,
+          "fmax_mhz": 167.2
+        }
+      ],
+      "worst_setup_ns": -2.668,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 26,
+        "ngage_icu_extra:extra_regs|": 121,
+        "ngage_mmc_host:": 73,
+        "ngage2_zap_tlb:": 131,
+        "ngage2_zap_wb_merger:": 77,
+        "ngage2_arm9v2_execute:": 145
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|tr_cache_word[0]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[239]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 248.5,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.3,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.8,
+          "direct_registers": 287,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 202.3,
+          "direct_registers": 211,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 847.7,
+          "direct_registers": 973,
+          "inclusive_m10ks": 0
+        }
+      },
+      "scheduler_paths": {
+        "run": 45301331404,
+        "sha": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+        "seed": 43,
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "cutoff_ns": -1.309,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 24,
+                "worst": {
+                  "rank": "12",
+                  "slack_ns": "-2.398",
+                  "data_delay_ns": "11.171",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 23,
+                "worst": {
+                  "rank": "12",
+                  "slack_ns": "-2.398",
+                  "data_delay_ns": "11.171",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 23,
+                "worst": {
+                  "rank": "12",
+                  "slack_ns": "-2.398",
+                  "data_delay_ns": "11.171",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 24,
+                "worst": {
+                  "rank": "12",
+                  "slack_ns": "-2.398",
+                  "data_delay_ns": "11.171",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]"
+                }
+              },
+              "request_to_dma": {
+                "count": 9,
+                "worst": {
+                  "rank": "198",
+                  "slack_ns": "-1.757",
+                  "data_delay_ns": "10.518",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_lcd_stream:fast_lcd.stream|aborted"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "cutoff_ns": -1.128,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 11,
+                "worst": {
+                  "rank": "9",
+                  "slack_ns": "-2.330",
+                  "data_delay_ns": "11.087",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[10]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 10,
+                "worst": {
+                  "rank": "9",
+                  "slack_ns": "-2.330",
+                  "data_delay_ns": "11.087",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[10]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 23,
+                "worst": {
+                  "rank": "8",
+                  "slack_ns": "-2.352",
+                  "data_delay_ns": "11.133",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 24,
+                "worst": {
+                  "rank": "8",
+                  "slack_ns": "-2.352",
+                  "data_delay_ns": "11.133",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]"
+                }
+              },
+              "request_to_dma": {
+                "count": 8,
+                "worst": {
+                  "rank": "149",
+                  "slack_ns": "-1.738",
+                  "data_delay_ns": "10.492",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_lcd_stream:fast_lcd.stream|aborted"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "cutoff_ns": 3.459,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 19,
+                "worst": {
+                  "rank": "87",
+                  "slack_ns": "3.050",
+                  "data_delay_ns": "6.009",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[7]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 19,
+                "worst": {
+                  "rank": "87",
+                  "slack_ns": "3.050",
+                  "data_delay_ns": "6.009",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[7]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 19,
+                "worst": {
+                  "rank": "87",
+                  "slack_ns": "3.050",
+                  "data_delay_ns": "6.009",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[7]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 19,
+                "worst": {
+                  "rank": "87",
+                  "slack_ns": "3.050",
+                  "data_delay_ns": "6.009",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[7]"
+                }
+              },
+              "request_to_dma": {
+                "count": 26,
+                "worst": {
+                  "rank": "474",
+                  "slack_ns": "3.340",
+                  "data_delay_ns": "5.731",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|source_left[19]_NEW3688_OTERM13216_OTERM18398"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "cutoff_ns": 4.232,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 14,
+                "worst": {
+                  "rank": "193",
+                  "slack_ns": "3.995",
+                  "data_delay_ns": "5.078",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 14,
+                "worst": {
+                  "rank": "193",
+                  "slack_ns": "3.995",
+                  "data_delay_ns": "5.078",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 14,
+                "worst": {
+                  "rank": "193",
+                  "slack_ns": "3.995",
+                  "data_delay_ns": "5.078",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 14,
+                "worst": {
+                  "rank": "193",
+                  "slack_ns": "3.995",
+                  "data_delay_ns": "5.078",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]"
+                }
+              },
+              "request_to_dma": {
+                "count": 0,
+                "worst": null
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          }
+        ],
+        "hot": {
+          "request_via_dma_to_scheduler": {
+            "count": 24,
+            "worst": {
+              "rank": 12,
+              "slack_ns": -2.398,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_sel[2]"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "Equal13~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "bad~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "selector_write~0"
+                ],
+                [
+                  "engines[1].engine",
+                  "cmd_valid~1"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2_RESYN16909"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2"
+                ],
+                [
+                  "dma_ram_mux",
+                  "select_pcm~4"
+                ],
+                [
+                  "dma_ram_mux",
+                  "mem_addr[23]~76"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[23]~25"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[23]~26"
+                ]
+              ]
+            }
+          },
+          "any_via_dma_to_scheduler": {
+            "count": 24,
+            "worst": {
+              "rank": 12,
+              "slack_ns": -2.398,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_sel[2]"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "Equal13~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "bad~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "selector_write~0"
+                ],
+                [
+                  "engines[1].engine",
+                  "cmd_valid~1"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2_RESYN16909"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2"
+                ],
+                [
+                  "dma_ram_mux",
+                  "select_pcm~4"
+                ],
+                [
+                  "dma_ram_mux",
+                  "mem_addr[23]~76"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[23]~25"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[23]~26"
+                ]
+              ]
+            }
+          },
+          "request_to_scheduler": {
+            "count": 24,
+            "worst": {
+              "rank": 12,
+              "slack_ns": -2.398,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[23]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_sel[2]"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "Equal13~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "bad~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "selector_write~0"
+                ],
+                [
+                  "engines[1].engine",
+                  "cmd_valid~1"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2_RESYN16909"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2"
+                ],
+                [
+                  "dma_ram_mux",
+                  "select_pcm~4"
+                ],
+                [
+                  "dma_ram_mux",
+                  "mem_addr[23]~76"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[23]~25"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[23]~26"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "run": 45301335032,
+      "sha": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+      "seed": 13,
+      "alms": 37225,
+      "m10ks": 321,
+      "registers": 40632,
+      "average_routing_pct": 47.2,
+      "peak_routing_pct": 82.5,
+      "core_setup_tns_sta_summary_ns": -5760.244,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.935,
+          "hold-summary": 0.17,
+          "recovery-summary": 2.458,
+          "removal-summary": 0.874,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.68
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.954,
+          "hold-summary": 0.079,
+          "recovery-summary": 2.598,
+          "removal-summary": 0.838,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.56
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.333,
+          "hold-summary": 0.102,
+          "recovery-summary": 5.027,
+          "removal-summary": 0.448,
+          "min-pulse": 0.961,
+          "fmax_mhz": 137.32
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.381,
+          "hold-summary": 0.065,
+          "recovery-summary": 5.279,
+          "removal-summary": 0.376,
+          "min-pulse": 0.961,
+          "fmax_mhz": 168.07
+        }
+      ],
+      "worst_setup_ns": -2.954,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 45,
+        "ngage_mmc_host:": 126,
+        "ngage2_zap_tlb:": 105,
+        "ngage2_zap_wb_merger:": 73,
+        "ngage2_arm9v2_execute:": 146
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_bus_bridge:cpu_inside.bridge|state.RESPONSE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 247.6,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 261.8,
+          "direct_registers": 306,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 239.2,
+          "direct_registers": 290,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 194.1,
+          "direct_registers": 211,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 856.7,
+          "direct_registers": 979,
+          "inclusive_m10ks": 0
+        }
+      },
+      "scheduler_paths": {
+        "run": 45301335032,
+        "sha": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+        "seed": 13,
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "cutoff_ns": -1.369,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 22,
+                "worst": {
+                  "rank": "18",
+                  "slack_ns": "-2.584",
+                  "data_delay_ns": "11.348",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 22,
+                "worst": {
+                  "rank": "18",
+                  "slack_ns": "-2.584",
+                  "data_delay_ns": "11.348",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 22,
+                "worst": {
+                  "rank": "18",
+                  "slack_ns": "-2.584",
+                  "data_delay_ns": "11.348",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 22,
+                "worst": {
+                  "rank": "18",
+                  "slack_ns": "-2.584",
+                  "data_delay_ns": "11.348",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "request_to_dma": {
+                "count": 114,
+                "worst": {
+                  "rank": "8",
+                  "slack_ns": "-2.680",
+                  "data_delay_ns": "11.459",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_lcd_stream:fast_lcd.stream|error_OTERM325"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "cutoff_ns": -1.24,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 23,
+                "worst": {
+                  "rank": "14",
+                  "slack_ns": "-2.587",
+                  "data_delay_ns": "11.348",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 23,
+                "worst": {
+                  "rank": "14",
+                  "slack_ns": "-2.587",
+                  "data_delay_ns": "11.348",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 23,
+                "worst": {
+                  "rank": "14",
+                  "slack_ns": "-2.587",
+                  "data_delay_ns": "11.348",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 23,
+                "worst": {
+                  "rank": "14",
+                  "slack_ns": "-2.587",
+                  "data_delay_ns": "11.348",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "request_to_dma": {
+                "count": 42,
+                "worst": {
+                  "rank": "16",
+                  "slack_ns": "-2.545",
+                  "data_delay_ns": "11.316",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_lcd_stream:fast_lcd.stream|error_OTERM325"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "cutoff_ns": 3.478,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 10,
+                "worst": {
+                  "rank": "119",
+                  "slack_ns": "3.013",
+                  "data_delay_ns": "6.050",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 10,
+                "worst": {
+                  "rank": "119",
+                  "slack_ns": "3.013",
+                  "data_delay_ns": "6.050",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 10,
+                "worst": {
+                  "rank": "119",
+                  "slack_ns": "3.013",
+                  "data_delay_ns": "6.050",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 10,
+                "worst": {
+                  "rank": "119",
+                  "slack_ns": "3.013",
+                  "data_delay_ns": "6.050",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "request_to_dma": {
+                "count": 18,
+                "worst": {
+                  "rank": "103",
+                  "slack_ns": "2.996",
+                  "data_delay_ns": "6.068",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_lcd_stream:fast_lcd.stream|error_OTERM325"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "cutoff_ns": 4.199,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 6,
+                "worst": {
+                  "rank": "130",
+                  "slack_ns": "3.926",
+                  "data_delay_ns": "5.149",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 6,
+                "worst": {
+                  "rank": "130",
+                  "slack_ns": "3.926",
+                  "data_delay_ns": "5.149",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 6,
+                "worst": {
+                  "rank": "130",
+                  "slack_ns": "3.926",
+                  "data_delay_ns": "5.149",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 6,
+                "worst": {
+                  "rank": "130",
+                  "slack_ns": "3.926",
+                  "data_delay_ns": "5.149",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "request_to_dma": {
+                "count": 23,
+                "worst": {
+                  "rank": "102",
+                  "slack_ns": "3.900",
+                  "data_delay_ns": "5.175",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_lcd_stream:fast_lcd.stream|error_OTERM325"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          }
+        ],
+        "hot": {
+          "request_via_dma_to_scheduler": {
+            "count": 22,
+            "worst": {
+              "rank": 18,
+              "slack_ns": -2.584,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_sel[2]"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "Equal13~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "bad~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "ready~5"
+                ],
+                [
+                  "engines[0].engine",
+                  "cmd_valid~1"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2_RESYN16883"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2"
+                ],
+                [
+                  "line_mux",
+                  "scalar_due~0"
+                ],
+                [
+                  "line_mux",
+                  "ram_addr[15]~40_Duplicate"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[15]~20"
+                ]
+              ]
+            }
+          },
+          "any_via_dma_to_scheduler": {
+            "count": 22,
+            "worst": {
+              "rank": 18,
+              "slack_ns": -2.584,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_sel[2]"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "Equal13~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "bad~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "ready~5"
+                ],
+                [
+                  "engines[0].engine",
+                  "cmd_valid~1"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2_RESYN16883"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2"
+                ],
+                [
+                  "line_mux",
+                  "scalar_due~0"
+                ],
+                [
+                  "line_mux",
+                  "ram_addr[15]~40_Duplicate"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[15]~20"
+                ]
+              ]
+            }
+          },
+          "request_to_scheduler": {
+            "count": 22,
+            "worst": {
+              "rank": 18,
+              "slack_ns": -2.584,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[2]",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_sel[2]"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "Equal13~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "bad~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "ready~5"
+                ],
+                [
+                  "engines[0].engine",
+                  "cmd_valid~1"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2_RESYN16883"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2"
+                ],
+                [
+                  "line_mux",
+                  "scalar_due~0"
+                ],
+                [
+                  "line_mux",
+                  "ram_addr[15]~40_Duplicate"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[15]~20"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "run": 45301339080,
+      "sha": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+      "seed": 31337,
+      "alms": 37297,
+      "m10ks": 321,
+      "registers": 40450,
+      "average_routing_pct": 46.5,
+      "peak_routing_pct": 73.5,
+      "core_setup_tns_sta_summary_ns": -5289.965,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.666,
+          "hold-summary": 0.16,
+          "recovery-summary": 0.622,
+          "removal-summary": 1.035,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.43
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.574,
+          "hold-summary": 0.042,
+          "recovery-summary": 1.039,
+          "removal-summary": 0.969,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.04
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.476,
+          "hold-summary": 0.1,
+          "recovery-summary": 4.592,
+          "removal-summary": 0.517,
+          "min-pulse": 0.961,
+          "fmax_mhz": 140.08
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.599,
+          "hold-summary": 0.08,
+          "recovery-summary": 5.283,
+          "removal-summary": 0.442,
+          "min-pulse": 0.961,
+          "fmax_mhz": 168.49
+        }
+      ],
+      "worst_setup_ns": -2.666,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 14,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 19,
+        "ngage2_zap_tlb:": 106,
+        "ngage2_zap_wb_merger:": 141,
+        "ngage2_arm9v2_execute:": 109
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_zap_cp15_cb:u_zap_cp15_cb|o_sr[0]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_fsr[3]~DUPLICATE"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 248.0,
+          "direct_registers": 302,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 262.1,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.5,
+          "direct_registers": 295,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 200.2,
+          "direct_registers": 208,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 845.4,
+          "direct_registers": 994,
+          "inclusive_m10ks": 0
+        }
+      },
+      "scheduler_paths": {
+        "run": 45301339080,
+        "sha": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+        "seed": 31337,
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "cutoff_ns": -1.218,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 24,
+                "worst": {
+                  "rank": "27",
+                  "slack_ns": "-2.453",
+                  "data_delay_ns": "11.202",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 23,
+                "worst": {
+                  "rank": "27",
+                  "slack_ns": "-2.453",
+                  "data_delay_ns": "11.202",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 23,
+                "worst": {
+                  "rank": "27",
+                  "slack_ns": "-2.453",
+                  "data_delay_ns": "11.202",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 24,
+                "worst": {
+                  "rank": "27",
+                  "slack_ns": "-2.453",
+                  "data_delay_ns": "11.202",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]"
+                }
+              },
+              "request_to_dma": {
+                "count": 125,
+                "worst": {
+                  "rank": "3",
+                  "slack_ns": "-2.612",
+                  "data_delay_ns": "11.375",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_lcd_stream:fast_lcd.stream|error_OTERM325"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "cutoff_ns": -1.043,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 23,
+                "worst": {
+                  "rank": "7",
+                  "slack_ns": "-2.331",
+                  "data_delay_ns": "11.079",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 23,
+                "worst": {
+                  "rank": "7",
+                  "slack_ns": "-2.331",
+                  "data_delay_ns": "11.079",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 23,
+                "worst": {
+                  "rank": "7",
+                  "slack_ns": "-2.331",
+                  "data_delay_ns": "11.079",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 24,
+                "worst": {
+                  "rank": "7",
+                  "slack_ns": "-2.331",
+                  "data_delay_ns": "11.079",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]"
+                }
+              },
+              "request_to_dma": {
+                "count": 79,
+                "worst": {
+                  "rank": "126",
+                  "slack_ns": "-2.020",
+                  "data_delay_ns": "10.849",
+                  "logic_levels": "7",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]~DUPLICATE",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg16"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "cutoff_ns": 3.48,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 24,
+                "worst": {
+                  "rank": "85",
+                  "slack_ns": "2.884",
+                  "data_delay_ns": "6.182",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[3]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[16]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 23,
+                "worst": {
+                  "rank": "85",
+                  "slack_ns": "2.884",
+                  "data_delay_ns": "6.182",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[3]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[16]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 23,
+                "worst": {
+                  "rank": "85",
+                  "slack_ns": "2.884",
+                  "data_delay_ns": "6.182",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[3]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[16]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 24,
+                "worst": {
+                  "rank": "85",
+                  "slack_ns": "2.884",
+                  "data_delay_ns": "6.182",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[3]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[16]"
+                }
+              },
+              "request_to_dma": {
+                "count": 127,
+                "worst": {
+                  "rank": "44",
+                  "slack_ns": "2.737",
+                  "data_delay_ns": "6.391",
+                  "logic_levels": "7",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]~DUPLICATE",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg0"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "cutoff_ns": 4.17,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 16,
+                "worst": {
+                  "rank": "135",
+                  "slack_ns": "3.911",
+                  "data_delay_ns": "5.162",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[3]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[16]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 16,
+                "worst": {
+                  "rank": "135",
+                  "slack_ns": "3.911",
+                  "data_delay_ns": "5.162",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[3]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[16]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 16,
+                "worst": {
+                  "rank": "135",
+                  "slack_ns": "3.911",
+                  "data_delay_ns": "5.162",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[3]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[16]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 16,
+                "worst": {
+                  "rank": "135",
+                  "slack_ns": "3.911",
+                  "data_delay_ns": "5.162",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_sel[3]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[16]"
+                }
+              },
+              "request_to_dma": {
+                "count": 16,
+                "worst": {
+                  "rank": "115",
+                  "slack_ns": "3.877",
+                  "data_delay_ns": "5.282",
+                  "logic_levels": "7",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]~DUPLICATE",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg0"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          }
+        ],
+        "hot": {
+          "request_via_dma_to_scheduler": {
+            "count": 24,
+            "worst": {
+              "rank": 27,
+              "slack_ns": -2.453,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[2]"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "start_request~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "bad~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "ready~5"
+                ],
+                [
+                  "engines[1].engine",
+                  "cmd_valid~1"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2_RESYN16879"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2"
+                ],
+                [
+                  "line_mux",
+                  "scalar_due~0"
+                ],
+                [
+                  "sdram_ctrl",
+                  "cmd_addr[6]~1"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[5]~41_RESYN17089"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[5]~41"
+                ]
+              ]
+            }
+          },
+          "any_via_dma_to_scheduler": {
+            "count": 24,
+            "worst": {
+              "rank": 27,
+              "slack_ns": -2.453,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[2]"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "start_request~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "bad~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "ready~5"
+                ],
+                [
+                  "engines[1].engine",
+                  "cmd_valid~1"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2_RESYN16879"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2"
+                ],
+                [
+                  "line_mux",
+                  "scalar_due~0"
+                ],
+                [
+                  "sdram_ctrl",
+                  "cmd_addr[6]~1"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[5]~41_RESYN17089"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[5]~41"
+                ]
+              ]
+            }
+          },
+          "request_to_scheduler": {
+            "count": 24,
+            "worst": {
+              "rank": 27,
+              "slack_ns": -2.453,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[5]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[2]"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "start_request~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "bad~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "ready~5"
+                ],
+                [
+                  "engines[1].engine",
+                  "cmd_valid~1"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2_RESYN16879"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~2"
+                ],
+                [
+                  "line_mux",
+                  "scalar_due~0"
+                ],
+                [
+                  "sdram_ctrl",
+                  "cmd_addr[6]~1"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[5]~41_RESYN17089"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[5]~41"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "candidate": [
+    {
+      "run": 45378535187,
+      "sha": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+      "seed": 43,
+      "alms": 37244,
+      "m10ks": 321,
+      "registers": 41217,
+      "average_routing_pct": 48.1,
+      "peak_routing_pct": 84.2,
+      "core_setup_tns_sta_summary_ns": -4483.219,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.621,
+          "hold-summary": 0.196,
+          "recovery-summary": 1.92,
+          "removal-summary": 1.114,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.73
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.724,
+          "hold-summary": 0.08,
+          "recovery-summary": 2.107,
+          "removal-summary": 1.043,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.04
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.388,
+          "hold-summary": 0.116,
+          "recovery-summary": 4.815,
+          "removal-summary": 0.594,
+          "min-pulse": 0.961,
+          "fmax_mhz": 138.37
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.603,
+          "hold-summary": 0.062,
+          "recovery-summary": 5.142,
+          "removal-summary": 0.493,
+          "min-pulse": 0.961,
+          "fmax_mhz": 167.9
+        }
+      ],
+      "worst_setup_ns": -2.724,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 18,
+        "ngage_icu_extra:extra_regs|": 43,
+        "ngage_mmc_host:": 28,
+        "ngage2_zap_tlb:": 111,
+        "ngage2_zap_wb_merger:": 86,
+        "ngage2_arm9v2_execute:": 251
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|holding",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|a[245]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 254.5,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.6,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.3,
+          "direct_registers": 294,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 201.8,
+          "direct_registers": 224,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 793.8,
+          "direct_registers": 964,
+          "inclusive_m10ks": 0
+        }
+      },
+      "scheduler_paths": {
+        "run": 45378535187,
+        "sha": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+        "seed": 43,
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "cutoff_ns": -1.147,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 16,
+                "worst": {
+                  "rank": "84",
+                  "slack_ns": "-1.831",
+                  "data_delay_ns": "11.016",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|flash_issued",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[17]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 16,
+                "worst": {
+                  "rank": "84",
+                  "slack_ns": "-1.831",
+                  "data_delay_ns": "11.016",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|flash_issued",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[17]"
+                }
+              },
+              "request_to_dma": {
+                "count": 30,
+                "worst": {
+                  "rank": "61",
+                  "slack_ns": "-1.957",
+                  "data_delay_ns": "10.793",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[6]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg4"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "cutoff_ns": -0.979,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "dma_to_scheduler": {
+                "count": 6,
+                "worst": {
+                  "rank": "359",
+                  "slack_ns": "-1.423",
+                  "data_delay_ns": "10.259",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|start_ready_OTERM17552~DUPLICATE",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[16]"
+                }
+              },
+              "any_to_command_addr": {
+                "count": 19,
+                "worst": {
+                  "rank": "34",
+                  "slack_ns": "-1.881",
+                  "data_delay_ns": "11.074",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|flash_issued",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[17]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 19,
+                "worst": {
+                  "rank": "34",
+                  "slack_ns": "-1.881",
+                  "data_delay_ns": "11.074",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|flash_issued",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[17]"
+                }
+              },
+              "request_to_dma": {
+                "count": 26,
+                "worst": {
+                  "rank": "144",
+                  "slack_ns": "-1.644",
+                  "data_delay_ns": "10.523",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[6]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg7"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "cutoff_ns": 3.459,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_scheduler": {
+                "count": 1,
+                "worst": {
+                  "rank": "704",
+                  "slack_ns": "3.407",
+                  "data_delay_ns": "5.699",
+                  "logic_levels": "6",
+                  "from": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|p_a[7]"
+                }
+              },
+              "request_to_dma": {
+                "count": 19,
+                "worst": {
+                  "rank": "380",
+                  "slack_ns": "3.285",
+                  "data_delay_ns": "5.868",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]~DUPLICATE",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg4"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "cutoff_ns": 4.23,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_dma": {
+                "count": 0,
+                "worst": null
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          }
+        ],
+        "hot": {
+          "request_via_dma_to_scheduler": {
+            "count": 0,
+            "worst": null
+          },
+          "any_via_dma_to_scheduler": {
+            "count": 16,
+            "worst": {
+              "rank": 84,
+              "slack_ns": -1.831,
+              "from": "emu:emu|ngage_mister:core|flash_issued",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[17]",
+              "cells": [
+                [
+                  "core",
+                  "flash_issued"
+                ],
+                [
+                  "core",
+                  "flash_busy~5"
+                ],
+                [
+                  "core",
+                  "comb~0"
+                ],
+                [
+                  "core",
+                  "comb~1"
+                ],
+                [
+                  "fast_lcd.stream",
+                  "take_line~1"
+                ],
+                [
+                  "ram_arbiter",
+                  "packet_lock~1"
+                ],
+                [
+                  "sdram_ctrl",
+                  "cmd_addr[20]~6"
+                ],
+                [
+                  "sdram_ctrl",
+                  "cmd_addr[20]~0"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[17]~6"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[17]~7"
+                ]
+              ]
+            }
+          },
+          "request_to_scheduler": {
+            "count": 0,
+            "worst": null
+          }
+        }
+      },
+      "verified_changed_compiled_sources": [
+        "rtl/ngage_dma_channels.v",
+        "rtl/ngage_upp.v"
+      ]
+    },
+    {
+      "run": 45378617074,
+      "sha": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+      "seed": 13,
+      "alms": 37264,
+      "m10ks": 321,
+      "registers": 41131,
+      "average_routing_pct": 46.3,
+      "peak_routing_pct": 79.7,
+      "core_setup_tns_sta_summary_ns": -6783.787,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -3.028,
+          "hold-summary": 0.203,
+          "recovery-summary": 1.367,
+          "removal-summary": 1.154,
+          "min-pulse": 0.961,
+          "fmax_mhz": 79.1
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.883,
+          "hold-summary": 0.137,
+          "recovery-summary": 1.685,
+          "removal-summary": 1.08,
+          "min-pulse": 0.961,
+          "fmax_mhz": 80.01
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.115,
+          "hold-summary": 0.132,
+          "recovery-summary": 4.699,
+          "removal-summary": 0.586,
+          "min-pulse": 0.961,
+          "fmax_mhz": 133.33
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.368,
+          "hold-summary": 0.092,
+          "recovery-summary": 5.068,
+          "removal-summary": 0.496,
+          "min-pulse": 0.961,
+          "fmax_mhz": 160.08
+        }
+      ],
+      "worst_setup_ns": -3.028,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 3,
+        "ngage_icu_extra:extra_regs|": 29,
+        "ngage_mmc_host:": 103,
+        "ngage2_zap_tlb:": 55,
+        "ngage2_zap_wb_merger:": 406,
+        "ngage2_arm9v2_execute:": 169
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|m[29]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|check_ff[7]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 254.5,
+          "direct_registers": 302,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 259.9,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 236.9,
+          "direct_registers": 296,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 206.0,
+          "direct_registers": 222,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 797.9,
+          "direct_registers": 960,
+          "inclusive_m10ks": 0
+        }
+      },
+      "scheduler_paths": {
+        "run": 45378617074,
+        "sha": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+        "seed": 13,
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "cutoff_ns": -1.394,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 19,
+                "worst": {
+                  "rank": "22",
+                  "slack_ns": "-2.577",
+                  "data_delay_ns": "11.762",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[22]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 20,
+                "worst": {
+                  "rank": "22",
+                  "slack_ns": "-2.577",
+                  "data_delay_ns": "11.762",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[22]"
+                }
+              },
+              "request_to_dma": {
+                "count": 28,
+                "worst": {
+                  "rank": "86",
+                  "slack_ns": "-2.243",
+                  "data_delay_ns": "11.022",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_data[4]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg10"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "cutoff_ns": -1.187,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 22,
+                "worst": {
+                  "rank": "8",
+                  "slack_ns": "-2.528",
+                  "data_delay_ns": "11.724",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[22]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 25,
+                "worst": {
+                  "rank": "8",
+                  "slack_ns": "-2.528",
+                  "data_delay_ns": "11.724",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[22]"
+                }
+              },
+              "request_to_dma": {
+                "count": 30,
+                "worst": {
+                  "rank": "74",
+                  "slack_ns": "-2.124",
+                  "data_delay_ns": "10.943",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_data[5]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg10"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "cutoff_ns": 3.376,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 10,
+                "worst": {
+                  "rank": "119",
+                  "slack_ns": "2.970",
+                  "data_delay_ns": "6.303",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[22]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 10,
+                "worst": {
+                  "rank": "119",
+                  "slack_ns": "2.970",
+                  "data_delay_ns": "6.303",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[22]"
+                }
+              },
+              "request_to_dma": {
+                "count": 24,
+                "worst": {
+                  "rank": "143",
+                  "slack_ns": "2.999",
+                  "data_delay_ns": "6.132",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[6]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg25"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "cutoff_ns": 4.192,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 5,
+                "worst": {
+                  "rank": "129",
+                  "slack_ns": "3.929",
+                  "data_delay_ns": "5.351",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[22]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 5,
+                "worst": {
+                  "rank": "129",
+                  "slack_ns": "3.929",
+                  "data_delay_ns": "5.351",
+                  "logic_levels": "10",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[22]"
+                }
+              },
+              "request_to_dma": {
+                "count": 14,
+                "worst": {
+                  "rank": "252",
+                  "slack_ns": "4.030",
+                  "data_delay_ns": "5.130",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[6]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg25"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          }
+        ],
+        "hot": {
+          "request_via_dma_to_scheduler": {
+            "count": 0,
+            "worst": null
+          },
+          "any_via_dma_to_scheduler": {
+            "count": 15,
+            "worst": {
+              "rank": 22,
+              "slack_ns": -2.577,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[22]",
+              "cells": [
+                [
+                  "l_merger_for_core_with_cache_mmu.u_zap_wb_merger",
+                  "o_wb_stb"
+                ],
+                [
+                  "refill",
+                  "wb_cyc~0"
+                ],
+                [
+                  "cpu_inside.bridge",
+                  "bus_live~1"
+                ],
+                [
+                  "upp",
+                  "bus_access~4"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "fast_cancel~0"
+                ],
+                [
+                  "fast_lcd.stream",
+                  "mem_req~2"
+                ],
+                [
+                  "dma_ram_mux",
+                  "response_dma~1"
+                ],
+                [
+                  "dma_ram_mux",
+                  "response_dma~2"
+                ],
+                [
+                  "dma_ram_mux",
+                  "mem_addr[22]~54"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[22]~28"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[22]~29"
+                ]
+              ]
+            }
+          },
+          "request_to_scheduler": {
+            "count": 0,
+            "worst": null
+          }
+        }
+      },
+      "verified_changed_compiled_sources": [
+        "rtl/ngage_dma_channels.v",
+        "rtl/ngage_upp.v"
+      ]
+    },
+    {
+      "run": 45378624476,
+      "sha": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+      "seed": 31337,
+      "alms": 37196,
+      "m10ks": 321,
+      "registers": 41238,
+      "average_routing_pct": 46.7,
+      "peak_routing_pct": 81.8,
+      "core_setup_tns_sta_summary_ns": -4153.515,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.664,
+          "hold-summary": 0.163,
+          "recovery-summary": 2.184,
+          "removal-summary": 1.005,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.44
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.664,
+          "hold-summary": 0.044,
+          "recovery-summary": 2.465,
+          "removal-summary": 0.963,
+          "min-pulse": 0.961,
+          "fmax_mhz": 81.44
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.673,
+          "hold-summary": 0.102,
+          "recovery-summary": 5.24,
+          "removal-summary": 0.483,
+          "min-pulse": 0.961,
+          "fmax_mhz": 144.05
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.564,
+          "hold-summary": 0.082,
+          "recovery-summary": 5.479,
+          "removal-summary": 0.415,
+          "min-pulse": 0.961,
+          "fmax_mhz": 167.81
+        }
+      ],
+      "worst_setup_ns": -2.664,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 2,
+        "ngage_mmc_host:": 154,
+        "ngage2_zap_tlb:": 54,
+        "ngage2_zap_wb_merger:": 92,
+        "ngage2_arm9v2_execute:": 266
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_execute:u_execute|multiply_product_ready",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|count[1]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 254.1,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 256.5,
+          "direct_registers": 306,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.0,
+          "direct_registers": 294,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 198.6,
+          "direct_registers": 221,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 789.7,
+          "direct_registers": 962,
+          "inclusive_m10ks": 0
+        }
+      },
+      "scheduler_paths": {
+        "run": 45378624476,
+        "sha": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+        "seed": 31337,
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "cutoff_ns": -1.141,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 2,
+                "worst": {
+                  "rank": "594",
+                  "slack_ns": "-1.406",
+                  "data_delay_ns": "10.229",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|dma_packet.held_fields[1]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[3]"
+                }
+              },
+              "request_to_command_addr": {
+                "count": 2,
+                "worst": {
+                  "rank": "594",
+                  "slack_ns": "-1.406",
+                  "data_delay_ns": "10.229",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|dma_packet.held_fields[1]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[3]"
+                }
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 14,
+                "worst": {
+                  "rank": "154",
+                  "slack_ns": "-1.803",
+                  "data_delay_ns": "10.554",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[1]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 14,
+                "worst": {
+                  "rank": "154",
+                  "slack_ns": "-1.803",
+                  "data_delay_ns": "10.554",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[1]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "request_to_dma": {
+                "count": 12,
+                "worst": {
+                  "rank": "234",
+                  "slack_ns": "-1.731",
+                  "data_delay_ns": "10.541",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]~DUPLICATE",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg25"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 2,
+                "worst": {
+                  "rank": "594",
+                  "slack_ns": "-1.406",
+                  "data_delay_ns": "10.229",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|dma_packet.held_fields[1]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[3]"
+                }
+              },
+              "any_to_new_decode": {
+                "count": 1,
+                "worst": {
+                  "rank": "372",
+                  "slack_ns": "-1.599",
+                  "data_delay_ns": "10.433",
+                  "logic_levels": "6",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|l_genblk1.code_data_ff[28]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|dma_packet.held_fields[0]"
+                }
+              }
+            }
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "cutoff_ns": -0.968,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 22,
+                "worst": {
+                  "rank": "90",
+                  "slack_ns": "-1.871",
+                  "data_delay_ns": "10.604",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[1]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 23,
+                "worst": {
+                  "rank": "90",
+                  "slack_ns": "-1.871",
+                  "data_delay_ns": "10.604",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[1]",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[15]"
+                }
+              },
+              "request_to_dma": {
+                "count": 14,
+                "worst": {
+                  "rank": "316",
+                  "slack_ns": "-1.515",
+                  "data_delay_ns": "10.380",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[6]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg25"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 1,
+                "worst": {
+                  "rank": "620",
+                  "slack_ns": "-1.252",
+                  "data_delay_ns": "10.089",
+                  "logic_levels": "6",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|l_genblk1.code_data_ff[28]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|dma_packet.held_fields[0]"
+                }
+              }
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "cutoff_ns": 3.543,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 5,
+                "worst": {
+                  "rank": "619",
+                  "slack_ns": "3.428",
+                  "data_delay_ns": "5.634",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_cflash:user_flash|rsp_valid",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[4]"
+                }
+              },
+              "any_to_scheduler": {
+                "count": 5,
+                "worst": {
+                  "rank": "619",
+                  "slack_ns": "3.428",
+                  "data_delay_ns": "5.634",
+                  "logic_levels": "9",
+                  "from": "emu:emu|ngage_mister:core|ngage_cflash:user_flash|rsp_valid",
+                  "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[4]"
+                }
+              },
+              "request_to_dma": {
+                "count": 2,
+                "worst": {
+                  "rank": "572",
+                  "slack_ns": "3.406",
+                  "data_delay_ns": "5.732",
+                  "logic_levels": "8",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]~DUPLICATE",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[2].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~porta_datain_reg12"
+                }
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 1,
+                "worst": {
+                  "rank": "161",
+                  "slack_ns": "3.162",
+                  "data_delay_ns": "6.102",
+                  "logic_levels": "6",
+                  "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|cpu_inside.dma_addr[22]",
+                  "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|dma_packet.held_fields[0]"
+                }
+              }
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "cutoff_ns": 4.23,
+            "groups": {
+              "request_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "dma_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_command_addr": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "request_to_dma": {
+                "count": 0,
+                "worst": null
+              },
+              "new_decode_to_scheduler": {
+                "count": 0,
+                "worst": null
+              },
+              "any_to_new_decode": {
+                "count": 0,
+                "worst": null
+              }
+            }
+          }
+        ],
+        "hot": {
+          "request_via_dma_to_scheduler": {
+            "count": 2,
+            "worst": {
+              "rank": 594,
+              "slack_ns": -1.406,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|dma_packet.held_fields[1]",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[3]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "dma_packet.held_fields[1]"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "engines[1].cancel_here~0_RESYN21477"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "engines[1].cancel_here~0_RESYN21479"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "engines[1].cancel_here~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "cmd_valid~0"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~3"
+                ],
+                [
+                  "ram_arbiter",
+                  "cpu_accept~2"
+                ],
+                [
+                  "ram_arbiter",
+                  "cpu_accept~3"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[3]~35"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[3]~36"
+                ]
+              ]
+            }
+          },
+          "any_via_dma_to_scheduler": {
+            "count": 2,
+            "worst": {
+              "rank": 594,
+              "slack_ns": -1.406,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|dma_packet.held_fields[1]",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[3]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "dma_packet.held_fields[1]"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "engines[1].cancel_here~0_RESYN21477"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "engines[1].cancel_here~0_RESYN21479"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "engines[1].cancel_here~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "cmd_valid~0"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~3"
+                ],
+                [
+                  "ram_arbiter",
+                  "cpu_accept~2"
+                ],
+                [
+                  "ram_arbiter",
+                  "cpu_accept~3"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[3]~35"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[3]~36"
+                ]
+              ]
+            }
+          },
+          "request_to_scheduler": {
+            "count": 2,
+            "worst": {
+              "rank": 594,
+              "slack_ns": -1.406,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|dma_packet.held_fields[1]",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[3]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "dma_packet.held_fields[1]"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "engines[1].cancel_here~0_RESYN21477"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "engines[1].cancel_here~0_RESYN21479"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "engines[1].cancel_here~0"
+                ],
+                [
+                  "general_dma_enabled.channels",
+                  "cmd_valid~0"
+                ],
+                [
+                  "dma_route",
+                  "ram_req~3"
+                ],
+                [
+                  "ram_arbiter",
+                  "cpu_accept~2"
+                ],
+                [
+                  "ram_arbiter",
+                  "cpu_accept~3"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[3]~35"
+                ],
+                [
+                  "phone_sdram",
+                  "mem_addr[3]~36"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "verified_changed_compiled_sources": [
+        "rtl/ngage_dma_channels.v",
+        "rtl/ngage_upp.v"
+      ]
+    }
+  ],
+  "best_bitstream": {
+    "run": 45378624476,
+    "seed": 31337,
+    "file": "build/fit/v5-104mhz-fe145b0-seed31337/ngage1.rbf",
+    "sha256": "dda03c5bd59cc6bf3f75dc3ebd6396dbd699b4ca0332354086efb10a1bae17d6"
+  },
+  "scope": "Three seed-matched physical 104 MHz production fits. Endpoint counts use each corner's worst 1,000 setup paths. Via-DMA counts match named cells only in the 100 C detailed report. Paths outside the cutoff or renamed by synthesis have no inferred exact slack."
+}

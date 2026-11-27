@@ -1,0 +1,194 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index bb4bd15..77fa717 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -1606,7 +1606,8 @@ module ngage2_arm9v2_core (
+ 		.HELD_FREE(HELD_FREE),
+ 		.MUL_FAST_Z(MUL_FAST_Z),
+ 		.AGU_AL(AGU_AL),
+-		.LATE_HOLD_STATIC(LATE_HOLD_STATIC)
++		.LATE_HOLD_STATIC(LATE_HOLD_STATIC),
++        .RIGHT_PAYLOAD_FREE(PAYLOAD_FREE && S_AGU)
+ 	) u_execute(
+ 		.i_pending(d_pending),
+ 		.i_admit(backend_ready),
+@@ -3245,6 +3246,7 @@ module ngage2_arm9v2_execute (
+ 	parameter [0:0] MUL_FAST_Z = 1'b1;
+ 	parameter [0:0] AGU_AL = 1'b1;
+ 	parameter [0:0] LATE_HOLD_STATIC = 1'b1;
++    parameter [0:0] RIGHT_PAYLOAD_FREE = 1'b0;
+ 	input wire i_clk;
+ 	input wire i_reset;
+ 	input wire i_flush;
+@@ -4133,6 +4135,36 @@ module ngage2_arm9v2_execute (
+ 					end
+ 			end
+ 	end
++    // A may capture an unused payload on a free edge. Its valid bit
++    // and all other packet fields still require actual S admission.
++    wire capture_right_payload = RIGHT_PAYLOAD_FREE ? space : accept;
++    reg [31:0] s_right_payload;
++    always @(*) begin
++        s_right_payload = shifted;
++        if (i_kind == MEM) begin
++            if (i_instruction[27:26] == 1 && !i_instruction[25])
++                s_right_payload = {20'd0, i_instruction[11:0]};
++            else if (i_instruction[27:26] == 0 && i_instruction[22])
++                s_right_payload = {24'd0, i_instruction[11:8], i_instruction[3:0]};
++        end else if (i_kind == BLOCK)
++            s_right_payload = {{24 {i_offset[7]}}, i_offset};
++        else if (i_kind == BX || i_kind == SWP)
++            s_right_payload = operand[32+:32];
++        else if (i_kind == SUFFIX)
++            s_right_payload = {20'd0, i_instruction[10:0], 1'b0};
++
++        // The same-edge return to S's late right source overrides the
++        // instruction form. Port 1 retains the original final priority.
++        if (i_used[1] && !i_early[1] && s_wait[1] && !(|i_forward_match[4+:4])) begin
++            if (s_return_match[2]) s_right_payload = i_return_data[0+:32];
++            if (s_return_match[3]) s_right_payload = i_return_data[32+:32];
++        end
++    end
++`ifndef SYNTHESIS
++    always @(posedge i_clk)
++        if (!i_reset && RIGHT_PAYLOAD_FREE && accept && space !== 1'b1)
++            $fatal(1, "A right operand was admitted to an occupied slot");
++`endif
+ 	always @(posedge i_clk)
+ 		if (i_reset || (!PAYLOAD_FREE && i_flush)) begin
+ 			a_valid <= 0;
+@@ -4317,7 +4349,6 @@ module ngage2_arm9v2_execute (
+ 				a[301-:12] <= i_dest;
+ 				a[283-:2] <= planned_writes;
+ 				a[281-:32] <= (S_AGU ? s_base : operand[0+:32]);
+-				a[249-:32] <= shifted;
+ 				a[87-:32] <= agu_address;
+ 				a[55-:32] <= agu_sum;
+ 				a[217-:32] <= operand[96+:32];
+@@ -4358,27 +4389,22 @@ module ngage2_arm9v2_execute (
+ 					a[153-:4] <= (i_instruction[23] ? 4'd4 : 4'd2);
+ 					a[146] <= rrx;
+ 					if ((i_instruction[27:26] == 1) && !i_instruction[25]) begin
+-						a[249-:32] <= {20'd0, i_instruction[11:0]};
+ 						a[146] <= 0;
+ 					end
+ 					if ((i_instruction[27:26] == 0) && i_instruction[22]) begin
+-						a[249-:32] <= {24'd0, i_instruction[11:8], i_instruction[3:0]};
+ 						a[146] <= 0;
+ 					end
+ 				end
+ 				if (i_kind == BLOCK) begin
+ 					a[153-:4] <= 4;
+ 					a[281-:32] <= (S_AGU ? s_base : operand[0+:32]);
+-					a[249-:32] <= {{24 {i_offset[7]}}, i_offset};
+ 					a[146] <= 0;
+ 				end
+ 				if ((i_kind == BX) || (i_kind == SWP)) begin
+-					a[249-:32] <= operand[32+:32];
+ 					a[146] <= 0;
+ 				end
+ 				if (i_kind == SUFFIX) begin
+ 					a[153-:4] <= 4;
+-					a[249-:32] <= {20'd0, i_instruction[10:0], 1'b0};
+ 					a[146] <= 0;
+ 				end
+ 				begin : sv2v_autoblock_35
+@@ -4390,7 +4416,7 @@ module ngage2_arm9v2_execute (
+ 								if ((((i_used[src] && !i_early[src]) && s_wait[src]) && !(|i_forward_match[2 * (src * 2)+:4])) && s_return_match[(src * 2) + port]) begin
+ 									case (src)
+ 										0: a[281-:32] <= i_return_data[port * 32+:32];
+-										1: a[249-:32] <= i_return_data[port * 32+:32];
++										1: ;  // The right payload selects this return.
+ 										2: a[185-:32] <= i_return_data[port * 32+:32];
+ 										3: a[217-:32] <= i_return_data[port * 32+:32];
+ 									endcase
+@@ -4399,6 +4425,8 @@ module ngage2_arm9v2_execute (
+ 						end
+ 				end
+ 			end
++            if (capture_right_payload)
++                a[249-:32] <= s_right_payload;
+ 			if (o_redirect) begin
+ 				a_valid <= 0;
+ 				holding <= 0;
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index 75b39c4..2687c2c 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -992,6 +992,67 @@ def resolve_execute_forward_candidates(phone):
+     return ''.join(parts)
+ 
+ 
++def capture_a_right_payload(phone):
++    """Use the existing A-space edge to capture its incoming right operand."""
++    parts = re.split(r'(?=^module )', phone, flags=re.M)
++    core = next(i for i, part in enumerate(parts) if part.startswith('module ngage2_arm9v2_core ('))
++    execute = next(i for i, part in enumerate(parts) if part.startswith('module ngage2_arm9v2_execute ('))
++    parts[core] = edit(parts[core], '\t\t.LATE_HOLD_STATIC(LATE_HOLD_STATIC)', '''\t\t.LATE_HOLD_STATIC(LATE_HOLD_STATIC),
++        .RIGHT_PAYLOAD_FREE(PAYLOAD_FREE && S_AGU)''')
++    source = edit(parts[execute], "\tparameter [0:0] LATE_HOLD_STATIC = 1'b1;",
++                  "\tparameter [0:0] LATE_HOLD_STATIC = 1'b1;\n    parameter [0:0] RIGHT_PAYLOAD_FREE = 1'b0;")
++    start = source.index('\t\t\tif (accept) begin\n')
++    end = source.index('\t\t\tif (o_redirect) begin\n', start)
++    admitted = source[start:end]
++    for value in (
++        'shifted', "{20'd0, i_instruction[11:0]}",
++        "{24'd0, i_instruction[11:8], i_instruction[3:0]}", '{{24 {i_offset[7]}}, i_offset}',
++        'operand[32+:32]', "{20'd0, i_instruction[10:0], 1'b0}",
++    ):
++        assignments = [line for line in admitted.splitlines(keepends=True) if line.strip() == f'a[249-:32] <= {value};']
++        [assignment] = assignments
++        admitted = edit(admitted, assignment, '')
++    admitted = edit(admitted, '1: a[249-:32] <= i_return_data[port * 32+:32];',
++                    '1: ;  // The right payload selects this return.')
++    source = source[:start] + admitted + '''            if (capture_right_payload)
++                a[249-:32] <= s_right_payload;
++''' + source[end:]
++    marker = '\talways @(posedge i_clk)\n\t\tif (i_reset || (!PAYLOAD_FREE && i_flush))'
++    source = edit(source, marker, '''    // A may capture an unused payload on a free edge. Its valid bit
++    // and all other packet fields still require actual S admission.
++    wire capture_right_payload = RIGHT_PAYLOAD_FREE ? space : accept;
++    reg [31:0] s_right_payload;
++    always @(*) begin
++        s_right_payload = shifted;
++        if (i_kind == MEM) begin
++            if (i_instruction[27:26] == 1 && !i_instruction[25])
++                s_right_payload = {20'd0, i_instruction[11:0]};
++            else if (i_instruction[27:26] == 0 && i_instruction[22])
++                s_right_payload = {24'd0, i_instruction[11:8], i_instruction[3:0]};
++        end else if (i_kind == BLOCK)
++            s_right_payload = {{24 {i_offset[7]}}, i_offset};
++        else if (i_kind == BX || i_kind == SWP)
++            s_right_payload = operand[32+:32];
++        else if (i_kind == SUFFIX)
++            s_right_payload = {20'd0, i_instruction[10:0], 1'b0};
++
++        // The same-edge return to S's late right source overrides the
++        // instruction form. Port 1 retains the original final priority.
++        if (i_used[1] && !i_early[1] && s_wait[1] && !(|i_forward_match[4+:4])) begin
++            if (s_return_match[2]) s_right_payload = i_return_data[0+:32];
++            if (s_return_match[3]) s_right_payload = i_return_data[32+:32];
++        end
++    end
++`ifndef SYNTHESIS
++    always @(posedge i_clk)
++        if (!i_reset && RIGHT_PAYLOAD_FREE && accept && space !== 1'b1)
++            $fatal(1, "A right operand was admitted to an occupied slot");
++`endif
++''' + marker)
++    parts[execute] = source
++    return ''.join(parts)
++
++
+ def split_execute_readiness(phone):
+     """Resolve the two complete admission decisions before selecting on W hit."""
+     parts = re.split(r'(?=^module )', phone, flags=re.M)
+@@ -1384,6 +1445,8 @@ def main():
+     generated = move_fetch_payload_to_ram(generated)
+     if args.hinted_ldm:
+         generated = issue_hinted_ldm(generated, edit)
++    else:
++        generated = capture_a_right_payload(generated)
+     generated = keep_wishbone_request_boundary(generated)
+     generated = prepare_wishbone_write_data(generated)
+     if args.check:

@@ -1,0 +1,1510 @@
+{
+  "capacity_probe": {
+    "32768": [
+      {
+        "DDR_reads": 16,
+        "cache_bytes": 32768,
+        "elapsed_clocks": 1280,
+        "requests": 256,
+        "service_clocks": 720,
+        "stream": 1
+      },
+      {
+        "hit_clocks": 112,
+        "miss_clocks": 96,
+        "word_hits": 112,
+        "word_misses": 16
+      },
+      {
+        "cache_bytes": 32768,
+        "scan_clocks": 11264,
+        "scan_reads": 768,
+        "scan_requests": 1536,
+        "stream": 1
+      },
+      {
+        "cache_bytes": 32768,
+        "full_pass_DDR_reads": 1024,
+        "resident_lines": 1024,
+        "second_pass_DDR_reads": 0
+      }
+    ],
+    "8192": [
+      {
+        "DDR_reads": 16,
+        "cache_bytes": 8192,
+        "elapsed_clocks": 1280,
+        "requests": 256,
+        "service_clocks": 720,
+        "stream": 1
+      },
+      {
+        "hit_clocks": 112,
+        "miss_clocks": 96,
+        "word_hits": 112,
+        "word_misses": 16
+      },
+      {
+        "cache_bytes": 8192,
+        "scan_clocks": 17919,
+        "scan_reads": 1536,
+        "scan_requests": 1536,
+        "stream": 1
+      },
+      {
+        "cache_bytes": 8192,
+        "full_pass_DDR_reads": 256,
+        "resident_lines": 256,
+        "second_pass_DDR_reads": 0
+      }
+    ]
+  },
+  "original_card_replay": {
+    "32768-2": {
+      "bytes": 4096,
+      "card_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+      "counters": {
+        "DDR_beats": 84,
+        "DDR_reads": 21,
+        "HPS_reads": 9,
+        "elapsed": 74904,
+        "min_mmc_period": 2,
+        "total": 95367
+      },
+      "cpu_hz": 78000000,
+      "first_lba": 32,
+      "flash_cache_bytes": 32768,
+      "flash_window": {
+        "DDR_reads": 4,
+        "flash_wait": 25015,
+        "hits": 4995,
+        "misses": 4
+      },
+      "mmc_div": 2,
+      "payload_crc32": "98ac2258",
+      "payload_sha256": "9ffd9fccafa9d2a34c550c19730873d55a5df7a27700c553a4554ff51d571ebb"
+    },
+    "32768-4": {
+      "bytes": 4096,
+      "card_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+      "counters": {
+        "DDR_beats": 84,
+        "DDR_reads": 21,
+        "HPS_reads": 9,
+        "elapsed": 141176,
+        "min_mmc_period": 4,
+        "total": 163463
+      },
+      "cpu_hz": 78000000,
+      "first_lba": 32,
+      "flash_cache_bytes": 32768,
+      "flash_window": {
+        "DDR_reads": 4,
+        "flash_wait": 58615,
+        "hits": 11715,
+        "misses": 4
+      },
+      "mmc_div": 4,
+      "payload_crc32": "98ac2258",
+      "payload_sha256": "9ffd9fccafa9d2a34c550c19730873d55a5df7a27700c553a4554ff51d571ebb"
+    },
+    "8192-2": {
+      "bytes": 4096,
+      "card_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+      "counters": {
+        "DDR_beats": 84,
+        "DDR_reads": 21,
+        "HPS_reads": 9,
+        "elapsed": 74904,
+        "min_mmc_period": 2,
+        "total": 95367
+      },
+      "cpu_hz": 78000000,
+      "first_lba": 32,
+      "flash_cache_bytes": 8192,
+      "flash_window": {
+        "DDR_reads": 4,
+        "flash_wait": 25015,
+        "hits": 4995,
+        "misses": 4
+      },
+      "mmc_div": 2,
+      "payload_crc32": "98ac2258",
+      "payload_sha256": "9ffd9fccafa9d2a34c550c19730873d55a5df7a27700c553a4554ff51d571ebb"
+    },
+    "8192-4": {
+      "bytes": 4096,
+      "card_sha256": "074dc99c87bad88c246459508db8221532ae61cdd4722cf42f355cdd382c0c63",
+      "counters": {
+        "DDR_beats": 84,
+        "DDR_reads": 21,
+        "HPS_reads": 9,
+        "elapsed": 141176,
+        "min_mmc_period": 4,
+        "total": 163463
+      },
+      "cpu_hz": 78000000,
+      "first_lba": 32,
+      "flash_cache_bytes": 8192,
+      "flash_window": {
+        "DDR_reads": 4,
+        "flash_wait": 58615,
+        "hits": 11715,
+        "misses": 4
+      },
+      "mmc_div": 4,
+      "payload_crc32": "98ac2258",
+      "payload_sha256": "9ffd9fccafa9d2a34c550c19730873d55a5df7a27700c553a4554ff51d571ebb"
+    }
+  },
+  "profiles": {
+    "cpu_d_cache_kib": 16,
+    "cpu_hz": 78000000,
+    "cpu_i_cache_kib": 16,
+    "d1_stream": true,
+    "d2_line_bytes": 32,
+    "ddr_bridge_hz": 78000000,
+    "nos_tick_hz": 64,
+    "sd_ram_hz": 78000000,
+    "stock_pcm": true
+  },
+  "quartus_seed43_debug_off": {
+    "32768-2": {
+      "commit": "9daf1c7c887d508e1d5958693b83e3bdeb968de7",
+      "conclusion": "failure",
+      "fit_status": "successful",
+      "rbf": {
+        "bytes": 4350984,
+        "sha256": "65f7b809c387af96b03d9602d44cc5f96637cb4c1f5d41a9c3d459ef1ff76ba7"
+      },
+      "resources": {
+        "alms": 36079,
+        "device": "5CSEBA6U23I7",
+        "dsps": 46,
+        "m10ks": 437,
+        "memory_bits": 3056911,
+        "occupied_labs": 4134,
+        "placed_alms": 38787,
+        "quartus": "17.0.2 Build 602 07/19/2017 SJ Lite Edition",
+        "registers": 40999,
+        "total_labs": 4191
+      },
+      "run": 44370497216,
+      "sdram_io": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "source_audit": {
+        "bram": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+        "changed": {
+          "Template.sv": "5526b6b3dee375cecad18ae1993163aa7951a2a5bbbd7e5f37360f7f48b7c4d9",
+          "rtl/ngage_mister.v": "36375697ba524652e3635e1fea40320b5e51a7970147f777afae2aec882cd786",
+          "rtl/ngage_mmc_host.v": "ab08844346ddfd6b7246a8b08ead7030de88d9cbbe8d46832ccdb9ee0204be31"
+        },
+        "inputs": 135,
+        "pll": "86310df314e368b9ecd31bc29de72d6361633dd107acdf11d72e7a2beebcc80e"
+      },
+      "status": "completed",
+      "steps": {
+        "Analyze routed design at 78 and 104 MHz": "success",
+        "Build with Quartus 17.0.2": "success",
+        "Check Quartus source manifest": "success",
+        "Complete job": "success",
+        "Export worst 1000 timing paths": "success",
+        "Post Run actions/checkout@v4": "success",
+        "Prepare ngage1 build output": "success",
+        "Prepare timing report directory": "success",
+        "Print errors on failure": "success",
+        "Record effective master fit inputs": "success",
+        "Require SDRAM pin registers": "success",
+        "Require passing timing": "failure",
+        "Run actions/checkout@v4": "success",
+        "Select and report DDR debugger": "success",
+        "Select and report fitter seed": "success",
+        "Set up job": "success",
+        "Summarize path bottlenecks": "success",
+        "Upload RBF (including failed timing)": "success",
+        "Upload build logs": "success"
+      },
+      "timing": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.245,
+            "recovery": 2.947,
+            "removal": 0.982,
+            "setup": -0.268
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "12.298",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]",
+            "logic_levels": "11",
+            "rank": "1",
+            "slack_ns": "-0.268",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|buffer[16]_OTERM12707"
+          }
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.167,
+            "recovery": 3.412,
+            "removal": 0.911,
+            "setup": -0.089
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "12.127",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]",
+            "logic_levels": "11",
+            "rank": "1",
+            "slack_ns": "-0.089",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|buffer[16]_OTERM12707"
+          }
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.131,
+            "recovery": 4.875,
+            "removal": 0.49,
+            "setup": 3.195
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "3.055",
+            "from": "vga_out:vga_scaler_out|altshift_taps:din1_rtl_0|shift_taps_quu:auto_generated|altsyncram_dr91:altsyncram4|ram_block5a21",
+            "logic_levels": "0",
+            "rank": "1",
+            "slack_ns": "3.195",
+            "to": "d[9]"
+          }
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.11,
+            "recovery": 5.187,
+            "removal": 0.418,
+            "setup": 3.646
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "1.830",
+            "from": "ascal:ascal|altsyncram:o_linf3[0].r[7]__9|altsyncram_m6n1:auto_generated|ram_block1a0~PORT_B_WRITE_ENABLE_REG",
+            "logic_levels": "2",
+            "rank": "1",
+            "slack_ns": "3.646",
+            "to": "ascal:ascal|o_vpix_inner[0].r[2]"
+          }
+        },
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.245,
+            "recovery": -0.258,
+            "removal": 0.982,
+            "setup": -3.473
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "12.298",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]",
+            "logic_levels": "11",
+            "rank": "1",
+            "slack_ns": "-3.473",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|buffer[16]_OTERM12707"
+          }
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.167,
+            "recovery": 0.207,
+            "removal": 0.911,
+            "setup": -3.294
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "12.127",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]",
+            "logic_levels": "11",
+            "rank": "1",
+            "slack_ns": "-3.294",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|buffer[16]_OTERM12707"
+          }
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.131,
+            "recovery": 4.128,
+            "removal": 0.49,
+            "setup": 2.046
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "7.194",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|cmd_addr[28]",
+            "logic_levels": "8",
+            "rank": "1",
+            "slack_ns": "2.046",
+            "to": "emu:emu|ngage_mister:core|ngage_game_pcm:game_pcm.player|Mult1~8|ENA_DFF0"
+          }
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.11,
+            "recovery": 5.008,
+            "removal": 0.418,
+            "setup": 2.975
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "1.600",
+            "from": "emu:emu|jtframe_sdram64:sdram_ctrl|other_rst",
+            "logic_levels": "1",
+            "rank": "1",
+            "slack_ns": "2.975",
+            "to": "emu:emu|jtframe_sdram64:sdram_ctrl|jtframe_sdram64_bank:u_bank1|st[13]"
+          }
+        }
+      ],
+      "url": "https://github.com/asturur/test_template_1/actions/runs/44370497216"
+    },
+    "32768-4": {
+      "commit": "055e3d56887866f997b8fbb6d9bfc23131f13b01",
+      "conclusion": "failure",
+      "fit_status": "successful",
+      "rbf": {
+        "bytes": 4335592,
+        "sha256": "fa14c056c4f1968eca07f73f1a28acb6670e5dd94734eeef8ed757009ebb1fc6"
+      },
+      "resources": {
+        "alms": 36045,
+        "device": "5CSEBA6U23I7",
+        "dsps": 46,
+        "m10ks": 437,
+        "memory_bits": 3056911,
+        "occupied_labs": 4127,
+        "placed_alms": 38773,
+        "quartus": "17.0.2 Build 602 07/19/2017 SJ Lite Edition",
+        "registers": 41321,
+        "total_labs": 4191
+      },
+      "run": 44368077206,
+      "sdram_io": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "source_audit": {
+        "bram": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+        "changed": {
+          "Template.sv": "07442bcbc942764603a1615e84a33c2ad49b70862e15f8f219301e5779598346"
+        },
+        "inputs": 135,
+        "pll": "86310df314e368b9ecd31bc29de72d6361633dd107acdf11d72e7a2beebcc80e"
+      },
+      "status": "completed",
+      "steps": {
+        "Analyze routed design at 78 and 104 MHz": "success",
+        "Build with Quartus 17.0.2": "success",
+        "Check Quartus source manifest": "success",
+        "Complete job": "success",
+        "Export worst 1000 timing paths": "success",
+        "Post Run actions/checkout@v4": "success",
+        "Prepare ngage1 build output": "success",
+        "Prepare timing report directory": "success",
+        "Print errors on failure": "success",
+        "Record effective master fit inputs": "success",
+        "Require SDRAM pin registers": "success",
+        "Require passing timing": "failure",
+        "Run actions/checkout@v4": "success",
+        "Select and report DDR debugger": "success",
+        "Select and report fitter seed": "success",
+        "Set up job": "success",
+        "Summarize path bottlenecks": "success",
+        "Upload RBF (including failed timing)": "success",
+        "Upload build logs": "success"
+      },
+      "timing": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.25,
+            "recovery": 1.994,
+            "removal": 1.082,
+            "setup": -0.03
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "12.138",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[22]",
+            "logic_levels": "11",
+            "rank": "1",
+            "slack_ns": "-0.030",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|buffer[34]_OTERM3549_OTERM6192"
+          }
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.172,
+            "recovery": 2.466,
+            "removal": 1.013,
+            "setup": 0.113
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "5.197",
+            "from": "ascal:ascal|altsyncram:o_line2[0].r[7]__4|altsyncram_ccn1:auto_generated|ram_block1a14~PORT_B_WRITE_ENABLE_REG",
+            "logic_levels": "2",
+            "rank": "1",
+            "slack_ns": "0.113",
+            "to": "ascal:ascal|o_vpix_outer[1].b[6]"
+          }
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.135,
+            "recovery": 4.631,
+            "removal": 0.53,
+            "setup": 3.135
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "3.205",
+            "from": "ascal:ascal|o_hcpt[7]",
+            "logic_levels": "2",
+            "rank": "1",
+            "slack_ns": "3.135",
+            "to": "ascal:ascal|o_radl1[8]"
+          }
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.09,
+            "recovery": 4.993,
+            "removal": 0.46,
+            "setup": 3.546
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "2.347",
+            "from": "ascal:ascal|altsyncram:o_line2[0].r[7]__4|altsyncram_ccn1:auto_generated|ram_block1a14~PORT_B_WRITE_ENABLE_REG",
+            "logic_levels": "2",
+            "rank": "1",
+            "slack_ns": "3.546",
+            "to": "ascal:ascal|o_vpix_outer[1].b[6]"
+          }
+        },
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.25,
+            "recovery": -1.211,
+            "removal": 1.082,
+            "setup": -3.235
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "12.138",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[22]",
+            "logic_levels": "11",
+            "rank": "1",
+            "slack_ns": "-3.235",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|buffer[34]_OTERM3549_OTERM6192"
+          }
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.172,
+            "recovery": -0.739,
+            "removal": 1.013,
+            "setup": -3.09
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "11.886",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp_mdi:upp_mdi|ngage_upp_dsp_pcm:game_pcm.stream|final_done~1_OTERM789",
+            "logic_levels": "12",
+            "rank": "1",
+            "slack_ns": "-3.090",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|buffer[24]_OTERM15048"
+          }
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.135,
+            "recovery": 3.233,
+            "removal": 0.53,
+            "setup": 1.939
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "2.623",
+            "from": "emu:emu|jtframe_sdram64:sdram_ctrl|other_rst",
+            "logic_levels": "1",
+            "rank": "1",
+            "slack_ns": "1.939",
+            "to": "emu:emu|jtframe_sdram64:sdram_ctrl|jtframe_sdram64_bank:u_bank1|st[16]"
+          }
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.09,
+            "recovery": 4.268,
+            "removal": 0.46,
+            "setup": 2.403
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "2.171",
+            "from": "emu:emu|jtframe_sdram64:sdram_ctrl|other_rst",
+            "logic_levels": "1",
+            "rank": "1",
+            "slack_ns": "2.403",
+            "to": "emu:emu|jtframe_sdram64:sdram_ctrl|jtframe_sdram64_bank:u_bank1|st[16]"
+          }
+        }
+      ],
+      "url": "https://github.com/asturur/test_template_1/actions/runs/44368077206"
+    },
+    "8192-2": {
+      "commit": "e0477122d567990cb70cd59ea0798ecc52875dd5",
+      "conclusion": "success",
+      "fit_status": "successful",
+      "rbf": {
+        "bytes": 4270608,
+        "sha256": "dff9bb9582d2ca9134bdadb4ab3242e22d931c88b78f00d47c02f778106164c9"
+      },
+      "resources": {
+        "alms": 36443,
+        "device": "5CSEBA6U23I7",
+        "dsps": 46,
+        "m10ks": 411,
+        "memory_bits": 2846991,
+        "occupied_labs": 4151,
+        "placed_alms": 39045,
+        "quartus": "17.0.2 Build 602 07/19/2017 SJ Lite Edition",
+        "registers": 41263,
+        "total_labs": 4191
+      },
+      "run": 44370323925,
+      "sdram_io": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "source_audit": {
+        "bram": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+        "changed": {
+          "Template.sv": "3dde97d27b2ddf9a66b3dd9c58d8c1ba66091f18fa7ea5e520beedccce720916",
+          "rtl/ngage_mister.v": "36375697ba524652e3635e1fea40320b5e51a7970147f777afae2aec882cd786",
+          "rtl/ngage_mmc_host.v": "ab08844346ddfd6b7246a8b08ead7030de88d9cbbe8d46832ccdb9ee0204be31"
+        },
+        "inputs": 135,
+        "pll": "86310df314e368b9ecd31bc29de72d6361633dd107acdf11d72e7a2beebcc80e"
+      },
+      "status": "completed",
+      "steps": {
+        "Analyze routed design at 78 and 104 MHz": "success",
+        "Build with Quartus 17.0.2": "success",
+        "Check Quartus source manifest": "success",
+        "Complete job": "success",
+        "Export worst 1000 timing paths": "success",
+        "Post Run actions/checkout@v4": "success",
+        "Prepare ngage1 build output": "success",
+        "Prepare timing report directory": "success",
+        "Print errors on failure": "skipped",
+        "Record effective master fit inputs": "success",
+        "Require SDRAM pin registers": "success",
+        "Require passing timing": "success",
+        "Run actions/checkout@v4": "success",
+        "Select and report DDR debugger": "success",
+        "Select and report fitter seed": "success",
+        "Set up job": "success",
+        "Summarize path bottlenecks": "success",
+        "Upload RBF (including failed timing)": "success",
+        "Upload build logs": "success"
+      },
+      "timing": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.25,
+            "recovery": 2.185,
+            "removal": 0.815,
+            "setup": 0.265
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "6.150",
+            "from": "ascal:ascal|o_hacc_next[2]",
+            "logic_levels": "3",
+            "rank": "1",
+            "slack_ns": "0.265",
+            "to": "ascal:ascal|o_hacc_next[13]"
+          }
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.151,
+            "recovery": 2.796,
+            "removal": 0.807,
+            "setup": 0.096
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "6.335",
+            "from": "ascal:ascal|o_hacc_next[1]",
+            "logic_levels": "3",
+            "rank": "1",
+            "slack_ns": "0.096",
+            "to": "ascal:ascal|o_hacc_next[13]"
+          }
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.134,
+            "recovery": 4.78,
+            "removal": 0.421,
+            "setup": 3.068
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "3.154",
+            "from": "shadowmask:HDMI_shadowmask|dout[19]",
+            "logic_levels": "0",
+            "rank": "1",
+            "slack_ns": "3.068",
+            "to": "osd:hdmi_osd|nrdout1[19]"
+          }
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.112,
+            "recovery": 5.118,
+            "removal": 0.36,
+            "setup": 3.713
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "2.191",
+            "from": "ascal:ascal|altsyncram:o_line2[0].r[7]__4|altsyncram_ccn1:auto_generated|ram_block1a4~PORT_B_WRITE_ENABLE_REG",
+            "logic_levels": "2",
+            "rank": "1",
+            "slack_ns": "3.713",
+            "to": "ascal:ascal|o_vpix_inner[0].r[2]"
+          }
+        },
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.25,
+            "recovery": -1.02,
+            "removal": 0.815,
+            "setup": -2.821
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "11.585",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[19]",
+            "logic_levels": "10",
+            "rank": "1",
+            "slack_ns": "-2.821",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|request_live"
+          }
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.151,
+            "recovery": -0.409,
+            "removal": 0.807,
+            "setup": -2.8
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "11.614",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_check:u_zap_tlb_check|o_phy_addr[19]",
+            "logic_levels": "10",
+            "rank": "1",
+            "slack_ns": "-2.800",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_dcache_fsm:u_zap_cache_fsm|o_lock_any"
+          }
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.134,
+            "recovery": 3.388,
+            "removal": 0.421,
+            "setup": 2.456
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "1.935",
+            "from": "emu:emu|jtframe_sdram64:sdram_ctrl|other_rst",
+            "logic_levels": "1",
+            "rank": "1",
+            "slack_ns": "2.456",
+            "to": "emu:emu|jtframe_sdram64:sdram_ctrl|jtframe_sdram64_bank:u_bank0|st[0]"
+          }
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.112,
+            "recovery": 4.496,
+            "removal": 0.36,
+            "setup": 2.774
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "1.630",
+            "from": "emu:emu|jtframe_sdram64:sdram_ctrl|other_rst",
+            "logic_levels": "1",
+            "rank": "1",
+            "slack_ns": "2.774",
+            "to": "emu:emu|jtframe_sdram64:sdram_ctrl|jtframe_sdram64_bank:u_bank0|st[0]"
+          }
+        }
+      ],
+      "url": "https://github.com/asturur/test_template_1/actions/runs/44370323925"
+    },
+    "8192-4": {
+      "commit": "920ad72da70f6d6eb0ca9b189f9d85872d3017fc",
+      "conclusion": "success",
+      "fit_status": "successful",
+      "rbf": {
+        "bytes": 4261532,
+        "sha256": "6c705dae5f9e17f901c70a025bbb3e0e3d91146612fcc62e6407a700e04779c1"
+      },
+      "resources": {
+        "alms": 35939,
+        "device": "5CSEBA6U23I7",
+        "dsps": 46,
+        "m10ks": 411,
+        "memory_bits": 2846991,
+        "occupied_labs": 4102,
+        "placed_alms": 38632,
+        "quartus": "17.0.2 Build 602 07/19/2017 SJ Lite Edition",
+        "registers": 40839,
+        "total_labs": 4191
+      },
+      "run": 44365561035,
+      "sdram_io": "PASS all 16 SDRAM DQ input/output/OE registers are packed in I/O cells",
+      "source_audit": {
+        "bram": "df7aa84abdca0e585b062c077cb01b0b9c9961316851b37a72622738e103ba71",
+        "changed": {},
+        "inputs": 135,
+        "pll": "86310df314e368b9ecd31bc29de72d6361633dd107acdf11d72e7a2beebcc80e"
+      },
+      "status": "completed",
+      "steps": {
+        "Analyze routed design at 78 and 104 MHz": "success",
+        "Build with Quartus 17.0.2": "success",
+        "Check Quartus source manifest": "success",
+        "Complete job": "success",
+        "Export worst 1000 timing paths": "success",
+        "Post Run actions/checkout@v4": "success",
+        "Prepare ngage1 build output": "success",
+        "Prepare timing report directory": "success",
+        "Print errors on failure": "skipped",
+        "Record effective master fit inputs": "success",
+        "Require SDRAM pin registers": "success",
+        "Require passing timing": "success",
+        "Run actions/checkout@v4": "success",
+        "Select and report DDR debugger": "success",
+        "Select and report fitter seed": "success",
+        "Set up job": "success",
+        "Summarize path bottlenecks": "success",
+        "Upload RBF (including failed timing)": "success",
+        "Upload build logs": "success"
+      },
+      "timing": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.196,
+            "recovery": 2.575,
+            "removal": 1.03,
+            "setup": 0.192
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "11.772",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "logic_levels": "10",
+            "rank": "1",
+            "slack_ns": "0.192",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|cpu_inside.block_cpu~0_OTERM5037"
+          }
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.088,
+            "recovery": 3.18,
+            "removal": 0.983,
+            "setup": 0.151
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "4.274",
+            "from": "ascal:ascal|altsyncram:o_linf0[0].r[7]__6|altsyncram_m6n1:auto_generated|ram_block1a0~PORT_B_WRITE_ENABLE_REG",
+            "logic_levels": "2",
+            "rank": "1",
+            "slack_ns": "0.151",
+            "to": "ascal:ascal|o_vpix_inner[0].b[0]"
+          }
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.104,
+            "recovery": 5.195,
+            "removal": 0.519,
+            "setup": 2.873
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "3.366",
+            "from": "shadowmask:HDMI_shadowmask|dout[6]",
+            "logic_levels": "0",
+            "rank": "1",
+            "slack_ns": "2.873",
+            "to": "osd:hdmi_osd|nrdout1[6]"
+          }
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "mhz": 78,
+          "slack": {
+            "hold": 0.082,
+            "recovery": 5.436,
+            "removal": 0.436,
+            "setup": 3.574
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "2.674",
+            "from": "shadowmask:HDMI_shadowmask|dout[6]",
+            "logic_levels": "0",
+            "rank": "1",
+            "slack_ns": "3.574",
+            "to": "osd:hdmi_osd|nrdout1[6]"
+          }
+        },
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.196,
+            "recovery": -0.63,
+            "removal": 1.03,
+            "setup": -3.013
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "11.772",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "logic_levels": "10",
+            "rank": "1",
+            "slack_ns": "-3.013",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|cpu_inside.block_cpu~0_OTERM5037"
+          }
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.088,
+            "recovery": -0.025,
+            "removal": 0.983,
+            "setup": -2.696
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "11.508",
+            "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+            "logic_levels": "11",
+            "rank": "1",
+            "slack_ns": "-2.696",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|buffer[40]_OTERM3093_OTERM6101"
+          }
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.104,
+            "recovery": 3.773,
+            "removal": 0.519,
+            "setup": 2.32
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "2.227",
+            "from": "emu:emu|jtframe_sdram64:sdram_ctrl|other_rst",
+            "logic_levels": "1",
+            "rank": "1",
+            "slack_ns": "2.320",
+            "to": "emu:emu|jtframe_sdram64:sdram_ctrl|jtframe_sdram64_bank:u_bank0|row[0]"
+          }
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "mhz": 104,
+          "slack": {
+            "hold": 0.082,
+            "recovery": 4.781,
+            "removal": 0.436,
+            "setup": 2.747
+          },
+          "worst_setup_path": {
+            "data_delay_ns": "1.828",
+            "from": "emu:emu|jtframe_sdram64:sdram_ctrl|other_rst",
+            "logic_levels": "1",
+            "rank": "1",
+            "slack_ns": "2.747",
+            "to": "emu:emu|jtframe_sdram64:sdram_ctrl|jtframe_sdram64_bank:u_bank0|row[1]"
+          }
+        }
+      ],
+      "url": "https://github.com/asturur/test_template_1/actions/runs/44365561035"
+    }
+  },
+  "refill_trace": {
+    "instruction": [
+      {
+        "cpu_word_acks": [
+          1696,
+          1697,
+          1698,
+          1699,
+          1700,
+          1701,
+          1747,
+          1748
+        ],
+        "d2_tag": 1747,
+        "first_exec": 1754,
+        "first_fetch": 1697,
+        "first_retire": 1756,
+        "i_cache_valid": 1749,
+        "physical_beats": [
+          1694,
+          1695,
+          1696,
+          1745
+        ],
+        "request": 1690,
+        "second_retire": 1836,
+        "target": "0x6000",
+        "upstream_beats": [
+          1695,
+          1696,
+          1697,
+          1746
+        ]
+      },
+      {
+        "cpu_word_acks": [
+          1889,
+          1890,
+          1891,
+          1892,
+          1893,
+          1894,
+          1940,
+          1941
+        ],
+        "d2_tag": 1940,
+        "first_exec": 1947,
+        "first_fetch": 1892,
+        "first_retire": 1949,
+        "i_cache_valid": 1942,
+        "physical_beats": [
+          1887,
+          1888,
+          1889,
+          1938
+        ],
+        "request": 1883,
+        "second_retire": 2029,
+        "target": "0x6048",
+        "upstream_beats": [
+          1888,
+          1889,
+          1890,
+          1939
+        ]
+      },
+      {
+        "cpu_word_acks": [
+          2082,
+          2083,
+          2084,
+          2085,
+          2086,
+          2087,
+          2133,
+          2134
+        ],
+        "d2_tag": 2133,
+        "first_exec": 2140,
+        "first_fetch": 2087,
+        "first_retire": 2142,
+        "i_cache_valid": 2135,
+        "physical_beats": [
+          2080,
+          2081,
+          2082,
+          2131
+        ],
+        "request": 2076,
+        "second_retire": 2222,
+        "target": "0x6090",
+        "upstream_beats": [
+          2081,
+          2082,
+          2083,
+          2132
+        ]
+      },
+      {
+        "cpu_word_acks": [
+          2275,
+          2276,
+          2277,
+          2278,
+          2279,
+          2280,
+          2326,
+          2327
+        ],
+        "d2_tag": 2326,
+        "first_exec": 2333,
+        "first_fetch": 2327,
+        "first_retire": 2335,
+        "i_cache_valid": 2328,
+        "physical_beats": [
+          2273,
+          2274,
+          2275,
+          2324
+        ],
+        "request": 2269,
+        "second_retire": 2415,
+        "target": "0x60d8",
+        "upstream_beats": [
+          2274,
+          2275,
+          2276,
+          2325
+        ]
+      }
+    ],
+    "receipt_sha256_by_profile": {
+      "32768-2": "4e8a0aba956d1a571822c1d1ed1cfcc8112ccb97302437e59646f916bf5c44de",
+      "32768-4": "4e8a0aba956d1a571822c1d1ed1cfcc8112ccb97302437e59646f916bf5c44de",
+      "8192-2": "4e8a0aba956d1a571822c1d1ed1cfcc8112ccb97302437e59646f916bf5c44de",
+      "8192-4": "4e8a0aba956d1a571822c1d1ed1cfcc8112ccb97302437e59646f916bf5c44de"
+    },
+    "scalar": [
+      {
+        "address": "0x5000",
+        "admit": 100,
+        "cpu_ack": 111,
+        "d2_tag": 160,
+        "first_data": 109,
+        "physical_beats": [
+          107,
+          108,
+          109,
+          158
+        ],
+        "request": 103,
+        "warm_admit": 189,
+        "warm_cpu_ack": 193,
+        "warm_data": 191,
+        "warm_lookup": 190
+      },
+      {
+        "address": "0x5044",
+        "admit": 264,
+        "cpu_ack": 275,
+        "d2_tag": 324,
+        "first_data": 273,
+        "physical_beats": [
+          271,
+          272,
+          273,
+          322
+        ],
+        "request": 267,
+        "warm_admit": 353,
+        "warm_cpu_ack": 357,
+        "warm_data": 355,
+        "warm_lookup": 354
+      },
+      {
+        "address": "0x5088",
+        "admit": 428,
+        "cpu_ack": 440,
+        "d2_tag": 488,
+        "first_data": 438,
+        "physical_beats": [
+          435,
+          436,
+          437,
+          486
+        ],
+        "request": 431,
+        "warm_admit": 517,
+        "warm_cpu_ack": 521,
+        "warm_data": 519,
+        "warm_lookup": 518
+      },
+      {
+        "address": "0x50cc",
+        "admit": 592,
+        "cpu_ack": 604,
+        "d2_tag": 652,
+        "first_data": 602,
+        "physical_beats": [
+          599,
+          600,
+          601,
+          650
+        ],
+        "request": 595,
+        "warm_admit": 681,
+        "warm_cpu_ack": 685,
+        "warm_data": 683,
+        "warm_lookup": 682
+      },
+      {
+        "address": "0x5110",
+        "admit": 763,
+        "cpu_ack": 776,
+        "d2_tag": 823,
+        "first_data": 774,
+        "physical_beats": [
+          770,
+          771,
+          772,
+          821
+        ],
+        "request": 766,
+        "warm_admit": 852,
+        "warm_cpu_ack": 856,
+        "warm_data": 854,
+        "warm_lookup": 853
+      },
+      {
+        "address": "0x5154",
+        "admit": 927,
+        "cpu_ack": 940,
+        "d2_tag": 987,
+        "first_data": 938,
+        "physical_beats": [
+          934,
+          935,
+          936,
+          985
+        ],
+        "request": 930,
+        "warm_admit": 1016,
+        "warm_cpu_ack": 1020,
+        "warm_data": 1018,
+        "warm_lookup": 1017
+      },
+      {
+        "address": "0x5198",
+        "admit": 1091,
+        "cpu_ack": 1153,
+        "d2_tag": 1151,
+        "first_data": 1151,
+        "physical_beats": [
+          1098,
+          1099,
+          1100,
+          1149
+        ],
+        "request": 1094,
+        "warm_admit": 1185,
+        "warm_cpu_ack": 1189,
+        "warm_data": 1187,
+        "warm_lookup": 1186
+      },
+      {
+        "address": "0x51dc",
+        "admit": 1260,
+        "cpu_ack": 1322,
+        "d2_tag": 1320,
+        "first_data": 1320,
+        "physical_beats": [
+          1267,
+          1268,
+          1269,
+          1318
+        ],
+        "request": 1263,
+        "warm_admit": 1354,
+        "warm_cpu_ack": 1358,
+        "warm_data": 1356,
+        "warm_lookup": 1355
+      }
+    ]
+  },
+  "retained": {
+    "commit_tree_matches_fit": true,
+    "fit_profile": "8192-2",
+    "reason": "Both 32 KiB builds missed setup, and 8 KiB at MMC divider 2 passed.",
+    "v5_commit": "15d3cfea8db7342c0b4ff4f182e484975bbb7d5f"
+  },
+  "scope": "Cold RTL replay and fitted timing. No board measurements or deployment.",
+  "stock_rom_boot": {
+    "32768-2": {
+      "clear": {
+        "beats": 1352,
+        "cycle": 32623628,
+        "hits": 37489,
+        "line_wait": 3432,
+        "misses": 338,
+        "reads": 338,
+        "scalar_wait": 186823,
+        "sweep": 1024,
+        "words": 18353
+      },
+      "framebuffer_sha256": "1d149e0386df43c8373c92d4c8832b5e5c419aa508617d7325580797e4030439",
+      "host_seconds": 656.986,
+      "hot": {
+        "beats": 0,
+        "cycle": 349504,
+        "entry": 4064,
+        "hits": 0,
+        "line_wait": 0,
+        "misses": 0,
+        "reads": 0,
+        "retired": 321056,
+        "scalar_wait": 0
+      },
+      "inputs": {
+        "cdrive": "8f7ce5de2a20a8cfcbb4967d77f89c40315ff97411ada9944fe65f8ca87b0482",
+        "core": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+        "extension": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+      },
+      "logo": {
+        "beats": 2620048,
+        "cycle": 295666749,
+        "hits": 73757,
+        "line_wait": 5983485,
+        "misses": 655012,
+        "reads": 655012,
+        "scalar_wait": 236194,
+        "sweep": 1024,
+        "words": 36689
+      },
+      "result": {
+        "bus_errors": 3,
+        "cycle": 295667749,
+        "data_errors": 0,
+        "lcd_words": 36689,
+        "pc": 1363862860,
+        "retired": 243805401
+      },
+      "run": "v5-d2-32768-mmc2-logo-final",
+      "source_identity": "42915491ca83b364c7c6d919d25a4b5b1f6d4144804feb4b78866c9c814fda6b"
+    },
+    "32768-4": {
+      "clear": {
+        "beats": 1352,
+        "cycle": 32623628,
+        "hits": 37489,
+        "line_wait": 3432,
+        "misses": 338,
+        "reads": 338,
+        "scalar_wait": 186823,
+        "sweep": 1024,
+        "words": 18353
+      },
+      "framebuffer_sha256": "1d149e0386df43c8373c92d4c8832b5e5c419aa508617d7325580797e4030439",
+      "host_seconds": 679.005,
+      "hot": {
+        "beats": 0,
+        "cycle": 349504,
+        "entry": 4064,
+        "hits": 0,
+        "line_wait": 0,
+        "misses": 0,
+        "reads": 0,
+        "retired": 321056,
+        "scalar_wait": 0
+      },
+      "inputs": {
+        "cdrive": "8f7ce5de2a20a8cfcbb4967d77f89c40315ff97411ada9944fe65f8ca87b0482",
+        "core": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+        "extension": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+      },
+      "logo": {
+        "beats": 2620048,
+        "cycle": 295666749,
+        "hits": 73757,
+        "line_wait": 5983485,
+        "misses": 655012,
+        "reads": 655012,
+        "scalar_wait": 236194,
+        "sweep": 1024,
+        "words": 36689
+      },
+      "result": {
+        "bus_errors": 3,
+        "cycle": 295667749,
+        "data_errors": 0,
+        "lcd_words": 36689,
+        "pc": 1363862860,
+        "retired": 243805401
+      },
+      "run": "v5-d2-32768-mmc4-logo",
+      "source_identity": "49123fd864d1b706c3ae033845123b7d667e6867dae9b98a442f8403126ba1f8"
+    },
+    "8192-2": {
+      "clear": {
+        "beats": 1364,
+        "cycle": 32623646,
+        "hits": 37486,
+        "line_wait": 3450,
+        "misses": 341,
+        "reads": 341,
+        "scalar_wait": 186823,
+        "sweep": 256,
+        "words": 18353
+      },
+      "framebuffer_sha256": "1d149e0386df43c8373c92d4c8832b5e5c419aa508617d7325580797e4030439",
+      "host_seconds": 726.103,
+      "hot": {
+        "beats": 0,
+        "cycle": 349504,
+        "entry": 4064,
+        "hits": 0,
+        "line_wait": 0,
+        "misses": 0,
+        "reads": 0,
+        "retired": 321056,
+        "scalar_wait": 0
+      },
+      "inputs": {
+        "cdrive": "8f7ce5de2a20a8cfcbb4967d77f89c40315ff97411ada9944fe65f8ca87b0482",
+        "core": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+        "extension": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+      },
+      "logo": {
+        "beats": 2683332,
+        "cycle": 295684044,
+        "hits": 57813,
+        "line_wait": 6077640,
+        "misses": 670833,
+        "reads": 670833,
+        "scalar_wait": 236749,
+        "sweep": 256,
+        "words": 36689
+      },
+      "result": {
+        "bus_errors": 3,
+        "cycle": 295685044,
+        "data_errors": 0,
+        "lcd_words": 36689,
+        "pc": 1363828532,
+        "retired": 243732192
+      },
+      "run": "v5-d2-8192-mmc2-logo-final",
+      "source_identity": "d495926569b532e88e104e816956ac4f471c08d4a0f4fcdfc8af7a14f31a3fc7"
+    },
+    "8192-4": {
+      "clear": {
+        "beats": 1364,
+        "cycle": 32623646,
+        "hits": 37486,
+        "line_wait": 3450,
+        "misses": 341,
+        "reads": 341,
+        "scalar_wait": 186823,
+        "sweep": 256,
+        "words": 18353
+      },
+      "framebuffer_sha256": "1d149e0386df43c8373c92d4c8832b5e5c419aa508617d7325580797e4030439",
+      "host_seconds": 689.789,
+      "hot": {
+        "beats": 0,
+        "cycle": 349504,
+        "entry": 4064,
+        "hits": 0,
+        "line_wait": 0,
+        "misses": 0,
+        "reads": 0,
+        "retired": 321056,
+        "scalar_wait": 0
+      },
+      "inputs": {
+        "cdrive": "8f7ce5de2a20a8cfcbb4967d77f89c40315ff97411ada9944fe65f8ca87b0482",
+        "core": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+        "extension": "cb6e0b39c90df00864fc21ee527624372b1e4f5c3ff3c985f397172d30446cf3"
+      },
+      "logo": {
+        "beats": 2683332,
+        "cycle": 295684044,
+        "hits": 57813,
+        "line_wait": 6077640,
+        "misses": 670833,
+        "reads": 670833,
+        "scalar_wait": 236749,
+        "sweep": 256,
+        "words": 36689
+      },
+      "result": {
+        "bus_errors": 3,
+        "cycle": 295685044,
+        "data_errors": 0,
+        "lcd_words": 36689,
+        "pc": 1363828532,
+        "retired": 243732192
+      },
+      "run": "v5-d2-8192-mmc4-logo",
+      "source_identity": "e237faa5da346ed6ced32a3c312d7958c8ca005a44ccc97c28f40caa739e0097"
+    }
+  },
+  "writable_card_checks": {
+    "2": [
+      {
+        "case": "normal",
+        "evidence": [
+          "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=250288 reads=4 writes=1"
+        ],
+        "exit_code": 0
+      },
+      {
+        "case": "corrupt-persist",
+        "evidence": [
+          "[2502925000] %Fatal: tb.v:152: Assertion failed in tb: independent persisted oracle mismatch halfword1023"
+        ],
+        "exit_code": 1
+      }
+    ],
+    "4": [
+      {
+        "case": "normal",
+        "evidence": [
+          "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=269479 reads=4 writes=1"
+        ],
+        "exit_code": 0
+      },
+      {
+        "case": "corrupt-persist",
+        "evidence": [
+          "[2694835000] %Fatal: tb.v:152: Assertion failed in tb: independent persisted oracle mismatch halfword1023"
+        ],
+        "exit_code": 1
+      }
+    ]
+  }
+}

@@ -1,2 +1,4 @@
 # Unified patches require space-only context lines; preserve their format.
 *.patch whitespace=-blank-at-eol,-blank-at-eof
+# Keep the pinned donor sources byte-for-byte reproducible.
+rtl/arm9v2/upstream/** whitespace=-blank-at-eol,-blank-at-eof

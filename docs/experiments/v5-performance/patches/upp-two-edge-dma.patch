@@ -1,0 +1,52 @@
+diff --git a/rtl/ngage_upp.v b/rtl/ngage_upp.v
+index 1b6c9dd5d43d90e0a74aaf952a4a0ad527240374..130abc7beb01cce1986c63aa1f68e6d3cc3b85a6 100644
+--- a/rtl/ngage_upp.v
++++ b/rtl/ngage_upp.v
+@@ -197,6 +197,7 @@ module ngage_upp #(
+ );
+     wire peripheral_response_pending, peripheral_early_access;
+     wire peripheral_packet_mature;
++    wire dma_register_commit;
+     // Only the internal registered bus can supply the two-edge packet.
+     // Keep the immediate BRAM configurations used by older boards intact.
+     localparam TWO_EDGE_MMIO = INTERNAL_CPU && DDR_UPP_RAM;
+@@ -449,10 +450,21 @@ module ngage_upp #(
+             );
+             // Side effects are qualified by the selected device's own checks.
+             // CPU completion/error remains a response, never a shared write enable.
+-            assign bus_access = bus_cyc && bus_stb && !rst && init_done && !cpu_err &&
++            wire access_authorized = bus_cyc && bus_stb && !rst && init_done && !cpu_err;
++            assign bus_access = access_authorized &&
+                                 (!TWO_EDGE_MMIO || peripheral_packet_mature ||
+                                  peripheral_early_access || lcd_dma_claim) &&
+                                 (!claim || lcd_dma_claim || !peripheral_response_pending);
++            // The separate DMA programming port already bypasses both UPP
++            // response gates when its registered packet claims the access.
++            // Keep that port independent of RAM/MMIO ownership and age.
++            assign dma_register_commit = TWO_EDGE_MMIO ?
++                                         (access_authorized && lcd_dma_claim) : bus_access;
++            // synthesis translate_off
++            always @(posedge clk)
++                if (TWO_EDGE_MMIO && !rst && dma_register_commit !== (bus_access && lcd_dma_claim))
++                    $fatal(1, "DMA register authorization changed");
++            // synthesis translate_on
+         end else begin : external_master
+             assign debug_pc = 0;
+             assign debug_cpsr = 0;
+@@ -489,6 +501,7 @@ module ngage_upp #(
+             assign bus_sel = ext_sel;
+             assign bus_access        = ext_commit &&
+                                        (!claim || lcd_dma_claim || !peripheral_response_pending);
++            assign dma_register_commit = bus_access;
+         end
+     endgenerate
+     wire       internal_dma_irq;
+@@ -508,7 +521,7 @@ module ngage_upp #(
+                 .clk              (clk),
+                 .reset            (rst),
+                 .req              (bus_cyc && bus_stb),
+-                .commit           (bus_access),
++                .commit           (dma_register_commit),
+                 .we               (bus_we),
+                 .addr             (bus_adr),
+                 .din              (bus_din),

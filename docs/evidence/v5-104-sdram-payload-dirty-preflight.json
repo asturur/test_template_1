@@ -1,0 +1,119 @@
+{
+  "status": "PASS",
+  "active_tip": "dbad302dd2f85f5a1b016e472cd9557a58e19927",
+  "descriptor_variant": "descriptor-on-timer",
+  "active_timer": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+  "timer_tree": "0ccd13d8cd502bc14d3b89c6431ff0ebe4745612",
+  "restore": "20fb1e537cad366cc700be0e4ff6c388c7563d91",
+  "restore_parent": "dbad302dd2f85f5a1b016e472cd9557a58e19927",
+  "restored_tree": "0ccd13d8cd502bc14d3b89c6431ff0ebe4745612",
+  "restored_design": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+  "prior_preflight_sha256": "e5af63c97b41f8a10370a67679200862cfb3086311d6845e632fe026f1724feb",
+  "payload_patch_sha256": "9b600875593c1e6e26431fc5bc3146ba436cd370060497a2b2276a73c0f3d5f6",
+  "payload_qualification_sha256": "825fc27804f026a004755ec1b3ae4d4c0618f1f5906d5b6256614e3dd4a7d81f",
+  "private_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/sdram-block-payload/followup-20261126/objects",
+  "alternate_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/.git/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-dirty-compact-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-compact-owner-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-footer-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/timer-live-trust-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-live-trust/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lltune-clock/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lane13-mmc-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-count-prepare/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/wb-reply-class/dispatch-20261126/objects",
+  "variants": {
+    "payload-on-baseline": {
+      "sha": "b7cf9fcef0bf2ea2c1d29ec569b3c0d0a0dcf120",
+      "parent": "20fb1e537cad366cc700be0e4ff6c388c7563d91",
+      "tree": "1f68939366eb585e4e827e4538e923d53e988969",
+      "paths_since_parent": [
+        "Template.sv",
+        "rtl/ngage_sdram_arbiter.v"
+      ],
+      "hashes_from_timer": {
+        "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+        "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6"
+      },
+      "production": {
+        "13": {
+          "control_run": 45824513460,
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6"
+          },
+          "manifest_sha256": "366531cf499fad378ea1d55fcb2d7dc70f4debf5da83d9dafc33530757d76e45"
+        },
+        "43": {
+          "control_run": 45824520116,
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6"
+          },
+          "manifest_sha256": "03b825b7e9d2ea208a45545f1955761fe48ef0383d738bfa801abfdecd834836"
+        },
+        "31337": {
+          "control_run": 45824525843,
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6"
+          },
+          "manifest_sha256": "900c957e91545481a79f5b882954c0dbc116381cad4d4e5931a6a0b43d5e8325"
+        }
+      }
+    },
+    "payload-plus-descriptor": {
+      "sha": "f2949f6e1569b77e0ffc34fde4e4fbb478549c41",
+      "parent": "dbad302dd2f85f5a1b016e472cd9557a58e19927",
+      "tree": "cdba8a311d478b072c103f1c6f17499d030d2372",
+      "paths_since_parent": [
+        "Template.sv",
+        "rtl/ngage_sdram_arbiter.v"
+      ],
+      "hashes_from_timer": {
+        "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+        "rtl/arm9v2/arm925t_phone.v": "af019841f3bad5168995bbc19987c55f6525e00b10b97de9dbf891e7d770fba9",
+        "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6",
+        "tools/gen_arm9v2_phone.py": "b54d9c59a8c80d27a5c0f68c01131ec929b79a524ff456d22e1b569d497e358e"
+      },
+      "production": {
+        "13": {
+          "control_run": 45824513460,
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+            "rtl/arm9v2/arm925t_phone.v": "af019841f3bad5168995bbc19987c55f6525e00b10b97de9dbf891e7d770fba9",
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6"
+          },
+          "manifest_sha256": "98f5004c16ccba490f07dcfb7d849ebdc144a20761598cc10a0a630f8142a460"
+        },
+        "43": {
+          "control_run": 45824520116,
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+            "rtl/arm9v2/arm925t_phone.v": "af019841f3bad5168995bbc19987c55f6525e00b10b97de9dbf891e7d770fba9",
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6"
+          },
+          "manifest_sha256": "9169b1e4138ef486e24b4947bcfc5f302df8c642df9d2a36c825e14974da565d"
+        },
+        "31337": {
+          "control_run": 45824525843,
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "Template.sv": "f4eada68ed7a9a5deab4951698595bdf53ed797ccf4022168bca2853053d02ce",
+            "rtl/arm9v2/arm925t_phone.v": "af019841f3bad5168995bbc19987c55f6525e00b10b97de9dbf891e7d770fba9",
+            "rtl/ngage_sdram_arbiter.v": "2d4510430b1672ee56c01939cde974536d1b8a35e67ba03d022235e0fe49f1e6"
+          },
+          "manifest_sha256": "653eff9ff80bc88300dd780ec10e336f881125a83f1ea658cf61697b82729e26"
+        }
+      }
+    }
+  }
+}

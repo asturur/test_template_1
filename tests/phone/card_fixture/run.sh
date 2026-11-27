@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 mkdir -p build/sim/unit-test-sim
-g++ -std=c++17 -O2 -Itests/phone/reference/simif-investigation tests/phone/card_fixture/reference.cpp -o build/sim/unit-test-sim/reference
+g++ -std=c++17 -O2 -Iscratch/simif-investigation tests/phone/card_fixture/reference.cpp -o build/sim/unit-test-sim/reference
 build/sim/unit-test-sim/reference
 iverilog -g2005 -s tb -o build/sim/unit-test-sim/test rtl/ngage_bram.v rtl/ngage_test_sim.v tests/phone/card_fixture/tb.v
 vvp build/sim/unit-test-sim/test > build/sim/unit-test-sim/run.log

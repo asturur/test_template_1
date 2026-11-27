@@ -40,6 +40,7 @@ module ngage_ddr_flash_cache #(
     reg [31:0] address = 0, write_data = 0;
     reg [3:0] mask = 0;
     reg writing = 0, line_request = 0, cacheable = 0, fill = 0;
+    reg       resident_write = 0;
     reg [2:0] beat = 0;
     reg       response_valid = 0;
     reg hit_beat_valid = 0, hit_beat_last = 0;
@@ -56,9 +57,8 @@ module ngage_ddr_flash_cache #(
     wire fill_beat = state == WAIT_MEM && fill && mem_beat_valid && beat < 4;
     wire [2:0] received = beat + {2'b0, fill_beat};
     wire fill_done = state == WAIT_MEM && fill && mem_done && received == 4;
-    wire invalidate = state == LOOKUP && writing && cacheable && tag_hit && |mask;
     wire clearing = state == CLEAR || state == CLEAR_SECTOR;
-    wire tag_write = !reset && (clearing || invalidate || fill_done);
+    wire tag_write = !reset && (clearing || fill_done);
     wire [INDEX_BITS-1:0] tag_write_addr = clearing ? clear_index : index;
     wire [TAG_BITS:0] tag_write_data = fill_done ? {1'b1, tag} : {(TAG_BITS + 1) {1'b0}};
     wire [1:0] next_hit_beat = state == LOOKUP ? 2'd1 : beat[1:0] + 2'd1;
@@ -66,6 +66,10 @@ module ngage_ddr_flash_cache #(
         req_addr[INDEX_BITS+4:3] : {index, next_hit_beat};
     wire wanted_beat = fill_beat && beat[1:0] == address[4:3];
     wire [31:0] incoming_word = address[2] ? mem_beat_data[63:32] : mem_beat_data[31:0];
+    // The port owns the descriptor until backing acknowledges it. Update
+    // only the bytes the backing accepted and keep the rest of the line.
+    wire committed_update = state == WAIT_MEM && mem_done && resident_write && writing && !reset;
+    wire [7:0] update_bytes = address[2] ? {mask, 4'b0} : {4'b0, mask};
 
     ngage_bram #(
         .AW(INDEX_BITS),
@@ -82,17 +86,18 @@ module ngage_ddr_flash_cache #(
         .q_b   (tag_read)
     );
     ngage_bram #(
-        .AW(INDEX_BITS + 2),
-        .DW(64)
+        .AW        (INDEX_BITS + 2),
+        .DW        (64),
+        .BYTE_WIDTH(8)
     ) data (
         .clk   (clk),
-        .addr_a({index, beat[1:0]}),
-        .data_a(mem_beat_data),
-        .we_a  (fill_beat && !reset),
+        .addr_a({index, committed_update ? address[4:3] : beat[1:0]}),
+        .data_a(committed_update ? {write_data, write_data} : mem_beat_data),
+        .we_a  (committed_update ? update_bytes : {8{fill_beat && !reset}}),
         .q_a   (),
         .addr_b(read_addr),
         .data_b(64'b0),
-        .we_b  (1'b0),
+        .we_b  (8'b0),
         .q_b   (data_read)
     );
 
@@ -114,8 +119,9 @@ module ngage_ddr_flash_cache #(
         response_valid <= 0;
         hit_beat_valid <= 0;
         if (reset) begin
-            state       <= CLEAR;
-            clear_index <= 0;
+            state          <= CLEAR;
+            clear_index    <= 0;
+            resident_write <= 0;
         end else begin
             case (state)
                 CLEAR: begin
@@ -143,22 +149,24 @@ module ngage_ddr_flash_cache #(
                     beat         <= 0;
                     state        <= LOOKUP;
                 end
-                LOOKUP:
-                if (cacheable && tag_hit && !writing) begin
-                    if (line_request) begin
-                        hit_beat_data  <= data_read;
-                        hit_beat_valid <= 1;
-                        hit_beat_last  <= 0;
-                        beat           <= 1;
-                        state          <= HIT_LINE;
+                LOOKUP: begin
+                    resident_write <= writing && cacheable && tag_hit && |mask;
+                    if (cacheable && tag_hit && !writing) begin
+                        if (line_request) begin
+                            hit_beat_data  <= data_read;
+                            hit_beat_valid <= 1;
+                            hit_beat_last  <= 0;
+                            beat           <= 1;
+                            state          <= HIT_LINE;
+                        end else begin
+                            rsp_data       <= address[2] ? data_read[63:32] : data_read[31:0];
+                            response_valid <= 1;
+                            state          <= IDLE;
+                        end
                     end else begin
-                        rsp_data       <= address[2] ? data_read[63:32] : data_read[31:0];
-                        response_valid <= 1;
-                        state          <= IDLE;
+                        fill  <= cacheable && !writing;
+                        state <= ISSUE;
                     end
-                end else begin
-                    fill  <= cacheable && !writing;
-                    state <= ISSUE;
                 end
                 HIT_LINE: begin
                     hit_beat_data  <= data_read;

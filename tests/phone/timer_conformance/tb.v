@@ -13,7 +13,7 @@ wire [95:0] fiq_sources={90'd0,pending};
 integer cycles=0,cases=0;
 always @(posedge clk)cycles=cycles+1;
 ngage_timers timers(clk,reset,req,commit,we,addr,din,4'hf,1'b0,tc,tb,td,
- ,,,rearm,,1'b0,pending,timer_ready);
+ ,,,rearm,,1'b0,pending,timer_ready,,6'd0,6'd0);
 ngage_icu icu(clk,reset,req,commit,we,addr,din,4'hf,irq_sources,fiq_sources,
  ic,ib,id,irq,fiq,clear,rearm,icu_ready);
 task tick;begin @(posedge clk);#1;end endtask

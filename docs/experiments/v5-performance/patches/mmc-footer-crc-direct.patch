@@ -1,0 +1,64 @@
+diff --git a/rtl/ngage_mmc_hps.v b/rtl/ngage_mmc_hps.v
+index 8578a86..1a867b6 100644
+--- a/rtl/ngage_mmc_hps.v
++++ b/rtl/ngage_mmc_hps.v
+@@ -50,7 +50,6 @@ module ngage_mmc_hps (
+     reg [ 7:0] footer_version;
+     reg [127:0] footer_cid, footer_csd;
+     reg [31:0] footer_ocr;
+-    reg [119:0] cid_shift, csd_shift;
+     reg [6:0] cid_crc, csd_crc;
+     reg [3:0] crc_left;
+ 
+@@ -84,8 +83,6 @@ module ngage_mmc_hps (
+         footer_cid         = 0;
+         footer_csd         = 0;
+         footer_ocr         = 0;
+-        cid_shift          = 0;
+-        csd_shift          = 0;
+         cid_crc            = 0;
+         csd_crc            = 0;
+         crc_left           = 0;
+@@ -141,6 +138,12 @@ module ngage_mmc_hps (
+     assign hps_buff_din = owns_buffer && owned_write ? card_sd_buff_din : 16'hffff;
+     assign busy = state != IDLE || mount_pending || hps_sd_ack || ack_prev || quiet != 3;
+ 
++    // VERIFY owns no incoming words. Read the captured footer bytes from
++    // most significant to least, excluding byte zero which holds the CRC.
++    wire [6:0] crc_byte_offset = {crc_left, 3'b0};
++    wire [7:0] cid_crc_byte = footer_cid[crc_byte_offset+:8];
++    wire [7:0] csd_crc_byte = footer_csd[crc_byte_offset+:8];
++
+     function [6:0] crc7_byte;
+         input [6:0] crc;
+         input [7:0] data;
+@@ -257,22 +260,18 @@ module ngage_mmc_hps (
+                     fault <= 1;
+                     state <= IDLE;
+                 end else if (!admitted) begin
+-                    cid_shift <= footer_cid[127:8];
+-                    csd_shift <= footer_csd[127:8];
+-                    cid_crc   <= 0;
+-                    csd_crc   <= 0;
+-                    crc_left  <= 15;
+-                    state     <= VERIFY;
++                    cid_crc  <= 0;
++                    csd_crc  <= 0;
++                    crc_left <= 15;
++                    state    <= VERIFY;
+                 end else state <= IDLE;
+             end
+             VERIFY: begin
+                 if (!current_request || changed || fault) state <= IDLE;
+                 else if (crc_left != 0) begin
+-                    cid_crc   <= crc7_byte(cid_crc, cid_shift[119:112]);
+-                    csd_crc   <= crc7_byte(csd_crc, csd_shift[119:112]);
+-                    cid_shift <= {cid_shift[111:0], 8'd0};
+-                    csd_shift <= {csd_shift[111:0], 8'd0};
+-                    crc_left  <= crc_left - 1'b1;
++                    cid_crc  <= crc7_byte(cid_crc, cid_crc_byte);
++                    csd_crc  <= crc7_byte(csd_crc, csd_crc_byte);
++                    crc_left <= crc_left - 1'b1;
+                 end else begin
+                     admitted <= metadata_ok;
+                     if (!metadata_ok) fault <= 1;

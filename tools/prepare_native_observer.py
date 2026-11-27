@@ -19,15 +19,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def held_fresh(w):
-    # Monitor history clears only on cold_reset, not CPU Hold or warm reset.
-    # A startup reset can increment recorder generation before any execution.
-    # Require physical Hold, restored media/save Off and zero cold-lifetime
-    # instruction, execution and bus history. One VA0 reset fetch is allowed.
+    # Require physical Hold and saved Run off, completed restore, save off,
+    # reset generation zero and no executed clocks or completed bus history.
+    # One initial VA0 fetch is reset bookkeeping, not a cached hook page.
     flags = w[242]
-    return (all(w[8+i] == 0 for i in (2, 4, 10, 11))
+    return (all(w[8+i] == 0 for i in (4, 10, 11))
             and w[13] <= 1 and w[8] == 0 and w[9] == 0
             and not (w[29] & 256) and w[30] & 1
-            and (flags & 7) == 0 and flags & (1 << 4)
+            and w[6] == 0 and (flags & 7) == 0 and flags & (1 << 4)
             and flags & (1 << 25)
             and not flags & ((1 << 6) | (1 << 7) | (1 << 10) | (1 << 26)))
 

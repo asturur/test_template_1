@@ -1,0 +1,289 @@
+diff --git a/tests/cpu/arm9v2_board/d_return_tb.sv b/tests/cpu/arm9v2_board/d_return_tb.sv
+new file mode 100644
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/d_return_tb.sv
+@@ -0,0 +1,250 @@
++module return_tb;
++  reg clk = 0;
++  reg reset = 1;
++  reg cpu_code = 0, lock = 0;
++  reg [1:0] request = 0;
++  reg [31:0] address[0:1];
++  reg [2:0] cti[0:1];
++  reg scalar_ack = 0, scalar_error = 0;
++  reg ready = 0, reject = 0, valid = 0, wide = 0, last = 0, error = 0, promised = 0;
++  reg [63:0] data = 0;
++  bit same_edge = 0;
++  wire [1:0] ack, err, trust, scalar_req, scalar_lock, offer;
++  wire [31:0] reply[0:1];
++  wire [31:0] offer_address[0:1];
++  localparam [31:0] BASE   = 32'h0a120000;
++  localparam [31:0] MMIO   = 32'h0c120624;
++  localparam [31:0] SCALAR = 32'h672b19cc;
++
++  for (genvar mode = 0; mode < 2; mode++) begin : leg
++    wire candidate = cti[mode] == 3'b010 && address[mode][4:0] == 0 &&
++                         address[mode][31:24] == BASE[31:24];
++    ngage_arm9v2_refill #(
++        .ENABLE(1),
++        .REGISTERED_SCALAR_PEER(1),
++        .REGISTER_D_LINE_RETURN(mode)
++    ) dut (
++        .clk(clk),
++        .reset(reset),
++        .cpu_cyc(request[mode]),
++        .cpu_code(cpu_code),
++        .cpu_lock(lock),
++        .cpu_line_candidate(candidate),
++        .cpu_address(address[mode]),
++        .cpu_write(1'b0),
++        .cpu_sel(4'hf),
++        .cpu_cti(cti[mode]),
++        .cpu_bte(2'b00),
++        .cpu_ack(ack[mode]),
++        .cpu_error(err[mode]),
++        .cpu_no_late_error(trust[mode]),
++        .cpu_data(reply[mode]),
++        .wb_cyc(scalar_req[mode]),
++        .wb_lock(scalar_lock[mode]),
++        .wb_ack(scalar_ack),
++        .wb_error(scalar_error),
++        .wb_data(SCALAR),
++        .line_req(offer[mode]),
++        .line_addr(offer_address[mode]),
++        .line_ready(ready),
++        .line_reject(reject),
++        .line_valid(valid),
++        .line_data(data),
++        .line_wide(wide),
++        .line_last(last),
++        .line_error(error),
++        .line_no_late_error(promised)
++    );
++  end
++
++  task tick;
++    begin
++      #2 clk = 1;
++      #2 clk = 0;
++      #1;
++    end
++  endtask
++
++  function automatic [15:0] sample_half(input int run, input int position);
++    return 16'((run * 27241) ^ (position * 25391) ^ (position << 13));
++  endfunction
++
++  function automatic [31:0] sample_word(input int run, input int position);
++    return {sample_half(run, 2 * position + 1), sample_half(run, 2 * position)};
++  endfunction
++
++  task start_line(input bit code_access, input bit guarantee, input int wait_clocks);
++    begin
++      cpu_code = code_access;
++      promised = guarantee;
++      address[0] = BASE;
++      address[1] = BASE;
++      cti[0] = 3'b010;
++      cti[1] = 3'b010;
++      request = 2'b11;
++      for (int wait_no = 0; wait_no <= wait_clocks; wait_no++) begin
++        ready = wait_no == wait_clocks;
++        #1;
++        if (offer !== 2'b11 || scalar_req !== 0 || ack !== 0 || err !== 0 ||
++                    offer_address[0] !== BASE || offer_address[1] !== BASE)
++          $fatal(1, "Offer timing mismatch");
++        tick;
++      end
++      ready = 0;
++    end
++  endtask
++
++  int cases = 0, data_words = 0, instruction_words = 0;
++  int faults = 0, pauses = 0, resets = 0, dense_pairs = 0;
++
++  task burst(input int run, input bit code_access, input int style, input int fault_at,
++             input int reset_at);
++    int delivered[0:1];
++    int first[0:1], previous[0:1];
++    int cursor, old_complete, edge_no, width;
++    reg [31:0] random_bits;
++    bit fault_seen;
++    bit ask_ack, ask_error;
++    begin
++      start_line(code_access, fault_at < 0, run % 4);
++      delivered = '{0, 0};
++      first = '{-1, -1};
++      previous = '{-1, -1};
++      cursor = 0;
++      old_complete = 0;
++      edge_no = 0;
++      fault_seen = 0;
++      random_bits = 32'h740de987 ^ (run * 318791);
++      while ((delivered[0] < 8 || delivered[1] < 8) && edge_no != reset_at) begin
++        random_bits = (random_bits << 1) ^ (random_bits[31] ? 32'h04c11db7 : 32'd0);
++        width = (style == 1 || (style == 2 && cursor % 4 == 0 && random_bits[13])) ? 4 : 1;
++        valid = cursor < 16 && !fault_seen && (style == 1 || random_bits[8] || random_bits[17]);
++        wide = width == 4;
++        error = valid && cursor == fault_at;
++        last = cursor + width == 16 || error;
++        data = {
++          sample_half(run, cursor + 3),
++          sample_half(run, cursor + 2),
++          sample_half(run, cursor + 1),
++          sample_half(run, cursor)
++        };
++        for (int mode = 0; mode < 2; mode++) begin
++          request[mode] = delivered[mode] < 8;
++          address[mode] = BASE + (delivered[mode] % 8) * 4;
++          cti[mode] = delivered[mode] == 7 ? 3'b111 : 3'b010;
++        end
++        #1;
++        for (int mode = 0; mode < 2; mode++) begin
++          ask_error = request[mode] && fault_seen;
++          ask_ack = request[mode] && !fault_seen &&
++                        (((mode == 1 && !code_access && !same_edge) ? old_complete : cursor/2) > delivered[mode]);
++          if (ack[mode] !== ask_ack || err[mode] !== ask_error || scalar_req[mode] ||
++                        trust[mode] !== (ask_ack && promised))
++            $fatal(
++                1,
++                "Return timing mismatch run=%0d leg=%0d edge=%0d delivered=%0d",
++                run,
++                mode,
++                edge_no,
++                delivered[mode]
++            );
++          if (ask_ack) begin
++            if (reply[mode] !== sample_word(run, delivered[mode]))
++              $fatal(1, "Return payload mismatch");
++            if (first[mode] < 0) first[mode] = edge_no;
++            if (style == 1 && fault_at < 0 && previous[mode] >= 0) begin
++              if (edge_no != previous[mode] + 1) $fatal(1, "Gap in continuous return");
++              if (mode == 1) dense_pairs++;
++            end
++            previous[mode] = edge_no;
++            if (mode == 1 && code_access) instruction_words++;
++            if (mode == 1 && !code_access) data_words++;
++          end
++          if (ask_error && mode == 1) faults++;
++          if (ask_ack || ask_error) delivered[mode]++;
++        end
++        if (!valid && cursor < 16 && !fault_seen) pauses++;
++        old_complete = cursor / 2;
++        if (valid) cursor += width;
++        fault_seen = fault_seen || error;
++        tick;
++        edge_no++;
++        if (edge_no > 100) $fatal(1, "Burst timeout");
++      end
++      valid = 0;
++      error = 0;
++      last = 0;
++      request = 0;
++      if (edge_no == reset_at) begin
++        reset = 1;
++        tick;
++        reset = 0;
++        #1;
++        if (ack !== 0 || err !== 0 || trust !== 0 || scalar_req !== 0 || offer !== 0)
++          $fatal(1, "Stale buffered reply after reset");
++        resets++;
++      end else if (fault_at < 0 && first[1] != first[0] + int'(!code_access && !same_edge)) begin
++        $fatal(1, "Incorrect first-word latency");
++      end
++      cases++;
++    end
++  endtask
++
++  task fallback(input bit locked, input bit fault_reply, input bit cancelled);
++    begin
++      if (!locked) begin
++        start_line(0, 0, 1);
++        reject = 1;
++        tick;
++        reject = 0;
++      end else begin
++        cpu_code = 0;
++        lock = 1;
++      end
++      request = 2'b11;
++      address[0] = MMIO;
++      address[1] = MMIO;
++      cti[0] = 3'b111;
++      cti[1] = 3'b111;
++      #1;
++      if (scalar_req !== 2'b11 || ack !== 0 || err !== 0 || offer !== 0 ||
++                scalar_lock !== {2{locked}})
++        $fatal(1, "Scalar request timing changed");
++      tick;
++      if (cancelled) request = 0;
++      scalar_ack   = !fault_reply;
++      scalar_error = fault_reply;
++      #1;
++      if (ack !== {2{!fault_reply && !cancelled}} ||
++                err !== {2{fault_reply && !cancelled}} || trust !== 0 ||
++                reply[0] !== SCALAR || reply[1] !== SCALAR)
++        $fatal(1, "Scalar completion timing changed");
++      tick;
++      scalar_ack = 0;
++      scalar_error = 0;
++      request = 0;
++      lock = 0;
++      reset = 1;
++      tick;
++      reset = 0;
++    end
++  endtask
++
++  initial begin
++    same_edge = $test$plusargs("same_edge");
++    tick;
++    reset = 0;
++    for (int run = 0; run < 320; run++) begin
++      burst(run, run[0], run % 3, -1, -1);
++      if (run % 8 == 0) burst(run, run[3], 0, (run / 8) % 15, -1);
++      if (run % 8 == 1) burst(run, run[3], 1, -1, 2 + (run / 8) % 5);
++      if (run % 8 == 2) fallback(run[3], run[4], run[5]);
++    end
++    if (cases != 400 || data_words < 1000 || instruction_words < 1000 ||
++            faults < 140 || pauses < 800 || resets != 40 || dense_pairs < 450)
++      $fatal(1, "Missing scenario coverage");
++    $display("PASS D line return cases=%0d D=%0d I=%0d errors=%0d gaps=%0d resets=%0d adjacent=%0d",
++             cases, data_words, instruction_words, faults, pauses, resets, dense_pairs);
++    $finish;
++  end
++endmodule
+diff --git a/tests/cpu/arm9v2_board/run-d-line-return.sh b/tests/cpu/arm9v2_board/run-d-line-return.sh
+new file mode 100755
+--- /dev/null
++++ b/tests/cpu/arm9v2_board/run-d-line-return.sh
+@@ -0,0 +1,29 @@
++#!/bin/sh
++set -eu
++
++name="${1:?provide a fresh run name}"
++case "$name" in *[!A-Za-z0-9_.-]*) exit 2 ;; esac
++mode="${2:-capture}"
++wrapper="${3:-rtl/ngage_cpu.sv}"
++fixture="${4:-tests/cpu/arm9v2_board/d_return_tb.sv}"
++out="build/sim/$name"
++mkdir -p build/sim
++mkdir "$out"
++
++simulate() {
++    entrypoint=$1
++    shift
++    docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++        -w /work --entrypoint "$entrypoint" jotego/simulator:arm64 "$@"
++}
++
++set --
++case "$mode" in
++    capture) set -- +same_edge ;;
++    buffered) ;;
++    *) exit 2 ;;
++esac
++simulate verilator --binary --timing --assert -j 2 -Wno-fatal -Wno-lint \
++    --top-module return_tb --Mdir "$out/obj" "$wrapper" "$fixture" > "$out/build.log" 2>&1
++simulate "/work/$out/obj/Vreturn_tb" "$@" > "$out/run.log" 2>&1
++rg '^PASS D line return' "$out/run.log"

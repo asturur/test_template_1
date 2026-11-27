@@ -1,0 +1,2440 @@
+{
+  "public_parent": "fc7b51349ed5a95baba0f8396185ab9d2efebce4",
+  "candidate": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+  "physical_cpu_mhz": 104,
+  "ddr_debugger": false,
+  "source_sha256": {
+    "rtl/ngage_dma_channels.v": "71ee9850f2dbffe8553c3862d1e79a9f73784bd8f37c2c308bcbb1a4bd6ccc35",
+    "rtl/ngage_upp.v": "5864a6ddc4163193d028f5c31aa5fbda9f09d27b1bed455b3e327c742f64b4f1",
+    "tests/phone/dma_channels/program_predecode_tb.sv": "4a4466bf49460d66a5ba73593b05979b8cbc0b05f8acbd1012dd4d9b2e87ee4b",
+    "tests/phone/dma_channels/run-predecode.sh": "dddca1c1ccb17105870a419df9208682db6bf8371e806c5fcf7856bdbdfb8e4e"
+  },
+  "production_inputs_verified_per_seed": 132,
+  "fit_dispatches": [
+    {
+      "seed": 43,
+      "pin": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+      "run": 45378535187,
+      "url": "https://github.com/asturur/test_template_1/actions/runs/45378535187"
+    },
+    {
+      "seed": 13,
+      "pin": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+      "run": 45378617074,
+      "url": "https://github.com/asturur/test_template_1/actions/runs/45378617074"
+    },
+    {
+      "seed": 31337,
+      "pin": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+      "run": 45378624476,
+      "url": "https://github.com/asturur/test_template_1/actions/runs/45378624476"
+    }
+  ],
+  "comparison": "Every measured cycle, output check and ordered digest matched the control.",
+  "directed": {
+    "clocks": 32894,
+    "claims": 5658,
+    "rejected": 5549,
+    "starts": 4,
+    "stops": 3,
+    "blocked_offers": 22,
+    "accepted": 3,
+    "drained": 2
+  },
+  "board": [
+    {
+      "burst": 0,
+      "wait": 0,
+      "trace_sha256": "d59316717a52226599524b04102a62c13897f1b11003dfcadfcf49ed56aac673",
+      "pass_line": "PASS cycles=26806 scalar_wait_cycles=10303 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+    },
+    {
+      "burst": 0,
+      "wait": 5,
+      "trace_sha256": "a4f4ddec53ccc0f4f5a5f6e578076697d3eb2952d9aaad15f4696b90e4995bd1",
+      "pass_line": "PASS cycles=52338 scalar_wait_cycles=35930 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+    },
+    {
+      "burst": 1,
+      "wait": 0,
+      "trace_sha256": "640aef2df44cbfbddfc5ac896aa35e46f884c5949e83eb0ad38d17d0f28b7644",
+      "pass_line": "PASS cycles=21407 scalar_wait_cycles=447 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+    },
+    {
+      "burst": 1,
+      "wait": 5,
+      "trace_sha256": "efc351d5f2adcd898ec872cf6d1617f45d54415e57bb16dcd769fb7e0e85cab7",
+      "pass_line": "PASS cycles=25354 scalar_wait_cycles=1434 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1"
+    }
+  ],
+  "fixed_workloads": [
+    {
+      "workload": "sega-scan",
+      "median_cycles": 2395767,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 2396210,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 14,
+          "nos_ticks": 1,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 2395853,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 1,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 2395905,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 1,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 2395767,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 1,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 2395767,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 1,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 2395767,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 1,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 2395767,
+          "payload_ops": 640677,
+          "helper_ops": 787302,
+          "ddr_reads": 3,
+          "nos_ticks": 1,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 1446299,
+          "data": 622534,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 5468893113640080852,
+          "data_hash": 13495878144261412455,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 1446299,
+          "data": 622534,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 7753208752911057853,
+          "data_hash": 18028807482161668396,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 1446299,
+          "data": 622534,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 5468893113640080852,
+          "data_hash": 13495878144261412455,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 1446299,
+          "data": 622534,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 7753208752911057853,
+          "data_hash": 18028807482161668396,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 1446299,
+          "data": 622534,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 5468893113640080852,
+          "data_hash": 13495878144261412455,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 1446299,
+          "data": 622534,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 7753208752911057853,
+          "data_hash": 18028807482161668396,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 1446299,
+          "data": 622534,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 5468893113640080852,
+          "data_hash": 13495878144261412455,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "matrix4",
+      "median_cycles": 16946,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 17981,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 43,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 16937,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 16937,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 16937,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 16949,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 16946,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 16952,
+          "payload_ops": 14176,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 14544,
+          "data": 2544,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 16489013284109888583,
+          "data_hash": 16056760212140068216,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 14544,
+          "data": 2544,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 7698309479553210055,
+          "data_hash": 7542333151372479008,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 14544,
+          "data": 2544,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 7698309479553210055,
+          "data_hash": 7542333151372479008,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 14544,
+          "data": 2544,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 7698309479553210055,
+          "data_hash": 7542333151372479008,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 14544,
+          "data": 2544,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 7698309479553210055,
+          "data_hash": 7542333151372479008,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 14544,
+          "data": 2544,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 7698309479553210055,
+          "data_hash": 7542333151372479008,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 14544,
+          "data": 2544,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 7698309479553210055,
+          "data_hash": 7542333151372479008,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "transpose4",
+      "median_cycles": 2976,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 3055,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 5,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 2964,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 2964,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 2976,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 2976,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 2979,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 2976,
+          "payload_ops": 800,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 1024,
+          "data": 800,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8451575422773678360,
+          "data_hash": 3602429406005981829,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 1024,
+          "data": 800,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8451575422773678360,
+          "data_hash": 3602429406005981829,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 1024,
+          "data": 800,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8451575422773678360,
+          "data_hash": 3602429406005981829,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 1024,
+          "data": 800,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8451575422773678360,
+          "data_hash": 3602429406005981829,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 1024,
+          "data": 800,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8451575422773678360,
+          "data_hash": 3602429406005981829,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 1024,
+          "data": 800,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8451575422773678360,
+          "data_hash": 3602429406005981829,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 1024,
+          "data": 800,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8451575422773678360,
+          "data_hash": 3602429406005981829,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "triangle_edges",
+      "median_cycles": 12226,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 13136,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 47,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 12220,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 12226,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 12262,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 12253,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 12220,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 12220,
+          "payload_ops": 6656,
+          "helper_ops": 1872,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 9120,
+          "data": 1712,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 17643277356133796481,
+          "data_hash": 10499578464710029585,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 9120,
+          "data": 1712,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 15529978204727344309,
+          "data_hash": 3587511076948512997,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 9120,
+          "data": 1712,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8132764229611028117,
+          "data_hash": 16785820818876044581,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 9120,
+          "data": 1712,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 16310578695939425461,
+          "data_hash": 9974306173753556933,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 9120,
+          "data": 1712,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 1083057043912354069,
+          "data_hash": 6737986808542340965,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 9120,
+          "data": 1712,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 15254313861928723509,
+          "data_hash": 11468523219383613733,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 9120,
+          "data": 1712,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 4844694285193785365,
+          "data_hash": 6883746696692660453,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "fill16_frame",
+      "median_cycles": 122402,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 122534,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 122402,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 122402,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 122402,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 122402,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 122402,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 122402,
+          "payload_ops": 22896,
+          "helper_ops": 0,
+          "ddr_reads": 1,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 22904,
+          "data": 18306,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 16835431691875993122,
+          "data_hash": 14258696648090682661,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 22904,
+          "data": 18306,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 16835431691875993122,
+          "data_hash": 14258696648090682661,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 22904,
+          "data": 18306,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 16835431691875993122,
+          "data_hash": 14258696648090682661,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 22904,
+          "data": 18306,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 16835431691875993122,
+          "data_hash": 14258696648090682661,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 22904,
+          "data": 18306,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 16835431691875993122,
+          "data_hash": 14258696648090682661,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 22904,
+          "data": 18306,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 16835431691875993122,
+          "data_hash": 14258696648090682661,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 22904,
+          "data": 18306,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 16835431691875993122,
+          "data_hash": 14258696648090682661,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "fill16_tail",
+      "median_cycles": 725,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 876,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 8,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 725,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 725,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 728,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 725,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 725,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 725,
+          "payload_ops": 654,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 662,
+          "data": 514,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 5775772309364928564,
+          "data_hash": 15199385371296690216,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 662,
+          "data": 514,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 5775772309364928564,
+          "data_hash": 15199385371296690216,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 662,
+          "data": 514,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 5775772309364928564,
+          "data_hash": 15199385371296690216,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 662,
+          "data": 514,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 5775772309364928564,
+          "data_hash": 15199385371296690216,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 662,
+          "data": 514,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 5775772309364928564,
+          "data_hash": 15199385371296690216,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 662,
+          "data": 514,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 5775772309364928564,
+          "data_hash": 15199385371296690216,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 662,
+          "data": 514,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 5775772309364928564,
+          "data_hash": 15199385371296690216,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "fill8_tail",
+      "median_cycles": 753,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 903,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 753,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 753,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 753,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 753,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 753,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 753,
+          "payload_ops": 667,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 675,
+          "data": 516,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 45293071465868141,
+          "data_hash": 8191358488363565783,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 675,
+          "data": 516,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 45293071465868141,
+          "data_hash": 8191358488363565783,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 675,
+          "data": 516,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 45293071465868141,
+          "data_hash": 8191358488363565783,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 675,
+          "data": 516,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 45293071465868141,
+          "data_hash": 8191358488363565783,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 675,
+          "data": 516,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 45293071465868141,
+          "data_hash": 8191358488363565783,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 675,
+          "data": 516,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 45293071465868141,
+          "data_hash": 8191358488363565783,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 675,
+          "data": 516,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 45293071465868141,
+          "data_hash": 8191358488363565783,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "monkey-forward",
+      "median_cycles": 15940,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 16021,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 5,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 15937,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 15940,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 15940,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 15949,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 15937,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 15940,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 10934940546683739483,
+          "data_hash": 5818387982928311077,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 10934940546683739483,
+          "data_hash": 5818387982928311077,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 10934940546683739483,
+          "data_hash": 5818387982928311077,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 10934940546683739483,
+          "data_hash": 5818387982928311077,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 10934940546683739483,
+          "data_hash": 5818387982928311077,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 10934940546683739483,
+          "data_hash": 5818387982928311077,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 10934940546683739483,
+          "data_hash": 5818387982928311077,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "monkey-reverse",
+      "median_cycles": 15940,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 16021,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 5,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 15937,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 15940,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 15940,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 15949,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 15937,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 15940,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11566397773581788215,
+          "data_hash": 15122579925011221901,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11566397773581788215,
+          "data_hash": 15122579925011221901,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11566397773581788215,
+          "data_hash": 15122579925011221901,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11566397773581788215,
+          "data_hash": 15122579925011221901,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11566397773581788215,
+          "data_hash": 15122579925011221901,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11566397773581788215,
+          "data_hash": 15122579925011221901,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 10243,
+          "data": 4608,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11566397773581788215,
+          "data_hash": 15122579925011221901,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "sega-span",
+      "median_cycles": 15430,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 15585,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 15430,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 15430,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 15430,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 15430,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 15430,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 15430,
+          "payload_ops": 10241,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 10248,
+          "data": 4099,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 17792146351035542172,
+          "data_hash": 85868163060390300,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 10248,
+          "data": 4099,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 17792146351035542172,
+          "data_hash": 85564697851004064,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 10248,
+          "data": 4099,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 17792146351035542172,
+          "data_hash": 85564697851004064,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 10248,
+          "data": 4099,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 17792146351035542172,
+          "data_hash": 85564697851004064,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 10248,
+          "data": 4099,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 17792146351035542172,
+          "data_hash": 85564697851004064,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 10248,
+          "data": 4099,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 17792146351035542172,
+          "data_hash": 85564697851004064,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 10248,
+          "data": 4099,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 17792146351035542172,
+          "data_hash": 85564697851004064,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "sega-fill",
+      "median_cycles": 2628,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 2757,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 4,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 2628,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 2628,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 2628,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 2628,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 2628,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 2628,
+          "payload_ops": 2561,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 2566,
+          "data": 517,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 1395976489242608568,
+          "data_hash": 13431987572997505286,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 2566,
+          "data": 517,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 1395976489242608568,
+          "data_hash": 13431758874578837398,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 2566,
+          "data": 517,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 1395976489242608568,
+          "data_hash": 13431758874578837398,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 2566,
+          "data": 517,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 1395976489242608568,
+          "data_hash": 13431758874578837398,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 2566,
+          "data": 517,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 1395976489242608568,
+          "data_hash": 13431758874578837398,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 2566,
+          "data": 517,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 1395976489242608568,
+          "data_hash": 13431758874578837398,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 2566,
+          "data": 517,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 1395976489242608568,
+          "data_hash": 13431758874578837398,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "asphalt-table",
+      "median_cycles": 21163,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 21328,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 9,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 21155,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 21160,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 21152,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 21168,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 21163,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 21171,
+          "payload_ops": 13313,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 13324,
+          "data": 2909,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8939689015036001622,
+          "data_hash": 6059406132731766570,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 13324,
+          "data": 2909,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11812168234840195279,
+          "data_hash": 15258130413386464633,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 13324,
+          "data": 2909,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8939689015036001622,
+          "data_hash": 6059199424545662902,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 13324,
+          "data": 2909,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11812168234840195279,
+          "data_hash": 15258130413386464633,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 13324,
+          "data": 2909,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8939689015036001622,
+          "data_hash": 6059199424545662902,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 13324,
+          "data": 2909,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11812168234840195279,
+          "data_hash": 15258130413386464633,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 13324,
+          "data": 2909,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8939689015036001622,
+          "data_hash": 6059199424545662902,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "asphalt-double",
+      "median_cycles": 11974,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 12140,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 7,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 11974,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 11982,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 11974,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 11977,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 11974,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 11974,
+          "payload_ops": 9729,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 9741,
+          "data": 1202,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11761501081468947591,
+          "data_hash": 2171210543471057236,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 9741,
+          "data": 1202,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8159775048421072007,
+          "data_hash": 11988434820378174152,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 9741,
+          "data": 1202,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11761501081468947591,
+          "data_hash": 2170854301703516872,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 9741,
+          "data": 1202,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8159775048421072007,
+          "data_hash": 11988434820378174152,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 9741,
+          "data": 1202,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11761501081468947591,
+          "data_hash": 2170854301703516872,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 9741,
+          "data": 1202,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8159775048421072007,
+          "data_hash": 11988434820378174152,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 9741,
+          "data": 1202,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11761501081468947591,
+          "data_hash": 2170854301703516872,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "asphalt-single",
+      "median_cycles": 7753,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 7933,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 8,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 7753,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 7753,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 7762,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 7753,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 7753,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 7753,
+          "payload_ops": 6145,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 6155,
+          "data": 860,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 2054866025829968251,
+          "data_hash": 10491385925157372471,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 6155,
+          "data": 860,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11415461765228645176,
+          "data_hash": 186579774925793322,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 6155,
+          "data": 860,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11415461765228645176,
+          "data_hash": 186579774925793322,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 6155,
+          "data": 860,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11415461765228645176,
+          "data_hash": 186579774925793322,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 6155,
+          "data": 860,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11415461765228645176,
+          "data_hash": 186579774925793322,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 6155,
+          "data": 860,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11415461765228645176,
+          "data_hash": 186579774925793322,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 6155,
+          "data": 860,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 11415461765228645176,
+          "data_hash": 186579774925793322,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    },
+    {
+      "workload": "diffuse_m10_8x8_jpeg",
+      "median_cycles": 35324,
+      "windows": [
+        {
+          "window": 0,
+          "cycles": 36331,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 38,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 1,
+          "cycles": 35324,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 2,
+          "cycles": 35324,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 3,
+          "cycles": 35324,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 4,
+          "cycles": 35324,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 5,
+          "cycles": 35324,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        },
+        {
+          "window": 6,
+          "cycles": 35324,
+          "payload_ops": 23405,
+          "helper_ops": 0,
+          "ddr_reads": 0,
+          "nos_ticks": 0,
+          "mmc_bits": 0,
+          "irq_clocks": 0
+        }
+      ],
+      "ordered_digests": [
+        {
+          "window": 0,
+          "retired": 25303,
+          "data": 11577,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 268912685918657503,
+          "data_hash": 16888858474544948268,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 1,
+          "retired": 25303,
+          "data": 11577,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8305920803698330634,
+          "data_hash": 4714279696023744044,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 2,
+          "retired": 25303,
+          "data": 11577,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8305920803698330634,
+          "data_hash": 4714279696023744044,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 3,
+          "retired": 25303,
+          "data": 11577,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8305920803698330634,
+          "data_hash": 4714279696023744044,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 4,
+          "retired": 25303,
+          "data": 11577,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8305920803698330634,
+          "data_hash": 4714279696023744044,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 5,
+          "retired": 25303,
+          "data": 11577,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8305920803698330634,
+          "data_hash": 4714279696023744044,
+          "mmio_hash": 14695981039346656037
+        },
+        {
+          "window": 6,
+          "retired": 25303,
+          "data": 11577,
+          "mmio": 0,
+          "recover": 0,
+          "retire_hash": 8305920803698330634,
+          "data_hash": 4714279696023744044,
+          "mmio_hash": 14695981039346656037
+        }
+      ]
+    }
+  ],
+  "native": {
+    "profile": [
+      0,
+      0
+    ],
+    "case": "native",
+    "frames": [
+      {
+        "frame": 0,
+        "clocks": 14391395,
+        "retired": 7338211,
+        "uops": 1040332,
+        "ifills": 177192,
+        "dfills": 8778,
+        "iwalk_words": 119,
+        "dwalk_words": 5,
+        "d_wait": 297524,
+        "d_walk_wait": 154,
+        "execute_wait": 556759,
+        "iwalk_wait": 1281,
+        "exposed_i": 1524860,
+        "frontend": 1491652,
+        "other": 2140622,
+        "draws": 1,
+        "swaps": 1
+      },
+      {
+        "frame": 1,
+        "clocks": 14467552,
+        "retired": 7372623,
+        "uops": 1046017,
+        "ifills": 179072,
+        "dfills": 8590,
+        "iwalk_words": 111,
+        "dwalk_words": 1,
+        "d_wait": 295747,
+        "d_walk_wait": 33,
+        "execute_wait": 556254,
+        "iwalk_wait": 1176,
+        "exposed_i": 1538774,
+        "frontend": 1501064,
+        "other": 2155864,
+        "draws": 1,
+        "swaps": 1
+      },
+      {
+        "frame": 2,
+        "clocks": 14346201,
+        "retired": 7322287,
+        "uops": 1039189,
+        "ifills": 176599,
+        "dfills": 8508,
+        "iwalk_words": 115,
+        "dwalk_words": 2,
+        "d_wait": 293387,
+        "d_walk_wait": 61,
+        "execute_wait": 551454,
+        "iwalk_wait": 1255,
+        "exposed_i": 1518818,
+        "frontend": 1485675,
+        "other": 2134075,
+        "draws": 1,
+        "swaps": 1
+      },
+      {
+        "frame": 3,
+        "clocks": 14303223,
+        "retired": 7301052,
+        "uops": 1038177,
+        "ifills": 175649,
+        "dfills": 8626,
+        "iwalk_words": 117,
+        "dwalk_words": 2,
+        "d_wait": 295271,
+        "d_walk_wait": 61,
+        "execute_wait": 551798,
+        "iwalk_wait": 1183,
+        "exposed_i": 1510829,
+        "frontend": 1479713,
+        "other": 2125139,
+        "draws": 1,
+        "swaps": 1
+      }
+    ],
+    "architecture": [
+      {
+        "window": 0,
+        "retired": 8378542,
+        "data": 2795132,
+        "mmio": 0,
+        "recover": 0,
+        "retire_hash": 10205000342560512243,
+        "data_hash": 1099935925129445331,
+        "mmio_hash": 14695981039346656037
+      },
+      {
+        "window": 1,
+        "retired": 8418639,
+        "data": 2808540,
+        "mmio": 0,
+        "recover": 0,
+        "retire_hash": 14330942816271412486,
+        "data_hash": 12998895494613033264,
+        "mmio_hash": 14695981039346656037
+      },
+      {
+        "window": 2,
+        "retired": 8361475,
+        "data": 2789266,
+        "mmio": 0,
+        "recover": 0,
+        "retire_hash": 840186148523522304,
+        "data_hash": 10876088796762072086,
+        "mmio_hash": 14695981039346656037
+      },
+      {
+        "window": 3,
+        "retired": 8339228,
+        "data": 2782792,
+        "mmio": 0,
+        "recover": 0,
+        "retire_hash": 8873323223938994861,
+        "data_hash": 709881815613675910,
+        "mmio_hash": 14695981039346656037
+      }
+    ],
+    "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+    "median": 14346201
+  },
+  "mixed": {
+    "clocks": 1201547,
+    "native_lcd_lines": 4576,
+    "pcm_hash": "175ee178",
+    "hps_reads": 4,
+    "hps_writes": 1,
+    "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+    "events": {
+      "P": 49043,
+      "Q": 24425,
+      "H": 70,
+      "D": 1290,
+      "R": 1290,
+      "O": 39694,
+      "V": 19076,
+      "L": 36608
+    },
+    "total_events": 171496
+  }
+}

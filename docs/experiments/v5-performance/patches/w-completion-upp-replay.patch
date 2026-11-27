@@ -1,0 +1,860 @@
+diff --git a/scratch/v5-fit-loop/w-completion-upp/prepare-fit.py b/scratch/v5-fit-loop/w-completion-upp/prepare-fit.py
+new file mode 100644
+index 0000000..946c156
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-upp/prepare-fit.py
+@@ -0,0 +1,192 @@
++"""Prepare W completion lineages on the two-cut and UPP controls without refs."""
++from hashlib import sha256
++import json
++import os
++from pathlib import Path
++import subprocess
++
++
++area = Path(__file__).resolve().parent
++root = area.parents[2]
++standalone = area.parent / 'w-completion-prepare'
++prior = area.parent / 'upp-claim-refill-payload/dispatch-20261126'
++private = area / 'dispatch-20261126'
++objects = private / 'objects'
++objects.mkdir(parents=True, exist_ok=True)
++base = 'ab75a622a80a5aedae347f63ae195f3da965815a'
++active_upp = '96d108d2e44b3e3b630820fe2fa43f9e13cce702'
++base_runs = {13: 45879015397, 43: 45879019116, 31337: 45879022396}
++rtl = 'rtl/arm9v2/arm925t_phone.v'
++changed = [rtl, 'tools/gen_arm9v2_phone.py']
++upp_rtl = 'rtl/ngage_upp_peripherals.v'
++design = standalone / 'w-completion-prepare.patch'
++proof_path = standalone / 'qualification.json'
++
++
++def sha(data):
++    return sha256(data).hexdigest()
++
++
++def load(path):
++    return json.loads(path.read_bytes())
++
++
++alternates = os.pathsep.join(dict.fromkeys(
++    [str(prior / 'objects'), *(prior / 'alternate-objects.txt').read_text().strip().split(os.pathsep)]))
++assert all(Path(path).is_absolute() and Path(path).is_dir() for path in alternates.split(os.pathsep))
++(private / 'alternate-objects.txt').write_text(alternates + '\n')
++
++
++def environment(label):
++    return os.environ | {'GIT_OBJECT_DIRECTORY': str(objects), 'GIT_ALTERNATE_OBJECT_DIRECTORIES': alternates,
++                         'GIT_INDEX_FILE': str(private / f'index-{label}')}
++
++
++def git(*args, env):
++    return subprocess.check_output(['git', '-C', str(root), *args], env=env)
++
++
++def revision(value, env):
++    return git('rev-parse', value, env=env).decode().strip()
++
++
++def tree(value, env):
++    return revision(f'{value}^{{tree}}', env)
++
++
++def files(before, after, env):
++    return git('diff', '--name-only', before, after, env=env).decode().splitlines()
++
++
++def commit(tree_id, parent, message, env):
++    timestamp = int(git('show', '-s', '--format=%ct', parent, env=env)) + 1
++    date = f'@{timestamp} +0000'
++    result = git('commit-tree', tree_id, '-p', parent, '-m', message,
++                 env=env | {'GIT_AUTHOR_DATE': date, 'GIT_COMMITTER_DATE': date}).decode().strip()
++    assert revision(f'{result}^', env) == parent and tree(result, env) == tree_id
++    return result
++
++
++proof = load(proof_path)
++upp_proof = load(prior.parent / 'qualification.json')
++dispatched = load(prior / 'dispatch.json')
++assert (prior / 'published.sha').read_text().strip() == dispatched['candidate'] == active_upp
++assert dispatched['previous_tip'] == base
++assert proof['status'] == upp_proof['status'] == 'PASS' and proof['base'] == upp_proof['base'] == base
++assert upp_proof['candidate'] == active_upp
++assert sha(design.read_bytes()) == proof['design_patch_sha256']
++common = environment('verify')
++assert tree(base, common) == proof['base_tree']
++assert tree(active_upp, common) == upp_proof['tree'] and files(base, active_upp, common) == [upp_rtl]
++assert revision(f'{active_upp}^', common) == base
++for path, expected in proof['reference_sha256'].items():
++    for item in (base, active_upp):
++        assert sha(git('show', f'{item}:{path}', env=common)) == expected
++
++restore = commit(proof['base_tree'], active_upp, '''revert: restore two-cut 104 MHz tree
++
++Restore the measured refill and block capture source for a separate
++comparison of W completion eligibility.''', common)
++assert files(active_upp, restore, common) == [upp_rtl]
++assert git('diff', '--quiet', base, restore, env=common) == b''
++(private / 'restore.sha').write_text(restore + '\n')
++
++variants = {}
++for label, parent in (('w-on-two-cut', restore), ('w-on-upp', active_upp)):
++    env = environment(label)
++    git('read-tree', parent, env=env)
++    git('apply', '--cached', '--check', str(design), env=env)
++    git('apply', '--cached', str(design), env=env)
++    candidate_tree = git('write-tree', env=env).decode().strip()
++    if parent == restore:
++        assert candidate_tree == proof['candidate_tree']
++    candidate = commit(candidate_tree, parent, 'perf(cpu): prepare W completion eligibility', env)
++    assert files(parent, candidate, env) == changed
++    exact = proof['source_sha256'].copy()
++    if parent == active_upp:
++        exact[upp_rtl] = upp_proof['source_sha256'][upp_rtl]
++    assert sorted(files(base, candidate, env)) == sorted(exact)
++    for path, value in exact.items():
++        staged_area = standalone if parent == restore else area
++        assert sha(git('show', f'{candidate}:{path}', env=env)) == sha((staged_area / 'source' / path).read_bytes()) == value
++    assert git('show', f'{candidate}:.github/workflows/ci_build.yml', env=env) == git(
++        'show', f'{base}:.github/workflows/ci_build.yml', env=env)
++    git('merge-base', '--is-ancestor', active_upp, candidate, env=env)
++    (private / f'{label}.sha').write_text(candidate + '\n')
++    variants[label] = {'sha': candidate, 'parent': parent, 'tree': candidate_tree, 'paths_since_parent': changed,
++                       'sha256_from_two_cut': exact, 'production': {}}
++
++tools = ('set_quartus_seed', 'set_quartus_debug', 'record_fit_inputs')
++for label, variant in variants.items():
++    env = environment(label)
++    candidate = variant['sha']
++    for seed, base_run in base_runs.items():
++        base_dir = root / f'build/timing-audit-{base_run}/output_files'
++        base_manifest = load(base_dir / 'resident-fit-manifest.json')
++        assert base_manifest['actual_commit'] == base
++        control = base_manifest
++        run = base_run
++        origin = 'routed two-cut control'
++        if label == 'w-on-upp':
++            upstream = dispatched['runs'][str(seed)]
++            assert upstream['head_sha'] == active_upp and upstream['control_run'] == base_run
++            run = upstream['id']
++            path = root / f'build/timing-audit-{run}/output_files/resident-fit-manifest.json'
++            origin = 'routed UPP control'
++            if not path.is_file():
++                origin = 'sealed UPP control preflight'
++                path = prior / f'preflight/claim-on-two-cut/{seed}/output_files/resident-fit-manifest.json'
++                assert sha(path.read_bytes()) == upstream['candidate_preflight_manifest_sha256']
++            control = load(path)
++            assert control['actual_commit'] == active_upp
++            assert {name: value for name, value in control['compiled_source_sha256'].items()
++                    if value != base_manifest['compiled_source_sha256'][name]} == {upp_rtl: upp_proof['source_sha256'][upp_rtl]}
++        selected = control['compiled_source_sha256']
++        assert control['seed'] == seed and control['physical_cpu_mhz'] == 104 and control['debugger'] is False
++        assert len(selected) == 133 and selected[rtl] == proof['reference_sha256'][rtl] and changed[1] not in selected
++        run_dir = private / 'preflight' / label / str(seed)
++        outputs = run_dir / 'output_files'
++        outputs.mkdir(parents=True, exist_ok=True)
++        graph = (base_dir / 'source-graph.txt').read_text()
++        assert {line.removeprefix('SOURCE /project/') for line in graph.splitlines()
++                if line.startswith('SOURCE ')} == selected.keys()
++        (outputs / 'source-graph.txt').write_text(graph)
++        for name in (*selected, *(f'tools/{tool}.py' for tool in tools)):
++            assert not Path(name).is_absolute() and '..' not in Path(name).parts
++            target = run_dir / name
++            target.parent.mkdir(parents=True, exist_ok=True)
++            target.write_bytes(git('show', f'{candidate}:{name}', env=env))
++        local = os.environ | {'GITHUB_SHA': candidate}
++        for name in ('GITHUB_STEP_SUMMARY', 'GITHUB_RUN_ID'):
++            local.pop(name, None)
++        for tool, *arguments in (('set_quartus_seed', 'Template.qsf', '--seed', str(seed)),
++                                  ('set_quartus_debug', 'Template.qsf', '--enabled', 'false')):
++            subprocess.run(['python3', '-B', f'tools/{tool}.py', *arguments],
++                           cwd=run_dir, env=local, check=True, stdout=subprocess.PIPE)
++        qsf = run_dir / 'Template.qsf'
++        qsf.write_bytes(qsf.read_bytes().replace(b'LAST_QUARTUS_VERSION "17.0.2 Standard Edition"\r\n',
++                                                 b'LAST_QUARTUS_VERSION "17.0.2 Lite Edition"\n'))
++        subprocess.run(['python3', '-B', 'tools/record_fit_inputs.py'],
++                       cwd=run_dir, env=local, check=True, stdout=subprocess.PIPE)
++        preflight = outputs / 'resident-fit-manifest.json'
++        actual = load(preflight)
++        assert actual['actual_commit'] == candidate
++        inputs = actual['compiled_source_sha256']
++        assert inputs.keys() == selected.keys()
++        delta = {name: value for name, value in inputs.items() if value != selected[name]}
++        assert delta == {rtl: proof['source_sha256'][rtl]}
++        assert all(actual[key] == control[key]
++                   for key in control.keys() - {'actual_commit', 'compiled_source_sha256'})
++        variant['production'][seed] = {'control_run': run, 'control_origin': origin, 'mhz': actual['physical_cpu_mhz'],
++                                       'debugger': actual['debugger'], 'source_count': len(inputs),
++                                       'delta': delta, 'manifest_sha256': sha(preflight.read_bytes())}
++        print(f'PASS {label} seed {seed} at 104 MHz DDR debug off, exact 133-input manifest', flush=True)
++
++receipt = {'status': 'PASS', 'two_cut': base, 'public_parent': active_upp, 'restore': restore,
++           'private_objects': str(objects), 'alternate_objects': alternates,
++           'standalone_qualification_sha256': sha(proof_path.read_bytes()),
++           'design_patch_sha256': sha(design.read_bytes()), 'variants': variants}
++(private / 'prepare.json').write_text(json.dumps(receipt, indent=2) + '\n')
++print('Restore', restore)
++for label, value in variants.items():
++    print(label, value['sha'], value['tree'])
+diff --git a/scratch/v5-fit-loop/w-completion-upp/stage.sh b/scratch/v5-fit-loop/w-completion-upp/stage.sh
+new file mode 100644
+index 0000000..51dc16d
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-upp/stage.sh
+@@ -0,0 +1,22 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/w-completion-upp
++standalone=scratch/v5-fit-loop/w-completion-prepare
++private="$area/dispatch-20261126"
++base=96d108d2e44b3e3b630820fe2fa43f9e13cce702
++candidate=$(cat "$private/w-on-upp.sha")
++mkdir -p "$area/reference" "$area/source"
++(
++    export GIT_OBJECT_DIRECTORY="$PWD/$private/objects"
++    export GIT_ALTERNATE_OBJECT_DIRECTORIES="$(cat "$private/alternate-objects.txt")"
++    test "$(git rev-parse "$candidate^")" = "$base"
++    for leg in reference source; do
++        tree="$base"
++        if [ "$leg" = source ]; then tree="$candidate"; fi
++        git archive "$tree" Template.sv rtl tools files.qip .rules.verible_format tests sim/programs/link.ld \
++            | tar -x -C "$area/$leg"
++        python3 -B "$area/$leg/tools/gen_arm9v2_phone.py" --stock build/arm9v2-assoc/stock-pinned.v --check
++    done
++)
++cp "$area/source/rtl/ngage_cpu.sv" "$area/ngage_cpu.sv"
++cmp "$standalone/source/rtl/arm9v2/arm925t_phone.v" "$area/source/rtl/arm9v2/arm925t_phone.v"
+diff --git a/scratch/v5-fit-loop/w-completion-upp/record.py b/scratch/v5-fit-loop/w-completion-upp/record.py
+new file mode 100644
+index 0000000..2fe72fb
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-upp/record.py
+@@ -0,0 +1,123 @@
++"""Bind the stacked W completion qualification to the exact selected UPP parent."""
++from hashlib import sha256
++import json
++import os
++from pathlib import Path
++import re
++import shlex
++import subprocess
++
++
++area = Path(__file__).resolve().parent
++repo = area.parents[2]
++out = Path('build/sim/v5-104-w-completion-upp')
++control = Path('build/sim/v5-104-upp-claim-refill-payload')
++solo = area.parent / 'w-completion-prepare'
++private = area / 'dispatch-20261126'
++netlist = 'rtl/arm9v2/arm925t_phone.v'
++upp = 'rtl/ngage_upp_peripherals.v'
++wrapper = 'rtl/ngage_cpu.sv'
++arbiter = 'rtl/ngage_sdram_arbiter.v'
++
++
++def digest(path):
++    return sha256(path.read_bytes()).hexdigest()
++
++
++def load(path):
++    return json.loads(path.read_bytes())
++
++
++def fingerprint(manifest, path):
++    [row] = [shlex.split(line) for line in manifest.read_text().splitlines()
++             if line.startswith('S ') and shlex.split(line)[-1].endswith(path)]
++    return row[-2]
++
++
++def match(trial, original):
++    assert trial.read_bytes() == original.read_bytes(), (trial, original)
++    return digest(trial)
++
++
++preflight_file = private / 'prepare.json'
++preflight = load(preflight_file)
++assert preflight['status'] == 'PASS'
++standalone = load(solo / 'qualification.json')
++old = load(area.parent / 'upp-claim-refill-payload/qualification.json')
++assert old['status'] == standalone['status'] == 'PASS'
++assert preflight['standalone_qualification_sha256'] == digest(solo / 'qualification.json')
++variant = preflight['variants']['w-on-upp']
++assert variant['parent'] == old['candidate']
++paths = standalone['source_sha256'] | old['source_sha256']
++env = os.environ | {'GIT_OBJECT_DIRECTORY': preflight['private_objects'],
++                    'GIT_ALTERNATE_OBJECT_DIRECTORIES': preflight['alternate_objects']}
++for path, expected in paths.items():
++    actual = subprocess.check_output(['git', '-C', str(repo), 'show', f"{variant['sha']}:{path}"], env=env)
++    assert actual == (area / 'source' / path).read_bytes()
++    assert sha256(actual).hexdigest() == expected
++
++mixed = out / 'mixed'
++previous_mixed = control / 'mixed'
++manifest = load(mixed / 'source-hashes.json')
++prior_manifest = load(previous_mixed / 'source-hashes.json')
++assert len(manifest) == 114 and manifest.keys() == prior_manifest.keys()
++assert {path: value for path, value in manifest.items() if value != prior_manifest[path]} == {netlist: paths[netlist]}
++assert all(digest(mixed / 'source' / path) == value for path, value in manifest.items())
++compiled = {name: fingerprint(mixed / 'obj/Vtb__verFiles.dat', name) for name in (netlist, upp, wrapper, arbiter)}
++assert compiled[netlist] == standalone['compiled_cpu_fingerprint']
++assert all(compiled[path] == old['compiled_fingerprints'][path] for path in (upp, wrapper, arbiter))
++assert all(fingerprint(out / 'hold/trial-obj/Vtb__verFiles.dat', path) == fp for path, fp in compiled.items())
++assert fingerprint(out / 'hold/reference-obj/Vtb__verFiles.dat', netlist) != compiled[netlist]
++
++physical = {}
++for mode, relative, log, reference in (
++    ('normal', 'mixed/traffic.log', 'mixed/replay.log', control / 'mixed/traffic.log'),
++    ('timer_mmc_lcd', 'coexistence/candidate.trace', 'coexistence/candidate.log', control / 'coexistence/candidate.trace'),
++    ('cpu_block_eviction', 'block-guest/source.trace', 'block-guest/source.log', control / 'block-guest/source.trace'),
++    ('warm_hold', 'hold/trial.trace', 'hold/trial.log', control / 'hold/trial.trace'),
++):
++    trace = out / relative
++    sha = match(trace, reference)
++    receipt = standalone['physical'][mode]
++    assert sha == receipt['sha256'] and len(trace.read_bytes().splitlines()) == receipt['events']
++    assert f"persisted512bytes+PIOreadback cycles={receipt['clocks']}" in (out / log).read_text()
++    physical[mode] = receipt
++assert match(out / 'hold/reference.pass', out / 'hold/trial.pass')
++
++workloads = {}
++for kind, field, count in (('fixed', 'windows', 105), ('native', 'frames', 4)):
++    receipt = out / f'qualification/{kind}.json'
++    trial, ref = [load(path) for path in (receipt, control / f'qualification/{kind}.json')]
++    assert trial['status'] == ref['status'] == 'PASS' and trial['rows'] == ref['rows']
++    assert trial['netlist_sha256'] == paths[netlist] and trial['wrapper_sha256'] == paths[wrapper]
++    assert trial['source_sha256'] == ref['source_sha256']
++    assert trial['source_sha256'][Path(upp).name] == paths[upp]
++    assert trial['source_sha256'][Path(arbiter).name] == paths[arbiter]
++    files = out / f'qualification/obj-{kind}/Vtb__verFiles.dat'
++    assert fingerprint(files, f'/work/{kind}-candidate-cpu.v') == compiled[netlist]
++    assert fingerprint(files, Path(wrapper).name) == compiled[wrapper]
++    for path in (upp, arbiter):
++        assert fingerprint(files, path) == compiled[path]
++    assert sum(len(row['candidate'][field]) for row in trial['rows']) == count
++    workloads[kind] = {'count': count, 'sha256': digest(receipt)}
++    if kind == 'fixed':
++        cases = [row['candidate']['case'] for row in trial['rows']]
++        assert len(set(cases)) == 15
++        for case in cases:
++            assert (out / f'qualification/{case}-00-1.log').is_file()
++            assert 'Guest output check rejected payload' in (out / f'qualification/{case}-00-0-wrong.log').read_text()
++        workloads[kind].update(repeated=15, wrong_output_checks=15)
++    else:
++        native = trial['rows'][0]['candidate']
++        workloads[kind].update(frame_cycles=[row['clocks'] for row in native['frames']],
++                               guest_output_sha256=native['output_sha256'])
++
++summary = {'status': 'PASS', 'base': old['candidate'], 'candidate': variant['sha'], 'tree': variant['tree'],
++           'source_sha256': paths, 'compiled_fingerprints': compiled, 'mixed_source_count': len(manifest),
++           'workloads': workloads, 'physical': physical,
++           'simulator': (out / 'image.id').read_text().strip(),
++           'preflight_sha256': digest(preflight_file),
++           'standalone_sha256': digest(solo / 'qualification.json'),
++           'helper_patch_sha256': digest(area / 'w-completion-upp-replay.patch')}
++(area / 'qualification.json').write_text(json.dumps(summary, indent=2) + '\n')
++print('PASS exact stacked W + UPP identities, all workloads and all four pin replays')
+diff --git a/scratch/v5-fit-loop/w-completion-upp/replay.py b/scratch/v5-fit-loop/w-completion-upp/replay.py
+new file mode 100644
+index 0000000..6b46be2
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-upp/replay.py
+@@ -0,0 +1,184 @@
++"""Replay native refill occupancy and SDRAM block capture against the retained 104 MHz control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = repo / 'build/sim/v5-104-w-completion-upp' / args.output
++work.mkdir(parents=True, exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(stage / 'source/tests/cpu/arm9v2_board'))
++import payload_clocks
++payload_clocks.OUT = repo / "build/sim"
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    assert bench.count('.CPU_BLOCK_WRITES(1)') == 1
++    bench = bench.replace('.CPU_BLOCK_WRITES(1)', '.CPU_BLOCK_WRITES(1), .PRECAPTURE_BLOCK_DATA(1)')
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_upp_peripherals.v', 'rtl/ngage_keypad.v', 'rtl/ngage_upp_euart.v', 'rtl/ngage_timers.v', 'rtl/ngage_sdram_arbiter.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/w-completion-upp/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_upp_peripherals.v', 'ngage_keypad.v', 'ngage_upp_euart.v', 'ngage_timers.v', 'ngage_sdram_arbiter.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/w-completion-upp/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((repo / 'build/sim/v5-104-upp-claim-refill-payload/qualification' / f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                source_sha256={name:digest(stage / 'source/rtl' / name) for name in ('ngage_upp.v','ngage_upp_peripherals.v','ngage_upp_euart.v', 'ngage_timers.v','ngage_keypad.v','ngage_sdram_arbiter.v')}, rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/w-completion-upp/mixed.py b/scratch/v5-fit-loop/w-completion-upp/mixed.py
+new file mode 100644
+index 0000000..0dbf286
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-upp/mixed.py
+@@ -0,0 +1,34 @@
++"""Stage the frozen physical-SDRAM replay with parallel UPP claim presence."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-upp-claim-refill-payload/mixed')
++trial = Path('build/sim/v5-104-w-completion-upp/mixed')
++changed = {'rtl/arm9v2/arm925t_phone.v'}
++peer = 'tests/phone/upp_ddr_ram/peer.v'
++
++trial.mkdir(parents=True, exist_ok=True)
++shutil.copytree(base / 'source', trial / 'source', dirs_exist_ok=True)
++for name in ('stress.hex', 'image.hex', 'program.hex'):
++    shutil.copyfile(base / name, trial / name)
++(trial / 'source' / peer).parent.mkdir(parents=True, exist_ok=True)
++shutil.copyfile(stage / 'source' / peer, trial / 'source' / peer)
++for name in changed:
++    shutil.copyfile(stage / 'source' / name, trial / 'source' / name)
++
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert changed <= hashes.keys() and peer in hashes
++for name, reference in hashes.items():
++    if name.startswith('rtl/'):
++        assert sha256((stage / 'reference' / name).read_bytes()).hexdigest() == reference, name
++    actual = sha256((trial / 'source' / name).read_bytes()).hexdigest()
++    assert (actual != reference) == (name in changed), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++
++build = (base / 'build.sh').read_text().replace(str(base), str(trial))
++(trial / 'build.sh').write_text(build)
+diff --git a/scratch/v5-fit-loop/w-completion-upp/pins.sh b/scratch/v5-fit-loop/w-completion-upp/pins.sh
+new file mode 100644
+index 0000000..03df66c
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-upp/pins.sh
+@@ -0,0 +1,33 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/w-completion-upp
++out=build/sim/v5-104-w-completion-upp
++base=build/sim/v5-104-upp-claim-refill-payload
++guest_source=build/sim/v5-104-sdram-block-payload
++guest_path=build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed/stress.hex
++mixed="$out/mixed"
++image=jotego/simulator:arm64
++mkdir -p "$out/coexistence" "$out/block-guest"
++python3 -B "$area/mixed.py"
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -w /work --entrypoint sh "$image" -ec "sh '$mixed/build.sh'
++'$mixed/obj/Vtb' +upp_stress '+compare_trace=$mixed/traffic.log' > '$mixed/replay.log'"
++cmp "$base/mixed/traffic.log" "$mixed/traffic.log"
++grep '^PASS ' "$mixed/replay.log"
++
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -v "$PWD/$guest_source/coexistence/stress-timer.hex:/work/$guest_path:ro" \
++  -w /work --entrypoint "/work/$mixed/obj/Vtb" "$image" \
++  +upp_stress "+compare_trace=$out/coexistence/candidate.trace" > "$out/coexistence/candidate.log"
++cmp "$base/coexistence/candidate.trace" "$out/coexistence/candidate.trace"
++grep '^PASS ' "$out/coexistence/candidate.log"
++
++docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++  -v "$PWD/$guest_source/block-guest/block-guest.hex:/work/$guest_path:ro" -w /work \
++  --entrypoint "/work/$mixed/obj/Vtb" "$image" +upp_stress \
++  "+compare_trace=$out/block-guest/source.trace" > "$out/block-guest/source.log"
++cmp "$base/block-guest/source.trace" "$out/block-guest/source.trace"
++awk '$1 == "Q" && $3 == "110" && ($4 == "001740" || $4 == "001744")' "$out/block-guest/source.trace"
++wc -l "$out/block-guest/source.trace"
++grep '^PASS ' "$out/block-guest/source.log"
+diff --git a/scratch/v5-fit-loop/w-completion-upp/hold.sh b/scratch/v5-fit-loop/w-completion-upp/hold.sh
+new file mode 100644
+index 0000000..83b0268
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-upp/hold.sh
+@@ -0,0 +1,16 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/w-completion-upp
++out=build/sim/v5-104-w-completion-upp/hold
++python3 -B "$area/prepare-hold.py"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 -ec "
++    for leg in reference trial; do
++        sh '$out/'\$leg-build.sh
++        '$out/'\$leg-obj/Vtb +upp_stress +hold '+compare_trace=$out/'\$leg.trace > '$out/'\$leg.log
++        grep '^PASS ' '$out/'\$leg.log > '$out/'\$leg.pass
++    done"
++cmp "$out/reference.trace" "$out/trial.trace"
++cmp "$out/reference.pass" "$out/trial.pass"
++cat "$out/trial.pass"
++wc -l "$out/trial.trace"
+diff --git a/scratch/v5-fit-loop/w-completion-upp/prepare-hold.py b/scratch/v5-fit-loop/w-completion-upp/prepare-hold.py
+new file mode 100644
+index 0000000..c62c4c3
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-upp/prepare-hold.py
+@@ -0,0 +1,29 @@
++"""Match both exact legs against the timer's measured PCM phase after CPU Hold."""
++from pathlib import Path
++
++
++build = Path('build/sim')
++base = build / 'v5-104-upp-claim-refill-payload/mixed'
++candidate = build / 'v5-104-w-completion-upp/mixed'
++out = candidate.parent / 'hold'
++out.mkdir(parents=True, exist_ok=True)
++bench = 'source/tests/phone/mmc_mister/tb.v'
++source = (base / bench).read_text()
++assert source == (candidate / bench).read_text()
++needle = "sample_hash !== 32'h175ee178"
++assert source.count(needle) == 1
++# The original no-hold pin fixture expects independently fixed PCM phase.
++# A verified compare of a warm hold uses the same baseline PCM witness.
++source = source.replace(needle, "sample_hash !== ($test$plusargs(\"hold\") ? 32'h015ec64f : 32'h175ee178)")
++patched = out / 'tb.v'
++patched.write_text(source)
++for label, leg in (('reference', base), ('trial', candidate)):
++    command = (leg / 'build.sh').read_text()
++    old_bench = str(leg / bench)
++    old_object = str(leg / 'obj')
++    old_log = str(leg / 'build.log')
++    assert all(command.count(text) == 1 for text in (old_bench, old_object, old_log))
++    command = command.replace(old_bench, str(patched))
++    command = command.replace(old_object, str(out / f'{label}-obj'))
++    command = command.replace(old_log, str(out / f'{label}-build.log'))
++    (out / f'{label}-build.sh').write_text(command)
+diff --git a/scratch/v5-fit-loop/w-completion-upp/architectural_trace.vh b/scratch/v5-fit-loop/w-completion-upp/architectural_trace.vh
+new file mode 100644
+index 0000000..88b6546
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-upp/architectural_trace.vh
+@@ -0,0 +1,69 @@
++`define RESUPP dut.board.upp.cpu_inside
++`define RESZAP `RESUPP.cpu.u_arm925t.u_zap
++`define RESCORE `RESZAP.g_arm9.u_arm9_core
++`define RESFETCH `RESCORE.u_front_decode.u_fetch
++
++reg [31:0] res_begin, res_end;
++integer res_window = 0;
++integer res_retired, res_data, res_mmio, res_recover;
++reg res_active = 0;
++reg [63:0] res_retire_hash, res_data_hash, res_mmio_hash;
++localparam [63:0] RES_INITIAL = 64'hcbf29ce484222325;
++initial begin
++    if (!$value$plusargs("begin_pc=%h", res_begin) || !$value$plusargs("end_pc=%h", res_end))
++        $fatal(1, "Missing architectural digest window");
++end
++
++function automatic [63:0] res_mix(input [63:0] digest, input [63:0] data);
++    res_mix = (digest ^ data) * 64'h00000100000001b3;
++endfunction
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        res_active = 1;
++        res_retired = 0;
++        res_data = 0;
++        res_mmio = 0;
++        res_recover = 0;
++        res_retire_hash = RES_INITIAL;
++        res_data_hash = RES_INITIAL;
++        res_mmio_hash = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && res_active) begin
++        $display("RES_ARCH window=%0d retired=%0d data=%0d mmio=%0d recover=%0d retire_hash=%016x data_hash=%016x mmio_hash=%016x",
++                 res_window, res_retired, res_data, res_mmio, res_recover,
++                 res_retire_hash, res_data_hash, res_mmio_hash);
++        res_window++;
++        res_active = 0;
++    end else if (res_active) begin
++        if (`RESCORE.wb_complete) begin
++            res_retired++;
++            res_retire_hash = res_mix(res_retire_hash, {`RESCORE.w[526:495], `RESCORE.w[494:463]});
++            res_retire_hash = res_mix(res_retire_hash, {25'b0, exceptions, `RESCORE.cpsr_next});
++            if (`RESCORE.wb_valid) begin
++                if (`RESCORE.wb_tag0 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {26'b0, `RESCORE.wb_tag0, `RESCORE.wb_data0});
++                if (`RESCORE.wb_pair && `RESCORE.wb_tag1 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {25'b0, 1'b1, `RESCORE.wb_tag1, `RESCORE.wb_data1});
++            end
++        end
++        if (`RESZAP.o_dbg_d_done) begin
++            res_data++;
++            res_data_hash = res_mix(res_data_hash, {26'b0, `RESZAP.data_err, `RESZAP.o_dbg_d_we,
++                                                   `RESZAP.o_dbg_d_sel, `RESZAP.o_dbg_d_va});
++            res_data_hash = res_mix(res_data_hash, {32'b0, `RESZAP.o_dbg_d_we ?
++                                                   `RESZAP.o_dbg_d_wdata : `RESZAP.o_dbg_d_rdata});
++        end
++        if (`RESUPP.master_cyc && `RESUPP.master_stb && !`RESUPP.master_code &&
++            (`RESUPP.slow_ack || `RESUPP.slow_error)) begin
++            res_mmio++;
++            res_mmio_hash = res_mix(res_mmio_hash, {26'b0, `RESUPP.slow_error, `RESUPP.master_we,
++                                                   `RESUPP.master_sel, `RESUPP.master_address});
++            res_mmio_hash = res_mix(res_mmio_hash, {32'b0, `RESUPP.master_we ?
++                                                   `RESUPP.master_data : `RESUPP.slow_read_data});
++        end
++    end
++end
++`undef RESFETCH
++`undef RESCORE
++`undef RESZAP
++`undef RESUPP
+diff --git a/scratch/v5-fit-loop/w-completion-upp/wb-write-trace.vh b/scratch/v5-fit-loop/w-completion-upp/wb-write-trace.vh
+new file mode 100644
+index 0000000..e4ee4c7
+--- /dev/null
++++ b/scratch/v5-fit-loop/w-completion-upp/wb-write-trace.vh
+@@ -0,0 +1,98 @@
++`define WC dut.board.upp.cpu_inside.cpu
++`define WZ `WC.u_arm925t.u_zap
++`define WD `WZ.l_generate_with_cache_mmu.u_data_cache
++`define WM `WZ.l_merger_for_core_with_cache_mmu.u_zap_wb_merger
++wire obs_bus_on = `WM.o_wb_cyc && `WM.o_wb_stb;
++wire obs_write = obs_bus_on && `WM.o_wb_wen;
++wire obs_ack = obs_bus_on && `WM.i_wb_ack && !`WM.i_wb_err;
++wire obs_err = obs_bus_on && `WM.i_wb_err;
++wire obs_native = obs_write && `WC.wb_write_block;
++wire [3:0] obs_owner = `WM.o_dbg_data_owner ? `WD.state_ff : 4'b0;
++wire [7:0] obs_ctl = {`WM.o_wb_cti, `WM.o_wb_sel, obs_native};
++wire [31:0] obs_adr = `WM.o_wb_adr;
++wire [31:0] obs_data = `WM.o_wb_dat;
++wire [127:0] obs_block = obs_native ? `WC.wb_block_data : 128'b0;
++wire [199:0] obs_payload = {obs_adr, obs_ctl, obs_data, obs_block};
++wire [2:0] obs_source = {obs_native, `WD.u_zap_cache_fsm.state_ff[`WD.u_zap_cache_fsm.CLEAN_SINGLE], `WM.o_dbg_data_owner};
++
++integer wbt_window = 0;
++integer wbt_clock, wbt_writes, wbt_stalls, wbt_read_acks, wbt_write_acks, wbt_errors;
++integer wbt_read_to_write, wbt_write_next_changed, wbt_owner_changes;
++integer wbt_tag_changed, wbt_cch_changed, wbt_native_changed, wbt_post_changed, wbt_unc_changed;
++integer wbt_tag, wbt_cch, wbt_native, wbt_post, wbt_unc;
++reg wbt_active = 0;
++reg wbt_prev_read_ack, wbt_prev_write_ack, wbt_prev_stalled;
++reg [3:0] wbt_prev_owner;
++reg [199:0] wbt_prev_payload;
++reg [63:0] wbt_digest;
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        wbt_active = 1;
++        wbt_clock = 0;
++        wbt_writes = 0; wbt_stalls = 0; wbt_read_acks = 0; wbt_write_acks = 0; wbt_errors = 0;
++        wbt_read_to_write = 0; wbt_write_next_changed = 0; wbt_owner_changes = 0;
++        wbt_tag_changed = 0; wbt_cch_changed = 0; wbt_native_changed = 0;
++        wbt_post_changed = 0; wbt_unc_changed = 0;
++        wbt_tag = 0; wbt_cch = 0; wbt_native = 0; wbt_post = 0; wbt_unc = 0;
++        wbt_prev_read_ack = 0; wbt_prev_write_ack = 0; wbt_prev_stalled = 0;
++        wbt_prev_owner = 0; wbt_prev_payload = 0;
++        wbt_digest = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && wbt_active) begin
++        $display("RES_WB window=%0d offer=%0d stall=%0d read_ack=%0d write_ack=%0d write_error=%0d read_to_write=%0d changed_after_write_ack=%0d owner_changes=%0d tag=%0d evict_scalar=%0d evict_native=%0d post=%0d unc=%0d tag_changed=%0d evict_scalar_changed=%0d evict_native_changed=%0d post_changed=%0d unc_changed=%0d write_hash=%016x",
++                 wbt_window,wbt_writes,wbt_stalls,wbt_read_acks,wbt_write_acks,wbt_errors,
++                 wbt_read_to_write,wbt_write_next_changed,wbt_owner_changes,
++                 wbt_tag,wbt_cch,wbt_native,wbt_post,wbt_unc,wbt_tag_changed,
++                 wbt_cch_changed,wbt_native_changed,wbt_post_changed,wbt_unc_changed,wbt_digest);
++        wbt_window++;
++        wbt_active = 0;
++    end else if (wbt_active) begin
++        wbt_clock++;
++        if (obs_ack && !obs_write) wbt_read_acks++;
++        if (wbt_prev_stalled && !obs_write) $fatal(1, "write withdrawn while stalled");
++        if (obs_write) begin
++            wbt_writes++;
++            if (wbt_prev_stalled && obs_payload !== wbt_prev_payload)
++                $fatal(1, "stalled write changed payload");
++            if (obs_ack) begin
++                wbt_write_acks++;
++                case (obs_owner)
++                    4'b0010: wbt_tag++;
++                    4'b1000: wbt_post++;
++                    4'b0001: if (obs_native) wbt_native++; else if (obs_source[1]) wbt_cch++; else wbt_unc++;
++                    default: $fatal(1, "unexpected write owner %b", obs_owner);
++                endcase
++            end else if (obs_err) wbt_errors++;
++            else wbt_stalls++;
++            if (wbt_prev_read_ack) wbt_read_to_write++;
++            if (wbt_prev_write_ack) begin
++                if (wbt_prev_owner != obs_owner) wbt_owner_changes++;
++                if (obs_payload[159:0] != wbt_prev_payload[159:0]) begin
++                    wbt_write_next_changed++;
++                    if (wbt_prev_owner == obs_owner)
++                        case (obs_owner)
++                            4'b0010: wbt_tag_changed++;
++                            4'b1000: wbt_post_changed++;
++                            4'b0001: if (obs_native) wbt_native_changed++; else if (obs_source[1]) wbt_cch_changed++; else wbt_unc_changed++;
++                            default: ;
++                        endcase
++                end
++            end
++            wbt_digest = res_mix(wbt_digest, {obs_adr, wbt_clock[21:0], obs_ctl, obs_ack, obs_err});
++            wbt_digest = res_mix(wbt_digest, {31'b0, `WC.wb_lock, obs_data});
++            if (obs_native) begin
++                wbt_digest = res_mix(wbt_digest, obs_block[63:0]);
++                wbt_digest = res_mix(wbt_digest, obs_block[127:64]);
++            end
++        end
++        wbt_prev_read_ack = obs_ack && !obs_write;
++        wbt_prev_write_ack = obs_ack && obs_write;
++        wbt_prev_stalled = obs_write && !obs_ack && !obs_err;
++        wbt_prev_owner = obs_owner;
++        wbt_prev_payload = obs_payload;
++    end
++end
++`undef WM
++`undef WD
++`undef WZ
++`undef WC

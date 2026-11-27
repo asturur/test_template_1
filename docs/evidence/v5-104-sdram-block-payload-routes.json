@@ -1,0 +1,177 @@
+{
+  "13": {
+    "run": 45824513460,
+    "corners": {
+      "7_slow_1100mv_100c": {
+        "source_file": "build/timing-audit-45824513460/output_files/timing/resident-store/104/corner-1/setup.csv",
+        "paths": 87,
+        "negative": 87,
+        "below_minus_1p5": 0,
+        "worst": {
+          "rank": "271",
+          "slack_ns": "-1.311",
+          "data_delay_ns": "10.169",
+          "logic_levels": "7",
+          "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[25]",
+          "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[32]"
+        }
+      },
+      "7_slow_1100mv_-40c": {
+        "source_file": "build/timing-audit-45824513460/output_files/timing/resident-store/104/corner-2/setup.csv",
+        "paths": 115,
+        "negative": 115,
+        "below_minus_1p5": 0,
+        "worst": {
+          "rank": "270",
+          "slack_ns": "-1.201",
+          "data_delay_ns": "10.067",
+          "logic_levels": "6",
+          "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|dma_packet.held_control_channel[7]",
+          "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[32]"
+        }
+      },
+      "MIN_fast_1100mv_100c": {
+        "source_file": "build/timing-audit-45824513460/output_files/timing/resident-store/104/corner-3/setup.csv",
+        "paths": 76,
+        "negative": 0,
+        "below_minus_1p5": 0,
+        "worst": {
+          "rank": "183",
+          "slack_ns": "3.313",
+          "data_delay_ns": "5.806",
+          "logic_levels": "6",
+          "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[2]",
+          "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[0]"
+        }
+      },
+      "MIN_fast_1100mv_-40c": {
+        "source_file": "build/timing-audit-45824513460/output_files/timing/resident-store/104/corner-4/setup.csv",
+        "paths": 0,
+        "negative": 0,
+        "below_minus_1p5": 0
+      }
+    }
+  },
+  "43": {
+    "run": 45824520116,
+    "corners": {
+      "7_slow_1100mv_100c": {
+        "source_file": "build/timing-audit-45824520116/output_files/timing/resident-store/104/corner-1/setup.csv",
+        "paths": 135,
+        "negative": 135,
+        "below_minus_1p5": 95,
+        "worst": {
+          "rank": "38",
+          "slack_ns": "-1.940",
+          "data_delay_ns": "10.705",
+          "logic_levels": "6",
+          "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|Equal38~1_OTERM6861DUPLICATE",
+          "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[0]"
+        }
+      },
+      "7_slow_1100mv_-40c": {
+        "source_file": "build/timing-audit-45824520116/output_files/timing/resident-store/104/corner-2/setup.csv",
+        "paths": 135,
+        "negative": 135,
+        "below_minus_1p5": 82,
+        "worst": {
+          "rank": "33",
+          "slack_ns": "-1.805",
+          "data_delay_ns": "10.630",
+          "logic_levels": "8",
+          "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+          "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[112]~DUPLICATE"
+        }
+      },
+      "MIN_fast_1100mv_100c": {
+        "source_file": "build/timing-audit-45824520116/output_files/timing/resident-store/104/corner-3/setup.csv",
+        "paths": 128,
+        "negative": 0,
+        "below_minus_1p5": 0,
+        "worst": {
+          "rank": "98",
+          "slack_ns": "3.128",
+          "data_delay_ns": "5.936",
+          "logic_levels": "6",
+          "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ctl_written",
+          "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[0]"
+        }
+      },
+      "MIN_fast_1100mv_-40c": {
+        "source_file": "build/timing-audit-45824520116/output_files/timing/resident-store/104/corner-4/setup.csv",
+        "paths": 52,
+        "negative": 0,
+        "below_minus_1p5": 0,
+        "worst": {
+          "rank": "774",
+          "slack_ns": "4.196",
+          "data_delay_ns": "4.879",
+          "logic_levels": "6",
+          "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ctl_written",
+          "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[0]"
+        }
+      }
+    }
+  },
+  "31337": {
+    "run": 45824525843,
+    "corners": {
+      "7_slow_1100mv_100c": {
+        "source_file": "build/timing-audit-45824525843/output_files/timing/resident-store/104/corner-1/setup.csv",
+        "paths": 108,
+        "negative": 108,
+        "below_minus_1p5": 58,
+        "worst": {
+          "rank": "35",
+          "slack_ns": "-1.868",
+          "data_delay_ns": "10.734",
+          "logic_levels": "6",
+          "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+          "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[2]"
+        }
+      },
+      "7_slow_1100mv_-40c": {
+        "source_file": "build/timing-audit-45824525843/output_files/timing/resident-store/104/corner-2/setup.csv",
+        "paths": 113,
+        "negative": 113,
+        "below_minus_1p5": 42,
+        "worst": {
+          "rank": "49",
+          "slack_ns": "-1.740",
+          "data_delay_ns": "10.614",
+          "logic_levels": "6",
+          "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc",
+          "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[103]"
+        }
+      },
+      "MIN_fast_1100mv_100c": {
+        "source_file": "build/timing-audit-45824525843/output_files/timing/resident-store/104/corner-3/setup.csv",
+        "paths": 84,
+        "negative": 0,
+        "below_minus_1p5": 0,
+        "worst": {
+          "rank": "44",
+          "slack_ns": "3.030",
+          "data_delay_ns": "6.102",
+          "logic_levels": "7",
+          "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc",
+          "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[2]"
+        }
+      },
+      "MIN_fast_1100mv_-40c": {
+        "source_file": "build/timing-audit-45824525843/output_files/timing/resident-store/104/corner-4/setup.csv",
+        "paths": 4,
+        "negative": 0,
+        "below_minus_1p5": 0,
+        "worst": {
+          "rank": "776",
+          "slack_ns": "4.175",
+          "data_delay_ns": "4.958",
+          "logic_levels": "7",
+          "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cyc",
+          "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[2]"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,5363 @@
+{
+  "native": {
+    "v5_fps": 5.79,
+    "ngage2_fps": 6.62,
+    "nominal_system_hz": 78000000,
+    "inferred_clock_difference": 1689025.2492838465,
+    "independently_timed": false
+  },
+  "timing_audit": {
+    "dll_sha256": "5b918e3d10a8b4e91265325649c98c72fba7260be6cab37a102d7f50cd7eebef",
+    "euser_def_sha256": "127908e636dd75fba96da6a40f63b4d70c53d42a00ca1b76da9bccdacf9593a5",
+    "score_base": "0x10000000",
+    "utc_ordinal": 1166,
+    "interval_ordinal": 695,
+    "tick_count_ordinal": 1137,
+    "fast_counter_imported": false,
+    "v5_timer_engine_hz": 26000000,
+    "v5_timer_reload": 406250,
+    "ngage2_timer_engine_hz": 34666666.666666664,
+    "ngage2_timer_reload": 541666
+  },
+  "frames": {
+    "v5": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-pin-profile/result.json",
+      "identity": {
+        "status": "PASS",
+        "configs": [
+          "2:64"
+        ],
+        "netlist_sha256": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac",
+        "flash_cache_bytes": 32768,
+        "sdram_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b"
+      },
+      "cases": {
+        "fill16_frame": {
+          "median_clocks": 299252,
+          "scored_clocks": [
+            299285,
+            299252,
+            299257,
+            299250,
+            299247
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 299285,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 299247,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 6,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 188624,
+            "itlb": 7,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 4483,
+            "pre": 4482,
+            "refresh": 533
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2466436,
+          "scored_clocks": [
+            2466306,
+            2466436,
+            2466464,
+            2466504,
+            2466409
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2466306,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2466409,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 198016,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 6599,
+            "pre": 6599,
+            "refresh": 4786
+          }
+        }
+      }
+    },
+    "early_restart": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-pin-early/result.json",
+      "identity": {
+        "status": "PASS",
+        "configs": [
+          "2:64"
+        ],
+        "netlist_sha256": "a24c436a7735d1dbada02d6aa9d365f4a1da3cfb979c90a517b1e6ea93dd0011",
+        "flash_cache_bytes": 32768,
+        "sdram_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b"
+      },
+      "cases": {
+        "fill16_frame": {
+          "median_clocks": 299252,
+          "scored_clocks": [
+            299285,
+            299252,
+            299257,
+            299250,
+            299247
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 299285,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 299247,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 6,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 188624,
+            "itlb": 7,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 4483,
+            "pre": 4482,
+            "refresh": 533
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2466436,
+          "scored_clocks": [
+            2466306,
+            2466436,
+            2466464,
+            2466504,
+            2466409
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2466306,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2466409,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 198016,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 6599,
+            "pre": 6599,
+            "refresh": 4786
+          }
+        }
+      }
+    },
+    "posting": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-pin-ordered-post/result.json",
+      "identity": {
+        "status": "PASS",
+        "configs": [
+          "2:64"
+        ],
+        "netlist_sha256": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac",
+        "flash_cache_bytes": 32768,
+        "sdram_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b"
+      },
+      "cases": {
+        "fill16_frame": {
+          "median_clocks": 295306,
+          "scored_clocks": [
+            295306,
+            295315,
+            295272,
+            295304,
+            295316
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 295306,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 1,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 295316,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 6,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 167995,
+            "itlb": 7,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 4474,
+            "pre": 4473,
+            "refresh": 523
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2465549,
+          "scored_clocks": [
+            2465521,
+            2465479,
+            2465621,
+            2465549,
+            2465737
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2465521,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2465737,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 176406,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 6601,
+            "pre": 6601,
+            "refresh": 4801
+          }
+        }
+      }
+    },
+    "interleave": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-pin-interleave/result.json",
+      "identity": {
+        "status": "PASS",
+        "configs": [
+          "2:64"
+        ],
+        "netlist_sha256": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac",
+        "flash_cache_bytes": 32768,
+        "sdram_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b"
+      },
+      "cases": {
+        "fill16_frame": {
+          "median_clocks": 297306,
+          "scored_clocks": [
+            297306,
+            297330,
+            297296,
+            297303,
+            297309
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 297306,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 297309,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 6,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 187619,
+            "itlb": 7,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 4009,
+            "pre": 3981,
+            "refresh": 522
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2465118,
+          "scored_clocks": [
+            2465118,
+            2465173,
+            2464992,
+            2465035,
+            2465247
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2465118,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2465247,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 3,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 192703,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 5361,
+            "pre": 4897,
+            "refresh": 4781
+          }
+        }
+      }
+    },
+    "posting_and_interleave": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-pin-post-interleave/result.json",
+      "identity": {
+        "status": "PASS",
+        "configs": [
+          "2:64"
+        ],
+        "netlist_sha256": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac",
+        "flash_cache_bytes": 32768,
+        "posted_writes": true,
+        "interleave": true,
+        "sdram_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b"
+      },
+      "cases": {
+        "fill16_frame": {
+          "median_clocks": 293338,
+          "scored_clocks": [
+            293338,
+            293329,
+            293370,
+            293327,
+            293363
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 293338,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 1,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 293363,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 1,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 6,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 167015,
+            "itlb": 7,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 4003,
+            "pre": 3975,
+            "refresh": 515
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2465320,
+          "scored_clocks": [
+            2465440,
+            2465307,
+            2465477,
+            2465135,
+            2465320
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2465440,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2465320,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 171430,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 5469,
+            "pre": 5007,
+            "refresh": 4788
+          }
+        }
+      }
+    },
+    "ngage2": {
+      "archive": "build/sim/payload-clocks/frame-gap-donor-pins/result.json",
+      "identity": {
+        "status": "PASS",
+        "revision": "ff6dcff7f92a8ce999f2e89fdc08b873b5172404",
+        "source": {
+          "rtl/cpu/arm925t_gen.v": "087714b2a692fb949bf8a0586674742118383eb18452f1357c4b4e786a69ab4c",
+          "sim/stubs/altsyncram.sv": "af6c18ace9deecc0ecded64000fedb4b0e14fbf7f133d30804ef3f8f0e0ea16e",
+          "sim/stubs/altdpram.sv": "e21053b37deda75d1699acb06e7ac24873340d8439c9044142d65f8d075f36c3",
+          "rtl/upp/ngage_mem.sv": "d229e4a3b09c5adfec7c6baf3ff84b4f803f9dba7a5f83731ea70ea27240e145",
+          "rtl/upp/upp_bus.sv": "7e06a55edda355ed21904021e406770c3c0ba8d8982b1ddbf8829b12f8dcbfb3",
+          "rtl/upp/wb_arb2.sv": "fd27e06669d27589861842786fc45860c350dba55a8babc0a123de960638ba71",
+          "rtl/mem/ddram_flash.sv": "03732be3266ca9174a3dff27d7ca1f16dd3cad63de99692652d2950b8128d98e",
+          "rtl/mem/sdram.sv": "2069d14823228f4c5a80baf5347fbd7390fd832813e7e4323940cdfddcac5243",
+          "rtl/mem/bram32.sv": "0b19065429f7c77f2bf0972751e68fc97aeeff0723cdbc2cb0ae7a9011b4d0a5",
+          "rtl/board/sdp_ram.sv": "347422dbb8e04c07488826ca4db9fa4a0443384f2e5949b027ba5964a8cc7f69",
+          "rtl/board/nor_flash.sv": "65fdaefdc2d669c2429bbef402a96b5903a96503966921e7517f1481bb45da70",
+          "mt48lc16m16a2-verilator.v": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+          "frame_gap_donor.sv": "1b3233542513423fade27ddc4bed014eaff51eb2900e2bf8ca729ab4af523a06",
+          "ngage_sdram_clock.v": "159b420f5991f5a2d013fefba3d2750b58904078d31f2a80153d7b42b3c9d4c3",
+          "ddio_model.v": "772b6aebc138a6cc698b70ccb01038cf07bdde65c780bd19e315f34b12f5033f"
+        },
+        "rom_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524"
+      },
+      "cases": {
+        "fill16_frame": {
+          "median_clocks": 149869,
+          "scored_clocks": [
+            149869,
+            149869,
+            149869,
+            149869,
+            149869
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 149869,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "wait": 79524,
+            "itlb": 6,
+            "dtlb": 1,
+            "ifills": 0,
+            "dfills": 4577,
+            "sdram_reads": 4583,
+            "sdram_writes": 4320,
+            "act": 1105,
+            "pre": 838,
+            "refresh": 264
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 149869,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "wait": 79524,
+            "itlb": 6,
+            "dtlb": 1,
+            "ifills": 0,
+            "dfills": 4577,
+            "sdram_reads": 4583,
+            "sdram_writes": 4320,
+            "act": 1105,
+            "pre": 838,
+            "refresh": 264
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "cycles": 149869,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "wait": 79524,
+            "itlb": 6,
+            "dtlb": 1,
+            "ifills": 0,
+            "dfills": 4577,
+            "sdram_reads": 4583,
+            "sdram_writes": 4320,
+            "act": 1105,
+            "pre": 838,
+            "refresh": 264
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 4456598,
+          "scored_clocks": [
+            4456598,
+            4456598,
+            4456598,
+            4456598,
+            4456598
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 4456598,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 1076984,
+            "itlb": 3,
+            "dtlb": 109850,
+            "ifills": 0,
+            "dfills": 8416,
+            "sdram_reads": 118128,
+            "sdram_writes": 3336,
+            "act": 31510,
+            "pre": 19510,
+            "refresh": 7908
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 4456598,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 1076984,
+            "itlb": 3,
+            "dtlb": 109850,
+            "ifills": 0,
+            "dfills": 8416,
+            "sdram_reads": 118128,
+            "sdram_writes": 3336,
+            "act": 31510,
+            "pre": 19510,
+            "refresh": 7908
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "cycles": 4456598,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 1076984,
+            "itlb": 3,
+            "dtlb": 109850,
+            "ifills": 0,
+            "dfills": 8416,
+            "sdram_reads": 118128,
+            "sdram_writes": 3336,
+            "act": 31510,
+            "pre": 19510,
+            "refresh": 7908
+          }
+        }
+      }
+    },
+    "ngage2_scalar": {
+      "archive": "build/sim/payload-clocks/frame-gap-donor-scalar/result.json",
+      "identity": {
+        "status": "PASS",
+        "revision": "ff6dcff7f92a8ce999f2e89fdc08b873b5172404",
+        "source": {
+          "rtl/cpu/arm925t_gen.v": "087714b2a692fb949bf8a0586674742118383eb18452f1357c4b4e786a69ab4c",
+          "sim/stubs/altsyncram.sv": "af6c18ace9deecc0ecded64000fedb4b0e14fbf7f133d30804ef3f8f0e0ea16e",
+          "sim/stubs/altdpram.sv": "e21053b37deda75d1699acb06e7ac24873340d8439c9044142d65f8d075f36c3",
+          "rtl/upp/ngage_mem.sv": "d229e4a3b09c5adfec7c6baf3ff84b4f803f9dba7a5f83731ea70ea27240e145",
+          "rtl/upp/upp_bus.sv": "7e06a55edda355ed21904021e406770c3c0ba8d8982b1ddbf8829b12f8dcbfb3",
+          "rtl/upp/wb_arb2.sv": "fd27e06669d27589861842786fc45860c350dba55a8babc0a123de960638ba71",
+          "rtl/mem/ddram_flash.sv": "03732be3266ca9174a3dff27d7ca1f16dd3cad63de99692652d2950b8128d98e",
+          "rtl/mem/sdram.sv": "2069d14823228f4c5a80baf5347fbd7390fd832813e7e4323940cdfddcac5243",
+          "rtl/mem/bram32.sv": "0b19065429f7c77f2bf0972751e68fc97aeeff0723cdbc2cb0ae7a9011b4d0a5",
+          "rtl/board/sdp_ram.sv": "347422dbb8e04c07488826ca4db9fa4a0443384f2e5949b027ba5964a8cc7f69",
+          "rtl/board/nor_flash.sv": "65fdaefdc2d669c2429bbef402a96b5903a96503966921e7517f1481bb45da70",
+          "mt48lc16m16a2.v": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+          "frame_gap_donor.sv": "e6aa2917705c90c7f2ac33aa2987fad222f6ca5b037a7c3adbde50d223279f2a",
+          "ngage_sdram_clock.v": "159b420f5991f5a2d013fefba3d2750b58904078d31f2a80153d7b42b3c9d4c3",
+          "ddio_model.v": "772b6aebc138a6cc698b70ccb01038cf07bdde65c780bd19e315f34b12f5033f"
+        },
+        "rom_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+        "scalar_writeback": true
+      },
+      "cases": {
+        "fill16_frame": {
+          "median_clocks": 138752,
+          "scored_clocks": [
+            138752,
+            138726,
+            138752,
+            138726,
+            138752
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 138752,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "wait": 80863,
+            "itlb": 6,
+            "dtlb": 1,
+            "ifills": 0,
+            "dfills": 4577,
+            "sdram_reads": 4583,
+            "sdram_writes": 17280,
+            "act": 1082,
+            "pre": 832,
+            "refresh": 245
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 138752,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "wait": 80863,
+            "itlb": 6,
+            "dtlb": 1,
+            "ifills": 0,
+            "dfills": 4577,
+            "sdram_reads": 4583,
+            "sdram_writes": 17280,
+            "act": 1082,
+            "pre": 832,
+            "refresh": 245
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "cycles": 138752,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "wait": 80863,
+            "itlb": 6,
+            "dtlb": 1,
+            "ifills": 0,
+            "dfills": 4577,
+            "sdram_reads": 4583,
+            "sdram_writes": 17280,
+            "act": 1082,
+            "pre": 832,
+            "refresh": 245
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 4451870,
+          "scored_clocks": [
+            4451870,
+            4451870,
+            4451870,
+            4451870,
+            4451870
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 4451870,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 1084666,
+            "itlb": 3,
+            "dtlb": 109850,
+            "ifills": 0,
+            "dfills": 8416,
+            "sdram_reads": 118128,
+            "sdram_writes": 13344,
+            "act": 31555,
+            "pre": 19549,
+            "refresh": 7899
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 4451870,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 1084666,
+            "itlb": 3,
+            "dtlb": 109850,
+            "ifills": 0,
+            "dfills": 8416,
+            "sdram_reads": 118128,
+            "sdram_writes": 13344,
+            "act": 31555,
+            "pre": 19549,
+            "refresh": 7899
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "cycles": 4451870,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 1084666,
+            "itlb": 3,
+            "dtlb": 109850,
+            "ifills": 0,
+            "dfills": 8416,
+            "sdram_reads": 118128,
+            "sdram_writes": 13344,
+            "act": 31555,
+            "pre": 19549,
+            "refresh": 7899
+          }
+        }
+      }
+    },
+    "ngage2_dcache16": {
+      "archive": "build/sim/payload-clocks/frame-gap-donor-dcache16/result.json",
+      "identity": {
+        "status": "PASS",
+        "revision": "ff6dcff7f92a8ce999f2e89fdc08b873b5172404",
+        "source": {
+          "rtl/cpu/arm925t_gen.v": "51779bd539a093d3c1d808956eb347acc269b7f9e072ab533ba434259d809c18",
+          "sim/stubs/altsyncram.sv": "af6c18ace9deecc0ecded64000fedb4b0e14fbf7f133d30804ef3f8f0e0ea16e",
+          "sim/stubs/altdpram.sv": "e21053b37deda75d1699acb06e7ac24873340d8439c9044142d65f8d075f36c3",
+          "rtl/upp/ngage_mem.sv": "d229e4a3b09c5adfec7c6baf3ff84b4f803f9dba7a5f83731ea70ea27240e145",
+          "rtl/upp/upp_bus.sv": "7e06a55edda355ed21904021e406770c3c0ba8d8982b1ddbf8829b12f8dcbfb3",
+          "rtl/upp/wb_arb2.sv": "fd27e06669d27589861842786fc45860c350dba55a8babc0a123de960638ba71",
+          "rtl/mem/ddram_flash.sv": "03732be3266ca9174a3dff27d7ca1f16dd3cad63de99692652d2950b8128d98e",
+          "rtl/mem/sdram.sv": "2069d14823228f4c5a80baf5347fbd7390fd832813e7e4323940cdfddcac5243",
+          "rtl/mem/bram32.sv": "0b19065429f7c77f2bf0972751e68fc97aeeff0723cdbc2cb0ae7a9011b4d0a5",
+          "rtl/board/sdp_ram.sv": "347422dbb8e04c07488826ca4db9fa4a0443384f2e5949b027ba5964a8cc7f69",
+          "rtl/board/nor_flash.sv": "65fdaefdc2d669c2429bbef402a96b5903a96503966921e7517f1481bb45da70",
+          "mt48lc16m16a2.v": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+          "frame_gap_donor.sv": "e6aa2917705c90c7f2ac33aa2987fad222f6ca5b037a7c3adbde50d223279f2a",
+          "ngage_sdram_clock.v": "159b420f5991f5a2d013fefba3d2750b58904078d31f2a80153d7b42b3c9d4c3",
+          "ddio_model.v": "772b6aebc138a6cc698b70ccb01038cf07bdde65c780bd19e315f34b12f5033f"
+        },
+        "rom_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+        "scalar_writeback": false,
+        "dcache_16k": true,
+        "section_xor": false
+      },
+      "cases": {
+        "fill16_frame": {
+          "median_clocks": 174368,
+          "scored_clocks": [
+            174368,
+            174362,
+            174368,
+            174362,
+            174368
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 174368,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "wait": 104114,
+            "itlb": 6,
+            "dtlb": 1,
+            "ifills": 0,
+            "dfills": 4577,
+            "sdram_reads": 4583,
+            "sdram_writes": 4064,
+            "act": 7232,
+            "pre": 7181,
+            "refresh": 308
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 174368,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "wait": 104114,
+            "itlb": 6,
+            "dtlb": 1,
+            "ifills": 0,
+            "dfills": 4577,
+            "sdram_reads": 4583,
+            "sdram_writes": 4064,
+            "act": 7232,
+            "pre": 7181,
+            "refresh": 308
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "cycles": 174368,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "wait": 104114,
+            "itlb": 6,
+            "dtlb": 1,
+            "ifills": 0,
+            "dfills": 4577,
+            "sdram_reads": 4583,
+            "sdram_writes": 4064,
+            "act": 7232,
+            "pre": 7181,
+            "refresh": 308
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 4453597,
+          "scored_clocks": [
+            4453597,
+            4453597,
+            4453597,
+            4453597,
+            4453597
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 4453597,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 1064868,
+            "itlb": 3,
+            "dtlb": 109850,
+            "ifills": 0,
+            "dfills": 8033,
+            "sdram_reads": 117773,
+            "sdram_writes": 3331,
+            "act": 31182,
+            "pre": 19234,
+            "refresh": 7902
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 4453597,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 1064868,
+            "itlb": 3,
+            "dtlb": 109850,
+            "ifills": 0,
+            "dfills": 8033,
+            "sdram_reads": 117773,
+            "sdram_writes": 3331,
+            "act": 31182,
+            "pre": 19234,
+            "refresh": 7902
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "cycles": 4453597,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 1064868,
+            "itlb": 3,
+            "dtlb": 109850,
+            "ifills": 0,
+            "dfills": 8033,
+            "sdram_reads": 117773,
+            "sdram_writes": 3331,
+            "act": 31182,
+            "pre": 19234,
+            "refresh": 7902
+          }
+        }
+      }
+    },
+    "ngage2_dtlb_xor": {
+      "archive": "build/sim/payload-clocks/frame-gap-donor-xor/result.json",
+      "identity": {
+        "status": "PASS",
+        "revision": "ff6dcff7f92a8ce999f2e89fdc08b873b5172404",
+        "source": {
+          "rtl/cpu/arm925t_gen.v": "aeac312bc40887239e7d0b2dcc375fdc02ff328de36f1bbfbea8714107029d37",
+          "sim/stubs/altsyncram.sv": "af6c18ace9deecc0ecded64000fedb4b0e14fbf7f133d30804ef3f8f0e0ea16e",
+          "sim/stubs/altdpram.sv": "e21053b37deda75d1699acb06e7ac24873340d8439c9044142d65f8d075f36c3",
+          "rtl/upp/ngage_mem.sv": "d229e4a3b09c5adfec7c6baf3ff84b4f803f9dba7a5f83731ea70ea27240e145",
+          "rtl/upp/upp_bus.sv": "7e06a55edda355ed21904021e406770c3c0ba8d8982b1ddbf8829b12f8dcbfb3",
+          "rtl/upp/wb_arb2.sv": "fd27e06669d27589861842786fc45860c350dba55a8babc0a123de960638ba71",
+          "rtl/mem/ddram_flash.sv": "03732be3266ca9174a3dff27d7ca1f16dd3cad63de99692652d2950b8128d98e",
+          "rtl/mem/sdram.sv": "2069d14823228f4c5a80baf5347fbd7390fd832813e7e4323940cdfddcac5243",
+          "rtl/mem/bram32.sv": "0b19065429f7c77f2bf0972751e68fc97aeeff0723cdbc2cb0ae7a9011b4d0a5",
+          "rtl/board/sdp_ram.sv": "347422dbb8e04c07488826ca4db9fa4a0443384f2e5949b027ba5964a8cc7f69",
+          "rtl/board/nor_flash.sv": "65fdaefdc2d669c2429bbef402a96b5903a96503966921e7517f1481bb45da70",
+          "mt48lc16m16a2.v": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+          "frame_gap_donor.sv": "e6aa2917705c90c7f2ac33aa2987fad222f6ca5b037a7c3adbde50d223279f2a",
+          "ngage_sdram_clock.v": "159b420f5991f5a2d013fefba3d2750b58904078d31f2a80153d7b42b3c9d4c3",
+          "ddio_model.v": "772b6aebc138a6cc698b70ccb01038cf07bdde65c780bd19e315f34b12f5033f"
+        },
+        "rom_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+        "scalar_writeback": false,
+        "dcache_16k": false,
+        "section_xor": true
+      },
+      "cases": {
+        "sega-scan": {
+          "median_clocks": 2440099,
+          "scored_clocks": [
+            2440063,
+            2440099,
+            2440099,
+            2440099,
+            2440099
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2440063,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 126947,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 8416,
+            "sdram_reads": 8280,
+            "sdram_writes": 3336,
+            "act": 10529,
+            "pre": 8008,
+            "refresh": 4331
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2440099,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 126973,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 8416,
+            "sdram_reads": 8280,
+            "sdram_writes": 3336,
+            "act": 10528,
+            "pre": 8012,
+            "refresh": 4332
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "cycles": 2440063,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 126947,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 8416,
+            "sdram_reads": 8280,
+            "sdram_writes": 3336,
+            "act": 10529,
+            "pre": 8008,
+            "refresh": 4331
+          }
+        }
+      }
+    },
+    "ngage2_dcache16_and_dtlb_xor": {
+      "archive": "build/sim/payload-clocks/frame-gap-donor-matched/result.json",
+      "identity": {
+        "status": "PASS",
+        "revision": "ff6dcff7f92a8ce999f2e89fdc08b873b5172404",
+        "source": {
+          "rtl/cpu/arm925t_gen.v": "6d6cba4c3f635555e83dbc326ff42179dd9ff825a01c464b621e2f3fcd7194aa",
+          "sim/stubs/altsyncram.sv": "af6c18ace9deecc0ecded64000fedb4b0e14fbf7f133d30804ef3f8f0e0ea16e",
+          "sim/stubs/altdpram.sv": "e21053b37deda75d1699acb06e7ac24873340d8439c9044142d65f8d075f36c3",
+          "rtl/upp/ngage_mem.sv": "d229e4a3b09c5adfec7c6baf3ff84b4f803f9dba7a5f83731ea70ea27240e145",
+          "rtl/upp/upp_bus.sv": "7e06a55edda355ed21904021e406770c3c0ba8d8982b1ddbf8829b12f8dcbfb3",
+          "rtl/upp/wb_arb2.sv": "fd27e06669d27589861842786fc45860c350dba55a8babc0a123de960638ba71",
+          "rtl/mem/ddram_flash.sv": "03732be3266ca9174a3dff27d7ca1f16dd3cad63de99692652d2950b8128d98e",
+          "rtl/mem/sdram.sv": "2069d14823228f4c5a80baf5347fbd7390fd832813e7e4323940cdfddcac5243",
+          "rtl/mem/bram32.sv": "0b19065429f7c77f2bf0972751e68fc97aeeff0723cdbc2cb0ae7a9011b4d0a5",
+          "rtl/board/sdp_ram.sv": "347422dbb8e04c07488826ca4db9fa4a0443384f2e5949b027ba5964a8cc7f69",
+          "rtl/board/nor_flash.sv": "65fdaefdc2d669c2429bbef402a96b5903a96503966921e7517f1481bb45da70",
+          "mt48lc16m16a2.v": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+          "frame_gap_donor.sv": "e6aa2917705c90c7f2ac33aa2987fad222f6ca5b037a7c3adbde50d223279f2a",
+          "ngage_sdram_clock.v": "159b420f5991f5a2d013fefba3d2750b58904078d31f2a80153d7b42b3c9d4c3",
+          "ddio_model.v": "772b6aebc138a6cc698b70ccb01038cf07bdde65c780bd19e315f34b12f5033f"
+        },
+        "rom_sha256": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+        "scalar_writeback": false,
+        "dcache_16k": true,
+        "section_xor": true
+      },
+      "cases": {
+        "fill16_frame": {
+          "median_clocks": 173629,
+          "scored_clocks": [
+            173629,
+            173637,
+            173629,
+            173637,
+            173629
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 173629,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "wait": 103453,
+            "itlb": 8,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4577,
+            "sdram_reads": 4583,
+            "sdram_writes": 4064,
+            "act": 7233,
+            "pre": 7183,
+            "refresh": 307
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 173629,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "wait": 103453,
+            "itlb": 8,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4577,
+            "sdram_reads": 4583,
+            "sdram_writes": 4064,
+            "act": 7233,
+            "pre": 7183,
+            "refresh": 307
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "cycles": 173629,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "wait": 103453,
+            "itlb": 8,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4577,
+            "sdram_reads": 4583,
+            "sdram_writes": 4064,
+            "act": 7233,
+            "pre": 7183,
+            "refresh": 307
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2441243,
+          "scored_clocks": [
+            2441200,
+            2441243,
+            2441243,
+            2441243,
+            2441243
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2441200,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 122009,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 8033,
+            "sdram_reads": 7925,
+            "sdram_writes": 3331,
+            "act": 10377,
+            "pre": 7930,
+            "refresh": 4333
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2441243,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 122055,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 8033,
+            "sdram_reads": 7925,
+            "sdram_writes": 3331,
+            "act": 10379,
+            "pre": 7941,
+            "refresh": 4334
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "cycles": 2441200,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "wait": 122009,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 8033,
+            "sdram_reads": 7925,
+            "sdram_writes": 3331,
+            "act": 10377,
+            "pre": 7930,
+            "refresh": 4333
+          }
+        }
+      }
+    },
+    "v5_retained": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-base-retained/result.json",
+      "identity": {
+        "status": "PASS",
+        "configs": [
+          "2:64"
+        ],
+        "netlist_sha256": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac",
+        "flash_cache_bytes": 32768,
+        "posted_writes": false,
+        "interleave": false,
+        "sdram_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b"
+      },
+      "cases": {
+        "matrix4": {
+          "median_clocks": 18138,
+          "scored_clocks": [
+            18135,
+            18138,
+            18138,
+            18135,
+            18138
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 18135,
+            "payload_ops": 14176,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 18138,
+            "payload_ops": 14176,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 66,
+            "writes": 0,
+            "lines": 0,
+            "wait": 776,
+            "itlb": 65,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 33,
+            "pre": 32,
+            "refresh": 40
+          }
+        },
+        "transpose4": {
+          "median_clocks": 3384,
+          "scored_clocks": [
+            3384,
+            3384,
+            3384,
+            3387,
+            3396
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 3384,
+            "payload_ops": 800,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 3396,
+            "payload_ops": 800,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 131,
+            "writes": 0,
+            "lines": 0,
+            "wait": 1572,
+            "itlb": 131,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 66,
+            "pre": 65,
+            "refresh": 0
+          }
+        },
+        "triangle_edges": {
+          "median_clocks": 12695,
+          "scored_clocks": [
+            12689,
+            12704,
+            12695,
+            12689,
+            12695
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 12689,
+            "payload_ops": 6656,
+            "helper_ops": 1872,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 12695,
+            "payload_ops": 6656,
+            "helper_ops": 1872,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 66,
+            "writes": 0,
+            "lines": 0,
+            "wait": 782,
+            "itlb": 65,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 35,
+            "pre": 35,
+            "refresh": 30
+          }
+        },
+        "fill16_frame": {
+          "median_clocks": 299252,
+          "scored_clocks": [
+            299285,
+            299252,
+            299257,
+            299250,
+            299247
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 299285,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 299247,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 6,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 188624,
+            "itlb": 7,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 4483,
+            "pre": 4482,
+            "refresh": 533
+          }
+        },
+        "fill16_tail": {
+          "median_clocks": 747,
+          "scored_clocks": [
+            747,
+            747,
+            747,
+            747,
+            747
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 747,
+            "payload_ops": 654,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 747,
+            "payload_ops": 654,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 46,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 0
+          }
+        },
+        "fill8_tail": {
+          "median_clocks": 768,
+          "scored_clocks": [
+            768,
+            768,
+            768,
+            768,
+            768
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 768,
+            "payload_ops": 667,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 768,
+            "payload_ops": 667,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 46,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 0
+          }
+        },
+        "monkey-forward": {
+          "median_clocks": 16464,
+          "scored_clocks": [
+            16464,
+            16464,
+            16464,
+            16464,
+            16464
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 16464,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 16464,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 3,
+            "writes": 0,
+            "lines": 0,
+            "wait": 45,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 4,
+            "refresh": 30
+          }
+        },
+        "monkey-reverse": {
+          "median_clocks": 16464,
+          "scored_clocks": [
+            16464,
+            16464,
+            16464,
+            16464,
+            16464
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 16464,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 16464,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 3,
+            "writes": 0,
+            "lines": 0,
+            "wait": 45,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 4,
+            "refresh": 30
+          }
+        },
+        "sega-span": {
+          "median_clocks": 15954,
+          "scored_clocks": [
+            15954,
+            15957,
+            15954,
+            15954,
+            15954
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 15954,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 15954,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 44,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 3,
+            "refresh": 30
+          }
+        },
+        "sega-fill": {
+          "median_clocks": 2643,
+          "scored_clocks": [
+            2640,
+            2643,
+            2643,
+            2643,
+            2640
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2640,
+            "payload_ops": 2561,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2640,
+            "payload_ops": 2561,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 44,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 10
+          }
+        },
+        "asphalt-table": {
+          "median_clocks": 22093,
+          "scored_clocks": [
+            22133,
+            22113,
+            22093,
+            22092,
+            22086
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 22133,
+            "payload_ops": 13313,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 22086,
+            "payload_ops": 13313,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 24,
+            "wait": 536,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 24,
+            "act": 33,
+            "pre": 33,
+            "refresh": 39
+          }
+        },
+        "asphalt-double": {
+          "median_clocks": 12770,
+          "scored_clocks": [
+            12767,
+            12770,
+            12767,
+            12770,
+            12770
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 12767,
+            "payload_ops": 9729,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 12770,
+            "payload_ops": 9729,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 5,
+            "wait": 504,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 5,
+            "act": 12,
+            "pre": 12,
+            "refresh": 20
+          }
+        },
+        "asphalt-single": {
+          "median_clocks": 8286,
+          "scored_clocks": [
+            8286,
+            8286,
+            8286,
+            8286,
+            8286
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 8286,
+            "payload_ops": 6145,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 8286,
+            "payload_ops": 6145,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 44,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 2,
+            "refresh": 20
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2466436,
+          "scored_clocks": [
+            2466306,
+            2466436,
+            2466464,
+            2466504,
+            2466409
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2466306,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2466409,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 198016,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 6599,
+            "pre": 6599,
+            "refresh": 4786
+          }
+        },
+        "diffuse_m10_8x8_jpeg": {
+          "median_clocks": 35903,
+          "scored_clocks": [
+            35903,
+            35903,
+            35903,
+            35903,
+            35903
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 35903,
+            "payload_ops": 23405,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 35903,
+            "payload_ops": 23405,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 0,
+            "writes": 0,
+            "lines": 0,
+            "wait": 0,
+            "itlb": 0,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 0,
+            "pre": 7,
+            "refresh": 70
+          }
+        }
+      }
+    },
+    "posting_and_interleave_retained": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-post-interleave-retained/result.json",
+      "identity": {
+        "status": "PASS",
+        "configs": [
+          "2:64"
+        ],
+        "netlist_sha256": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac",
+        "flash_cache_bytes": 32768,
+        "posted_writes": true,
+        "interleave": true,
+        "sdram_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b"
+      },
+      "cases": {
+        "matrix4": {
+          "median_clocks": 18138,
+          "scored_clocks": [
+            18138,
+            18135,
+            18141,
+            18138,
+            18138
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 18138,
+            "payload_ops": 14176,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 18138,
+            "payload_ops": 14176,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 66,
+            "writes": 0,
+            "lines": 0,
+            "wait": 778,
+            "itlb": 65,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 33,
+            "pre": 32,
+            "refresh": 30
+          }
+        },
+        "transpose4": {
+          "median_clocks": 3387,
+          "scored_clocks": [
+            3384,
+            3384,
+            3390,
+            3387,
+            3387
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 3384,
+            "payload_ops": 800,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 3387,
+            "payload_ops": 800,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 131,
+            "writes": 0,
+            "lines": 0,
+            "wait": 1572,
+            "itlb": 131,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 66,
+            "pre": 65,
+            "refresh": 0
+          }
+        },
+        "triangle_edges": {
+          "median_clocks": 12695,
+          "scored_clocks": [
+            12695,
+            12704,
+            12701,
+            12695,
+            12692
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 12695,
+            "payload_ops": 6656,
+            "helper_ops": 1872,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 12692,
+            "payload_ops": 6656,
+            "helper_ops": 1872,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 66,
+            "writes": 0,
+            "lines": 0,
+            "wait": 788,
+            "itlb": 65,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 35,
+            "pre": 35,
+            "refresh": 29
+          }
+        },
+        "fill16_frame": {
+          "median_clocks": 293338,
+          "scored_clocks": [
+            293338,
+            293329,
+            293370,
+            293327,
+            293363
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 293338,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 1,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 293363,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 1,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 6,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 167015,
+            "itlb": 7,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 4003,
+            "pre": 3975,
+            "refresh": 515
+          }
+        },
+        "fill16_tail": {
+          "median_clocks": 747,
+          "scored_clocks": [
+            747,
+            747,
+            744,
+            747,
+            747
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 747,
+            "payload_ops": 654,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 747,
+            "payload_ops": 654,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 46,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 0
+          }
+        },
+        "fill8_tail": {
+          "median_clocks": 768,
+          "scored_clocks": [
+            768,
+            768,
+            765,
+            768,
+            768
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 768,
+            "payload_ops": 667,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 768,
+            "payload_ops": 667,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 46,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 0
+          }
+        },
+        "monkey-forward": {
+          "median_clocks": 16464,
+          "scored_clocks": [
+            16464,
+            16464,
+            16464,
+            16461,
+            16464
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 16464,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 16464,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 3,
+            "writes": 0,
+            "lines": 0,
+            "wait": 45,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 4,
+            "refresh": 30
+          }
+        },
+        "monkey-reverse": {
+          "median_clocks": 16464,
+          "scored_clocks": [
+            16464,
+            16464,
+            16464,
+            16461,
+            16464
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 16464,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 16464,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 3,
+            "writes": 0,
+            "lines": 0,
+            "wait": 45,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 4,
+            "refresh": 30
+          }
+        },
+        "sega-span": {
+          "median_clocks": 15954,
+          "scored_clocks": [
+            15954,
+            15954,
+            15960,
+            15954,
+            15954
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 15954,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 15954,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 44,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 3,
+            "refresh": 30
+          }
+        },
+        "sega-fill": {
+          "median_clocks": 2643,
+          "scored_clocks": [
+            2643,
+            2640,
+            2643,
+            2643,
+            2643
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2643,
+            "payload_ops": 2561,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2643,
+            "payload_ops": 2561,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 46,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 0
+          }
+        },
+        "asphalt-table": {
+          "median_clocks": 22040,
+          "scored_clocks": [
+            22040,
+            22036,
+            22036,
+            22044,
+            22040
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 22040,
+            "payload_ops": 13313,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 22040,
+            "payload_ops": 13313,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 24,
+            "wait": 444,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 24,
+            "act": 15,
+            "pre": 8,
+            "refresh": 40
+          }
+        },
+        "asphalt-double": {
+          "median_clocks": 12732,
+          "scored_clocks": [
+            12732,
+            12734,
+            12732,
+            12734,
+            12732
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 12732,
+            "payload_ops": 9729,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 12732,
+            "payload_ops": 9729,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 5,
+            "wait": 464,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 5,
+            "act": 12,
+            "pre": 11,
+            "refresh": 30
+          }
+        },
+        "asphalt-single": {
+          "median_clocks": 8286,
+          "scored_clocks": [
+            8286,
+            8286,
+            8286,
+            8286,
+            8286
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 8286,
+            "payload_ops": 6145,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 8286,
+            "payload_ops": 6145,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 44,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 2,
+            "refresh": 20
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2465320,
+          "scored_clocks": [
+            2465440,
+            2465307,
+            2465477,
+            2465135,
+            2465320
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2465440,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2465320,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 171430,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 5469,
+            "pre": 5007,
+            "refresh": 4788
+          }
+        },
+        "diffuse_m10_8x8_jpeg": {
+          "median_clocks": 35903,
+          "scored_clocks": [
+            35903,
+            35903,
+            35903,
+            35903,
+            35903
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 35903,
+            "payload_ops": 23405,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 35903,
+            "payload_ops": 23405,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 0,
+            "writes": 0,
+            "lines": 0,
+            "wait": 0,
+            "itlb": 0,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 0,
+            "pre": 7,
+            "refresh": 70
+          }
+        }
+      }
+    },
+    "v5_retained_pinwait": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-base-pinwait-retained/result.json",
+      "identity": {
+        "status": "PASS",
+        "configs": [
+          "2:64"
+        ],
+        "netlist_sha256": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac",
+        "flash_cache_bytes": 32768,
+        "posted_writes": false,
+        "interleave": false,
+        "pin_waits": true,
+        "sdram_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b"
+      },
+      "cases": {
+        "matrix4": {
+          "median_clocks": 18723,
+          "scored_clocks": [
+            18729,
+            18726,
+            18723,
+            18720,
+            18720
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 18729,
+            "payload_ops": 14176,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 18720,
+            "payload_ops": 14176,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 65,
+            "writes": 0,
+            "lines": 0,
+            "wait": 1371,
+            "itlb": 65,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 34,
+            "pre": 33,
+            "refresh": 30
+          }
+        },
+        "transpose4": {
+          "median_clocks": 4572,
+          "scored_clocks": [
+            4569,
+            4572,
+            4572,
+            4575,
+            4584
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 4569,
+            "payload_ops": 800,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 4584,
+            "payload_ops": 800,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 131,
+            "writes": 0,
+            "lines": 0,
+            "wait": 2759,
+            "itlb": 131,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 68,
+            "pre": 67,
+            "refresh": 10
+          }
+        },
+        "triangle_edges": {
+          "median_clocks": 13277,
+          "scored_clocks": [
+            13298,
+            13274,
+            13289,
+            13274,
+            13277
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 13298,
+            "payload_ops": 6656,
+            "helper_ops": 1872,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 13277,
+            "payload_ops": 6656,
+            "helper_ops": 1872,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 65,
+            "writes": 0,
+            "lines": 0,
+            "wait": 1390,
+            "itlb": 65,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 35,
+            "pre": 35,
+            "refresh": 20
+          }
+        },
+        "fill16_frame": {
+          "median_clocks": 465570,
+          "scored_clocks": [
+            465568,
+            465579,
+            465587,
+            465570,
+            465553
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 465568,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 1,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 465553,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 7,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 334369,
+            "itlb": 7,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 4414,
+            "pre": 4413,
+            "refresh": 859
+          }
+        },
+        "fill16_tail": {
+          "median_clocks": 783,
+          "scored_clocks": [
+            783,
+            783,
+            783,
+            780,
+            783
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 783,
+            "payload_ops": 654,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 783,
+            "payload_ops": 654,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 82,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 0
+          }
+        },
+        "fill8_tail": {
+          "median_clocks": 804,
+          "scored_clocks": [
+            804,
+            804,
+            804,
+            801,
+            804
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 804,
+            "payload_ops": 667,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 804,
+            "payload_ops": 667,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 82,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 0
+          }
+        },
+        "monkey-forward": {
+          "median_clocks": 16500,
+          "scored_clocks": [
+            16500,
+            16500,
+            16500,
+            16500,
+            16500
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 16500,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 16500,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 81,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 4,
+            "refresh": 30
+          }
+        },
+        "monkey-reverse": {
+          "median_clocks": 16500,
+          "scored_clocks": [
+            16500,
+            16500,
+            16500,
+            16500,
+            16500
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 16500,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 16500,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 81,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 4,
+            "refresh": 30
+          }
+        },
+        "sega-span": {
+          "median_clocks": 15990,
+          "scored_clocks": [
+            15990,
+            15990,
+            15990,
+            15990,
+            15990
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 15990,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 15990,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 80,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 3,
+            "refresh": 30
+          }
+        },
+        "sega-fill": {
+          "median_clocks": 2679,
+          "scored_clocks": [
+            2679,
+            2679,
+            2679,
+            2676,
+            2679
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2679,
+            "payload_ops": 2561,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2679,
+            "payload_ops": 2561,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 82,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 2,
+            "refresh": 10
+          }
+        },
+        "asphalt-table": {
+          "median_clocks": 22564,
+          "scored_clocks": [
+            22554,
+            22564,
+            22552,
+            22567,
+            22566
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 22554,
+            "payload_ops": 13313,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 22566,
+            "payload_ops": 13313,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 24,
+            "wait": 902,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 24,
+            "act": 25,
+            "pre": 24,
+            "refresh": 40
+          }
+        },
+        "asphalt-double": {
+          "median_clocks": 13067,
+          "scored_clocks": [
+            13067,
+            13067,
+            13064,
+            13064,
+            13082
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 13067,
+            "payload_ops": 9729,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 13082,
+            "payload_ops": 9729,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 5,
+            "wait": 902,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 5,
+            "act": 12,
+            "pre": 14,
+            "refresh": 22
+          }
+        },
+        "asphalt-single": {
+          "median_clocks": 8322,
+          "scored_clocks": [
+            8322,
+            8322,
+            8322,
+            8322,
+            8322
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 8322,
+            "payload_ops": 6145,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 8322,
+            "payload_ops": 6145,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 80,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 10
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2563393,
+          "scored_clocks": [
+            2563350,
+            2563453,
+            2563393,
+            2563388,
+            2563412
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2563350,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2563412,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 351643,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 6633,
+            "pre": 6633,
+            "refresh": 4998
+          }
+        },
+        "diffuse_m10_8x8_jpeg": {
+          "median_clocks": 35903,
+          "scored_clocks": [
+            35903,
+            35903,
+            35903,
+            35903,
+            35903
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 35903,
+            "payload_ops": 23405,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 35903,
+            "payload_ops": 23405,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 0,
+            "writes": 0,
+            "lines": 0,
+            "wait": 0,
+            "itlb": 0,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 0,
+            "pre": 7,
+            "refresh": 70
+          }
+        }
+      }
+    },
+    "posting_and_interleave_retained_pinwait": {
+      "archive": "build/sim/payload-clocks/frame-gap-v5-post-interleave-pinwait-retained/result.json",
+      "identity": {
+        "status": "PASS",
+        "configs": [
+          "2:64"
+        ],
+        "netlist_sha256": "5d2876f51013afb5e77377b3e7328ce682c3f17acf5aa4ad7c56df344a0246ac",
+        "flash_cache_bytes": 32768,
+        "posted_writes": true,
+        "interleave": true,
+        "pin_waits": true,
+        "sdram_model_sha256": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b"
+      },
+      "cases": {
+        "matrix4": {
+          "median_clocks": 18723,
+          "scored_clocks": [
+            18732,
+            18789,
+            18723,
+            18720,
+            18723
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 18732,
+            "payload_ops": 14176,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 18723,
+            "payload_ops": 14176,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 65,
+            "writes": 0,
+            "lines": 0,
+            "wait": 1375,
+            "itlb": 65,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 35,
+            "pre": 34,
+            "refresh": 40
+          }
+        },
+        "transpose4": {
+          "median_clocks": 4578,
+          "scored_clocks": [
+            4584,
+            4584,
+            4563,
+            4575,
+            4578
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 4584,
+            "payload_ops": 800,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 4578,
+            "payload_ops": 800,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 131,
+            "writes": 0,
+            "lines": 0,
+            "wait": 2773,
+            "itlb": 131,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 68,
+            "pre": 67,
+            "refresh": 10
+          }
+        },
+        "triangle_edges": {
+          "median_clocks": 13283,
+          "scored_clocks": [
+            13283,
+            13298,
+            13274,
+            13298,
+            13274
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 13283,
+            "payload_ops": 6656,
+            "helper_ops": 1872,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 13274,
+            "payload_ops": 6656,
+            "helper_ops": 1872,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 65,
+            "writes": 0,
+            "lines": 0,
+            "wait": 1375,
+            "itlb": 65,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 34,
+            "pre": 34,
+            "refresh": 30
+          }
+        },
+        "fill16_frame": {
+          "median_clocks": 459830,
+          "scored_clocks": [
+            459824,
+            459844,
+            459830,
+            459818,
+            459833
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 459824,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 1,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 459833,
+            "payload_ops": 22896,
+            "helper_ops": 0,
+            "ddr_reads": 1,
+            "nos_ticks": 1,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 7,
+            "writes": 16256,
+            "lines": 2288,
+            "wait": 294798,
+            "itlb": 7,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 2289,
+            "act": 3969,
+            "pre": 3936,
+            "refresh": 885
+          }
+        },
+        "fill16_tail": {
+          "median_clocks": 783,
+          "scored_clocks": [
+            783,
+            783,
+            783,
+            783,
+            783
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 783,
+            "payload_ops": 654,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 783,
+            "payload_ops": 654,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 82,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 0
+          }
+        },
+        "fill8_tail": {
+          "median_clocks": 804,
+          "scored_clocks": [
+            804,
+            804,
+            804,
+            804,
+            801
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 804,
+            "payload_ops": 667,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 801,
+            "payload_ops": 667,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 82,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 0
+          }
+        },
+        "monkey-forward": {
+          "median_clocks": 16500,
+          "scored_clocks": [
+            16500,
+            16500,
+            16500,
+            16500,
+            16500
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 16500,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 16500,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 81,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 4,
+            "refresh": 30
+          }
+        },
+        "monkey-reverse": {
+          "median_clocks": 16500,
+          "scored_clocks": [
+            16500,
+            16500,
+            16500,
+            16500,
+            16500
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 16500,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 16500,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 81,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 4,
+            "refresh": 30
+          }
+        },
+        "sega-span": {
+          "median_clocks": 15990,
+          "scored_clocks": [
+            15990,
+            15990,
+            15990,
+            15990,
+            15990
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 15990,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 15990,
+            "payload_ops": 10241,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 80,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 3,
+            "refresh": 30
+          }
+        },
+        "sega-fill": {
+          "median_clocks": 2679,
+          "scored_clocks": [
+            2676,
+            2679,
+            2679,
+            2679,
+            2676
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2676,
+            "payload_ops": 2561,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2676,
+            "payload_ops": 2561,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 80,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 1,
+            "refresh": 10
+          }
+        },
+        "asphalt-table": {
+          "median_clocks": 22497,
+          "scored_clocks": [
+            22515,
+            22497,
+            22499,
+            22497,
+            22493
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 22515,
+            "payload_ops": 13313,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 22493,
+            "payload_ops": 13313,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 24,
+            "wait": 801,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 24,
+            "act": 19,
+            "pre": 12,
+            "refresh": 39
+          }
+        },
+        "asphalt-double": {
+          "median_clocks": 13034,
+          "scored_clocks": [
+            13034,
+            13043,
+            13034,
+            13034,
+            13036
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 13034,
+            "payload_ops": 9729,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 13036,
+            "payload_ops": 9729,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 40,
+            "lines": 5,
+            "wait": 810,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 5,
+            "act": 11,
+            "pre": 10,
+            "refresh": 30
+          }
+        },
+        "asphalt-single": {
+          "median_clocks": 8322,
+          "scored_clocks": [
+            8322,
+            8322,
+            8322,
+            8322,
+            8337
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 8322,
+            "payload_ops": 6145,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 8337,
+            "payload_ops": 6145,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 0,
+            "lines": 0,
+            "wait": 80,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 2,
+            "pre": 2,
+            "refresh": 20
+          }
+        },
+        "sega-scan": {
+          "median_clocks": 2561384,
+          "scored_clocks": [
+            2561277,
+            2561384,
+            2561477,
+            2561222,
+            2561409
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 2561277,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 2561409,
+            "payload_ops": 640677,
+            "helper_ops": 787302,
+            "ddr_reads": 3,
+            "nos_ticks": 2,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 4,
+            "writes": 17096,
+            "lines": 4630,
+            "wait": 305536,
+            "itlb": 4,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 4633,
+            "act": 5345,
+            "pre": 4872,
+            "refresh": 4980
+          }
+        },
+        "diffuse_m10_8x8_jpeg": {
+          "median_clocks": 35903,
+          "scored_clocks": [
+            35903,
+            35903,
+            35903,
+            35903,
+            35903
+          ],
+          "first_scored": {
+            "window": 2,
+            "cycles": 35903,
+            "payload_ops": 23405,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "last_scored": {
+            "window": 6,
+            "cycles": 35903,
+            "payload_ops": 23405,
+            "helper_ops": 0,
+            "ddr_reads": 0,
+            "nos_ticks": 0,
+            "mmc_bits": 0,
+            "irq_clocks": 0
+          },
+          "first_scored_memory": {
+            "window": 2,
+            "reads": 0,
+            "writes": 0,
+            "lines": 0,
+            "wait": 0,
+            "itlb": 0,
+            "dtlb": 0,
+            "ifills": 0,
+            "dfills": 0,
+            "act": 0,
+            "pre": 7,
+            "refresh": 70
+          }
+        }
+      }
+    }
+  },
+  "stride_pins": {
+    "v5": [
+      {
+        "donor": 0,
+        "write": 0,
+        "stride": 32,
+        "requests": 1024,
+        "cycles": 12378,
+        "act": 18,
+        "pre": 18,
+        "refresh": 18,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 0,
+        "write": 0,
+        "stride": 4096,
+        "requests": 1024,
+        "cycles": 16421,
+        "act": 1024,
+        "pre": 1024,
+        "refresh": 27,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 0,
+        "write": 0,
+        "stride": 8192,
+        "requests": 1024,
+        "cycles": 16418,
+        "act": 1024,
+        "pre": 1024,
+        "refresh": 27,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 0,
+        "write": 0,
+        "stride": 16384,
+        "requests": 1024,
+        "cycles": 16430,
+        "act": 1024,
+        "pre": 1024,
+        "refresh": 36,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 0,
+        "write": 0,
+        "stride": 8388608,
+        "requests": 1024,
+        "cycles": 12382,
+        "act": 20,
+        "pre": 18,
+        "refresh": 18,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 0,
+        "write": 1,
+        "stride": 32,
+        "requests": 1024,
+        "cycles": 13449,
+        "act": 27,
+        "pre": 27,
+        "refresh": 27,
+        "reads": 2,
+        "writes": 2048
+      },
+      {
+        "donor": 0,
+        "write": 1,
+        "stride": 4096,
+        "requests": 1024,
+        "cycles": 17440,
+        "act": 1026,
+        "pre": 1026,
+        "refresh": 27,
+        "reads": 2,
+        "writes": 2048
+      }
+    ],
+    "ngage2": [
+      {
+        "donor": 1,
+        "write": 0,
+        "stride": 32,
+        "requests": 1024,
+        "cycles": 10348,
+        "act": 18,
+        "pre": 18,
+        "refresh": 18,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 1,
+        "write": 0,
+        "stride": 4096,
+        "requests": 1024,
+        "cycles": 10384,
+        "act": 36,
+        "pre": 18,
+        "refresh": 18,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 1,
+        "write": 0,
+        "stride": 8192,
+        "requests": 1024,
+        "cycles": 10392,
+        "act": 38,
+        "pre": 19,
+        "refresh": 19,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 1,
+        "write": 0,
+        "stride": 16384,
+        "requests": 1024,
+        "cycles": 14410,
+        "act": 1024,
+        "pre": 1024,
+        "refresh": 25,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 1,
+        "write": 0,
+        "stride": 8388608,
+        "requests": 1024,
+        "cycles": 14413,
+        "act": 1024,
+        "pre": 1024,
+        "refresh": 26,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 1,
+        "write": 1,
+        "stride": 32,
+        "requests": 1024,
+        "cycles": 3152,
+        "act": 6,
+        "pre": 6,
+        "refresh": 6,
+        "reads": 2,
+        "writes": 2048
+      },
+      {
+        "donor": 1,
+        "write": 1,
+        "stride": 4096,
+        "requests": 1024,
+        "cycles": 3152,
+        "act": 10,
+        "pre": 5,
+        "refresh": 5,
+        "reads": 2,
+        "writes": 2048
+      }
+    ],
+    "interleave": [
+      {
+        "donor": 0,
+        "write": 0,
+        "stride": 32,
+        "requests": 1024,
+        "cycles": 12378,
+        "act": 18,
+        "pre": 18,
+        "refresh": 18,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 0,
+        "write": 0,
+        "stride": 4096,
+        "requests": 1024,
+        "cycles": 12385,
+        "act": 20,
+        "pre": 18,
+        "refresh": 18,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 0,
+        "write": 0,
+        "stride": 8192,
+        "requests": 1024,
+        "cycles": 12432,
+        "act": 30,
+        "pre": 27,
+        "refresh": 27,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 0,
+        "write": 0,
+        "stride": 16384,
+        "requests": 1024,
+        "cycles": 16411,
+        "act": 1024,
+        "pre": 1024,
+        "refresh": 27,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 0,
+        "write": 0,
+        "stride": 8388608,
+        "requests": 1024,
+        "cycles": 16415,
+        "act": 1024,
+        "pre": 1024,
+        "refresh": 27,
+        "reads": 1024,
+        "writes": 0
+      },
+      {
+        "donor": 0,
+        "write": 1,
+        "stride": 32,
+        "requests": 1024,
+        "cycles": 13448,
+        "act": 27,
+        "pre": 27,
+        "refresh": 27,
+        "reads": 2,
+        "writes": 2048
+      },
+      {
+        "donor": 0,
+        "write": 1,
+        "stride": 4096,
+        "requests": 1024,
+        "cycles": 13455,
+        "act": 30,
+        "pre": 27,
+        "refresh": 27,
+        "reads": 2,
+        "writes": 2048
+      }
+    ]
+  },
+  "sdram_frame_reads": {
+    "v5": {
+      "donor": 0,
+      "bytes": 73216,
+      "cycles": 221942,
+      "act": 468,
+      "pre": 468,
+      "refresh": 396
+    },
+    "ngage2": {
+      "donor": 1,
+      "bytes": 73216,
+      "cycles": 185413,
+      "act": 400,
+      "pre": 382,
+      "refresh": 328
+    },
+    "interleave": {
+      "donor": 0,
+      "bytes": 73216,
+      "cycles": 221878,
+      "act": 458,
+      "pre": 440,
+      "refresh": 387
+    }
+  },
+  "fixed_trace_pins": {
+    "v5": {
+      "fill16_frame": {
+        "requests": 18550,
+        "cycles": 284450,
+        "act": 4472,
+        "pre": 4472,
+        "refresh": 504,
+        "reads": 4583,
+        "writes": 32512
+      },
+      "sega-scan": {
+        "requests": 21730,
+        "cycles": 360587,
+        "act": 6667,
+        "pre": 6667,
+        "refresh": 639,
+        "reads": 9265,
+        "writes": 34192
+      }
+    },
+    "ngage2": {
+      "fill16_frame": {
+        "requests": 18550,
+        "cycles": 134704,
+        "act": 3657,
+        "pre": 3610,
+        "refresh": 238,
+        "reads": 4583,
+        "writes": 32512
+      },
+      "sega-scan": {
+        "requests": 21730,
+        "cycles": 215532,
+        "act": 5002,
+        "pre": 4660,
+        "refresh": 380,
+        "reads": 9265,
+        "writes": 34192
+      }
+    },
+    "interleave": {
+      "fill16_frame": {
+        "requests": 18550,
+        "cycles": 282462,
+        "act": 3995,
+        "pre": 3968,
+        "refresh": 495,
+        "reads": 4583,
+        "writes": 32512
+      },
+      "sega-scan": {
+        "requests": 21730,
+        "cycles": 353932,
+        "act": 5058,
+        "pre": 4966,
+        "refresh": 621,
+        "reads": 9265,
+        "writes": 34192
+      }
+    }
+  },
+  "row_model_without_refresh": {
+    "fill16_frame": {
+      "v5_stream": {
+        "sha256": "bf27a8d8755952e8cf836128b1afe8a6cfe9724280e289b3b695479d26195db5",
+        "requests": 18550,
+        "top_byte_strides": [
+          [
+            4,
+            14224
+          ],
+          [
+            16384,
+            1776
+          ],
+          [
+            16388,
+            1775
+          ],
+          [
+            32,
+            255
+          ],
+          [
+            57344,
+            251
+          ],
+          [
+            57340,
+            251
+          ],
+          [
+            49152,
+            3
+          ],
+          [
+            49148,
+            3
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            65536,
+            2
+          ]
+        ],
+        "v5": {
+          "closed": 1,
+          "conflicts": 4076,
+          "hits": 14473
+        },
+        "ngage2": {
+          "closed": 4,
+          "conflicts": 3587,
+          "hits": 14959
+        }
+      },
+      "ngage2_stream": {
+        "sha256": "221e68498c2e748d17c46893fea52b3fda62e2608d07609a35653e70f63d5d45",
+        "requests": 8903,
+        "top_byte_strides": [
+          [
+            8192,
+            4064
+          ],
+          [
+            8208,
+            4063
+          ],
+          [
+            16,
+            254
+          ],
+          [
+            65536,
+            247
+          ],
+          [
+            65520,
+            247
+          ],
+          [
+            61440,
+            7
+          ],
+          [
+            61424,
+            7
+          ],
+          [
+            98288,
+            2
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            69632,
+            2
+          ]
+        ],
+        "v5": {
+          "closed": 1,
+          "conflicts": 8650,
+          "hits": 252
+        },
+        "ngage2": {
+          "closed": 4,
+          "conflicts": 632,
+          "hits": 8267
+        }
+      }
+    },
+    "sega-scan": {
+      "v5_stream": {
+        "sha256": "8d9974529818a903c926e68cb811f4c1308c8e0c766dd29374bcc5c81a6643ee",
+        "requests": 21730,
+        "top_byte_strides": [
+          [
+            4,
+            14959
+          ],
+          [
+            114688,
+            1830
+          ],
+          [
+            122884,
+            1124
+          ],
+          [
+            8192,
+            999
+          ],
+          [
+            114720,
+            624
+          ],
+          [
+            122880,
+            613
+          ],
+          [
+            8164,
+            487
+          ],
+          [
+            32,
+            303
+          ],
+          [
+            28,
+            256
+          ],
+          [
+            49156,
+            188
+          ]
+        ],
+        "v5": {
+          "closed": 1,
+          "hits": 15512,
+          "conflicts": 6217
+        },
+        "ngage2": {
+          "closed": 4,
+          "hits": 17186,
+          "conflicts": 4540
+        }
+      },
+      "ngage2_stream": {
+        "sha256": "87f07fbe010beb4f3fa099fd51c0a0382e985e789d61a4d4dcebf03defcd8a95",
+        "requests": 121464,
+        "top_byte_strides": [
+          [
+            7168,
+            101544
+          ],
+          [
+            122880,
+            1436
+          ],
+          [
+            118784,
+            634
+          ],
+          [
+            4096,
+            453
+          ],
+          [
+            4108,
+            132
+          ],
+          [
+            69632,
+            114
+          ],
+          [
+            49152,
+            103
+          ],
+          [
+            114700,
+            80
+          ],
+          [
+            114692,
+            79
+          ],
+          [
+            114696,
+            77
+          ]
+        ],
+        "v5": {
+          "closed": 1,
+          "conflicts": 121425,
+          "hits": 38
+        },
+        "ngage2": {
+          "closed": 4,
+          "conflicts": 14515,
+          "hits": 106945
+        }
+      }
+    }
+  },
+  "delayed_nor": {
+    "base": {
+      "scalar": [
+        {
+          "request": 105,
+          "physical_beats": [
+            109,
+            110,
+            111,
+            160
+          ],
+          "d2_tag": 162,
+          "address": "0x5000",
+          "admit": 102,
+          "first_data": 111,
+          "cpu_ack": 113,
+          "warm_admit": 191,
+          "warm_lookup": 192,
+          "warm_data": 193,
+          "warm_cpu_ack": 195
+        },
+        {
+          "request": 269,
+          "physical_beats": [
+            273,
+            274,
+            275,
+            324
+          ],
+          "d2_tag": 326,
+          "address": "0x5044",
+          "admit": 266,
+          "first_data": 275,
+          "cpu_ack": 277,
+          "warm_admit": 355,
+          "warm_lookup": 356,
+          "warm_data": 357,
+          "warm_cpu_ack": 359
+        },
+        {
+          "request": 440,
+          "physical_beats": [
+            444,
+            445,
+            446,
+            495
+          ],
+          "d2_tag": 497,
+          "address": "0x5088",
+          "admit": 437,
+          "first_data": 447,
+          "cpu_ack": 449,
+          "warm_admit": 526,
+          "warm_lookup": 527,
+          "warm_data": 528,
+          "warm_cpu_ack": 530
+        },
+        {
+          "request": 604,
+          "physical_beats": [
+            608,
+            609,
+            610,
+            659
+          ],
+          "d2_tag": 661,
+          "address": "0x50cc",
+          "admit": 601,
+          "first_data": 611,
+          "cpu_ack": 613,
+          "warm_admit": 690,
+          "warm_lookup": 691,
+          "warm_data": 692,
+          "warm_cpu_ack": 694
+        },
+        {
+          "request": 768,
+          "physical_beats": [
+            772,
+            773,
+            774,
+            823
+          ],
+          "d2_tag": 825,
+          "address": "0x5110",
+          "admit": 765,
+          "first_data": 776,
+          "cpu_ack": 778,
+          "warm_admit": 854,
+          "warm_lookup": 855,
+          "warm_data": 856,
+          "warm_cpu_ack": 858
+        },
+        {
+          "request": 932,
+          "physical_beats": [
+            936,
+            937,
+            938,
+            987
+          ],
+          "d2_tag": 989,
+          "address": "0x5154",
+          "admit": 929,
+          "first_data": 940,
+          "cpu_ack": 942,
+          "warm_admit": 1018,
+          "warm_lookup": 1019,
+          "warm_data": 1020,
+          "warm_cpu_ack": 1022
+        },
+        {
+          "request": 1103,
+          "physical_beats": [
+            1107,
+            1108,
+            1109,
+            1158
+          ],
+          "d2_tag": 1160,
+          "address": "0x5198",
+          "admit": 1100,
+          "first_data": 1160,
+          "cpu_ack": 1162,
+          "warm_admit": 1194,
+          "warm_lookup": 1195,
+          "warm_data": 1196,
+          "warm_cpu_ack": 1198
+        },
+        {
+          "request": 1272,
+          "physical_beats": [
+            1276,
+            1277,
+            1278,
+            1327
+          ],
+          "d2_tag": 1329,
+          "address": "0x51dc",
+          "admit": 1269,
+          "first_data": 1329,
+          "cpu_ack": 1331,
+          "warm_admit": 1363,
+          "warm_lookup": 1364,
+          "warm_data": 1365,
+          "warm_cpu_ack": 1367
+        }
+      ],
+      "instruction": [
+        {
+          "request": 1692,
+          "physical_beats": [
+            1696,
+            1697,
+            1698,
+            1747
+          ],
+          "d2_tag": 1749,
+          "target": "0x6000",
+          "upstream_beats": [
+            1697,
+            1698,
+            1699,
+            1748
+          ],
+          "cpu_word_acks": [
+            1698,
+            1699,
+            1700,
+            1701,
+            1702,
+            1703,
+            1749,
+            1750
+          ],
+          "i_cache_valid": 1751,
+          "first_fetch": 1699,
+          "first_exec": 1756,
+          "first_retire": 1758,
+          "second_retire": 1838
+        },
+        {
+          "request": 1892,
+          "physical_beats": [
+            1896,
+            1897,
+            1898,
+            1947
+          ],
+          "d2_tag": 1949,
+          "target": "0x6044",
+          "upstream_beats": [
+            1897,
+            1898,
+            1899,
+            1948
+          ],
+          "cpu_word_acks": [
+            1898,
+            1899,
+            1900,
+            1901,
+            1902,
+            1903,
+            1949,
+            1950
+          ],
+          "i_cache_valid": 1951,
+          "first_fetch": 1900,
+          "first_exec": 1956,
+          "first_retire": 1958,
+          "second_retire": 2038
+        },
+        {
+          "request": 2085,
+          "physical_beats": [
+            2089,
+            2090,
+            2091,
+            2140
+          ],
+          "d2_tag": 2142,
+          "target": "0x6088",
+          "upstream_beats": [
+            2090,
+            2091,
+            2092,
+            2141
+          ],
+          "cpu_word_acks": [
+            2091,
+            2092,
+            2093,
+            2094,
+            2095,
+            2096,
+            2142,
+            2143
+          ],
+          "i_cache_valid": 2144,
+          "first_fetch": 2094,
+          "first_exec": 2149,
+          "first_retire": 2151,
+          "second_retire": 2231
+        },
+        {
+          "request": 2278,
+          "physical_beats": [
+            2282,
+            2283,
+            2284,
+            2333
+          ],
+          "d2_tag": 2335,
+          "target": "0x60cc",
+          "upstream_beats": [
+            2283,
+            2284,
+            2285,
+            2334
+          ],
+          "cpu_word_acks": [
+            2284,
+            2285,
+            2286,
+            2287,
+            2288,
+            2289,
+            2335,
+            2336
+          ],
+          "i_cache_valid": 2337,
+          "first_fetch": 2288,
+          "first_exec": 2342,
+          "first_retire": 2344,
+          "second_retire": 2424
+        },
+        {
+          "request": 2489,
+          "physical_beats": [
+            2493,
+            2494,
+            2495,
+            2544
+          ],
+          "d2_tag": 2546,
+          "target": "0x6110",
+          "upstream_beats": [
+            2494,
+            2495,
+            2496,
+            2545
+          ],
+          "cpu_word_acks": [
+            2495,
+            2496,
+            2497,
+            2498,
+            2499,
+            2500,
+            2546,
+            2547
+          ],
+          "i_cache_valid": 2548,
+          "first_fetch": 2500,
+          "first_exec": 2553,
+          "first_retire": 2555,
+          "second_retire": 2635
+        },
+        {
+          "request": 2682,
+          "physical_beats": [
+            2686,
+            2687,
+            2688,
+            2737
+          ],
+          "d2_tag": 2739,
+          "target": "0x6154",
+          "upstream_beats": [
+            2687,
+            2688,
+            2689,
+            2738
+          ],
+          "cpu_word_acks": [
+            2688,
+            2689,
+            2690,
+            2691,
+            2692,
+            2693,
+            2739,
+            2740
+          ],
+          "i_cache_valid": 2741,
+          "first_fetch": 2694,
+          "first_exec": 2746,
+          "first_retire": 2748,
+          "second_retire": 2828
+        },
+        {
+          "request": 2875,
+          "physical_beats": [
+            2879,
+            2880,
+            2881,
+            2930
+          ],
+          "d2_tag": 2932,
+          "target": "0x6198",
+          "upstream_beats": [
+            2880,
+            2881,
+            2882,
+            2931
+          ],
+          "cpu_word_acks": [
+            2881,
+            2882,
+            2883,
+            2884,
+            2885,
+            2886,
+            2932,
+            2933
+          ],
+          "i_cache_valid": 2934,
+          "first_fetch": 2933,
+          "first_exec": 2939,
+          "first_retire": 2941,
+          "second_retire": 3021
+        },
+        {
+          "request": 3062,
+          "physical_beats": [
+            3066,
+            3067,
+            3068,
+            3117
+          ],
+          "d2_tag": 3119,
+          "target": "0x61dc",
+          "upstream_beats": [
+            3067,
+            3068,
+            3069,
+            3118
+          ],
+          "cpu_word_acks": [
+            3068,
+            3069,
+            3070,
+            3071,
+            3072,
+            3073,
+            3119,
+            3120
+          ],
+          "i_cache_valid": 3121,
+          "first_fetch": 3121,
+          "first_exec": 3126,
+          "first_retire": 3128,
+          "second_retire": 3229
+        }
+      ]
+    },
+    "early": {
+      "scalar": [
+        {
+          "request": 105,
+          "physical_beats": [
+            109,
+            110,
+            111,
+            160
+          ],
+          "d2_tag": 162,
+          "address": "0x5000",
+          "admit": 102,
+          "first_data": 111,
+          "cpu_ack": 113,
+          "warm_admit": 191,
+          "warm_lookup": 192,
+          "warm_data": 193,
+          "warm_cpu_ack": 195
+        },
+        {
+          "request": 269,
+          "physical_beats": [
+            273,
+            274,
+            275,
+            324
+          ],
+          "d2_tag": 326,
+          "address": "0x5044",
+          "admit": 266,
+          "first_data": 275,
+          "cpu_ack": 277,
+          "warm_admit": 355,
+          "warm_lookup": 356,
+          "warm_data": 357,
+          "warm_cpu_ack": 359
+        },
+        {
+          "request": 440,
+          "physical_beats": [
+            444,
+            445,
+            446,
+            495
+          ],
+          "d2_tag": 497,
+          "address": "0x5088",
+          "admit": 437,
+          "first_data": 447,
+          "cpu_ack": 449,
+          "warm_admit": 526,
+          "warm_lookup": 527,
+          "warm_data": 528,
+          "warm_cpu_ack": 530
+        },
+        {
+          "request": 604,
+          "physical_beats": [
+            608,
+            609,
+            610,
+            659
+          ],
+          "d2_tag": 661,
+          "address": "0x50cc",
+          "admit": 601,
+          "first_data": 611,
+          "cpu_ack": 613,
+          "warm_admit": 690,
+          "warm_lookup": 691,
+          "warm_data": 692,
+          "warm_cpu_ack": 694
+        },
+        {
+          "request": 768,
+          "physical_beats": [
+            772,
+            773,
+            774,
+            823
+          ],
+          "d2_tag": 825,
+          "address": "0x5110",
+          "admit": 765,
+          "first_data": 776,
+          "cpu_ack": 778,
+          "warm_admit": 854,
+          "warm_lookup": 855,
+          "warm_data": 856,
+          "warm_cpu_ack": 858
+        },
+        {
+          "request": 932,
+          "physical_beats": [
+            936,
+            937,
+            938,
+            987
+          ],
+          "d2_tag": 989,
+          "address": "0x5154",
+          "admit": 929,
+          "first_data": 940,
+          "cpu_ack": 942,
+          "warm_admit": 1018,
+          "warm_lookup": 1019,
+          "warm_data": 1020,
+          "warm_cpu_ack": 1022
+        },
+        {
+          "request": 1103,
+          "physical_beats": [
+            1107,
+            1108,
+            1109,
+            1158
+          ],
+          "d2_tag": 1160,
+          "address": "0x5198",
+          "admit": 1100,
+          "first_data": 1160,
+          "cpu_ack": 1162,
+          "warm_admit": 1194,
+          "warm_lookup": 1195,
+          "warm_data": 1196,
+          "warm_cpu_ack": 1198
+        },
+        {
+          "request": 1272,
+          "physical_beats": [
+            1276,
+            1277,
+            1278,
+            1327
+          ],
+          "d2_tag": 1329,
+          "address": "0x51dc",
+          "admit": 1269,
+          "first_data": 1329,
+          "cpu_ack": 1331,
+          "warm_admit": 1363,
+          "warm_lookup": 1364,
+          "warm_data": 1365,
+          "warm_cpu_ack": 1367
+        }
+      ],
+      "instruction": [
+        {
+          "request": 1692,
+          "physical_beats": [
+            1696,
+            1697,
+            1698,
+            1747
+          ],
+          "d2_tag": 1749,
+          "target": "0x6000",
+          "upstream_beats": [
+            1697,
+            1698,
+            1699,
+            1748
+          ],
+          "cpu_word_acks": [
+            1698,
+            1699,
+            1700,
+            1701,
+            1702,
+            1703,
+            1749,
+            1750
+          ],
+          "i_cache_valid": 1751,
+          "first_fetch": 1699,
+          "first_exec": 1704,
+          "first_retire": 1706,
+          "second_retire": 1772
+        },
+        {
+          "request": 1826,
+          "physical_beats": [
+            1830,
+            1831,
+            1832,
+            1881
+          ],
+          "d2_tag": 1883,
+          "target": "0x6044",
+          "upstream_beats": [
+            1831,
+            1832,
+            1833,
+            1882
+          ],
+          "cpu_word_acks": [
+            1832,
+            1833,
+            1834,
+            1835,
+            1836,
+            1837,
+            1883,
+            1884
+          ],
+          "i_cache_valid": 1885,
+          "first_fetch": 1834,
+          "first_exec": 1839,
+          "first_retire": 1841,
+          "second_retire": 1906
+        },
+        {
+          "request": 1953,
+          "physical_beats": [
+            1957,
+            1958,
+            1959,
+            2008
+          ],
+          "d2_tag": 2010,
+          "target": "0x6088",
+          "upstream_beats": [
+            1958,
+            1959,
+            1960,
+            2009
+          ],
+          "cpu_word_acks": [
+            1959,
+            1960,
+            1961,
+            1962,
+            1963,
+            1964,
+            2010,
+            2011
+          ],
+          "i_cache_valid": 2012,
+          "first_fetch": 1962,
+          "first_exec": 1967,
+          "first_retire": 1969,
+          "second_retire": 2033
+        },
+        {
+          "request": 2080,
+          "physical_beats": [
+            2084,
+            2085,
+            2086,
+            2135
+          ],
+          "d2_tag": 2137,
+          "target": "0x60cc",
+          "upstream_beats": [
+            2085,
+            2086,
+            2087,
+            2136
+          ],
+          "cpu_word_acks": [
+            2086,
+            2087,
+            2088,
+            2089,
+            2090,
+            2091,
+            2137,
+            2138
+          ],
+          "i_cache_valid": 2139,
+          "first_fetch": 2090,
+          "first_exec": 2095,
+          "first_retire": 2097,
+          "second_retire": 2160
+        },
+        {
+          "request": 2225,
+          "physical_beats": [
+            2229,
+            2230,
+            2231,
+            2280
+          ],
+          "d2_tag": 2282,
+          "target": "0x6110",
+          "upstream_beats": [
+            2230,
+            2231,
+            2232,
+            2281
+          ],
+          "cpu_word_acks": [
+            2231,
+            2232,
+            2233,
+            2234,
+            2235,
+            2236,
+            2282,
+            2283
+          ],
+          "i_cache_valid": 2284,
+          "first_fetch": 2236,
+          "first_exec": 2241,
+          "first_retire": 2243,
+          "second_retire": 2305
+        },
+        {
+          "request": 2352,
+          "physical_beats": [
+            2356,
+            2357,
+            2358,
+            2407
+          ],
+          "d2_tag": 2409,
+          "target": "0x6154",
+          "upstream_beats": [
+            2357,
+            2358,
+            2359,
+            2408
+          ],
+          "cpu_word_acks": [
+            2358,
+            2359,
+            2360,
+            2361,
+            2362,
+            2363,
+            2409,
+            2410
+          ],
+          "i_cache_valid": 2411,
+          "first_fetch": 2364,
+          "first_exec": 2369,
+          "first_retire": 2371,
+          "second_retire": 2498
+        },
+        {
+          "request": 2545,
+          "physical_beats": [
+            2549,
+            2550,
+            2551,
+            2600
+          ],
+          "d2_tag": 2602,
+          "target": "0x6198",
+          "upstream_beats": [
+            2550,
+            2551,
+            2552,
+            2601
+          ],
+          "cpu_word_acks": [
+            2551,
+            2552,
+            2553,
+            2554,
+            2555,
+            2556,
+            2602,
+            2603
+          ],
+          "i_cache_valid": 2604,
+          "first_fetch": 2603,
+          "first_exec": 2608,
+          "first_retire": 2610,
+          "second_retire": 2691
+        },
+        {
+          "request": 2732,
+          "physical_beats": [
+            2736,
+            2737,
+            2738,
+            2787
+          ],
+          "d2_tag": 2789,
+          "target": "0x61dc",
+          "upstream_beats": [
+            2737,
+            2738,
+            2739,
+            2788
+          ],
+          "cpu_word_acks": [
+            2738,
+            2739,
+            2740,
+            2741,
+            2742,
+            2743,
+            2789,
+            2790
+          ],
+          "i_cache_valid": 2791,
+          "first_fetch": 2791,
+          "first_exec": 2796,
+          "first_retire": 2798,
+          "second_retire": 2878
+        }
+      ]
+    }
+  },
+  "fault_contract": {
+    "0:0": {
+      "cycles": 22555,
+      "scalar_wait_cycles": 8873,
+      "swp_beats": 2,
+      "clean_writes": 1,
+      "walks": 2,
+      "prefetch_aborts": 1
+    },
+    "0:5": {
+      "cycles": 44540,
+      "scalar_wait_cycles": 30932,
+      "swp_beats": 2,
+      "clean_writes": 1,
+      "walks": 2,
+      "prefetch_aborts": 1
+    },
+    "1:0": {
+      "cycles": 18152,
+      "scalar_wait_cycles": 361,
+      "swp_beats": 2,
+      "clean_writes": 1,
+      "walks": 2,
+      "prefetch_aborts": 1
+    },
+    "1:5": {
+      "cycles": 21513,
+      "scalar_wait_cycles": 1140,
+      "swp_beats": 2,
+      "clean_writes": 1,
+      "walks": 2,
+      "prefetch_aborts": 1
+    }
+  },
+  "posting_order": "build/sim/frame-gap-posted-order/run.log"
+}

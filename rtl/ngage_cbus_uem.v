@@ -155,7 +155,7 @@ module ngage_cbus_uem #(
                     read_value = POWERUP_STATUS & (key_released ? 16'hfffd : 16'hffff);
                 else if (regno == 8'h35)
                     read_value = ((key_released && !((POWER_KEY_ENABLE != 0) && power_pressed)) ?
-                                  16'h0000 : 16'h0010) | 16'h0008 | rtc_status;
+                                  16'h0000 : 16'h0010) | rtc_status;
                 else if (regno == 8'h36 && !written[regno]) read_value = 0;
                 // Read aliases are counters, not the watchdog/vibrator payload
                 // stored by writes to these same CBUS addresses.

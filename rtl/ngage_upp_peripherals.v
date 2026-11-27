@@ -47,13 +47,26 @@ module ngage_upp_peripherals #(
               KEYPAD_ENABLE      = 0,
               LCD_QUEUE_ENABLE   = 0,
               REGISTER_RESPONSES = 0,
+              DDR_UPP_RAM        = 0,
               SYS_CLK_HZ         = 104000000,
               TIMER_CLK_DIV      = 1,
+              TIMER_PREDECODE    = 0,
               NOS_TICK_HZ        = 1000
 ) (
     input  wire        rst,
     input  wire        init_rst,
     input  wire        clk,
+    // Private DDR backing for the two raw windows at 0x0c03 and 0x0c10.
+    output wire        upp_ddr_req,
+    output wire        upp_ddr_we,
+    output wire [16:2] upp_ddr_addr,
+    output wire [31:0] upp_ddr_wdata,
+    output wire [ 3:0] upp_ddr_be,
+    input  wire        upp_ddr_ack,
+    input  wire [31:0] upp_ddr_rdata,
+    output wire        upp_ddr_clear,
+    input  wire        upp_ddr_clear_done,
+    output wire        upp_ddr_idle,
     // CPU wishbone request (held stable while pending)
     input  wire        cyc,
     input  wire        stb,
@@ -61,6 +74,8 @@ module ngage_upp_peripherals #(
     input  wire        we,
     input  wire [31:0] din,
     input  wire [ 3:0] sel,
+    input  wire [ 5:0] timer_count_write,
+    input  wire [ 5:0] timer_stop,
     input  wire        commit,                // authorize local access checks this cycle
     // configuration (from the harness command line)
     input  wire        cfg_lcd,               // lcd-probe option
@@ -89,7 +104,7 @@ module ngage_upp_peripherals #(
     output reg         unmodeled,
     output wire        irq,
     output wire        fiq,
-    output reg         init_done,
+    output wire        init_done,
     output wire        trace_valid,
     output wire [31:0] trace_addr,
     output wire [31:0] trace_data,
@@ -142,6 +157,7 @@ module ngage_upp_peripherals #(
 
     wire extra_ready;
     wire icu_ready, timer_ready;
+    wire ddr_access, ddr_response, ddr_initialized;
     wire local_access = commit && init_done && cyc && stb && !response_pending;
     wire uart_claim, uart_bad, uart_ready, uart_fiq;
     wire [31:0] uart_data;
@@ -405,8 +421,9 @@ module ngage_upp_peripherals #(
         .ready       (icu_ready)
     );
     ngage_timers #(
-        .CLOCK_DIV      (TIMER_CLK_DIV),
-        .PASSIVE_STORAGE(0)
+        .CLOCK_DIV       (TIMER_CLK_DIV),
+        .PASSIVE_STORAGE (0),
+        .PREDECODE_WRITES(TIMER_PREDECODE)
     ) timers (
         .clk            (clk),
         .reset          (rst),
@@ -416,6 +433,8 @@ module ngage_upp_peripherals #(
         .addr           (a),
         .din            (din),
         .sel            (sel),
+        .count_write_sel(timer_count_write),
+        .stop_sel       (timer_stop),
         // Masking the shared line must not acknowledge the timer producer.
         .clear_unit1    (1'b0),
         .claim          (timer_claim),
@@ -571,13 +590,15 @@ module ngage_upp_peripherals #(
     wire [31:0] upload_q, nosmem_q, gpio15_q, aux_q;
     wire [31:0] gpr_q=upload_hit?upload_q:nosmem_hit?nosmem_q:gpio15_hit?gpio15_q:aux_q;
     reg [14:0] init_index = 0;
-    wire clearing = !init_done;
+    reg local_init_done = 0;
+    wire clearing = !local_init_done;
+    assign init_done = local_init_done && ddr_initialized;
     always @(posedge clk) begin
         if (init_rst) begin
-            init_index <= 0;
-            init_done  <= 0;
-        end else if (!init_done) begin
-            if (init_index == 15'd16383) init_done <= 1;
+            init_index      <= 0;
+            local_init_done <= 0;
+        end else if (clearing) begin
+            if (init_index == 15'd16383) local_init_done <= 1;
             else init_index <= init_index + 1'b1;
         end
     end
@@ -624,26 +645,94 @@ module ngage_upp_peripherals #(
     // NOS4K retains its existing unrestricted byte-mask write semantics.
     wire nos4k_write = local_access && we && nos4k_ram;
 
-    ngage_bram_be #(
-        .AW(14)
-    ) upload_ram (
-        .clk  (clk),
-        .raddr(a[15:2]),
-        .rdata(upload_q),
-        .waddr(clearing ? init_index[13:0] : a[15:2]),
-        .we   (clearing ? 4'hf : ((upload_selected && ram_write) ? sel : 4'd0)),
-        .wdata(clearing ? 32'b0 : din)
-    );
-    ngage_bram_be #(
-        .AW(14)
-    ) nosmem_ram (
-        .clk  (clk),
-        .raddr(a[15:2]),
-        .rdata(nosmem_q),
-        .waddr(clearing ? init_index[13:0] : a[15:2]),
-        .we   (clearing ? 4'hf : ((nosmem_selected && ram_write) ? sel : 4'd0)),
-        .wdata(clearing ? 32'b0 : din)
-    );
+    generate
+        if (DDR_UPP_RAM) begin : external_raw_ram
+            reg pending = 0, cancelled = 0, response = 0, cleared = 0;
+            reg        write_op;
+            reg [16:2] address;
+            reg [31:0] write_data, read_data;
+            reg [3:0] byte_enable;
+
+            assign ddr_access      = valid_lanes && (upload_selected || nosmem_selected);
+            assign ddr_response    = response;
+            assign ddr_initialized = cleared;
+            assign upp_ddr_req     = pending && !init_rst;
+            assign upp_ddr_we      = write_op;
+            assign upp_ddr_addr    = address;
+            assign upp_ddr_wdata   = write_data;
+            assign upp_ddr_be      = byte_enable;
+            assign upp_ddr_clear   = !init_rst && !cleared;
+            assign upp_ddr_idle    = !pending && !upp_ddr_ack;
+            assign upload_q        = read_data;
+            assign nosmem_q        = read_data;
+
+            always @(posedge clk) begin
+                if (init_rst) begin
+                    pending   <= 0;
+                    cancelled <= 0;
+                    response  <= 0;
+                    cleared   <= 0;
+                end else begin
+                    if (upp_ddr_clear && upp_ddr_clear_done) cleared <= 1;
+                    if (rst || !req) response <= 0;
+
+                    // The transport owns a launched request through ACK,
+                    // even if a warm reset or withdrawn bus request cancels
+                    // its guest response. Cold reset also resets transport
+                    // ownership and the transport drains before clearing.
+                    if (pending) begin
+                        if (rst || !req) cancelled <= 1;
+                        if (upp_ddr_ack) begin
+                            pending <= 0;
+                            if (!cancelled && !rst && req) begin
+                                read_data <= upp_ddr_rdata;
+                                response  <= 1;
+                            end
+                        end
+                    end else if (!rst && local_access && ddr_access && !response && !upp_ddr_ack) begin
+                        pending     <= 1;
+                        cancelled   <= 0;
+                        write_op    <= we;
+                        address     <= {nosmem_selected, a[15:2]};
+                        write_data  <= din;
+                        byte_enable <= sel;
+                    end
+                end
+            end
+        end else begin : local_raw_ram
+            assign ddr_access      = 0;
+            assign ddr_response    = 0;
+            assign ddr_initialized = 1;
+            assign upp_ddr_req     = 0;
+            assign upp_ddr_we      = 0;
+            assign upp_ddr_addr    = 0;
+            assign upp_ddr_wdata   = 0;
+            assign upp_ddr_be      = 0;
+            assign upp_ddr_clear   = 0;
+            assign upp_ddr_idle    = 1;
+
+            ngage_bram_be #(
+                .AW(14)
+            ) upload_ram (
+                .clk  (clk),
+                .raddr(a[15:2]),
+                .rdata(upload_q),
+                .waddr(clearing ? init_index[13:0] : a[15:2]),
+                .we   (clearing ? 4'hf : ((upload_selected && ram_write) ? sel : 4'd0)),
+                .wdata(clearing ? 32'b0 : din)
+            );
+            ngage_bram_be #(
+                .AW(14)
+            ) nosmem_ram (
+                .clk  (clk),
+                .raddr(a[15:2]),
+                .rdata(nosmem_q),
+                .waddr(clearing ? init_index[13:0] : a[15:2]),
+                .we   (clearing ? 4'hf : ((nosmem_selected && ram_write) ? sel : 4'd0)),
+                .wdata(clearing ? 32'b0 : din)
+            );
+        end
+    endgenerate
     ngage_bram_be #(
         .AW(10)
     ) gpio15_ram (
@@ -706,7 +795,7 @@ module ngage_upp_peripherals #(
         (!boot_claim || boot_ready) && (!mdi_claim || mdi_ready) &&
         (!icu_claim || icu_bad || icu_ready) && (!timer_claim || timer_bad || timer_ready) && passive_ready &&
         (!mmc_claim || mmc_bad || !mmc_busy) && (!(lcd_hit && we) || lcd_can_accept) && (!d_selected || d_ready) && (!SIMIF_ENABLE || !simif_claim || !card_busy) &&
-                   (!ram_read || (rd_vld && rd_adr == a));
+                   (ddr_access ? ddr_response : (!ram_read || (rd_vld && rd_adr == a)));
 
     always @(posedge clk) begin
         if (rst || (local_access && ready) || !req) rd_vld <= 1'b0;
@@ -721,7 +810,7 @@ module ngage_upp_peripherals #(
     reg [11:0] fcnt_div;
 
     wire gpio_access = local_access && gpio_selected && valid_lanes &&
-                       (we || (rd_vld && rd_adr == a));
+                       (ddr_access ? ddr_response : (we || (rd_vld && rd_adr == a)));
     // Keypad configuration/status overlays share accepted transactions with
     // GPIO loopback and NOS. Each owner retains its independent state.
     wire keypad_access = gpio_access ||

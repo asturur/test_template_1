@@ -1,0 +1,524 @@
+diff --git a/scratch/v5-fit-loop/cpu-posted-sdram-ack/reply_tb.v b/scratch/v5-fit-loop/cpu-posted-sdram-ack/reply_tb.v
+new file mode 100644
+index 0000000..cd7f5aa
+--- /dev/null
++++ b/scratch/v5-fit-loop/cpu-posted-sdram-ack/reply_tb.v
+@@ -0,0 +1,137 @@
++module reply_tb;
++    reg clk = 0;
++    reg reset = 1;
++    reg cpu_cyc = 0, cpu_we = 0, lock = 0, block_write = 0;
++    reg dma_req = 0, mem_ack = 0, nonposted = 0;
++    wire ram_req, cpu_accept, dma_accept, cpu_ack, dma_ack, cpu_response, pending;
++    wire mem_req, mem_we, mem_lock, mem_block;
++    wire [31:0] cpu_read, held_data;
++    wire [127:0] held_block;
++
++    ngage_cpu_memory_route #(.CPU_OWNS_SCALAR_REPLY(1)) route (
++        .clk(clk), .reset(reset), .master_cyc(cpu_cyc), .master_stb(cpu_cyc),
++        .master_we(cpu_we), .master_code(1'b0), .master_address(32'h0a000040),
++        .master_data(32'habcd0123), .master_sel(4'hf), .master_ack(cpu_ack),
++        .master_rdata(cpu_read), .slow_idle(1'b1), .slow_ack(1'b0),
++        .slow_error(1'b0), .slow_rdata(32'd0), .ram_req(ram_req),
++        .ram_accept(cpu_accept), .ram_ack(cpu_response),
++        .ram_rdata(32'h31415926), .ram_pending(pending)
++    );
++    ngage_sdram_arbiter #(.CPU_BLOCK_WRITES(1), .CPU_POST_REPLY_REG(1)) arb (
++        .clk(clk), .reset(reset), .cpu_lock(lock), .cpu_req(ram_req), .cpu_we(cpu_we),
++        .cpu_addr(25'h40), .cpu_data(32'habcd0123), .cpu_write_block(block_write),
++        .cpu_block_data(128'h0123456789ab_cdef0fedcba9_87654321), .cpu_be(4'hf),
++        .cpu_ack(cpu_response), .cpu_accept(cpu_accept), .dma_req(dma_req),
++        .dma_we(1'b1), .dma_addr(25'h80), .dma_data(32'hb4b3b2b1), .dma_be(4'hf),
++        .dma_ack(dma_ack), .dma_accept(dma_accept), .mem_req(mem_req), .mem_we(mem_we),
++        .mem_lock(mem_lock), .mem_ack(mem_ack), .mem_nonposted_ack(nonposted),
++        .mem_data(held_data), .mem_write_block(mem_block), .mem_block_data(held_block),
++        .mem_rdata(32'h31415926)
++    );
++
++    task tick;
++        begin
++            #2 clk = 1;
++            #2 clk = 0;
++            #2;
++        end
++    endtask
++
++    task request_cpu;
++        input write, locked, block_mode;
++        begin
++            cpu_we = write;
++            lock = locked;
++            block_write = block_mode;
++            cpu_cyc = 1;
++            #1;
++            if (!cpu_accept) $fatal(1, "CPU request was not offered");
++            tick;
++            if (!pending || !mem_req || mem_we !== write || mem_lock !== locked ||
++                mem_block !== block_mode)
++                $fatal(1, "Bad owned request");
++            if (block_mode && held_block !== 128'h0123456789ab_cdef0fedcba9_87654321)
++                $fatal(1, "Wrong block payload");
++        end
++    endtask
++
++    task posted_cpu;
++        input block_mode;
++        begin
++            request_cpu(1, 0, block_mode);
++            repeat (3) tick;
++            if (!pending || cpu_ack || held_data != 32'habcd0123)
++                $fatal(1, "Posted write changed while held");
++            mem_ack = 1;
++            dma_req = 1;
++            #1;
++            if (cpu_ack || dma_ack) $fatal(1, "Premature completion");
++            tick;
++            mem_ack = 0;
++            #1;
++            if (!pending || !cpu_ack || !dma_accept || ram_req)
++                $fatal(1, "Registered completion did not overlap DMA grant");
++            tick;
++            cpu_cyc = 0;
++            dma_req = 0;
++            mem_ack = 1;
++            #1;
++            if (!dma_ack || cpu_ack || pending) $fatal(1, "DMA reply leaked to CPU");
++            tick;
++            mem_ack = 0;
++        end
++    endtask
++
++    task immediate_cpu;
++        input write, locked;
++        begin
++            request_cpu(write, locked, 0);
++            mem_ack = 1;
++            nonposted = 1;
++            #1;
++            if (!cpu_ack || cpu_read != 32'h31415926)
++                $fatal(1, "Read or locked write did not reply immediately");
++            tick;
++            cpu_cyc = 0;
++            lock = 0;
++            mem_ack = 0;
++            nonposted = 0;
++            #1;
++            if (cpu_ack || pending) $fatal(1, "Extra reply");
++            tick;
++        end
++    endtask
++
++    initial begin
++        tick;
++        reset = 0;
++        posted_cpu(0);
++        posted_cpu(1);
++        immediate_cpu(0, 0);
++        immediate_cpu(1, 1);
++
++        request_cpu(1, 0, 0);
++        cpu_cyc = 0;
++        tick;
++        mem_ack = 1;
++        tick;
++        mem_ack = 0;
++        #1;
++        if (cpu_ack) $fatal(1, "Cancelled CPU reply escaped");
++        tick;
++        if (pending) $fatal(1, "Cancelled CPU request did not drain");
++        request_cpu(1, 0, 0);
++        mem_ack = 1;
++        tick;
++        mem_ack = 0;
++        reset = 1;
++        cpu_cyc = 0;
++        #1;
++        if (cpu_ack) $fatal(1, "Reset did not kill posted reply");
++        tick;
++        reset = 0;
++        immediate_cpu(0, 0);
++        $display("PASS posted scalar/block, DMA overlap, direct reads, locks, cancellation and reset");
++        $finish;
++    end
++endmodule
+diff --git a/scratch/v5-fit-loop/cpu-posted-sdram-ack/replay.py b/scratch/v5-fit-loop/cpu-posted-sdram-ack/replay.py
+new file mode 100644
+index 0000000..913c333
+--- /dev/null
++++ b/scratch/v5-fit-loop/cpu-posted-sdram-ack/replay.py
+@@ -0,0 +1,199 @@
++"""Replay Prepared Wishbone write data against the frozen 104 MHz execute control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++parser.add_argument('--control', action='store_true')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = stage / args.output
++work.mkdir(exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(repo / 'tests/cpu/arm9v2_board'))
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    for old, new in (
++        ('ngage_sdram_arbiter #(.CPU_BLOCK_WRITES(1)) arb(', 'wire nonposted_ack;\n ngage_sdram_arbiter #(.CPU_BLOCK_WRITES(1), .CPU_POST_REPLY_REG('+str(int(not args.control))+')) arb('),
++        ('.mem_ack(sack),.mem_rdata(sr));', '.mem_ack(sack),.mem_nonposted_ack(nonposted_ack),.mem_rdata(sr));'),
++        ('.ack(sack),.dout(sdata),', '.ack(sack),.nonposted_ack(nonposted_ack),.dout(sdata),'),
++    ):
++        assert bench.count(old)==1, old
++        bench=bench.replace(old,new)
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v',
++                        'rtl/ngage_sdram_arbiter.v', 'rtl/ngage_sdram_stream.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/cpu-posted-sdram-ack/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_sdram_arbiter.v', 'ngage_sdram_stream.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/cpu-posted-sdram-ack/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]),
++                guest=scan(log,'RES_GUEST ',hex_fields=True))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++saved = json.loads((stage.parent/'prepared-wb-write-data'/'candidate'/f'{kind}.json').read_text())
++assert saved['status']=='PASS'
++reference={r['candidate']['case']:r['candidate'] for r in saved['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        if kind=='fixed':
++            assert architectural_work(trial)==architectural_work(expected), (name, trial['architecture'],expected['architecture'])
++        else:
++            checked = ('window','data','mmio','data_hash','mmio_hash')
++            assert [[x[k] for k in checked] for x in trial['architecture']]==[
++                [x[k] for k in checked] for x in expected['architecture']]
++            assert len(trial['guest']) == 4
++        if kind=='native':
++            assert trial['output_sha256']==expected['output_sha256']
++        if args.control:
++            assert {k:v for k,v in trial.items() if k!='guest'}==expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], expected['median'], round(100*(trial['median']/expected['median']-1),5), flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                upp_sha256=digest(stage / 'source/rtl/ngage_upp.v'), rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/cpu-posted-sdram-ack/mixed.py b/scratch/v5-fit-loop/cpu-posted-sdram-ack/mixed.py
+new file mode 100644
+index 0000000..bd0f470
+--- /dev/null
++++ b/scratch/v5-fit-loop/cpu-posted-sdram-ack/mixed.py
+@@ -0,0 +1,37 @@
++import hashlib
++import json
++from pathlib import Path
++import shutil
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed')
++trial = Path('build/sim/v5-104-more-ram-cpu-posted-sdram-ack-pin-mixed/mixed')
++trial.mkdir(parents=True)
++for name in ('source', 'build.sh', 'stress.hex', 'image.hex', 'program.hex', 'source-hashes.json'):
++    old = base / name
++    if old.is_dir():
++        shutil.copytree(old, trial / name)
++    else:
++        shutil.copyfile(old, trial / name)
++for rtl in ('rtl/ngage_sdram_stream.v', 'rtl/ngage_sdram_arbiter.v'):
++    shutil.copyfile(stage / 'source' / rtl, trial / 'source' / rtl)
++bench = trial / 'source/tests/phone/mmc_mister/tb.v'
++text = bench.read_text()
++for old, new in (
++    ('ngage_sdram_arbiter #(.CPU_BLOCK_WRITES(1)) arb(', 'wire nonposted_ack;\n ngage_sdram_arbiter #(.CPU_BLOCK_WRITES(1), .CPU_POST_REPLY_REG(1)) arb('),
++    ('.mem_ack(sack),.mem_rdata(sr));', '.mem_ack(sack),.mem_nonposted_ack(nonposted_ack),.mem_rdata(sr));'),
++    ('.ack(sack),.dout(sr),', '.ack(sack),.nonposted_ack(nonposted_ack),.dout(sr),'),
++):
++    assert text.count(old) == 1, old
++    text = text.replace(old, new)
++bench.write_text(text)
++hashes = json.loads((base / 'source-hashes.json').read_text())
++changed = {'rtl/ngage_sdram_stream.v', 'rtl/ngage_sdram_arbiter.v', 'tests/phone/mmc_mister/tb.v'}
++for name, ref in hashes.items():
++    file = trial / 'source' / name
++    actual = hashlib.sha256((file if file.is_file() else Path(name)).read_bytes()).hexdigest()
++    assert (actual != ref) == (name in changed), (name, ref, actual)
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++build = trial / 'build.sh'
++build.write_text(build.read_text().replace(str(base), str(trial)))
+diff --git a/scratch/v5-fit-loop/cpu-posted-sdram-ack/pcm-replay.py b/scratch/v5-fit-loop/cpu-posted-sdram-ack/pcm-replay.py
+new file mode 100644
+index 0000000..a2c5b23
+--- /dev/null
++++ b/scratch/v5-fit-loop/cpu-posted-sdram-ack/pcm-replay.py
+@@ -0,0 +1,24 @@
++from pathlib import Path
++import shutil
++
++base = Path('build/sim/v5-104-more-ram-cpu-posted-sdram-ack-pin-mixed/mixed')
++for label, enabled in (('reference', 0), ('stage', 1)):
++    out = base.parent.parent / f'v5-104-cpu-posted-sdram-ack-pcm-{label}' / 'mixed'
++    out.mkdir(parents=True)
++    for name in ('source', 'build.sh', 'stress.hex', 'image.hex', 'program.hex'):
++        old = base / name
++        if old.is_dir():
++            shutil.copytree(old, out / name)
++        else:
++            shutil.copyfile(old, out / name)
++    bench = out / 'source/tests/phone/mmc_mister/tb.v'
++    text = bench.read_text().replace('.CPU_POST_REPLY_REG(1)', f'.CPU_POST_REPLY_REG({enabled})')
++    marker = '         sample_count <= sample_count+1;'
++    assert text.count(marker) == 1
++    text = text.replace(marker, '         $display("PCM_SAMPLE index=%0d cycles=%0d left=%h right=%h", sample_count, cycles, pcm_l, pcm_r);\n'+marker)
++    old = "sample_count != 128 || sample_hash !== 32'h175ee178 || last_sample-first_sample != 275167"
++    assert text.count(old) == 1
++    text = text.replace(old, 'sample_count != 128 || last_sample-first_sample != 275167')
++    bench.write_text(text)
++    build = out / 'build.sh'
++    build.write_text(build.read_text().replace(str(base), str(out)))
+diff --git a/scratch/v5-fit-loop/cpu-posted-sdram-ack/architectural_trace.vh b/scratch/v5-fit-loop/cpu-posted-sdram-ack/architectural_trace.vh
+new file mode 100644
+index 0000000..219838e
+--- /dev/null
++++ b/scratch/v5-fit-loop/cpu-posted-sdram-ack/architectural_trace.vh
+@@ -0,0 +1,97 @@
++`define RESUPP dut.board.upp.cpu_inside
++`define RESZAP `RESUPP.cpu.u_arm925t.u_zap
++`define RESCORE `RESZAP.g_arm9.u_arm9_core
++`define RESFETCH `RESCORE.u_front_decode.u_fetch
++
++reg [31:0] res_begin, res_end;
++integer res_window = 0;
++integer res_retired, res_data, res_mmio, res_recover;
++reg res_active = 0;
++reg [63:0] res_guest_hash, res_guest_pc_ir;
++integer res_guest_count;
++int res_internal_by_pc [longint unsigned];
++reg [63:0] res_retire_hash, res_data_hash, res_mmio_hash;
++localparam [63:0] RES_INITIAL = 64'hcbf29ce484222325;
++initial begin
++    if (!$value$plusargs("begin_pc=%h", res_begin) || !$value$plusargs("end_pc=%h", res_end))
++        $fatal(1, "Missing architectural digest window");
++end
++
++function automatic [63:0] res_mix(input [63:0] digest, input [63:0] data);
++    res_mix = (digest ^ data) * 64'h00000100000001b3;
++endfunction
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        res_active = 1;
++        res_retired = 0;
++        res_data = 0;
++        res_mmio = 0;
++        res_recover = 0;
++        res_retire_hash = RES_INITIAL;
++        res_guest_hash = RES_INITIAL;
++        res_guest_count = 0;
++        res_internal_by_pc.delete();
++        res_data_hash = RES_INITIAL;
++        res_mmio_hash = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && res_active) begin
++        $display("RES_ARCH window=%0d retired=%0d data=%0d mmio=%0d recover=%0d retire_hash=%016x data_hash=%016x mmio_hash=%016x",
++                 res_window, res_retired, res_data, res_mmio, res_recover,
++                 res_retire_hash, res_data_hash, res_mmio_hash);
++        $display("RES_GUEST window=%0d retired=%0d retire_hash=%016x",
++                 res_window, res_guest_count, res_guest_hash);
++        if (res_window == 0)
++            foreach (res_internal_by_pc[key])
++                $display("RES_INTERNAL pc_ir=%016x count=%0d", key, res_internal_by_pc[key]);
++        res_window++;
++        res_active = 0;
++    end else if (res_active) begin
++        if (`RESCORE.wb_complete) begin
++            res_retired++;
++            res_guest_pc_ir = {`RESCORE.w[526:495], `RESCORE.w[494:463]};
++            if (retire) begin
++                res_guest_count++;
++                res_guest_hash = res_mix(res_guest_hash, res_guest_pc_ir);
++                res_guest_hash = res_mix(res_guest_hash, {25'b0, exceptions, `RESCORE.cpsr_next});
++                if (`RESCORE.wb_valid) begin
++                    if (`RESCORE.wb_tag0 != 6'd16)
++                        res_guest_hash = res_mix(res_guest_hash, {26'b0, `RESCORE.wb_tag0, `RESCORE.wb_data0});
++                    if (`RESCORE.wb_pair && `RESCORE.wb_tag1 != 6'd16)
++                        res_guest_hash = res_mix(res_guest_hash, {26'b0, 1'b1, `RESCORE.wb_tag1, `RESCORE.wb_data1});
++                end
++            end else if (res_window == 0) begin
++                if (res_internal_by_pc.exists(res_guest_pc_ir))
++                    res_internal_by_pc[res_guest_pc_ir]++;
++                else
++                    res_internal_by_pc[res_guest_pc_ir] = 1;
++            end
++            res_retire_hash = res_mix(res_retire_hash, {`RESCORE.w[526:495], `RESCORE.w[494:463]});
++            res_retire_hash = res_mix(res_retire_hash, {25'b0, exceptions, `RESCORE.cpsr_next});
++            if (`RESCORE.wb_valid) begin
++                if (`RESCORE.wb_tag0 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {26'b0, `RESCORE.wb_tag0, `RESCORE.wb_data0});
++                if (`RESCORE.wb_pair && `RESCORE.wb_tag1 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {25'b0, 1'b1, `RESCORE.wb_tag1, `RESCORE.wb_data1});
++            end
++        end
++        if (`RESZAP.o_dbg_d_done) begin
++            res_data++;
++            res_data_hash = res_mix(res_data_hash, {26'b0, `RESZAP.data_err, `RESZAP.o_dbg_d_we,
++                                                   `RESZAP.o_dbg_d_sel, `RESZAP.o_dbg_d_va});
++            res_data_hash = res_mix(res_data_hash, {32'b0, `RESZAP.o_dbg_d_we ?
++                                                   `RESZAP.o_dbg_d_wdata : `RESZAP.o_dbg_d_rdata});
++        end
++        if (`RESUPP.master_cyc && `RESUPP.master_stb && !`RESUPP.master_code &&
++            (`RESUPP.slow_ack || `RESUPP.slow_error)) begin
++            res_mmio++;
++            res_mmio_hash = res_mix(res_mmio_hash, {26'b0, `RESUPP.slow_error, `RESUPP.master_we,
++                                                   `RESUPP.master_sel, `RESUPP.master_address});
++            res_mmio_hash = res_mix(res_mmio_hash, {32'b0, `RESUPP.master_we ?
++                                                   `RESUPP.master_data : `RESUPP.slow_read_data});
++        end
++    end
++end
++`undef RESFETCH
++`undef RESCORE
++`undef RESZAP
++`undef RESUPP

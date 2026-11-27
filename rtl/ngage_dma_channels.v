@@ -5,8 +5,10 @@
 // success IRQ: the original ISR returns a constant success status. This is
 // an explicit model diagnostic, not an invented guest-visible error register.
 module ngage_dma_channels #(
-    parameter ENGINES    = 3,
-              PRODUCTION = 0
+    parameter ENGINES        = 3,
+              PRODUCTION     = 0,
+              LCD_LINE_BYTES = 0,
+              PREDECODED     = 0
 ) (
     input  wire        clk,
     input  wire        reset,
@@ -16,6 +18,8 @@ module ngage_dma_channels #(
     input  wire [31:0] addr,
     input  wire [31:0] din,
     input  wire [ 3:0] sel,
+    input  wire [ 4:0] dma_decode,
+    input  wire [ 7:0] dma_targets,
     output wire        claim,
     output wire        bad,
     output reg  [31:0] dout,
@@ -24,6 +28,12 @@ module ngage_dma_channels #(
     output wire [ 7:0] active_channels,
     output wire        lcd_mem_req,
     output wire [24:0] lcd_mem_addr,
+    output wire        lcd_line_req,
+    output wire [24:0] lcd_line_addr,
+    input  wire        lcd_line_ready,
+    input  wire        lcd_line_valid,
+    input  wire [15:0] lcd_line_data,
+    input  wire        lcd_line_last,
     input  wire        lcd_mem_accept,
     input  wire        lcd_mem_ack,
     input  wire [31:0] lcd_mem_data,
@@ -53,28 +63,40 @@ module ngage_dma_channels #(
     output wire        ready
 );
     wire [31:0] a = {addr[31:2], 2'b00};
-    wire [2:0] channel = a[8:6];
-    wire [5:0] offset = a[5:0];
-    wire decoded = a >= 32'h0c120300 && a < 32'h0c120500;
+    wire [ 2:0] channel = a[8:6];
+    wire [ 5:0] offset = a[5:0];
     // The base is 0x300, not 0: subtract its channel-index contribution.
-    wire [2:0] ch = channel - 3'd4;
-    wire known = offset == 6'h04 || offset == 6'h08 || offset == 6'h0c ||
-        offset == 6'h10 || offset == 6'h14 || offset == 6'h18 || offset == 6'h1c ||
-        offset == 6'h20 || offset == 6'h24 || offset == 6'h28 || offset == 6'h2c;
-    wire selector = PRODUCTION && (a == 32'h0c120064 || a == 32'h0c120068);
-    reg [31:0] request_select;
-    assign claim = req && ((decoded && known) || selector);
-    assign bad   = claim && (sel != 4'hf || addr[1:0] != 0 || (we && offset == 6'h08 && din > 3));
-    wire write = claim && commit && we && !bad && !selector && ready;
-    wire selector_write = claim && commit && we && !bad && selector;
-    wire start_write = write && offset == 6'h08 && (din == 1 || din == 2 || din == 3);
-    wire stop_write = write && offset == 6'h08 && din == 0;
+    wire [ 2:0] ch = channel - 3'd4;
+    wire claim_packet, bad_packet, selector, start_packet, stop_packet;
+    wire [7:0] control_channel;
+    generate
+        if (PREDECODED) begin : staged_decode
+            assign {claim_packet, bad_packet, selector, start_packet, stop_packet} = dma_decode;
+            assign control_channel                                                 = dma_targets;
+        end else begin : direct_decode
+            ngage_dma_program_decode #(
+                .PRODUCTION(PRODUCTION)
+            ) decode (
+                .addr           (addr),
+                .din            (din),
+                .sel            (sel),
+                .we             (we),
+                .fields         ({claim_packet, bad_packet, selector, start_packet, stop_packet}),
+                .control_channel(control_channel)
+            );
+        end
+    endgenerate
 
+    reg [31:0] request_select;
+    assign claim = req && claim_packet;
+    assign bad   = claim && bad_packet;
+    wire        write = claim && commit && we && !bad && !selector && ready;
+    wire        selector_write = claim && commit && we && !bad && selector;
+    wire        start_request = req && start_packet;
     // Readback words remain in one M10K. The first three queue banks also
     // hold live source/destination/count in rows0..7; immutable snapshots use
     // rows8..15. A start samples the three live words in parallel before ACK,
     // replacing768 FF mirror bits without extra M10Ks or transfer-beat waits.
-    wire        start_request = claim && !bad && we && !selector && offset == 6'h08 && din != 0;
     reg         start_sample_pending;
     reg  [ 2:0] start_sample_channel;
     reg  [63:0] programming_valid;
@@ -139,8 +161,14 @@ module ngage_dma_channels #(
             read_word_valid <= programming_valid[programming_address];
         end
     end
+    wire start_ready = start_sample_pending && start_sample_channel == ch;
     assign ready = (!programming_read || (read_pending && read_address == programming_address)) &&
-        (!start_request || (start_sample_pending && start_sample_channel == ch));
+        (!start_request || start_ready);
+    // A start still needs the synchronous live-descriptor sample. A stop
+    // needs no sample. Neither can also be a programming read.
+    wire start_write = commit && start_request && start_ready;
+    wire stop_write = commit && req && stop_packet;
+    wire control_write = start_write || stop_write;
     reg [7:0] pending, cancel;
     // Only the fast-path classification remains live for queue arbitration.
     // The immutable start snapshot is read from four M10Ks before dispatch.
@@ -243,7 +271,7 @@ module ngage_dma_channels #(
     // live registers cannot change queued work. A restart/stop invalidates a
     // sampled old descriptor before any engine sees it, including RAM RDW.
     wire descriptor_select = !reset && !descriptor_loaded && !start_request && next_channel >= 0 &&
-        !((start_write || stop_write) && ch == next_channel[2:0]);
+        !(control_write && control_channel[next_channel[2:0]]);
     wire descriptor_write = start_write && !reset;
     wire [2:0] queue_read_channel = descriptor_loaded ? descriptor_channel :
         next_channel < 0 ? 3'd0 : next_channel[2:0];
@@ -297,7 +325,7 @@ module ngage_dma_channels #(
     endgenerate
     wire dispatch = !reset && descriptor_loaded && pending[descriptor_channel] &&
         !running[descriptor_channel] && !completion_wait[descriptor_channel] &&
-        !((start_request || stop_write) && ch == descriptor_channel);
+        !((start_request || stop_write) && control_channel[descriptor_channel]);
     wire fast_dispatch = dispatch && queued_fast[descriptor_channel];
     wire generic_dispatch = dispatch && !queued_fast[descriptor_channel];
     always @(posedge clk) begin
@@ -314,10 +342,12 @@ module ngage_dma_channels #(
         end
     end
     wire fast_cancel = fast_owned && (cancel[fast_channel] ||
-        ((start_write || stop_write) && ch == fast_channel));
+        (control_write && control_channel[fast_channel]));
     generate
         if (PRODUCTION) begin : fast_lcd
-            ngage_lcd_stream stream (
+            ngage_lcd_stream #(
+                .LINE_BYTES(LCD_LINE_BYTES)
+            ) stream (
                 .clk           (clk),
                 .reset         (reset),
                 .transfer_valid(fast_dispatch),
@@ -334,6 +364,12 @@ module ngage_dma_channels #(
                 .mem_accept    (lcd_mem_accept),
                 .mem_ack       (lcd_mem_ack),
                 .mem_data      (lcd_mem_data),
+                .line_req      (lcd_line_req),
+                .line_addr     (lcd_line_addr),
+                .line_ready    (lcd_line_ready),
+                .line_valid    (lcd_line_valid),
+                .line_data     (lcd_line_data),
+                .line_last     (lcd_line_last),
                 .pixel_valid   (lcd_pixel_valid),
                 .pixel_data    (lcd_pixel_data),
                 .pixel_ready   (lcd_pixel_ready),
@@ -345,6 +381,8 @@ module ngage_dma_channels #(
             assign fast_done       = 0;
             assign fast_error      = 0;
             assign fast_aborted    = 0;
+            assign lcd_line_req    = 0;
+            assign lcd_line_addr   = 0;
             assign lcd_mem_req     = 0;
             assign lcd_mem_addr    = 0;
             assign lcd_pixel_valid = 0;
@@ -430,7 +468,7 @@ module ngage_dma_channels #(
         for (e = 0; e < ENGINES; e = e + 1) begin : engines
             wire dispatch_here = generic_dispatch && descriptor_engine == e;
             wire cancel_here = owned[e] && (cancel[engine_channel[e]] ||
-                ((start_write || stop_write) && ch == engine_channel[e]));
+                (control_write && control_channel[engine_channel[e]]));
             assign engine_ready[e] = reserved && !bus_owned && bus_engine == e && cmd_ready && packet_ready;
             ngage_dma_engine engine (
                 .clk(clk),
@@ -587,7 +625,7 @@ module ngage_dma_channels #(
                     end
                 endcase
             end
-            if (start_write || stop_write) begin
+            if (control_write) begin
                 completion_cancel[ch] <= 1;
                 pending[ch]           <= start_write;
                 cancel[ch]            <= running[ch];
@@ -601,4 +639,37 @@ module ngage_dma_channels #(
             end
         end
     end
+endmodule
+
+// Decode the immutable DMA programming intent. The UPP capture stage can
+// store this alongside the packet; request liveness, readiness and commit
+// remain downstream. External masters without that stage decode locally.
+module ngage_dma_program_decode #(
+    parameter PRODUCTION = 0
+) (
+    input  wire [31:0] addr,
+    input  wire [31:0] din,
+    input  wire [ 3:0] sel,
+    input  wire        we,
+    output wire [ 4:0] fields,
+    output wire [ 7:0] control_channel
+);
+    wire [31:0] a = {addr[31:2], 2'b00};
+    wire [5:0] offset = a[5:0];
+    wire [2:0] ch = a[8:6] - 3'd4;
+    wire decoded = a >= 32'h0c120300 && a < 32'h0c120500;
+    wire known = offset == 6'h04 || offset == 6'h08 || offset == 6'h0c ||
+        offset == 6'h10 || offset == 6'h14 || offset == 6'h18 || offset == 6'h1c ||
+        offset == 6'h20 || offset == 6'h24 || offset == 6'h28 || offset == 6'h2c;
+    wire selector = PRODUCTION && (a == 32'h0c120064 || a == 32'h0c120068);
+    wire bad = sel != 4'hf || addr[1:0] != 0 || (we && offset == 6'h08 && din > 3);
+    wire control_word = decoded && !bad && we && offset == 6'h08;
+    assign fields = {
+        (decoded && known) || selector,
+        bad,
+        selector,
+        control_word && din != 0,
+        control_word && din == 0
+    };
+    assign control_channel = control_word ? (8'b1 << ch) : 8'b0;
 endmodule

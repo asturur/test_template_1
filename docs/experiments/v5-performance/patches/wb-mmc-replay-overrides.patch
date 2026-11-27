@@ -1,0 +1,22 @@
+--- a/replay.py
++++ b/replay.py
+@@ -32,7 +32,7 @@
+ d_stage = stage / 'rtl/ngage_cpu.sv'
+ candidate = stage / 'rtl/arm9v2/arm925t_phone.v'
+ rtl_changes = {'rtl/ngage_board.v', 'rtl/ngage_mister.v', 'rtl/ngage_upp.v',
+-               'rtl/ngage_sdram_arbiter.v', 'rtl/ngage_sdram_stream.v'}
++               'rtl/ngage_sdram_arbiter.v', 'rtl/ngage_sdram_stream.v', 'rtl/ngage_mmc_host.v'}
+ compilation_overrides = rtl_changes | {'rtl/ngage_ddr_stream.v', 'rtl/ngage_dma_channels.v'}
+ image = 'jotego/simulator:arm64'
+ docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
+--- a/prepare_mixed.py
++++ b/prepare_mixed.py
+@@ -19,7 +19,7 @@
+ for file in ('image.hex', 'program.hex', 'stress.hex'):
+     copy2(reference / file, out / file)
+ for file in ('rtl/ngage_cpu.sv', 'rtl/ngage_sdram_arbiter.v', 'rtl/ngage_sdram_stream.v',
+-             'rtl/ngage_upp.v', 'rtl/ngage_board.v', 'rtl/ngage_mister.v',
++             'rtl/ngage_upp.v', 'rtl/ngage_board.v', 'rtl/ngage_mister.v', 'rtl/ngage_mmc_host.v',
+              'rtl/arm9v2/arm925t_phone.v'):
+     copy2(candidate / file, out / 'source' / file)
+ (out / 'build.sh').write_text((reference / 'build.sh').read_text().replace(str(ref_dir), str(relative_out)))

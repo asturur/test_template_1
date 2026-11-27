@@ -1,0 +1,3859 @@
+{
+  "timer": {
+    "13": {
+      "run": 45824513460,
+      "commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+      "corners": {
+        "corner-1": {
+          "condition": "Slow 1100mV 100C Model",
+          "reset_launch": {
+            "count": 42,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "22",
+              "slack_ns": "-1.819",
+              "data_delay_ns": "10.664",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_cache_fsm:u_zap_cache_fsm|fill_valid_ff[6]"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 1,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "139",
+              "slack_ns": "-1.479",
+              "data_delay_ns": "10.715",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_addr[13]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "124",
+              "slack_ns": "-1.513",
+              "data_delay_ns": "10.408",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|WideOr1~0_OTERM8232",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "124",
+              "slack_ns": "-1.513",
+              "data_delay_ns": "10.408",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|WideOr1~0_OTERM8232",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "127",
+              "slack_ns": "-1.508",
+              "data_delay_ns": "10.406",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|WideOr1~0_OTERM8232",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "22",
+            "slack_ns": "-1.819",
+            "data_delay_ns": "10.664",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_cache_fsm:u_zap_cache_fsm|fill_valid_ff[6]",
+            "class": "other",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.memory_route|master_ack~0",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|take~2_RESYN18236",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|take~2",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|Mux101~2",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|Mux101~5",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|Mux99~1",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|always0~0"
+            ]
+          }
+        },
+        "corner-2": {
+          "condition": "Slow 1100mV -40C Model",
+          "reset_launch": {
+            "count": 38,
+            "below_minus_1p5_ns": 1,
+            "worst": {
+              "rank": "59",
+              "slack_ns": "-1.506",
+              "data_delay_ns": "10.352",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_cache_fsm:u_zap_cache_fsm|fill_valid_ff[6]"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 1,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "372",
+              "slack_ns": "-1.119",
+              "data_delay_ns": "10.363",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_addr[13]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "25",
+              "slack_ns": "-1.650",
+              "data_delay_ns": "10.544",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|WideOr1~0_OTERM8232",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "25",
+              "slack_ns": "-1.650",
+              "data_delay_ns": "10.544",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|WideOr1~0_OTERM8232",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "readiness",
+              "cells": [
+                "emu|core|board|upp|peripherals|boot_regs|Equal101~0",
+                "emu|core|board|upp|peripherals|boot_regs|storage_index[5]~0",
+                "emu|core|board|upp|peripherals|boot_regs|storage_index[0]~1",
+                "emu|core|board|upp|peripherals|boot_regs|WideOr0~1",
+                "emu|core|board|upp|peripherals|boot_regs|ready~0",
+                "emu|core|board|upp|peripherals|valid~8_RESYN14058",
+                "emu|core|board|upp|peripherals|valid~8",
+                "emu|core|board|upp|peripherals|valid~9"
+              ]
+            },
+            {
+              "rank": "28",
+              "slack_ns": "-1.644",
+              "data_delay_ns": "10.543",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|WideOr1~0_OTERM8232",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "readiness",
+              "cells": [
+                "emu|core|board|upp|peripherals|boot_regs|Equal101~0",
+                "emu|core|board|upp|peripherals|boot_regs|storage_index[5]~0",
+                "emu|core|board|upp|peripherals|boot_regs|storage_index[0]~1",
+                "emu|core|board|upp|peripherals|boot_regs|WideOr0~1",
+                "emu|core|board|upp|peripherals|boot_regs|ready~0",
+                "emu|core|board|upp|peripherals|valid~8_RESYN14058",
+                "emu|core|board|upp|peripherals|valid~8",
+                "emu|core|board|upp|peripherals|valid~9"
+              ]
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "59",
+            "slack_ns": "-1.506",
+            "data_delay_ns": "10.352",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_cache_fsm:u_zap_cache_fsm|fill_valid_ff[6]",
+            "class": "other",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.memory_route|master_ack~0",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|take~2_RESYN18236",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|take~2",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|Mux101~2",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|Mux101~5",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|Mux99~1",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|always0~0"
+            ]
+          }
+        },
+        "corner-3": {
+          "condition": "Fast 1100mV 100C Model",
+          "reset_launch": {
+            "count": 23,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "19",
+              "slack_ns": "3.025",
+              "data_delay_ns": "6.254",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[16]"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 1,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "318",
+              "slack_ns": "3.374",
+              "data_delay_ns": "5.914",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_addr[13]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "59",
+              "slack_ns": "3.201",
+              "data_delay_ns": "5.929",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "59",
+              "slack_ns": "3.201",
+              "data_delay_ns": "5.929",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "other",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.bridge|bus_live~2",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|timers|claim~0",
+                "emu|core|board|upp|peripherals|passive_address[0]~0",
+                "emu|core|board|upp|peripherals|comb~17",
+                "emu|core|board|upp|peripherals|valid~8_RESYN14060",
+                "emu|core|board|upp|peripherals|valid~8",
+                "emu|core|board|upp|peripherals|valid~9"
+              ]
+            },
+            {
+              "rank": "60",
+              "slack_ns": "3.203",
+              "data_delay_ns": "5.928",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "other",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.bridge|bus_live~2",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|timers|claim~0",
+                "emu|core|board|upp|peripherals|passive_address[0]~0",
+                "emu|core|board|upp|peripherals|comb~17",
+                "emu|core|board|upp|peripherals|valid~8_RESYN14060",
+                "emu|core|board|upp|peripherals|valid~8",
+                "emu|core|board|upp|peripherals|valid~9"
+              ]
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "19",
+            "slack_ns": "3.025",
+            "data_delay_ns": "6.254",
+            "logic_levels": "9",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[16]",
+            "class": "other",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.memory_route|master_ack~0",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|take~2_RESYN18236",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|take~2",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|Mux124~8",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|Mux123~4_RESYN13986",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_code_cache|u_zap_cache_fsm|Mux123~4",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~79_RESYN17928",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~79",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr~26"
+            ]
+          }
+        },
+        "corner-4": {
+          "condition": "Fast 1100mV -40C Model",
+          "reset_launch": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "592",
+              "slack_ns": "4.126",
+              "data_delay_ns": "4.983",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_cache_fsm:u_zap_cache_fsm|fill_valid_ff[6]"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "815",
+              "slack_ns": "4.231",
+              "data_delay_ns": "4.902",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "815",
+              "slack_ns": "4.231",
+              "data_delay_ns": "4.902",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "816",
+              "slack_ns": "4.233",
+              "data_delay_ns": "4.901",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "592",
+            "slack_ns": "4.126",
+            "data_delay_ns": "4.983",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_cache_fsm:u_zap_cache_fsm|fill_valid_ff[6]",
+            "class": "outside detailed sample"
+          }
+        }
+      }
+    },
+    "43": {
+      "run": 45824520116,
+      "commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+      "corners": {
+        "corner-1": {
+          "condition": "Slow 1100mV 100C Model",
+          "reset_launch": {
+            "count": 15,
+            "below_minus_1p5_ns": 1,
+            "worst": {
+              "rank": "300",
+              "slack_ns": "-1.517",
+              "data_delay_ns": "10.357",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[18]"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 1,
+            "below_minus_1p5_ns": 1,
+            "worst": {
+              "rank": "179",
+              "slack_ns": "-1.668",
+              "data_delay_ns": "10.545",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "179",
+              "slack_ns": "-1.668",
+              "data_delay_ns": "10.545",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "300",
+            "slack_ns": "-1.517",
+            "data_delay_ns": "10.357",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+            "to": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|cmd_addr[18]",
+            "class": "outside detailed sample"
+          }
+        },
+        "corner-2": {
+          "condition": "Slow 1100mV -40C Model",
+          "reset_launch": {
+            "count": 7,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "267",
+              "slack_ns": "-1.394",
+              "data_delay_ns": "10.228",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_59",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|descriptor_engine[0]_OTERM13751"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 1,
+            "below_minus_1p5_ns": 1,
+            "worst": {
+              "rank": "143",
+              "slack_ns": "-1.594",
+              "data_delay_ns": "10.487",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "143",
+              "slack_ns": "-1.594",
+              "data_delay_ns": "10.487",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_line_candidate",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "267",
+            "slack_ns": "-1.394",
+            "data_delay_ns": "10.228",
+            "logic_levels": "6",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_59",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|descriptor_engine[0]_OTERM13751",
+            "class": "outside detailed sample"
+          }
+        },
+        "corner-3": {
+          "condition": "Fast 1100mV 100C Model",
+          "reset_launch": {
+            "count": 4,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "920",
+              "slack_ns": "3.562",
+              "data_delay_ns": "5.580",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_59",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[0].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~portb_address_reg1"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 1,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "155",
+              "slack_ns": "3.167",
+              "data_delay_ns": "5.963",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "155",
+              "slack_ns": "3.167",
+              "data_delay_ns": "5.963",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "920",
+            "slack_ns": "3.562",
+            "data_delay_ns": "5.580",
+            "logic_levels": "6",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_59",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_bram:queued_descriptor[0].ram|altsyncram:ram|altsyncram_6js2:auto_generated|ram_block1a0~portb_address_reg1",
+            "class": "outside detailed sample"
+          }
+        },
+        "corner-4": {
+          "condition": "Fast 1100mV -40C Model",
+          "reset_launch": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 1,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "621",
+              "slack_ns": "4.130",
+              "data_delay_ns": "4.999",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "621",
+              "slack_ns": "4.130",
+              "data_delay_ns": "4.999",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": null
+        }
+      }
+    },
+    "31337": {
+      "run": 45824525843,
+      "commit": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+      "corners": {
+        "corner-1": {
+          "condition": "Slow 1100mV 100C Model",
+          "reset_launch": {
+            "count": 15,
+            "below_minus_1p5_ns": 1,
+            "worst": {
+              "rank": "242",
+              "slack_ns": "-1.530",
+              "data_delay_ns": "10.370",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp_mdi:upp_mdi|ngage_upp_dsp_pcm:game_pcm.stream|LessThan5~14_OTERM7291"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "38",
+              "slack_ns": "-1.867",
+              "data_delay_ns": "10.759",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "38",
+              "slack_ns": "-1.867",
+              "data_delay_ns": "10.759",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.bridge|bus_live~2",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|timers|claim~0",
+                "emu|core|board|upp|peripherals|selected_owner[7]~14",
+                "emu|core|board|upp|peripherals|WideOr3~3_RESYN14236",
+                "emu|core|board|upp|peripherals|WideOr3~3",
+                "emu|core|board|upp|peripherals|claim~1",
+                "emu|core|board|upp|peripherals|valid~9"
+              ]
+            },
+            {
+              "rank": "43",
+              "slack_ns": "-1.861",
+              "data_delay_ns": "10.757",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.bridge|bus_live~2",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|timers|claim~0",
+                "emu|core|board|upp|peripherals|selected_owner[7]~14",
+                "emu|core|board|upp|peripherals|WideOr3~3_RESYN14236",
+                "emu|core|board|upp|peripherals|WideOr3~3",
+                "emu|core|board|upp|peripherals|claim~1",
+                "emu|core|board|upp|peripherals|valid~9"
+              ]
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "242",
+            "slack_ns": "-1.530",
+            "data_delay_ns": "10.370",
+            "logic_levels": "6",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp_mdi:upp_mdi|ngage_upp_dsp_pcm:game_pcm.stream|LessThan5~14_OTERM7291",
+            "class": "outside detailed sample"
+          }
+        },
+        "corner-2": {
+          "condition": "Slow 1100mV -40C Model",
+          "reset_launch": {
+            "count": 13,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "199",
+              "slack_ns": "-1.357",
+              "data_delay_ns": "10.225",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp_mdi:upp_mdi|ngage_upp_dsp_pcm:game_pcm.stream|LessThan4~2_OTERM8556"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "34",
+              "slack_ns": "-1.805",
+              "data_delay_ns": "11.005",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|Equal40~1_OTERM425DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "34",
+              "slack_ns": "-1.805",
+              "data_delay_ns": "11.005",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|Equal40~1_OTERM425DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|peripherals|nos_timer|Equal9~0",
+                "emu|core|board|upp|peripherals|simif_enabled.simif|claim~3",
+                "emu|core|board|upp|peripherals|selected_owner~0",
+                "emu|core|board|upp|peripherals|selected_owner~1",
+                "emu|core|board|upp|peripherals|selected_owner[11]~5",
+                "emu|core|board|upp|peripherals|WideOr3~0",
+                "emu|core|board|upp|peripherals|claim~1",
+                "emu|core|board|upp|peripherals|valid~9"
+              ]
+            },
+            {
+              "rank": "35",
+              "slack_ns": "-1.796",
+              "data_delay_ns": "11.003",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|Equal40~1_OTERM425DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|peripherals|nos_timer|Equal9~0",
+                "emu|core|board|upp|peripherals|simif_enabled.simif|claim~3",
+                "emu|core|board|upp|peripherals|selected_owner~0",
+                "emu|core|board|upp|peripherals|selected_owner~1",
+                "emu|core|board|upp|peripherals|selected_owner[11]~5",
+                "emu|core|board|upp|peripherals|WideOr3~0",
+                "emu|core|board|upp|peripherals|claim~1",
+                "emu|core|board|upp|peripherals|valid~9"
+              ]
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "199",
+            "slack_ns": "-1.357",
+            "data_delay_ns": "10.225",
+            "logic_levels": "6",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp_mdi:upp_mdi|ngage_upp_dsp_pcm:game_pcm.stream|LessThan4~2_OTERM8556",
+            "class": "outside detailed sample"
+          }
+        },
+        "corner-3": {
+          "condition": "Fast 1100mV 100C Model",
+          "reset_launch": {
+            "count": 261,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "14",
+              "slack_ns": "2.848",
+              "data_delay_ns": "6.288",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 210,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "14",
+              "slack_ns": "2.848",
+              "data_delay_ns": "6.288",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "reset_to_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "14",
+              "slack_ns": "2.848",
+              "data_delay_ns": "6.288",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 1,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "720",
+              "slack_ns": "3.462",
+              "data_delay_ns": "5.812",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_data[11]_OTERM13809"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 14,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "707",
+              "slack_ns": "3.459",
+              "data_delay_ns": "5.631",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|cmd_data[13]"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "14",
+              "slack_ns": "2.848",
+              "data_delay_ns": "6.288",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "14",
+              "slack_ns": "2.848",
+              "data_delay_ns": "6.288",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.bridge|bus_live~2_RESYN18316",
+                "emu|core|board|upp|cpu_inside.bridge|bus_live~2",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|timers|claim~0",
+                "emu|core|board|upp|peripherals|selected_owner[7]~14",
+                "emu|core|board|upp|peripherals|WideOr3~3_RESYN14236",
+                "emu|core|board|upp|peripherals|WideOr3~3",
+                "emu|core|board|upp|peripherals|claim~1",
+                "emu|core|board|upp|peripherals|valid~9"
+              ]
+            },
+            {
+              "rank": "15",
+              "slack_ns": "2.849",
+              "data_delay_ns": "6.287",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.bridge|bus_live~2_RESYN18316",
+                "emu|core|board|upp|cpu_inside.bridge|bus_live~2",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|timers|claim~0",
+                "emu|core|board|upp|peripherals|selected_owner[7]~14",
+                "emu|core|board|upp|peripherals|WideOr3~3_RESYN14236",
+                "emu|core|board|upp|peripherals|WideOr3~3",
+                "emu|core|board|upp|peripherals|claim~1",
+                "emu|core|board|upp|peripherals|valid~9"
+              ]
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "14",
+            "slack_ns": "2.848",
+            "data_delay_ns": "6.288",
+            "logic_levels": "9",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+            "class": "priority",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.bridge|bus_live~2_RESYN18316",
+              "emu|core|board|upp|cpu_inside.bridge|bus_live~2",
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+              "emu|core|board|upp|peripherals|timers|claim~0",
+              "emu|core|board|upp|peripherals|selected_owner[7]~14",
+              "emu|core|board|upp|peripherals|WideOr3~3_RESYN14236",
+              "emu|core|board|upp|peripherals|WideOr3~3",
+              "emu|core|board|upp|peripherals|claim~1",
+              "emu|core|board|upp|peripherals|valid~9"
+            ]
+          }
+        },
+        "corner-4": {
+          "condition": "Fast 1100mV -40C Model",
+          "reset_launch": {
+            "count": 12,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "143",
+              "slack_ns": "3.959",
+              "data_delay_ns": "5.176",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 7,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "143",
+              "slack_ns": "3.959",
+              "data_delay_ns": "5.176",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "reset_to_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "143",
+              "slack_ns": "3.959",
+              "data_delay_ns": "5.176",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "143",
+              "slack_ns": "3.959",
+              "data_delay_ns": "5.176",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "143",
+              "slack_ns": "3.959",
+              "data_delay_ns": "5.176",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "144",
+              "slack_ns": "3.960",
+              "data_delay_ns": "5.175",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "143",
+            "slack_ns": "3.959",
+            "data_delay_ns": "5.176",
+            "logic_levels": "9",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_60DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+            "class": "outside detailed sample"
+          }
+        }
+      }
+    }
+  },
+  "a_only": {
+    "13": {
+      "run": 45874467913,
+      "commit": "9229940ac0cd68e10613a624a8d03673bc6b6f9e",
+      "corners": {
+        "corner-1": {
+          "condition": "Slow 1100mV 100C Model",
+          "reset_launch": {
+            "count": 165,
+            "below_minus_1p5_ns": 155,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "-3.014",
+              "data_delay_ns": "11.864",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[56]"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 135,
+            "below_minus_1p5_ns": 135,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "-3.014",
+              "data_delay_ns": "11.864",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[56]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 1,
+            "below_minus_1p5_ns": 1,
+            "worst": {
+              "rank": "262",
+              "slack_ns": "-1.807",
+              "data_delay_ns": "10.703",
+              "logic_levels": "11",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "262",
+              "slack_ns": "-1.807",
+              "data_delay_ns": "10.703",
+              "logic_levels": "11",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "1",
+            "slack_ns": "-3.014",
+            "data_delay_ns": "11.864",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+            "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[56]",
+            "class": "other",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.cpu_suspended~1",
+              "emu|core|board|upp|cpu_inside.bridge|bus_live~3",
+              "emu|core|board|upp|general_dma_enabled.channels|fast_lcd.stream|pixel_take~1",
+              "emu|core|board|upp|general_dma_enabled.channels|fast_lcd.stream|offer~0",
+              "emu|core|board|upp|general_dma_enabled.channels|fast_lcd.stream|mem_req~1",
+              "emu|line_mux|scalar_due~0",
+              "emu|ram_arbiter|choose_cpu~1",
+              "emu|ram_arbiter|mem_block_data[0]~4"
+            ]
+          }
+        },
+        "corner-2": {
+          "condition": "Slow 1100mV -40C Model",
+          "reset_launch": {
+            "count": 17,
+            "below_minus_1p5_ns": 5,
+            "worst": {
+              "rank": "140",
+              "slack_ns": "-1.937",
+              "data_delay_ns": "10.935",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_ddr_flash_adapter:ddr_adapter|ngage_ddr_stream:sector_port.engine|state.WRITE_NEED"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 1,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "340",
+              "slack_ns": "-1.485",
+              "data_delay_ns": "10.393",
+              "logic_levels": "11",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "340",
+              "slack_ns": "-1.485",
+              "data_delay_ns": "10.393",
+              "logic_levels": "11",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "140",
+            "slack_ns": "-1.937",
+            "data_delay_ns": "10.935",
+            "logic_levels": "10",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+            "to": "emu:emu|ngage_ddr_flash_adapter:ddr_adapter|ngage_ddr_stream:sector_port.engine|state.WRITE_NEED",
+            "class": "outside detailed sample"
+          }
+        },
+        "corner-3": {
+          "condition": "Fast 1100mV 100C Model",
+          "reset_launch": {
+            "count": 89,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "11",
+              "slack_ns": "2.585",
+              "data_delay_ns": "6.523",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cti[2]~DUPLICATE"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 1,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "578",
+              "slack_ns": "3.244",
+              "data_delay_ns": "5.895",
+              "logic_levels": "11",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "578",
+              "slack_ns": "3.244",
+              "data_delay_ns": "5.895",
+              "logic_levels": "11",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_stb",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "11",
+            "slack_ns": "2.585",
+            "data_delay_ns": "6.523",
+            "logic_levels": "10",
+            "from": "emu:emu|ngage_mister:core|reset_drain",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cti[2]~DUPLICATE",
+            "class": "other",
+            "cells": [
+              "emu|phone_sdram|owner_ready~0",
+              "emu|dma_ram_mux|response~0",
+              "emu|core|board|upp|cpu_inside.cpu|refill|cpu_ack~5",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_cache_tag_ram|always62~2",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_data_cache|u_zap_cache_tag_ram|Selector0~0",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_data_cache|state_nxt[0]~0",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_data_cache|state_nxt[3]~2",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_generate_with_cache_mmu.u_data_cache|state_nxt[1]~6",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cti~2",
+              "emu|core|board|upp|cpu_inside.cpu|u_arm925t|u_zap|l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_cti~4"
+            ]
+          }
+        },
+        "corner-4": {
+          "condition": "Fast 1100mV -40C Model",
+          "reset_launch": {
+            "count": 182,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "3.561",
+              "data_delay_ns": "5.554",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[25]"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 134,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "3.561",
+              "data_delay_ns": "5.554",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[25]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "valid_paths": [],
+          "leading_reset_path": {
+            "rank": "1",
+            "slack_ns": "3.561",
+            "data_delay_ns": "5.554",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54",
+            "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[25]",
+            "class": "other",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.cpu_suspended~1",
+              "emu|core|board|upp|cpu_inside.bridge|bus_live~3",
+              "emu|core|board|upp|general_dma_enabled.channels|fast_lcd.stream|pixel_take~1",
+              "emu|core|board|upp|general_dma_enabled.channels|fast_lcd.stream|offer~0",
+              "emu|core|board|upp|general_dma_enabled.channels|fast_lcd.stream|mem_req~1",
+              "emu|line_mux|scalar_due~0",
+              "emu|ram_arbiter|choose_cpu~1",
+              "emu|ram_arbiter|mem_block_data[0]~4"
+            ]
+          }
+        }
+      }
+    },
+    "43": {
+      "run": 45874473714,
+      "commit": "9229940ac0cd68e10613a624a8d03673bc6b6f9e",
+      "corners": {
+        "corner-1": {
+          "condition": "Slow 1100mV 100C Model",
+          "reset_launch": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "283",
+              "slack_ns": "-1.815",
+              "data_delay_ns": "10.721",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "283",
+              "slack_ns": "-1.815",
+              "data_delay_ns": "10.721",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "287",
+              "slack_ns": "-1.809",
+              "data_delay_ns": "10.719",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": null
+        },
+        "corner-2": {
+          "condition": "Slow 1100mV -40C Model",
+          "reset_launch": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "201",
+              "slack_ns": "-1.867",
+              "data_delay_ns": "10.769",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "201",
+              "slack_ns": "-1.867",
+              "data_delay_ns": "10.769",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "208",
+              "slack_ns": "-1.859",
+              "data_delay_ns": "10.768",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": null
+        },
+        "corner-3": {
+          "condition": "Fast 1100mV 100C Model",
+          "reset_launch": {
+            "count": 116,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "40",
+              "slack_ns": "2.967",
+              "data_delay_ns": "6.175",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[120]"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 77,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "40",
+              "slack_ns": "2.967",
+              "data_delay_ns": "6.175",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[120]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 22,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "166",
+              "slack_ns": "3.148",
+              "data_delay_ns": "5.959",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|source_left[30]_NEW3332_OTERM10752"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "579",
+              "slack_ns": "3.361",
+              "data_delay_ns": "5.783",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "579",
+              "slack_ns": "3.361",
+              "data_delay_ns": "5.783",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "586",
+              "slack_ns": "3.363",
+              "data_delay_ns": "5.782",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "40",
+            "slack_ns": "2.967",
+            "data_delay_ns": "6.175",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|reset_drain~DUPLICATE",
+            "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[120]",
+            "class": "other",
+            "cells": [
+              "emu|core|board|display.lcd|pixel_mode~1",
+              "emu|core|board|display.lcd|pixel_mode~3",
+              "emu|core|board|upp|general_dma_enabled.channels|fast_lcd.stream|offer~0",
+              "emu|core|board|upp|general_dma_enabled.channels|fast_lcd.stream|mem_req~1",
+              "emu|line_mux|scalar_due~0",
+              "emu|ram_arbiter|choose_cpu~1",
+              "emu|ram_arbiter|mem_block_data[0]~4"
+            ]
+          }
+        },
+        "corner-4": {
+          "condition": "Fast 1100mV -40C Model",
+          "reset_launch": {
+            "count": 24,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "548",
+              "slack_ns": "4.088",
+              "data_delay_ns": "5.019",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|source_left[30]_NEW3332_OTERM10752"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 15,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "548",
+              "slack_ns": "4.088",
+              "data_delay_ns": "5.019",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|source_left[30]_NEW3332_OTERM10752"
+            }
+          },
+          "registered_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "valid_paths": [],
+          "leading_reset_path": {
+            "rank": "548",
+            "slack_ns": "4.088",
+            "data_delay_ns": "5.019",
+            "logic_levels": "10",
+            "from": "emu:emu|ngage_mister:core|reset_drain~DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|source_left[30]_NEW3332_OTERM10752",
+            "class": "outside detailed sample"
+          }
+        }
+      }
+    },
+    "31337": {
+      "run": 45874483394,
+      "commit": "9229940ac0cd68e10613a624a8d03673bc6b6f9e",
+      "corners": {
+        "corner-1": {
+          "condition": "Slow 1100mV 100C Model",
+          "reset_launch": {
+            "count": 632,
+            "below_minus_1p5_ns": 632,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "-3.204",
+              "data_delay_ns": "12.420",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 290,
+            "below_minus_1p5_ns": 290,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "-3.204",
+              "data_delay_ns": "12.420",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "-3.204",
+              "data_delay_ns": "12.420",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 156,
+            "below_minus_1p5_ns": 156,
+            "worst": {
+              "rank": "31",
+              "slack_ns": "-2.376",
+              "data_delay_ns": "11.247",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[69]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 25,
+            "below_minus_1p5_ns": 25,
+            "worst": {
+              "rank": "137",
+              "slack_ns": "-2.201",
+              "data_delay_ns": "11.052",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|source_left[2]_OTERM6991"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "-3.204",
+              "data_delay_ns": "12.420",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "1",
+              "slack_ns": "-3.204",
+              "data_delay_ns": "12.420",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|timers|claim~1",
+                "emu|core|board|upp|peripherals|selected_owner[9]~2",
+                "emu|core|board|upp|peripherals|selected_owner[9]~10",
+                "emu|core|board|upp|peripherals|selected_owner[9]~15",
+                "emu|core|board|upp|peripherals|WideOr3~3",
+                "emu|core|board|upp|peripherals|claim~2",
+                "emu|core|board|upp|peripherals|valid~9",
+                "emu|core|board|upp|peripherals|valid~6"
+              ]
+            },
+            {
+              "rank": "2",
+              "slack_ns": "-3.198",
+              "data_delay_ns": "12.418",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|timers|claim~1",
+                "emu|core|board|upp|peripherals|selected_owner[9]~2",
+                "emu|core|board|upp|peripherals|selected_owner[9]~10",
+                "emu|core|board|upp|peripherals|selected_owner[9]~15",
+                "emu|core|board|upp|peripherals|WideOr3~3",
+                "emu|core|board|upp|peripherals|claim~2",
+                "emu|core|board|upp|peripherals|valid~9",
+                "emu|core|board|upp|peripherals|valid~6"
+              ]
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "1",
+            "slack_ns": "-3.204",
+            "data_delay_ns": "12.420",
+            "logic_levels": "10",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+            "class": "priority",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+              "emu|core|board|upp|peripherals|timers|claim~1",
+              "emu|core|board|upp|peripherals|selected_owner[9]~2",
+              "emu|core|board|upp|peripherals|selected_owner[9]~10",
+              "emu|core|board|upp|peripherals|selected_owner[9]~15",
+              "emu|core|board|upp|peripherals|WideOr3~3",
+              "emu|core|board|upp|peripherals|claim~2",
+              "emu|core|board|upp|peripherals|valid~9",
+              "emu|core|board|upp|peripherals|valid~6"
+            ]
+          }
+        },
+        "corner-2": {
+          "condition": "Slow 1100mV -40C Model",
+          "reset_launch": {
+            "count": 427,
+            "below_minus_1p5_ns": 258,
+            "worst": {
+              "rank": "2",
+              "slack_ns": "-2.867",
+              "data_delay_ns": "12.088",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 123,
+            "below_minus_1p5_ns": 57,
+            "worst": {
+              "rank": "2",
+              "slack_ns": "-2.867",
+              "data_delay_ns": "12.088",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "2",
+              "slack_ns": "-2.867",
+              "data_delay_ns": "12.088",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 153,
+            "below_minus_1p5_ns": 129,
+            "worst": {
+              "rank": "135",
+              "slack_ns": "-1.835",
+              "data_delay_ns": "10.685",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[64]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 3,
+            "below_minus_1p5_ns": 1,
+            "worst": {
+              "rank": "341",
+              "slack_ns": "-1.647",
+              "data_delay_ns": "10.489",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|buffer[37]_OTERM5747"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "2",
+              "slack_ns": "-2.867",
+              "data_delay_ns": "12.088",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "2",
+              "slack_ns": "-2.867",
+              "data_delay_ns": "12.088",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|icu|always0~7",
+                "emu|core|board|upp|peripherals|icu|claim~0",
+                "emu|core|board|upp|peripherals|selected_owner[9]~10",
+                "emu|core|board|upp|peripherals|selected_owner[9]~15",
+                "emu|core|board|upp|peripherals|WideOr3~3",
+                "emu|core|board|upp|peripherals|claim~2",
+                "emu|core|board|upp|peripherals|valid~9",
+                "emu|core|board|upp|peripherals|valid~6"
+              ]
+            },
+            {
+              "rank": "3",
+              "slack_ns": "-2.858",
+              "data_delay_ns": "12.086",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|icu|always0~7",
+                "emu|core|board|upp|peripherals|icu|claim~0",
+                "emu|core|board|upp|peripherals|selected_owner[9]~10",
+                "emu|core|board|upp|peripherals|selected_owner[9]~15",
+                "emu|core|board|upp|peripherals|WideOr3~3",
+                "emu|core|board|upp|peripherals|claim~2",
+                "emu|core|board|upp|peripherals|valid~9",
+                "emu|core|board|upp|peripherals|valid~6"
+              ]
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "2",
+            "slack_ns": "-2.867",
+            "data_delay_ns": "12.088",
+            "logic_levels": "10",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+            "class": "priority",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+              "emu|core|board|upp|peripherals|icu|always0~7",
+              "emu|core|board|upp|peripherals|icu|claim~0",
+              "emu|core|board|upp|peripherals|selected_owner[9]~10",
+              "emu|core|board|upp|peripherals|selected_owner[9]~15",
+              "emu|core|board|upp|peripherals|WideOr3~3",
+              "emu|core|board|upp|peripherals|claim~2",
+              "emu|core|board|upp|peripherals|valid~9",
+              "emu|core|board|upp|peripherals|valid~6"
+            ]
+          }
+        },
+        "corner-3": {
+          "condition": "Fast 1100mV 100C Model",
+          "reset_launch": {
+            "count": 881,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "2.461",
+              "data_delay_ns": "6.820",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 476,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "2.461",
+              "data_delay_ns": "6.820",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "2.461",
+              "data_delay_ns": "6.820",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 134,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "84",
+              "slack_ns": "2.822",
+              "data_delay_ns": "6.300",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[24]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "742",
+              "slack_ns": "3.123",
+              "data_delay_ns": "5.982",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|state.OFFER~DUPLICATE"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "2.461",
+              "data_delay_ns": "6.820",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "1",
+              "slack_ns": "2.461",
+              "data_delay_ns": "6.820",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|timers|claim~1",
+                "emu|core|board|upp|peripherals|selected_owner[9]~2",
+                "emu|core|board|upp|peripherals|selected_owner[9]~10",
+                "emu|core|board|upp|peripherals|selected_owner[9]~15",
+                "emu|core|board|upp|peripherals|WideOr3~3",
+                "emu|core|board|upp|peripherals|claim~2",
+                "emu|core|board|upp|peripherals|valid~9",
+                "emu|core|board|upp|peripherals|valid~6"
+              ]
+            },
+            {
+              "rank": "2",
+              "slack_ns": "2.463",
+              "data_delay_ns": "6.819",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|timers|claim~1",
+                "emu|core|board|upp|peripherals|selected_owner[9]~2",
+                "emu|core|board|upp|peripherals|selected_owner[9]~10",
+                "emu|core|board|upp|peripherals|selected_owner[9]~15",
+                "emu|core|board|upp|peripherals|WideOr3~3",
+                "emu|core|board|upp|peripherals|claim~2",
+                "emu|core|board|upp|peripherals|valid~9",
+                "emu|core|board|upp|peripherals|valid~6"
+              ]
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "1",
+            "slack_ns": "2.461",
+            "data_delay_ns": "6.820",
+            "logic_levels": "10",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+            "class": "priority",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+              "emu|core|board|upp|peripherals|timers|claim~1",
+              "emu|core|board|upp|peripherals|selected_owner[9]~2",
+              "emu|core|board|upp|peripherals|selected_owner[9]~10",
+              "emu|core|board|upp|peripherals|selected_owner[9]~15",
+              "emu|core|board|upp|peripherals|WideOr3~3",
+              "emu|core|board|upp|peripherals|claim~2",
+              "emu|core|board|upp|peripherals|valid~9",
+              "emu|core|board|upp|peripherals|valid~6"
+            ]
+          }
+        },
+        "corner-4": {
+          "condition": "Fast 1100mV -40C Model",
+          "reset_launch": {
+            "count": 376,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "3.563",
+              "data_delay_ns": "5.721",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 156,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "3.563",
+              "data_delay_ns": "5.721",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "3.563",
+              "data_delay_ns": "5.721",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 65,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "131",
+              "slack_ns": "3.945",
+              "data_delay_ns": "5.189",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[69]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "3.563",
+              "data_delay_ns": "5.721",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "1",
+              "slack_ns": "3.563",
+              "data_delay_ns": "5.721",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|timers|claim~1",
+                "emu|core|board|upp|peripherals|selected_owner[9]~2",
+                "emu|core|board|upp|peripherals|selected_owner[9]~10",
+                "emu|core|board|upp|peripherals|selected_owner[9]~15",
+                "emu|core|board|upp|peripherals|WideOr3~3",
+                "emu|core|board|upp|peripherals|claim~2",
+                "emu|core|board|upp|peripherals|valid~9",
+                "emu|core|board|upp|peripherals|valid~6"
+              ]
+            },
+            {
+              "rank": "2",
+              "slack_ns": "3.564",
+              "data_delay_ns": "5.720",
+              "logic_levels": "10",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "priority",
+              "cells": [
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+                "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+                "emu|core|board|upp|peripherals|timers|claim~1",
+                "emu|core|board|upp|peripherals|selected_owner[9]~2",
+                "emu|core|board|upp|peripherals|selected_owner[9]~10",
+                "emu|core|board|upp|peripherals|selected_owner[9]~15",
+                "emu|core|board|upp|peripherals|WideOr3~3",
+                "emu|core|board|upp|peripherals|claim~2",
+                "emu|core|board|upp|peripherals|valid~9",
+                "emu|core|board|upp|peripherals|valid~6"
+              ]
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "1",
+            "slack_ns": "3.563",
+            "data_delay_ns": "5.721",
+            "logic_levels": "10",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+            "class": "priority",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+              "emu|core|board|upp|peripherals|timers|claim~1",
+              "emu|core|board|upp|peripherals|selected_owner[9]~2",
+              "emu|core|board|upp|peripherals|selected_owner[9]~10",
+              "emu|core|board|upp|peripherals|selected_owner[9]~15",
+              "emu|core|board|upp|peripherals|WideOr3~3",
+              "emu|core|board|upp|peripherals|claim~2",
+              "emu|core|board|upp|peripherals|valid~9",
+              "emu|core|board|upp|peripherals|valid~6"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "joint_ram": {
+    "13": {
+      "run": 45869671440,
+      "commit": "ae3654c75c4ff5027d0bd146baf3c8f5f2280cde",
+      "corners": {
+        "corner-1": {
+          "condition": "Slow 1100mV 100C Model",
+          "reset_launch": {
+            "count": 105,
+            "below_minus_1p5_ns": 95,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "-3.080",
+              "data_delay_ns": "11.909",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|done~DUPLICATE"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 13,
+            "below_minus_1p5_ns": 13,
+            "worst": {
+              "rank": "1",
+              "slack_ns": "-3.080",
+              "data_delay_ns": "11.909",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|done~DUPLICATE"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "283",
+              "slack_ns": "-2.000",
+              "data_delay_ns": "10.860",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "283",
+              "slack_ns": "-2.000",
+              "data_delay_ns": "10.860",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "285",
+              "slack_ns": "-1.994",
+              "data_delay_ns": "10.858",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "1",
+            "slack_ns": "-3.080",
+            "data_delay_ns": "11.909",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|done~DUPLICATE",
+            "class": "other",
+            "cells": [
+              "emu|phone_sdram|owner_ready~0",
+              "emu|dma_ram_mux|response~0",
+              "emu|dma_ram_mux|response~1",
+              "emu|dma_ram_mux|response",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~3",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~1",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~0"
+            ]
+          }
+        },
+        "corner-2": {
+          "condition": "Slow 1100mV -40C Model",
+          "reset_launch": {
+            "count": 85,
+            "below_minus_1p5_ns": 57,
+            "worst": {
+              "rank": "5",
+              "slack_ns": "-2.811",
+              "data_delay_ns": "11.637",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|done~DUPLICATE"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 13,
+            "below_minus_1p5_ns": 13,
+            "worst": {
+              "rank": "5",
+              "slack_ns": "-2.811",
+              "data_delay_ns": "11.637",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|done~DUPLICATE"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "171",
+              "slack_ns": "-1.939",
+              "data_delay_ns": "10.800",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "171",
+              "slack_ns": "-1.939",
+              "data_delay_ns": "10.800",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "179",
+              "slack_ns": "-1.931",
+              "data_delay_ns": "10.799",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "5",
+            "slack_ns": "-2.811",
+            "data_delay_ns": "11.637",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|done~DUPLICATE",
+            "class": "other",
+            "cells": [
+              "emu|phone_sdram|owner_ready~0",
+              "emu|dma_ram_mux|response~0",
+              "emu|dma_ram_mux|response~1",
+              "emu|dma_ram_mux|response",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~3",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~1",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~0"
+            ]
+          }
+        },
+        "corner-3": {
+          "condition": "Fast 1100mV 100C Model",
+          "reset_launch": {
+            "count": 145,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "11",
+              "slack_ns": "2.490",
+              "data_delay_ns": "6.684",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|dst[31]_OTERM4679_OTERM7477"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 15,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "11",
+              "slack_ns": "2.490",
+              "data_delay_ns": "6.684",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|dst[31]_OTERM4679_OTERM7477"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "564",
+              "slack_ns": "3.215",
+              "data_delay_ns": "5.904",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "564",
+              "slack_ns": "3.215",
+              "data_delay_ns": "5.904",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "575",
+              "slack_ns": "3.217",
+              "data_delay_ns": "5.903",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "11",
+            "slack_ns": "2.490",
+            "data_delay_ns": "6.684",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|dst[31]_OTERM4679_OTERM7477",
+            "class": "other",
+            "cells": [
+              "emu|phone_sdram|owner_ready~0",
+              "emu|dma_ram_mux|response~0",
+              "emu|dma_ram_mux|response~1",
+              "emu|dma_ram_mux|response",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~3",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~1",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~0",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|dst[0]~2"
+            ]
+          }
+        },
+        "corner-4": {
+          "condition": "Fast 1100mV -40C Model",
+          "reset_launch": {
+            "count": 47,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "6",
+              "slack_ns": "3.567",
+              "data_delay_ns": "5.601",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|dst[31]_OTERM4679_OTERM7477"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 12,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "6",
+              "slack_ns": "3.567",
+              "data_delay_ns": "5.601",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|dst[31]_OTERM4679_OTERM7477"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "839",
+              "slack_ns": "4.121",
+              "data_delay_ns": "4.997",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "839",
+              "slack_ns": "4.121",
+              "data_delay_ns": "4.997",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "845",
+              "slack_ns": "4.122",
+              "data_delay_ns": "4.996",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w[541]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "6",
+            "slack_ns": "3.567",
+            "data_delay_ns": "5.601",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|dst[31]_OTERM4679_OTERM7477",
+            "class": "other",
+            "cells": [
+              "emu|phone_sdram|owner_ready~0",
+              "emu|dma_ram_mux|response~0",
+              "emu|dma_ram_mux|response~1",
+              "emu|dma_ram_mux|response",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~3",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~1",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~0",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|dst[0]~2"
+            ]
+          }
+        }
+      }
+    },
+    "43": {
+      "run": 45869675764,
+      "commit": "ae3654c75c4ff5027d0bd146baf3c8f5f2280cde",
+      "corners": {
+        "corner-1": {
+          "condition": "Slow 1100mV 100C Model",
+          "reset_launch": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "31",
+              "slack_ns": "-2.389",
+              "data_delay_ns": "11.251",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_50",
+              "to": "emu:emu|ngage_mister:core|ngage_game_pcm:game_pcm.player|facc[26]_OTERM4703_OTERM7563"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "340",
+              "slack_ns": "-1.877",
+              "data_delay_ns": "10.655",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_cflash:user_flash|rsp_error",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "340",
+              "slack_ns": "-1.877",
+              "data_delay_ns": "10.655",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_cflash:user_flash|rsp_error",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "348",
+              "slack_ns": "-1.872",
+              "data_delay_ns": "10.653",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_cflash:user_flash|rsp_error",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "31",
+            "slack_ns": "-2.389",
+            "data_delay_ns": "11.251",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_50",
+            "to": "emu:emu|ngage_mister:core|ngage_game_pcm:game_pcm.player|facc[26]_OTERM4703_OTERM7563",
+            "class": "other",
+            "cells": [
+              "emu|core|board|upp_mdi|irq_events~0",
+              "emu|core|comb~71",
+              "emu|core|game_pcm.player|LessThan3~0_RESYN8904",
+              "emu|core|game_pcm.player|LessThan3~0",
+              "emu|core|game_pcm.player|LessThan3~1",
+              "emu|core|game_pcm.player|LessThan2~6",
+              "emu|core|game_pcm.player|Equal3~5",
+              "emu|core|game_pcm.player|facc[19]~8_RTM07564"
+            ]
+          }
+        },
+        "corner-2": {
+          "condition": "Slow 1100mV -40C Model",
+          "reset_launch": {
+            "count": 4,
+            "below_minus_1p5_ns": 1,
+            "worst": {
+              "rank": "132",
+              "slack_ns": "-1.971",
+              "data_delay_ns": "10.842",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_50",
+              "to": "emu:emu|ngage_mister:core|ngage_game_pcm:game_pcm.player|facc[26]_OTERM4703_OTERM7563"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "366",
+              "slack_ns": "-1.629",
+              "data_delay_ns": "10.392",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_cflash:user_flash|rsp_error",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "366",
+              "slack_ns": "-1.629",
+              "data_delay_ns": "10.392",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_cflash:user_flash|rsp_error",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "370",
+              "slack_ns": "-1.623",
+              "data_delay_ns": "10.391",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_cflash:user_flash|rsp_error",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "132",
+            "slack_ns": "-1.971",
+            "data_delay_ns": "10.842",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_50",
+            "to": "emu:emu|ngage_mister:core|ngage_game_pcm:game_pcm.player|facc[26]_OTERM4703_OTERM7563",
+            "class": "outside detailed sample"
+          }
+        },
+        "corner-3": {
+          "condition": "Fast 1100mV 100C Model",
+          "reset_launch": {
+            "count": 81,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "84",
+              "slack_ns": "2.816",
+              "data_delay_ns": "6.292",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_50",
+              "to": "emu:emu|ngage_mister:core|ngage_game_pcm:game_pcm.player|facc[26]_OTERM4703_OTERM7563"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 34,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "229",
+              "slack_ns": "3.064",
+              "data_delay_ns": "6.038",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_data[10]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 5,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "204",
+              "slack_ns": "3.040",
+              "data_delay_ns": "6.056",
+              "logic_levels": "5",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|done"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "252",
+              "slack_ns": "3.076",
+              "data_delay_ns": "6.069",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "252",
+              "slack_ns": "3.076",
+              "data_delay_ns": "6.069",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "263",
+              "slack_ns": "3.078",
+              "data_delay_ns": "6.068",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "84",
+            "slack_ns": "2.816",
+            "data_delay_ns": "6.292",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_50",
+            "to": "emu:emu|ngage_mister:core|ngage_game_pcm:game_pcm.player|facc[26]_OTERM4703_OTERM7563",
+            "class": "other",
+            "cells": [
+              "emu|core|board|upp_mdi|irq_events~0",
+              "emu|core|comb~71",
+              "emu|core|game_pcm.player|LessThan3~0_RESYN8904",
+              "emu|core|game_pcm.player|LessThan3~0",
+              "emu|core|game_pcm.player|LessThan3~1",
+              "emu|core|game_pcm.player|LessThan2~6",
+              "emu|core|game_pcm.player|Equal3~5",
+              "emu|core|game_pcm.player|facc[19]~8_RTM07564"
+            ]
+          }
+        },
+        "corner-4": {
+          "condition": "Fast 1100mV -40C Model",
+          "reset_launch": {
+            "count": 8,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "91",
+              "slack_ns": "3.876",
+              "data_delay_ns": "5.243",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_50",
+              "to": "emu:emu|ngage_mister:core|ngage_game_pcm:game_pcm.player|facc[26]_OTERM4703_OTERM7563"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 6,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "781",
+              "slack_ns": "4.118",
+              "data_delay_ns": "4.987",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_data[10]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 1,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "780",
+              "slack_ns": "4.118",
+              "data_delay_ns": "4.981",
+              "logic_levels": "5",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|done"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "649",
+              "slack_ns": "4.071",
+              "data_delay_ns": "5.073",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "649",
+              "slack_ns": "4.071",
+              "data_delay_ns": "5.073",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "653",
+              "slack_ns": "4.073",
+              "data_delay_ns": "5.072",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|w_cls[3]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "91",
+            "slack_ns": "3.876",
+            "data_delay_ns": "5.243",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_50",
+            "to": "emu:emu|ngage_mister:core|ngage_game_pcm:game_pcm.player|facc[26]_OTERM4703_OTERM7563",
+            "class": "other",
+            "cells": [
+              "emu|core|board|upp_mdi|irq_events~0",
+              "emu|core|comb~71",
+              "emu|core|game_pcm.player|LessThan3~0_RESYN8904",
+              "emu|core|game_pcm.player|LessThan3~0",
+              "emu|core|game_pcm.player|LessThan3~1",
+              "emu|core|game_pcm.player|LessThan2~6",
+              "emu|core|game_pcm.player|Equal3~5",
+              "emu|core|game_pcm.player|facc[19]~8_RTM07564"
+            ]
+          }
+        }
+      }
+    },
+    "31337": {
+      "run": 45869680539,
+      "commit": "ae3654c75c4ff5027d0bd146baf3c8f5f2280cde",
+      "corners": {
+        "corner-1": {
+          "condition": "Slow 1100mV 100C Model",
+          "reset_launch": {
+            "count": 62,
+            "below_minus_1p5_ns": 14,
+            "worst": {
+              "rank": "16",
+              "slack_ns": "-2.238",
+              "data_delay_ns": "11.085",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|stopping"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 15,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "907",
+              "slack_ns": "-1.285",
+              "data_delay_ns": "10.140",
+              "logic_levels": "5",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_simif:simif_enabled.simif|position[24]~DUPLICATE"
+            }
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_dma_engine": {
+            "count": 15,
+            "below_minus_1p5_ns": 12,
+            "worst": {
+              "rank": "16",
+              "slack_ns": "-2.238",
+              "data_delay_ns": "11.085",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|stopping"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "664",
+              "slack_ns": "-1.421",
+              "data_delay_ns": "10.607",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "664",
+              "slack_ns": "-1.421",
+              "data_delay_ns": "10.607",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "673",
+              "slack_ns": "-1.415",
+              "data_delay_ns": "10.605",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "16",
+            "slack_ns": "-2.238",
+            "data_delay_ns": "11.085",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|stopping",
+            "class": "other",
+            "cells": [
+              "emu|phone_sdram|owner_ready~0",
+              "emu|dma_ram_mux|response~0",
+              "emu|dma_ram_mux|response~1",
+              "emu|dma_ram_mux|response",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~3",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~1",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~0",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|stopping~0"
+            ]
+          }
+        },
+        "corner-2": {
+          "condition": "Slow 1100mV -40C Model",
+          "reset_launch": {
+            "count": 58,
+            "below_minus_1p5_ns": 7,
+            "worst": {
+              "rank": "76",
+              "slack_ns": "-1.905",
+              "data_delay_ns": "10.753",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|stopping"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 1,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "886",
+              "slack_ns": "-1.122",
+              "data_delay_ns": "9.989",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_56",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[6].data[5]"
+            }
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 11,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "761",
+              "slack_ns": "-1.177",
+              "data_delay_ns": "10.013",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[33]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 15,
+            "below_minus_1p5_ns": 6,
+            "worst": {
+              "rank": "76",
+              "slack_ns": "-1.905",
+              "data_delay_ns": "10.753",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|stopping"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "642",
+              "slack_ns": "-1.261",
+              "data_delay_ns": "10.453",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "642",
+              "slack_ns": "-1.261",
+              "data_delay_ns": "10.453",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "651",
+              "slack_ns": "-1.253",
+              "data_delay_ns": "10.452",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "76",
+            "slack_ns": "-1.905",
+            "data_delay_ns": "10.753",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|stopping",
+            "class": "other",
+            "cells": [
+              "emu|phone_sdram|owner_ready~0",
+              "emu|dma_ram_mux|response~0",
+              "emu|dma_ram_mux|response~1",
+              "emu|dma_ram_mux|response",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~3",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~1",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~0",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|stopping~0"
+            ]
+          }
+        },
+        "corner-3": {
+          "condition": "Fast 1100mV 100C Model",
+          "reset_launch": {
+            "count": 68,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "15",
+              "slack_ns": "2.805",
+              "data_delay_ns": "6.302",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|stopping"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 30,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "378",
+              "slack_ns": "3.294",
+              "data_delay_ns": "5.874",
+              "logic_levels": "5",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_54DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|external_raw_ram.write_data[0]"
+            }
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 16,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "99",
+              "slack_ns": "3.052",
+              "data_delay_ns": "6.062",
+              "logic_levels": "5",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[33]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 14,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "15",
+              "slack_ns": "2.805",
+              "data_delay_ns": "6.302",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|stopping"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "931",
+              "slack_ns": "3.481",
+              "data_delay_ns": "5.608",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_timers:timers|Equal4~2_OTERM909",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "931",
+              "slack_ns": "3.481",
+              "data_delay_ns": "5.608",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_timers:timers|Equal4~2_OTERM909",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "934",
+              "slack_ns": "3.482",
+              "data_delay_ns": "5.607",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_timers:timers|Equal4~2_OTERM909",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "15",
+            "slack_ns": "2.805",
+            "data_delay_ns": "6.302",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|stopping",
+            "class": "other",
+            "cells": [
+              "emu|phone_sdram|owner_ready~0",
+              "emu|dma_ram_mux|response~0",
+              "emu|dma_ram_mux|response~1",
+              "emu|dma_ram_mux|response",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~3",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~1",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~0",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|stopping~0"
+            ]
+          }
+        },
+        "corner-4": {
+          "condition": "Fast 1100mV -40C Model",
+          "reset_launch": {
+            "count": 26,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "42",
+              "slack_ns": "3.845",
+              "data_delay_ns": "5.264",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|stopping"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 9,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "780",
+              "slack_ns": "4.184",
+              "data_delay_ns": "4.932",
+              "logic_levels": "5",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[33]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 14,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "42",
+              "slack_ns": "3.845",
+              "data_delay_ns": "5.264",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|stopping"
+            }
+          },
+          "registered_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "valid_paths": [],
+          "leading_reset_path": {
+            "rank": "42",
+            "slack_ns": "3.845",
+            "data_delay_ns": "5.264",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_55",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|stopping",
+            "class": "other",
+            "cells": [
+              "emu|phone_sdram|owner_ready~0",
+              "emu|dma_ram_mux|response~0",
+              "emu|dma_ram_mux|response~1",
+              "emu|dma_ram_mux|response",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~3",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~1",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|response~0",
+              "emu|core|board|upp|general_dma_enabled.channels|engines[0].engine|stopping~0"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "retained": {
+    "13": {
+      "run": 45771268571,
+      "commit": "81a1b455cea6daa40203275315c0cd240503a194",
+      "corners": {
+        "corner-1": {
+          "condition": "Slow 1100mV 100C Model",
+          "reset_launch": {
+            "count": 492,
+            "below_minus_1p5_ns": 146,
+            "worst": {
+              "rank": "4",
+              "slack_ns": "-2.020",
+              "data_delay_ns": "10.896",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_adsp:audio_boot.d550|state[0]"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 301,
+            "below_minus_1p5_ns": 82,
+            "worst": {
+              "rank": "12",
+              "slack_ns": "-1.931",
+              "data_delay_ns": "10.833",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_timers:timers|g_timer[4].count[2]"
+            }
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 98,
+            "below_minus_1p5_ns": 44,
+            "worst": {
+              "rank": "14",
+              "slack_ns": "-1.927",
+              "data_delay_ns": "10.805",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[11]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 14,
+            "below_minus_1p5_ns": 8,
+            "worst": {
+              "rank": "7",
+              "slack_ns": "-2.001",
+              "data_delay_ns": "10.840",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|source_left[2]_OTERM6513~DUPLICATE"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "61",
+              "slack_ns": "-1.869",
+              "data_delay_ns": "10.768",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "61",
+              "slack_ns": "-1.869",
+              "data_delay_ns": "10.768",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "readiness",
+              "cells": [
+                "emu|core|board|upp|peripherals|Equal37~1",
+                "emu|core|board|upp|peripherals|euart1|Equal27~1",
+                "emu|core|board|upp|peripherals|boot_regs|storage_index[4]~2",
+                "emu|core|board|upp|peripherals|boot_regs|storage_index[4]~3",
+                "emu|core|board|upp|peripherals|boot_regs|WideOr0~4",
+                "emu|core|board|upp|peripherals|boot_regs|ready~1",
+                "emu|core|board|upp|peripherals|valid~7_RESYN12236",
+                "emu|core|board|upp|peripherals|valid~7",
+                "emu|core|board|upp|peripherals|valid~8"
+              ]
+            },
+            {
+              "rank": "62",
+              "slack_ns": "-1.863",
+              "data_delay_ns": "10.766",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "readiness",
+              "cells": [
+                "emu|core|board|upp|peripherals|Equal37~1",
+                "emu|core|board|upp|peripherals|euart1|Equal27~1",
+                "emu|core|board|upp|peripherals|boot_regs|storage_index[4]~2",
+                "emu|core|board|upp|peripherals|boot_regs|storage_index[4]~3",
+                "emu|core|board|upp|peripherals|boot_regs|WideOr0~4",
+                "emu|core|board|upp|peripherals|boot_regs|ready~1",
+                "emu|core|board|upp|peripherals|valid~7_RESYN12236",
+                "emu|core|board|upp|peripherals|valid~7",
+                "emu|core|board|upp|peripherals|valid~8"
+              ]
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "4",
+            "slack_ns": "-2.020",
+            "data_delay_ns": "10.896",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_adsp:audio_boot.d550|state[0]",
+            "class": "other",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+              "emu|core|board|upp|peripherals|euart1|claim~6",
+              "emu|core|board|upp|peripherals|euart1|accepted~0",
+              "emu|core|board|upp|peripherals|euart1|rx_ready",
+              "emu|core|board|audio_boot.d550|Mux11~0",
+              "emu|core|board|audio_boot.d550|Mux11~1",
+              "emu|core|board|audio_boot.d550|state~14"
+            ]
+          }
+        },
+        "corner-2": {
+          "condition": "Slow 1100mV -40C Model",
+          "reset_launch": {
+            "count": 285,
+            "below_minus_1p5_ns": 24,
+            "worst": {
+              "rank": "29",
+              "slack_ns": "-1.777",
+              "data_delay_ns": "10.663",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_adsp:audio_boot.d550|state[0]"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 129,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "127",
+              "slack_ns": "-1.452",
+              "data_delay_ns": "10.314",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[24]"
+            }
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 80,
+            "below_minus_1p5_ns": 19,
+            "worst": {
+              "rank": "55",
+              "slack_ns": "-1.610",
+              "data_delay_ns": "10.472",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_data[16]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "654",
+              "slack_ns": "-1.081",
+              "data_delay_ns": "9.962",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|aborted"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 2,
+            "worst": {
+              "rank": "24",
+              "slack_ns": "-1.799",
+              "data_delay_ns": "10.702",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "24",
+              "slack_ns": "-1.799",
+              "data_delay_ns": "10.702",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "readiness",
+              "cells": [
+                "emu|core|board|upp|peripherals|Equal37~1",
+                "emu|core|board|upp|peripherals|euart1|Equal27~1",
+                "emu|core|board|upp|peripherals|boot_regs|storage_index[4]~2",
+                "emu|core|board|upp|peripherals|boot_regs|storage_index[4]~3",
+                "emu|core|board|upp|peripherals|boot_regs|WideOr0~4",
+                "emu|core|board|upp|peripherals|boot_regs|ready~1",
+                "emu|core|board|upp|peripherals|valid~7_RESYN12236",
+                "emu|core|board|upp|peripherals|valid~7",
+                "emu|core|board|upp|peripherals|valid~8"
+              ]
+            },
+            {
+              "rank": "27",
+              "slack_ns": "-1.791",
+              "data_delay_ns": "10.701",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "readiness",
+              "cells": [
+                "emu|core|board|upp|peripherals|Equal37~1",
+                "emu|core|board|upp|peripherals|euart1|Equal27~1",
+                "emu|core|board|upp|peripherals|boot_regs|storage_index[4]~2",
+                "emu|core|board|upp|peripherals|boot_regs|storage_index[4]~3",
+                "emu|core|board|upp|peripherals|boot_regs|WideOr0~4",
+                "emu|core|board|upp|peripherals|boot_regs|ready~1",
+                "emu|core|board|upp|peripherals|valid~7_RESYN12236",
+                "emu|core|board|upp|peripherals|valid~7",
+                "emu|core|board|upp|peripherals|valid~8"
+              ]
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "29",
+            "slack_ns": "-1.777",
+            "data_delay_ns": "10.663",
+            "logic_levels": "8",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_adsp:audio_boot.d550|state[0]",
+            "class": "other",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+              "emu|core|board|upp|peripherals|euart1|claim~6",
+              "emu|core|board|upp|peripherals|euart1|accepted~0",
+              "emu|core|board|upp|peripherals|euart1|rx_ready",
+              "emu|core|board|audio_boot.d550|Mux11~0",
+              "emu|core|board|audio_boot.d550|Mux11~1",
+              "emu|core|board|audio_boot.d550|state~14"
+            ]
+          }
+        },
+        "corner-3": {
+          "condition": "Fast 1100mV 100C Model",
+          "reset_launch": {
+            "count": 485,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "5",
+              "slack_ns": "2.825",
+              "data_delay_ns": "6.321",
+              "logic_levels": "5",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_boot_regs:boot_regs|valid[3][3]"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 362,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "5",
+              "slack_ns": "2.825",
+              "data_delay_ns": "6.321",
+              "logic_levels": "5",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_boot_regs:boot_regs|valid[3][3]"
+            }
+          },
+          "reset_to_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "382",
+              "slack_ns": "3.289",
+              "data_delay_ns": "5.863",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 48,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "130",
+              "slack_ns": "3.113",
+              "data_delay_ns": "6.019",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[11]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 14,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "224",
+              "slack_ns": "3.202",
+              "data_delay_ns": "5.906",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[1].engine|source_left[2]_OTERM6513~DUPLICATE"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "382",
+              "slack_ns": "3.289",
+              "data_delay_ns": "5.863",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "382",
+              "slack_ns": "3.289",
+              "data_delay_ns": "5.863",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "391",
+              "slack_ns": "3.291",
+              "data_delay_ns": "5.862",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "5",
+            "slack_ns": "2.825",
+            "data_delay_ns": "6.321",
+            "logic_levels": "5",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_boot_regs:boot_regs|valid[3][3]",
+            "class": "other",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+              "emu|core|board|upp|bus_access~0",
+              "emu|core|board|upp|peripherals|boot_regs|valid~4",
+              "emu|core|board|upp|peripherals|boot_regs|valid~5"
+            ]
+          }
+        },
+        "corner-4": {
+          "condition": "Fast 1100mV -40C Model",
+          "reset_launch": {
+            "count": 153,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "86",
+              "slack_ns": "3.973",
+              "data_delay_ns": "5.169",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_icu:icu|irq_enable[2][12]"
+            }
+          },
+          "reset_to_peripheral": {
+            "count": 123,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "86",
+              "slack_ns": "3.973",
+              "data_delay_ns": "5.169",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_icu:icu|irq_enable[2][12]"
+            }
+          },
+          "reset_to_valid": {
+            "count": 0,
+            "below_minus_1p5_ns": 0,
+            "worst": null
+          },
+          "reset_to_sdram_arbiter": {
+            "count": 12,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "738",
+              "slack_ns": "4.147",
+              "data_delay_ns": "4.992",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_sdram_arbiter:ram_arbiter|mem_block_data[11]"
+            }
+          },
+          "reset_to_dma_engine": {
+            "count": 7,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "673",
+              "slack_ns": "4.132",
+              "data_delay_ns": "4.972",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_dma_channels:general_dma_enabled.channels|ngage_dma_engine:engines[0].engine|source_left[2]_OTERM6207"
+            }
+          },
+          "registered_valid": {
+            "count": 2,
+            "below_minus_1p5_ns": 0,
+            "worst": {
+              "rank": "897",
+              "slack_ns": "4.215",
+              "data_delay_ns": "4.929",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid"
+            }
+          },
+          "valid_paths": [
+            {
+              "rank": "897",
+              "slack_ns": "4.215",
+              "data_delay_ns": "4.929",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid",
+              "class": "outside detailed sample"
+            },
+            {
+              "rank": "903",
+              "slack_ns": "4.216",
+              "data_delay_ns": "4.928",
+              "logic_levels": "9",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.valid~DUPLICATE",
+              "class": "outside detailed sample"
+            }
+          ],
+          "leading_reset_path": {
+            "rank": "86",
+            "slack_ns": "3.973",
+            "data_delay_ns": "5.169",
+            "logic_levels": "7",
+            "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+            "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_icu:icu|irq_enable[2][12]",
+            "class": "other",
+            "cells": [
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~0",
+              "emu|core|board|upp|cpu_inside.request_stage|out_cyc~1",
+              "emu|core|board|upp|peripherals|icu|always0~2",
+              "emu|core|board|upp|peripherals|icu|LessThan6~11",
+              "emu|core|board|upp|peripherals|icu|irq_enable[0][4]~0",
+              "emu|core|board|upp|peripherals|icu|irq_enable[2][31]~5",
+              "emu|core|board|upp|peripherals|icu|irq_enable[2][12]_NEW1569"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,78 @@
+--- a/tests/cpu/arm9v2_board/contract.S
++++ b/tests/cpu/arm9v2_board/contract.S
+@@ -148,6 +148,27 @@
+     cmp r6,#2
+     bne fail
+ 
++    // Post a sequence of mixed-width stores to a cold line. A dependent
++    // load must wait for them before starting its line refill.
++    ldr r11,=0x0a006400
++    ldr r4,=0x11223344
++    mov r5,#0xa8
++    mov r6,#0x3c
++    str r4,[r11]
++    strb r5,[r11,#2]
++    strh r6,[r11]
++    ldr r9,[r11]
++    ldr r10,=0x11a8003c
++    cmp r9,r10
++    bne fail
++
++    // Drain a pending write to a second cold line using CP15's barrier.
++    str r4,[r11,#32]
++    mcr p15,0,r4,c7,c10,4
++    ldr r9,[r11,#32]
++    cmp r9,r4
++    bne fail
++
+     // Read-allocate both ways before dirtying them. With W enabled the
+     // donor can post a store miss without installing a line.
+     ldr r11,=0x0a008000
+--- a/tests/cpu/arm9v2_board/contract.v
++++ b/tests/cpu/arm9v2_board/contract.v
+@@ -136,6 +136,36 @@
+ 
+   reg [31:0] rom[0:2047], ram[0:16383];
+   integer cycle = 0, slow_delay = 0, ram_delay = 0, wait_words = 0;
++`define POST_CACHE cpu.u_arm925t.u_zap.l_generate_with_cache_mmu.u_data_cache
++  integer post_accepts = 0, post_drains = 0;
++  reg posted_refill_first = 0, posted_refill_second = 0;
++  always @(posedge clk) if (!reset) begin
++    if (!posted_refill_first && ((line && line_addr == 32'h0a006400) ||
++        (ram_accept && !ram_write && ram_address == 32'h0a006400))) begin
++      if (post_drains != 3) $fatal(1, "Dependent refill overtook %0d posted writes", 3-post_drains);
++      posted_refill_first <= 1;
++      $display("POST refill cycle=%0d address=0a006400 drained=%0d", cycle, post_drains);
++    end
++    if (!posted_refill_second && ((line && line_addr == 32'h0a006420) ||
++        (ram_accept && !ram_write && ram_address == 32'h0a006420))) begin
++      if (post_drains != 4) $fatal(1, "Refill before posted write barrier drained");
++      posted_refill_second <= 1;
++      $display("POST refill cycle=%0d address=0a006420 drained=%0d", cycle, post_drains);
++    end
++    if (`POST_CACHE.post_push && `POST_CACHE.tlb_phy_addr[31:8] == 24'h0a0064) begin
++      post_accepts <= post_accepts + 1;
++      $display("POST push cycle=%0d address=%08h data=%08h ben=%01h",
++               cycle, `POST_CACHE.tlb_phy_addr, `POST_CACHE.i_dat, `POST_CACHE.i_ben);
++    end
++    if ((`POST_CACHE.wb_ack[3] || `POST_CACHE.wb_err[3]) &&
++        `POST_CACHE.o_wb_adr[31:8] == 24'h0a0064) begin
++      post_drains <= post_drains + 1;
++      $display("POST take cycle=%0d address=%08h data=%08h ben=%01h error=%0d",
++               cycle, `POST_CACHE.o_wb_adr, `POST_CACHE.o_wb_dat,
++               `POST_CACHE.o_wb_sel, `POST_CACHE.wb_err[3]);
++    end
++  end
++`undef POST_CACHE
+   integer scalar_faults = 0, refill_faults = 0, refill_words = 0, clean_writes = 0;
+   integer irq_writes = 0, fiq_writes = 0, swap_beats = 0;
+   integer translation_walks = 0, prefetch_aborts = 0;
+@@ -333,6 +363,8 @@
+             end
+           end
+           32'hf0000000: begin
++            if (post_accepts != 4 || post_drains != 4 || !posted_refill_first || !posted_refill_second)
++              $fatal(1, "Posted store coverage accepts=%d drains=%d", post_accepts, post_drains);
+             if (expected_section_reads != 0 && section_checks != 2)
+               $fatal(1, "Both section-index phases must complete");
+             if (capacity_markers != 2 || ram[14'h2400] != 32'h0a009000)

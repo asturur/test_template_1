@@ -114,7 +114,7 @@ module tb(input wire clk,reset,cold,
    if(cycles%100000==0)$display("BOOT_PROFILE cycle=%0d delay_retired=%0d fetches=%0d r0=%0d r1=%0d r4=%0d r5=%0d",cycles,delay_retired,delay_fetches,delay_r0,delay_r1,delay_r4,delay_r5);
  end
 `else
- assign boot_index=0;assign boot_limit=0;assign retired_count=0;assign ddr_command_count=0;assign ddr_beat_count=0;
+ assign boot_index=0;assign boot_limit=0;assign retired_count=boot_retired;assign ddr_command_count=0;assign ddr_beat_count=0;
 `endif
 
 `ifdef NGAGE_NOS_OVERLAY_RUN
@@ -123,7 +123,7 @@ module tb(input wire clk,reset,cold,
  assign ready=init_done;
 `endif
  assign cycle_count=cycles;
- assign pc=dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr;
+ assign pc=fetch_pc;
  wire [23:0] observed_pixels=dut.board.display.lcd.framebuffer.memory[frame_index];
  assign frame_word={4'b0,observed_pixels[23:12],4'b0,observed_pixels[11:0]};
  assign scan_x=dut.board.display.lcd.scan_x-9'd72;assign scan_y=dut.board.display.lcd.scan_y-9'd16;
@@ -139,6 +139,7 @@ module tb;
 parameter integer OVERLAY_COMPONENT=1;
 parameter integer SYS_CLK_HZ=104000000;
 parameter integer TIMER_CLK_DIV=1,NOS_TICK_HZ=1000;
+parameter integer FLASH_CACHE_BYTES=8192, MMC_CLK_DIV=4, GAME_PCM=0;
 parameter integer ROM_CACHE=0;
 parameter integer DIRECT_SDRAM=1;
 parameter integer LINE_REFILL=0;
@@ -206,7 +207,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  ngage_sdram_adapter #(.LINE_REFILL(LINE_REFILL),.RAM_BYTES(32),.REFRESH_PERIOD((64'd6800*SYS_CLK_HZ)/104000000)) sadapter(
  .owner_ready(sdram_owner_ready),.clk(clk),.rst(cold),.phone_reset(dma_reset || cold),.init(mem_init),.req(sreq),.we(swe),.addr(sa),.din(sd),.be(sb),.ack(sack),.dout(sdata),.scrub_done(scrub_done),
  .ba_addr(ba_addr),.ba_din(ba_din),.ba_dsn(ba_dsn),.rd(rd),.wr(wr),.ba_ack(ba_ack),.ba_dst(ba_dst),.ba_rdy(ba_rdy),.ba_dout(ba_dout),.rfsh(rfsh),
- .line_req(ram_line_req),.line_addr(ram_line_addr),.line_ready(ram_line_ready),.line_valid(ram_line_valid),.line_data(ram_line_data),.line_last(ram_line_last),.ba_line(ba_line));
+ .line_req(ram_line_req && !lock),.line_addr(ram_line_addr),.line_ready(ram_line_ready),.line_valid(ram_line_valid),.line_data(ram_line_data),.line_last(ram_line_last),.ba_line(ba_line));
  jtframe_sdram64 #(.SHORT_READS(SHORT_READS),.DYNAMIC_LINE(1),.AW(22),.HF(1),.READ_CAPTURE_NEGEDGE(1),.BA0_LEN(256),.BA1_LEN(256),.BA2_LEN(16),.BA3_LEN(16),.PROG_LEN(16),.BA0_WEN(1),.BA1_WEN(1)) ctrl(
   .line_read(ba_line),.rst(cold),.clk(clk),.init(mem_init),.ba0_addr(ba_addr),.ba1_addr(ba_addr),.ba2_addr(22'b0),.ba3_addr(22'b0),
   .rd(rd),.wr(wr),.ba0_din(ba_din),.ba1_din(ba_din),.ba2_din(16'b0),.ba3_din(16'b0),
@@ -227,18 +228,87 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  // actual F-stage acceptance for bounded-run liveness, not an arbitrary edge.
  reg [31:0] last_fetch_pc=0;
  integer last_fetch_cycle=-10000;
+`ifdef NGAGE_ARM9V2
+ wire [31:0] fetch_pc = dut.cpu_pc;
+ wire accepted_fetch = dut.cpu_fetch;
+ `define BOOT_CPU dut.board.upp.cpu_inside.cpu.u_arm925t
+ wire [31:0] retire_pc = `BOOT_CPU.dbg_wb_pc - (`BOOT_CPU.dbg_wb_cpsr[5] ? 4 : 8);
+ wire [6:0] exceptions = {`BOOT_CPU.dbg_wb_dabt,`BOOT_CPU.dbg_wb_pabt,
+  `BOOT_CPU.dbg_wb_und,`BOOT_CPU.dbg_wb_swi,`BOOT_CPU.dbg_wb_irq,`BOOT_CPU.dbg_wb_fiq};
+ wire retire = (`BOOT_CPU.dbg_wb_valid || `BOOT_CPU.dbg_wb_dvalid) &&
+  `BOOT_CPU.dbg_wb_uop_last && !(|exceptions);
+ `undef BOOT_CPU
+`else
+ wire [31:0] fetch_pc = dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr;
  wire accepted_fetch = dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_fetch_main.i_valid &&
   !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.code_stall && !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_fetch_main.sleep_ff &&
   !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.clear_from_writeback && !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.clear_from_alu &&
   !dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.clear_from_decode;
+ `define BOOT_WB dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.u_zap_writeback
+ wire [31:0] retire_pc = `BOOT_WB.i_pc_plus_8_buf_ff - (dut.cpu_cpsr[5] ? 4 : 8);
+ wire [6:0] exceptions = {`BOOT_WB.i_data_abt,`BOOT_WB.i_instr_abt,
+  `BOOT_WB.i_und,`BOOT_WB.i_swi,`BOOT_WB.i_irq,`BOOT_WB.i_fiq};
+ wire retire = (`BOOT_WB.i_valid || `BOOT_WB.i_decompile_valid) &&
+  `BOOT_WB.i_uop_last && !(|exceptions);
+ `undef BOOT_WB
+`endif
+ integer boot_retired=0, boot_exceptions=0;
+ always @(posedge clk) if (!reset) begin
+  if (retire) begin
+   if (boot_retired < 512) $display("BOOT_RETIRE index=%0d cycle=%0d pc=%h",boot_retired,cycles,retire_pc);
+   boot_retired <= boot_retired + 1;
+  end
+  if ((|exceptions) && boot_exceptions < 32) begin
+   $display("BOOT_EXCEPTION cycle=%0d pc=%h exceptions=%b",cycles,retire_pc,exceptions);
+   boot_exceptions <= boot_exceptions + 1;
+  end
+ end
  integer board_log; integer fd,got,i,cycles=0,transactions=0,lcd_writes=0,errors=0,data_errors=0,phys_writes=0;reg [31:0] read_addr=0;reg [2:0] ddelay=0,sdelay=0;reg [7:0] ddr_remaining=0;
+`ifdef NGAGE_NOS_TIMING_STATS
+ `define NOS_TIMER dut.board.upp.peripherals.nos_timer
+ wire gpt_pending = dut.board.upp.peripherals.timer0_pending;
+ wire nos_timer_pending = `NOS_TIMER.status_reg[7] && `NOS_TIMER.enable_bits[7];
+ wire in_irq_mode = dut.cpu_cpsr[4:0] == 5'h12;
+ reg previous_gpt=0,previous_nos=0,previous_irq_mode=0;
+ reg [63:0] nos_elapsed=0,nos_ticks=0,nos_programs=0,nos_matches=0,nos_timer_assertions=0;
+ reg [63:0] gpt_assertions=0,irq_entries=0,irq_clocks=0;
+ task report_nos_timing;
+  begin
+   $display("NOS_TIMING cycles=%0d ticks=%0d programs=%0d matches=%0d timer_assertions=%0d gpt_assertions=%0d irq_entries=%0d irq_clocks=%0d",
+      nos_elapsed,nos_ticks,nos_programs,nos_matches,nos_timer_assertions,gpt_assertions,irq_entries,irq_clocks);
+  end
+ endtask
+ always @(posedge clk) if(!reset) begin
+  nos_elapsed<=nos_elapsed+1;
+  if(`NOS_TIMER.nos_tick) nos_ticks<=nos_ticks+1;
+  if(`NOS_TIMER.compare_written) nos_programs<=nos_programs+1;
+  if(`NOS_TIMER.timer_match) nos_matches<=nos_matches+1;
+  if(nos_timer_pending && !previous_nos) nos_timer_assertions<=nos_timer_assertions+1;
+  if(gpt_pending && !previous_gpt) gpt_assertions<=gpt_assertions+1;
+  if(in_irq_mode && !previous_irq_mode) irq_entries<=irq_entries+1;
+  if(in_irq_mode) irq_clocks<=irq_clocks+1;
+  previous_nos<=nos_timer_pending;
+  previous_gpt<=gpt_pending;
+  previous_irq_mode<=in_irq_mode;
+  if(nos_elapsed!=0 && nos_elapsed%20000000==0) report_nos_timing();
+ end
+ final report_nos_timing();
+ `undef NOS_TIMER
+`endif
+`ifndef NGAGE_LOGO_RUN
+ integer ram_lines=0, rom_lines=0;
+ always @(posedge clk) if(!reset) begin
+  if(ram_line_req && ram_line_ready && !lock) ram_lines<=ram_lines+1;
+  if(ddr_line && accept) rom_lines<=rom_lines+1;
+ end
+`endif
  integer owner_counts[0:17]; integer owner; integer k; integer memory_samples=0;
  task report_owner;
   input integer id;
   input [127:0] name;
   begin
    owner_counts[id]=owner_counts[id]+1;
-   if(owner_counts[id]==1) $display("REACHED owner=%0s cycle=%0d addr=%h write=%b data=%h",name,cycles,dut.observed_address,dut.observed_write,dut.observed_write ? dut.observed_data : (dut.observe_ram ? csr : dut.wb_dat_i));
+   if(owner_counts[id]==1) $display("REACHED owner=%0s cycle=%0d addr=%h write=%b data=%h",name,cycles,dut.debugger.observed_address,dut.debugger.observed_write,dut.debugger.observed_write ? dut.debugger.observed_data : (dut.debugger.observe_ram ? csr : dut.wb_dat_i));
   end
  endtask
  reg spending=0;reg [24:0] saddr=0;reg [31:0] swdata=0;reg [3:0] sbe=0;reg swrite=0;integer n;
@@ -249,7 +319,9 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
  localparam UEM_POWERUP_STATUS=1;
 `endif
  wire cpu_ram_accept;
- ngage_mister #(.ENABLE_DEBUGGER(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ)) dut(
+ wire cpu_write_block, mem_write_block;
+ wire [127:0] cpu_block_data, mem_block_data;
+ ngage_mister #(.ENABLE_DEBUGGER(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.GAME_PCM(GAME_PCM)) dut(
   .mmc_card_reset(1'b0),.mmc_img_mounted(1'b0),.mmc_img_readonly(1'b1),.mmc_img_size(64'd0),
   .mmc_sd_ack(1'b0),.mmc_sd_buff_addr(13'd0),.mmc_sd_buff_dout(16'd0),.mmc_sd_buff_wr(1'b0),
 .ddram_line(ddr_line),.ddram_beat_valid(core_beat_valid),.ddram_beat_data(core_beat_data),.ddram_beat_last(core_beat_last),
@@ -261,6 +333,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
 `endif
  ),.diagnostic_status(8'b0),.debug_freeze_trace(1'b0),.debug_read_word(11'b0),.board_init_done(init_done),.bus_lock(lock),
   .sdram_addr(csa),.sdram_din(csd),.sdram_dout(csr),.sdram_be(csb),.sdram_we(cswe),.sdram_req(csreq),.sdram_ack(csack),.sdram_accept(cpu_ram_accept),
+  .sdram_write_block(cpu_write_block),.sdram_block_data(cpu_block_data),
   .dma_reset(dma_reset),.dma_sdram_accept(lcd_fast_accept),
   .dma_sdram_req(lcd_fast_req),.dma_sdram_addr(lcd_fast_addr),.dma_sdram_ack(lcd_fast_ack),.dma_sdram_data(lcd_fast_data),
   .dma_error_pending(dma_error_pending),
@@ -295,7 +368,8 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   .mem_req(shared_dma_req),.mem_write(shared_dma_write),.mem_addr(shared_dma_addr),.mem_data(shared_dma_data),.mem_be(shared_dma_be),
   .mem_accept(shared_dma_accept),.mem_ack(shared_dma_ack),.mem_rdata(shared_dma_rdata)
  );
- ngage_sdram_arbiter arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(dma_reset || cold),.cpu_lock(lock),.cpu_req(csreq && sdram_owner_ready),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
+ ngage_sdram_arbiter #(.CPU_BLOCK_WRITES(1)) arb(.cpu_accept(cpu_ram_accept),.clk(clk),.reset(dma_reset || cold),.cpu_lock(lock),.cpu_req(csreq && sdram_owner_ready),.cpu_we(cswe),.cpu_addr(csa),.cpu_data(csd),.cpu_be(csb),.cpu_ack(csack),.cpu_rdata(csr),
+  .cpu_write_block(cpu_write_block),.cpu_block_data(cpu_block_data),.mem_write_block(mem_write_block),.mem_block_data(mem_block_data),
   .dma_req(shared_dma_req && sdram_owner_ready),.dma_we(shared_dma_write),.dma_addr(shared_dma_addr),.dma_data(shared_dma_data),.dma_be(shared_dma_be),.dma_ack(shared_dma_ack),.dma_rdata(shared_dma_rdata),.dma_accept(shared_dma_accept),.mem_req(sreq),.mem_we(swe),.mem_addr(sa),.mem_data(sd),.mem_be(sb),.mem_ack(sack),.mem_rdata(sr));
 `ifdef NGAGE_NOS_OVERLAY_RUN
  // Separate experiment: exercise the real staged loader and shared DDR path,
@@ -358,14 +432,23 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
 `ifdef NGAGE_PRODUCTION_DDR
  // Selected Template transport/cache. HPS sector traffic remains absent in
  // this phone harness; the bulk engine is instantiated but not requested.
- ngage_ddr_flash_adapter #(.FLASH_CACHE_BYTES(8192),.STREAM_TRANSPORT(1),.BULK_PERSISTENCE(1),.LINE_REFILL(LINE_REFILL)) adapter(
+ ngage_ddr_flash_adapter #(.FLASH_CACHE_BYTES(FLASH_CACHE_BYTES),.STREAM_TRANSPORT(1),.BULK_PERSISTENCE(1),.LINE_REFILL(LINE_REFILL)) adapter(
   .req_bulk(1'b0),.bulk_cancel(1'b0),.bulk_write_valid(1'b0),
   .bulk_write_data(64'b0),.bulk_write_last(1'b0),.bulk_read_ready(1'b1),
 .req_line(arb_line),.rsp_beat_valid(arb_beat_valid),.rsp_beat_data(arb_beat_data),.rsp_beat_last(arb_beat_last),.ddr_burstcount(ddr_burst),.req_fetch(accept && ddr_fetch),.clk(clk),.reset(cold),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_wdata(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp),
   .ddr_addr(pa),.ddr_din(pd),.ddr_be(pb),.ddr_rd(pr),.ddr_we(pw),.ddr_busy(ddelay!=0),.ddr_dout(phydata),.ddr_dout_ready(phyready));
+`ifdef NGAGE_ARM9V2
+`include "tests/phone/hardware_boot/d2_measure.vh"
+`endif
 `else
  ngage_ddr_adapter #(.LINE_REFILL(LINE_REFILL),.ROM_CACHE(ROM_CACHE),.ROM_CACHE_BITS(ROM_CACHE_BITS),.ROM_CACHE_BYTES(ROM_CACHE_BYTES)) adapter(.req_line(arb_line),.rsp_beat_valid(arb_beat_valid),.rsp_beat_data(arb_beat_data),.rsp_beat_last(arb_beat_last),.ddr_burstcount(ddr_burst),.req_fetch(accept && ddr_fetch),.clk(clk),.reset(cold),.req_valid(av),.req_ready(ar),.req_write(aw),.req_addr(aa),.req_wdata(ad),.req_be(ab),.rsp_valid(adone),.rsp_data(arsp),
   .ddr_addr(pa),.ddr_din(pd),.ddr_be(pb),.ddr_rd(pr),.ddr_we(pw),.ddr_busy(ddelay!=0),.ddr_dout(phydata),.ddr_dout_ready(phyready));
+`endif
+ wire d2_hold_tail;
+`ifdef NGAGE_D2_DIRECTED
+`include "tests/phone/ddr_flash_cache/trace_observe.vh"
+`else
+ assign d2_hold_tail=1'b0;
 `endif
  always @(posedge clk)begin
   phyready<=0;
@@ -373,7 +456,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   sack_model<=0;
 `endif
   if(pr && ddelay==0)begin read_addr<={pa,3'b000}-32'h30000000;ddelay<=3;ddr_remaining<=ddr_burst;end
-  else if(ddelay!=0)begin ddelay<=ddelay-1'b1;if(ddelay==1)begin
+  else if(ddelay!=0 && !d2_hold_tail)begin ddelay<=ddelay-1'b1;if(ddelay==1)begin
    if(read_addr+7>=25231360)begin $fatal(1,"DDR read out of range %h",read_addr);end
    for(n=0;n<8;n=n+1)phydata[n*8+:8]<=ddr[read_addr+n];phyready<=1;
    if(ddr_remaining>1)begin
@@ -403,10 +486,10 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   if(reset) dma_errors_seen<=0;
   if(!reset)begin
    if (|(dma_error_pending & ~dma_errors_seen))
-    $display("DMA_ERROR cycle=%0d channels=%h pc=%h",cycles,dma_error_pending,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr);
+    $display("DMA_ERROR cycle=%0d channels=%h pc=%h",cycles,dma_error_pending,fetch_pc);
    dma_errors_seen<=dma_errors_seen | dma_error_pending;
    cycles<=cycles+1;
-   if(accepted_fetch)begin last_fetch_pc<=dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr;last_fetch_cycle<=cycles;end
+   if(accepted_fetch)begin last_fetch_pc<=fetch_pc;last_fetch_cycle<=cycles;end
    if(board_log && (dut.wb_ack || dut.wb_err) && (dut.brd_claim || dut.dma_claim))
     $fdisplay(board_log,"%0d\t%s\t0x%08h\t0x%01h\t0x%08h\t%b\t%b\t%b",cycles,dut.wb_we ? "WRITE" : "READ",dut.pa,dut.wb_sel,dut.wb_we ? dut.wb_dat_o : dut.wb_dat_i,dut.wb_err,dut.irq_line,dut.fiq_line);
    if(dut.fast_ram_response)begin
@@ -445,16 +528,16 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
    if(dut.wb_ack && dut.wb_we && dut.pa==32'h0c121208)lcd_writes<=lcd_writes+1;
 `ifdef NGAGE_LOGO_RUN
    if(dut.wb_ack && dut.wb_we && dut.pa>=32'h0c121200 && dut.pa<=32'h0c121208 && (dut.pa!=32'h0c121208 || dut.board.display.lcd.header[31:16]!=16'h8924))
-    $display("LCD cycle=%0d addr=%h data=%h pc=%h",cycles,dut.pa,dut.wb_dat_o,pc);
+    $display("LCD cycle=%0d addr=%h data=%h pc=%h",cycles,dut.pa,dut.wb_dat_o,fetch_pc);
    if(dut.board.display.lcd.unsupported_valid && lcd_unknown_prints<32)begin
     lcd_unknown_prints<=lcd_unknown_prints+1;
-    $display("LCD_UNKNOWN cycle=%0d header=%h command=%h data=%h pc=%h",cycles,dut.board.display.lcd.unsupported_header,dut.board.display.lcd.unsupported_command,dut.board.display.lcd.unsupported_data,pc);
+    $display("LCD_UNKNOWN cycle=%0d header=%h command=%h data=%h pc=%h",cycles,dut.board.display.lcd.unsupported_header,dut.board.display.lcd.unsupported_command,dut.board.display.lcd.unsupported_data,fetch_pc);
    end
 `else
    if(cycles==BOUNDED_CYCLES)begin
-    if(transactions<1000 || owner_counts[15]==0 || errors>1000 || data_errors!=0 || !dut.debugger.diagnostics.fetch_seen || dut.debug_fault_seen || last_fetch_pc==0 || cycles-last_fetch_cycle>10000)begin $fatal(1,"bounded boot did not progress bus=%0d owner15=%0d errors=%0d data_errors=%0d fetched=%b debug_fault=%b fetch_pc=%h",transactions,owner_counts[15],errors,data_errors,dut.debugger.diagnostics.fetch_seen,dut.debug_fault_seen,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr);end
+    if(transactions<1000 || owner_counts[15]==0 || errors>1000 || data_errors!=0 || !dut.debugger.diagnostics.fetch_seen || dut.debug_fault_seen || last_fetch_pc==0 || cycles-last_fetch_cycle>10000)begin $fatal(1,"bounded boot did not progress bus=%0d owner15=%0d errors=%0d data_errors=%0d fetched=%b debug_fault=%b fetch_pc=%h",transactions,owner_counts[15],errors,data_errors,dut.debugger.diagnostics.fetch_seen,dut.debug_fault_seen,fetch_pc);end
     for(k=0;k<18;k=k+1)if(owner_counts[k]!=0)$display("OWNER id=%0d count=%0d",k,owner_counts[k]);
-    $display("PASS bounded hardware-bound boot cycles=%0d bus=%0d errors=%0d data_errors=%0d lcd_words=%0d DDR_writes=%0d pc=%h bus_pc=%h last_fetch_age=%0d",cycles,transactions,errors,data_errors,lcd_writes,phys_writes,last_fetch_pc,dut.board.upp.cpu_inside.cpu.u_zap.u_zap_core.o_instr_wb_adr,cycles-last_fetch_cycle);$finish;
+    $display("PASS bounded hardware-bound boot cycles=%0d bus=%0d errors=%0d data_errors=%0d lcd_words=%0d DDR_writes=%0d pc=%h bus_pc=%h last_fetch_age=%0d ram_lines=%0d rom_lines=%0d",cycles,transactions,errors,data_errors,lcd_writes,phys_writes,last_fetch_pc,fetch_pc,cycles-last_fetch_cycle,ram_lines,rom_lines);$finish;
    end
 `endif
   end
@@ -468,7 +551,8 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   board_log=0;
   if(!$test$plusargs("no-board-log")) board_log=$fopen("build/sim/unit-hardware-boot-real-sdram/board.tsv","w");
 `else
-  board_log=$fopen("build/sim/unit-hardware-boot/board.tsv","w");
+  board_log=0;
+  if(!$test$plusargs("no-board-log")) board_log=$fopen("build/sim/unit-hardware-boot/board.tsv","w");
 `endif
   if(!board_log && !$test$plusargs("no-board-log")) $fatal(1,"cannot open board trace");
   if(board_log) $fdisplay(board_log,"cycle\top\taddress\tmask\tdata\terror\tirq\tfiq");
@@ -478,7 +562,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
   for(i=0;i<65536;i=i+1)ddr[25165824+i]=8'hff;
   core_path="build/firmware/nem4-factory/core.bin";
   extension_path="build/firmware/nem4-factory/extension.bin";
-  cdrive_path="runtime/boot/cdrive-11b.img";
+  cdrive_path="scratch/overnight/cdrive-11b.img";
   if($value$plusargs("core=%s",core_path))begin end
   if($value$plusargs("extension=%s",extension_path))begin end
   if($value$plusargs("cdrive=%s",cdrive_path))begin end

@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class ScreenCaptureTest(unittest.TestCase):
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix='lcd-capture-test-')
+        self.temp = tempfile.TemporaryDirectory(dir=ROOT/'scratch', prefix='lcd-capture-test-')
         self.path = Path(self.temp.name)
         self.trace = self.path/'bus.tsv'
         self.out = self.path/'screen'

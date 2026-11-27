@@ -6,7 +6,11 @@ iverilog -g2001 -Wall -s ngage_mmc_host -o "$out/strict" rtl/ngage_mmc_host.v > 
 iverilog -g2001 -s tb -o "$out/cmd16" rtl/ngage_mmc_host.v tests/phone/mmc_host/cmd16_tb.v > "$out/cmd16-build.log" 2>&1
 vvp "$out/cmd16" > "$out/cmd16.log" 2>&1
 grep '^PASS CMD16 ' "$out/cmd16.log"
-for config in '4 16' '12 8'; do
+iverilog -g2001 -s integer_clock_tb -o "$out/integer-clock" \
+    rtl/ngage_mmc_host.v tests/phone/mmc_host/integer_clock_tb.v
+vvp "$out/integer-clock" > "$out/integer-clock.log" 2>&1
+grep '^PASS MMC integer ' "$out/integer-clock.log"
+for config in '4 16' '3 16' '12 8'; do
     set -- $config
     divider=$1
     depth=$2

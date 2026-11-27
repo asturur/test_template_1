@@ -1,3 +1,361 @@
+## 2026-11-27 — v5 becomes master
+
+The promoted FPGA source matches the verified `8da70c9` tree from the paused timing sweep. The 104 MHz best fit remains `ab75a62` seed 13 at −2.006 ns setup. Timing experiments remain paused. The merge preserves both v5 histories and the previous master history. [Fit evidence](experiments/v5-performance/refill-payload-combined.md) · [Previous master checkpoints](legacy-master-status.md)
+
+## 2026-11-26 — retained ten-seed sweep and closure investigation
+
+Ten same-day fits of the exact `e9552bd` tree at physical 104 MHz miss setup. Seed 13 leads at −2.061 ns, the median is −2.598 ns, and none reaches the −1.5 ns milestone. All ten pass hold, recovery, removal, pulse width and SDRAM pin packing. The posted SDRAM ACK into I-cache request selection limits seeds 31337 and 7 and lands 0.006 ns behind seed 13's worst path. Fit the separate SDRAM write-completion candidate first. It and the prepared MMC count patch independently match the directed, fixed, native and mixed regressions. Both await routed timing. [Ranked fits and investigation](experiments/v5-performance/retained-104-seed-sweep.md)
+
+Keep timer preparation `9f16d1a` as the working timing base. The reset-to-timer-count paths leave the hot export, median setup moves from −2.471 to −2.403 ns, median core TNS improves by 1351.764 ns, and median occupied ALMs fall by 412. The older retained seed 13 reached −2.061 ns before the combined refill and SDRAM trial superseded it. Park MMC footer `3e3dc32` and HPS owner `efc761a`. The owner trial reaches −2.079 ns on seed 31337 and saves about 98 occupied ALMs in the backing adapter, while median setup and all three TNS results worsen. Park compact lock `aaeef9e`. The old lock-valid destination leaves all routed path samples, while median setup falls to −2.712 ns, median core TNS worsens by 1,579.230 ns and paired median occupied ALMs rise by 410. Park dirty descriptor `dbad302`. The merger CYC to dirty RAM path leaves the samples, and all three setups and core TNS regress. The paired median occupancy rises 259 ALMs. Park SDRAM payload capture `b7cf9fc`. The block data endpoints leave the samples, but all three setups and core TNS worsen and the paired median occupied count increases 106 ALMs. Park native refill word-ready `9929983` for area. Its named paths leave the samples and occupied ALMs fall on all seeds, while median setup and all three TNS results worsen. Park joint RAM `ae3654c` for area. Its paired median saves 322 occupied ALMs with six extra M10Ks, while all three setup and TNS results regress. Park A-stage multiply `9229940`. Decode-to-DSP routes leave the samples, while median setup falls to −3.014 ns and every TNS result regresses. Combined refill and SDRAM capture `ab75a62` reaches the new best single setup of −2.006 ns on seed 13 and improves its core TNS by 684.034 ns against timer. The other two seeds regress. Keep it as the next experimental base while timer remains the stronger three-seed baseline. Park the UPP child `96d108d`. It improves seed 31337, while the best and median setup suffer. Park W completion `e2249e4`. The W-valid family leaves the sample, while all three setups and TNS regress. Park D-cache successor-beat preparation `0c64862`. Its named hot paths leave the samples, while the best and median setup and all three TNS results regress. Timing work is paused at user request. Public `ngage-v5` tip `8da70c9` restores the exact `ab75a62` tree without dispatching a build. The best measured 104 MHz bitstream remains `ab75a62` seed 13 at −2.006 ns. The W load guard is qualified in simulation and remains unbuilt. [Matched decisions](experiments/v5-performance/retained-104-seed-sweep.md#matched-follow-up-fits) · [Timer results](experiments/v5-performance/timer-write-prepare.md) · [HPS owner fits](experiments/v5-performance/mmc-hps-cancel-owner.md) · [Compact lock fits](experiments/v5-performance/dcache-compact-lock.md) · [Dirty-clear fits](experiments/v5-performance/dcache-dirty-clean-descriptor.md) · [SDRAM payload fits](experiments/v5-performance/sdram-block-payload.md) · [Refill word-ready fits](experiments/v5-performance/refill-line-word-ready.md) · [Joint RAM fits](experiments/v5-performance/tlb-victims-mmc-fifo.md) · [A-stage multiply fits](experiments/v5-performance/arm9-a-only-product.md) · [Refill and SDRAM fits](experiments/v5-performance/refill-payload-combined.md) · [UPP fits](experiments/v5-performance/upp-claim-refill-payload.md) · [W completion fits](experiments/v5-performance/w-completion-prepare.md) · [D-cache beat fits](experiments/v5-performance/d-completion-merger.md) · [Pause restore](evidence/v5-104-pause-restore.json)
+
+## 2026-11-26 — same-day placement and refill fits parked
+
+Public `11c4a0c` restores the exact retained tree. Three same-day controls reproduced the November 24 timing and `bffd426` automatic periphery placement produced identical RBFs. Refill M10K `5b29095` matched all simulations and saved 60 median ALMs. Its best setup was −2.431 ns compared with −2.061 ns for retained seed 13, still 0.561 ns short of the −1.5 ns target. [Patches and all nine fits](experiments/v5-performance/periphery-auto.md)
+
+## 2026-11-26 — independent D-cache lock and ALU zero fits parked
+
+Public `bbed9e4` restores the exact `e9552bd` tree. D-cache lock `8c5726f` and ALU zero predecode `3d57ba3` each matched all fixed windows, native frames, directed board profiles and the mixed replay. Both lost worst setup on all three matched 104 MHz seeds. Median setup was −2.471 ns retained, −2.552 ns lock and −2.983 ns ALU. Median ALM changes were +762 and −363. All six runs produced an RBF and missed setup. [Lock patch and fits](experiments/v5-performance/dcache-lock-valid.md) · [ALU patch and fits](experiments/v5-performance/alu-zero-predecode.md)
+
+## 2026-11-25 — SDRAM posted acceptance parked
+
+Public `81fa768` restores the exact retained tree. Candidate `ff66e03` removes the sampled posted ACK paths into the Wishbone merger on all three 104 MHz seeds. Median setup moves from −2.471 to −2.588 ns, core setup TNS improves 822.484 ns and median area rises 677 ALMs. Every fit produces an RBF and misses setup. Seed 31337 is best at −2.310 ns. All 105 fixed windows and the mixed board replay match. Four native frames add 130 clocks (+0.00023%) with matching guest digests and output. [Patch, qualification and fits](experiments/v5-performance/sdram-post-capacity.md)
+
+## 2026-11-25 — live shift-count trial qualified in simulation
+
+An isolated ARM shift-count patch matched 105 fixed windows, four native PolyCount frames, four board profiles and the 171,496-event mixed replay. The retained core used a live returning load as the direct shift count zero times. The narrow path topped one parked trial but was absent from the three retained hot exports. Keep the unfitted patch for combinations. The stronger fit target is posted SDRAM acceptance from registered queue capacity. [Patch, replay and next design](experiments/v5-performance/live-rs-prep.md)
+
+## 2026-11-25 — posted SDRAM write acknowledgment parked
+
+Public `e11a637` restores the exact `e9552bd` production tree. A register removes the sampled CPU posted-write path through the Wishbone merger. All three matched fits lose setup slack and the median moves from −2.471 to −2.823 ns. Four native frames add 0.0115% cycles. The mixed replay adds 1.577% and changes one startup PCM sample. Preserve the exact patch and replay. [Results](experiments/v5-performance/cpu-posted-sdram-ack.md)
+
+## 2026-11-25 — combined I/D cache strobe trial parked
+
+Public `606ff0d` restores the exact `e9552bd` production tree. The D-cache addition improved six of ten I-cache-only seeds and moved their median setup from −2.8015 to −2.554 ns. The three matched production seeds lost 0.073 ns of median setup and added 422 ALMs. All measured guest cycles and mixed events matched. [Results and replayable patches](experiments/v5-performance/idcache-strobe.md)
+
+## 2026-11-25 — I-cache strobe trial parked
+
+Public `a58c77b` restores the exact `e9552bd` production tree. The I-cache strobe cut matched all measured cycles and saved 355 median ALMs. Median setup moved from −2.471 to −2.942 ns on the three matched seeds. Across ten candidates, setup ranged from −3.542 to −2.435 ns. Seed 3 also missed hold. Keep the replayable patch for later combinations. [Fit results and replay](experiments/v5-performance/icache-strobe.md)
+
+## 2026-11-25 — Wishbone address selection parked
+
+Public `d87216a` restores the exact `e9552bd` production tree. The trial removed the sampled I-cache strobe paths into the merger address and matched every checked simulation cycle. Median setup on the three matched seeds went from −2.471 to −3.057 ns. Ten candidate fits ranged from −3.138 to −2.497 ns, with a −2.819 ns median. Use the same seed set on the next experiment. [Fit results and replay](experiments/v5-performance/wb-id-address.md)
+
+## 2026-11-24 — two-edge UPP bridge trials parked
+
+Public `e7beaf2` restores the exact `e9552bd` tree. Both bridge versions passed the held-data timing checks at all corners. The DMA correction improved median whole-core setup from −3.664 to −2.645 ns, compared with −2.471 ns on the retained control, and used 598 more median ALMs than the control. The patches and bitstreams are archived. [Matched results and replay](v5-alm-storage-results.md#two-edge-upp-register-bridge)
+
+## 2026-11-24 — peripheral lane 13 timing trial parked
+
+Public `e7f1e31` restores `e9552bd`. Lane 13 paths shortened and median core setup TNS improved by 319.078 ns, while median setup moved from −2.471 to −2.523 ns and the fit used 459 more ALMs. All measured MMIO and workload cycles matched. The next target is the Wishbone merger address selection. [Clock trace, replay and routed fits](v5-alm-storage-results.md#peripheral-gpio-and-euart-read-response)
+
+## 2026-11-24 — prepared Wishbone write data retained
+
+Keep `e9552bd`. At physical 104 MHz, median worst setup improved from −2.565 to −2.471 ns and seed 13 reached −2.061 ns. Median core setup TNS worsened by 993.367 ns. The sampled ACK paths into the old merger data register fell from 32, 7 and 30 to zero. Write and workload cycles matched. The next timing trial would evaluate GPIO/keypad and EUART read-data selection for the registered peripheral response. [Routed fits and replay](v5-alm-storage-results.md#prepared-wishbone-write-data)
+
+## 2026-11-24 — auxiliary writeback shift-count preparation retained
+
+Keep `a846b87`. Physical 104 MHz median worst setup improved from −2.724 to −2.565 ns and seed 43 reached −2.227 ns. Median core setup TNS improved by 332.935 ns, although seed 31337's TNS worsened. The median fit saved 602 ALMs. Guest and mixed replay cycles matched. The next timing target is the refill ACK through cache write data into the Wishbone merger. [Routed fits and replay](v5-alm-storage-results.md#auxiliary-writeback-shift-count-preparation)
+
+## 2026-11-24 — speculative ARM shifter parked
+
+The `7158a76` trial removed all sampled Rs-wait-to-rotate paths and matched every guest cycle and mixed pin-model event. Median 104 MHz setup moved from −2.724 to −2.836 ns. Candidate seed 13 reached −2.628 ns. Forward revert `3363c87` restores the exact `fe145b0` board control. [Routed fits and replay](v5-alm-storage-results.md#speculative-arm-shifter-selection)
+
+## 2026-11-24 — DMA command predecode retained
+
+Keep `fe145b0` for board integration and `c492853` for the matched timing reference. At physical 104 MHz, the sampled hot request-stage-to-SDRAM scheduler paths fell from 24, 22 and 24 to zero, zero and two. Median core setup TNS improved by 1,277.025 ns, while median worst setup moved from −2.668 to −2.724 ns. Guest cycles and mixed pin-model events matched. The next timing trial will test separating speculative register-shift data selection from the existing issue interlock. [Routed timing and replay](v5-alm-storage-results.md#dma-command-predecode-for-the-sdram-request-path)
+
+## 2026-11-24 — D1 opcode class parked for area
+
+The D1 class trial `4b2c114` matched all checked cycles and saved 925 median ALMs. Median 104 MHz setup moved from −2.668 to −3.172 ns. Seed 31337 saved 983 ALMs at a 0.100 ns setup cost. Forward revert `fc7b513` restores the exact `c492853` timing tree. Keep the patch for area-constrained combinations. The next timing target is board request and address selection toward SDRAM or DMA. [Matched fits and qualification](v5-alm-storage-results.md#d1-opcode-class-in-the-queue)
+
+## 2026-11-24 — CP15 permission predecode parked
+
+The CP15 trial `85f65c8` matched all checked cycles and saved 286 median ALMs. The hot FSR endpoint gained 0.980 ns on seed 31337, while median 104 MHz setup moved from −2.668 to −2.919 ns. Forward revert `2c9d1ff` restores the exact `c492853` tree. Keep the CP15 patch for an area-constrained combination. [Routed evidence and qualification](v5-alm-storage-results.md#cp15-ap0-permission-predecode)
+
+## 2026-11-24 — execute readiness retained
+
+Keep `c492853` active. The three physical 104 MHz fits improved median setup from −2.978 to −2.668 ns. Seed 31337 reached −2.666 ns. Named readiness paths into execute packets fell from 44, 111 and 7 to 13, 18 and zero in the matched hot exports. Guest workload, native frame and mixed replay cycles matched the DDR control. Next, precompute CP15 S/R permissions on the existing update edge and keep precise faults and cache-hit latency. [Matched fits and qualification](v5-alm-storage-results.md#execute-operand-readiness)
+
+## 2026-11-24 — execute readiness and donor read-ahead study
+
+The execute readiness candidate `c492853` matched the DDR control in the direct differential, four board profiles, 15 fixed workloads, four native frames and the mixed replay. Its three 104 MHz fits await explicit publication approval. Active RTL remains DDR bounds `b6d8981`. The donor-inspired physical next-line census matched 1.57% of native line demands at a 24-clock idle threshold. Sega Rally scan accounted for 3,192 of 3,210 fixed-work matches. The census measured eligible demand, with no speculative traffic or time savings measured. [Execute qualification](experiments/v5-performance/execute-ready.md) · [Read-ahead census](experiments/v5-performance/physical-next-line.md) · [Donor comparison](v5-timing-isolation.md#execute-readiness-and-sdram-read-ahead-in-the-current-donor)
+
+## 2026-11-24 — DDR burst bounds retained for the next combination
+
+The final-window check removed the sector carry chain from the reported result paths. All six paired slow corners improved there, with identical cycles and outputs in 15 fixed workloads and four native frames. Median whole-core setup changed from −2.851 to −2.978 ns. Seed 13 reached −2.742 ns. Keep `b6d8981` active and use `739d3bd` as the matched timing control. Next, isolate execute operand readiness while preserving load forwarding, holds and flush. [Matched runs, patch and qualification](v5-alm-storage-results.md#ddr-burst-bounds)
+
+## 2026-11-24 — independent Thumb redirect and experiment archive
+
+Launching the actual redirect target while supplying the saved instruction separately removed the named recovery-to-fetch-PC route in all three hot path exports. Refetching that target spent essentially the entire Sega gain. Median 104 MHz setup reached −2.974 ns, with 705 fewer ALMs than the all-four timing control. Keep this patch for area, original Thumb for Sega speed, and all-four in production. The next timing target is the DDR burst end-address check. [Measured comparison](v5-alm-storage-results.md#independent-thumb-redirect-and-duplicate-cancellation) · [Replayable experiment catalog](experiments/v5-performance/README.md)
+
+## 2026-11-23 — parallel Thumb predictor lookup
+
+Parallel validity retained the 0.762% Sega Rally gain and relieved the old predictor endpoint. Median whole-core setup was −3.130 ns, versus −3.083 ns for original Thumb recovery and −2.851 ns for the all-four control. Worst paths moved into cache control, decode and the TLB. Keep the candidate for recombination. The branch was restored to the all-four production RTL. [Matched fits and workload results](v5-alm-storage-results.md#parallel-predictor-validity-for-thumb-recovery)
+
+## 2026-11-23 — routed D-cache return and Thumb recovery trials
+
+All six production 104 MHz fits completed. The all-four baseline remains best on median setup at −2.851 ns. The cycle-neutral D return saved 885–990 ALMs and reached −3.242 ns median. Thumb recovery saved 0.762% in Sega Rally scan and reached −3.083 ns median. The new recovery choice feeds branch predictor validity on two of three worst paths. Preserve both commits for mix-and-match and try preparing the predictor alternatives earlier. [Matched seeds, routed paths and archived images](v5-alm-storage-results.md#routed-d-cache-return-and-thumb-recovery)
+
+## 2026-11-23 — independent BRAM fits and measured IPC trade-offs
+
+Four additional BRAM substitutions were isolated on the all-four 104 MHz control. All 12 fits preserved benchmark cycles and missed setup. The refill buffer saved 1,138–1,198 ALMs with a 0.044 ns median slack loss. The TLB victim table saved the most area. The MMC host FIFO had the best single fit at −2.713 ns. Production RTL is back at the all-four control. A separate Thumb register recovered 0.762% on Sega Rally scan in simulation and paid for a registered D-cache admission stage on that workload. The same-edge D return matched every benchmark cycle. The timing and per-workload ledger retains all independent commits and replay patches for recombination. [Results and provenance](v5-alm-storage-results.md#independent-changes-for-a-later-combined-fit)
+
+## 2026-11-23 — v5 matched RAM storage fits
+
+All four changes at `739d3bd` use 37,364 median ALMs and 321 M10Ks.
+Median setup is −2.851 ns at 104 MHz. Seed 13 is best at −2.803 ns
+and its RBF is archived. Return stack plus MMC has the lowest median
+area. Every fit missed 104 MHz setup.
+[Matched fits and archived images](v5-alm-storage-results.md#matched-production-fits)
+
+## 2026-11-23 — v5 MMC stream tags backed by M10Ks
+
+Three replicated tag RAMs serve the low, high and prefetch lookups on
+their existing edges. The direct pin and HPS replays match under host stalls.
+Original Sega Rally CMD18 matches all 64 sectors and completes in 852,184
+clocks. The mixed board replay also matches. Stream tags use three M10Ks.
+[MMC regression](../tests/phone/mmc_card/README.md#stream-tag-ram) ·
+[Matched fits](v5-alm-storage-results.md#matched-production-fits)
+
+## 2026-11-23 — v5 return-address stack backing RAM
+
+The eight-entry return stack reads synchronous memory on the existing
+prediction edge. The call bypass and repair keep the same behavior.
+All 15 fixed workloads and four native PolyCount frames match the prior CPU.
+The mixed SDRAM-pin and four CPU contract modes match. The stack uses one
+M10K. [Implementation and tests](arm9v2-phone.md#return-address-stack-backing-ram) ·
+[Matched fits](v5-alm-storage-results.md#matched-production-fits)
+
+## 2026-11-22 — both UPP RAM banks backed by HPS DDR
+
+The v5 production build maps the DSP upload and generic NOS banks to
+`0x31820000–0x3183FFFF` in HPS DDR. Cold start waits for both banks to clear.
+Warm reset drains the active request and retains data. Local tests cover
+byte lanes, SWP and reset. All three 104 MHz fits freed 128 M10Ks, leaving
+243 free. Seed 43 is best at −2.809 ns. Board testing is pending. [Implementation and checks](peripheral-ram-ddr-assessment.md#integrated-ddr-backing)
+
+## 2026-11-22 — moving DSP upload and generic NOS RAM to DDR
+
+Move generic NOS backing first and DSP upload second to reclaim up to 128
+M10Ks gross. Both were cold-boot traffic in two calibrated game runs. V5
+mixed RTL checks retained the PCM sample hash and timing under modeled
+waits. HPS DDR hardware performance and the integrated fit remain open.
+[Per-bank evidence and decision](peripheral-ram-ddr-assessment.md)
+
+## 2026-11-22 — v5 Wishbone trial and upstream timing comparison
+
+Retained the LCD baseline on ngage-v5. The Wishbone payload trial matched
+all 15 workloads and four PolyCount frames, but median setup at 104 MHz
+worsened from −2.632 to −2.884 ns. Trial seed 43 is archived separately.
+Jake’s release reached −1.321 ns worst corner over 16 seeds. [Fit results
+and upstream comparison](v5-timing-isolation.md#comparing-jakes-master-with-v5)
+
+## 2026-11-22 — ngage-v5 integrated 104 MHz timing experiment
+
+Retained the LCD packet reservation and restored the round-three CPU.
+The best full-core result improved from −2.689 to −2.543 ns on seed 43.
+Two of three seeds improved. All three missed 104 MHz setup. The isolated
+CPU interlock experiment regressed timing on every seed. [Matched fits
+and simulation results](v5-timing-isolation.md#full-core-decision-at-104-mhz)
+
+## 2026-11-20 — UEM alarm acknowledgement works in v5 RTL
+
+Removed the constant alarm bit from UEM status `0x35`. The firmware's
+write-one-to-clear now clears the reported flag. The staged startup alarm
+event remains in the model. The focused CBUS regression fails on the old read
+and passes on the candidate, including a later periodic IRQ with the alarm
+still clear. The candidate has not been fitted or run on MiSTer.
+
+Disassembled the installed Bomberman `6R29.APP` and its card libraries.
+Relative to the checked Sega Rally binary, Bomberman uses System Agent state
+and ships a GameUtils/LightDrv path to DOS backlight control. Neither its
+direct imports nor the checked helper imports contain a phone reset or
+power-off call. The observed MTC shutdown request is still unattributed.
+[Binary and RTC findings](ddr-diagnostics.md#bomberman-binary-and-uem-alarm)
+
+## 2026-11-20 — Bomberman session ended in the NOS hardware-reset loop
+
+The live MiSTer capture shows the guest shutdown sequence, the NOS
+`hw_reset_generate` trace, and a write of `0x0004` to physical `0x0c150000`.
+The CPU parks at `0x514c11b2` with interrupts masked and the display on the
+Nokia logo. The FPGA reset generation stays at zero. A same-core
+instrumented repeat identifies `HW_RESET_POWER_OFF_RTC` (reason `0x15`).
+The UEM alarm bit is forced high and satisfies the stock shutdown
+callback even with no alarm scheduled. In a second repeat, the MTC
+power-off transition and CPU park predate the keypad-5 press. The
+requester upstream of that transition is still unidentified.
+[DDR evidence](ddr-diagnostics.md#2026-11-20-bomberman-session-hardware-reset)
+
+## 2026-11-19 — v5 enables committed D2 update-on-hit
+
+The 32 KiB flash cache updates resident bytes after DDR write completion.
+The current production source matches all six earlier update-on-hit
+simulations, including the 116,936-clock 25-file NOR proxy. The cache,
+DDR ordering, actual-HPS C:/PMM persistence, v5 CPU refill and top-level
+checks pass. FPGA fitting and on-board Disk Access remain unmeasured.
+[D2 write handling and test results](ddr-flash-cache.md#2026-11-19--v5-updates-resident-data-on-committed-writes).
+
+## 2026-11-19 — SPMark Disk Access and storage simulations
+
+Original EFile resolves SPMark's 25 relative test files to C: in the
+private NEM-4 replay, with four verified rounds and no observed erase.
+Against `dfe4bc1`, the 78 MHz NOR proxy falls from 175,437 to 116,936
+clocks with committed D2 update-on-hit. Final host ACK and cold reopen
+are matched with autosave off. An isolated erase falls to 48,850
+clocks with update-on-hit plus line inspection. Full 4 KiB buffered
+restore reduces host requests from 8,320 to 1,040 and pays off above
+roughly 293 modeled startup clocks. Production remains at `dfe4bc1`.
+[Disk Access scorecard](spmark-disk-access-v5.md).
+
+## 2026-11-19 — v5 production block writeback and half-line replay
+
+The production QIP, CPU bus, SDRAM arbiter and controller carry
+16-byte victim writebacks. The full-frame GLES fill matches the
+112,705-clock prototype. True half-line dirty tracking gives 112,702
+clocks on GLES and reduces the Sega scan from 2,391,228 to 2,389,563
+clocks while dropping its block count from 4,274 to 3,358. The other 13
+medians match. The build selects line-wide dirtiness, 32-byte CPU
+refills and 16-byte LCD reads. Structural elaboration and the SDRAM
+pin test pass. FPGA fitting and native 3DMark remain unmeasured.
+[Production wiring and comparison](arm9v2-sdram-stream.md#production-block-writeback-and-the-half-line-comparison).
+
+## 2026-11-19 — 16-byte SDRAM writeback benchmark
+
+The simulation-only v5 candidate sends a dirty 32-byte cache victim
+as two 16-byte requests. All 15 retained payloads pass on both paths.
+At 78 MHz the GLES fill drops from 124,998 to 112,705 clocks (9.83%)
+and the Sega scan from 2,399,797 to 2,391,228 (0.36%). The other 13
+change by at most 0.14%. Write addresses match after expanding the
+blocks. On-board 3DMark FPS remains unmeasured.
+[Full writeback comparison](arm9v2-sdram-stream.md#initial-16-byte-dirty-line-writeback-experiment).
+
+## 2026-11-19 — 16-byte LCD reads reduce CPU wait
+
+V5 now selects 16-byte LCD DMA reads and retains 32-byte CPU cache
+refills. A full-frame upload takes 69,761 clocks at 78 MHz versus
+148,836 for scalar and 53,548 for 32-byte LCD reads. Under the heavier
+scheduled CPU load the worst read wait is 27 clocks versus 43 with
+32-byte LCD reads. The lighter load is 25 versus 35 clocks, and the
+worst CPU line refill is 42 versus 50 clocks. All checked upload,
+cancellation, CPU refill and lock tests pass. The GLES full-frame fill
+still takes 124,998 CPU clocks. On-board 3DMark FPS remains unmeasured.
+[LCD width comparison](lcd-dma-handover.md).
+
+## 2026-11-19 — v5 LCD DMA uses 32-byte SDRAM reads
+
+The initial burst LCD path shared 32-byte SDRAM reads with CPU refills
+and keeps the ordered 32-bit LCD pixel interface. A full-frame upload
+takes 53,548 clocks at 78 MHz, down from 148,836 with scalar reads.
+With 1,024 competing CPU reads every 24 clocks the upload falls from
+165,251 to 63,487 clocks. The pin-model compare also passes unaligned
+uploads, cancel/restart, concurrent CPU refills and lock exclusion.
+Native FPS and board timing remain open.
+[LCD DMA timing](lcd-dma-handover.md#2026-11-19--sdram-line-reads-for-lcd-dma).
+
+## 2026-11-19 — v5 adopts the ngage2 SDRAM scheduler
+
+The production top uses the donor's four-bank open-page SDRAM scheduler
+with v5's 32-byte refills and a retained posted scalar write. The
+checked 78 MHz GLES fill is 124,998 clocks, down from 299,252 and
+ahead of stock ngage2's 149,869. Sega scan falls from 2,466,436 to
+2,399,797. All 15 original payloads pass, and the top level elaborates.
+The physical model checks back-to-back BL8 refills, a full 16 MiB cold
+scrub, DMA and SWP ordering and logical-reset drain. Board fit, physical
+I/O and native FPS remain unmeasured.
+[Streaming SDRAM controller](arm9v2-sdram-stream.md).
+
+## 2026-11-19 — SDRAM scalar handoff
+
+The fixed GLES trace shows a 13-clock write cadence on v5 and three
+clocks on ngage2 for adjacent writes to the same open row. Earlier
+scalar request launch and immediate completion on controller ready
+reduce v5's cadence to 11 clocks and the trace from 284,450 to 252,476.
+The checked full CPU fill falls from 299,252 to 267,360 clocks. The
+pin, DMA, lock, write-mask and reset-drain checks pass. Queueing the
+next controller request during drain is the next point to measure.
+[Scalar handoff comparison](arm9v2-sdram-handoff.md).
+
+## 2026-11-19 — v5 and ngage2 SDRAM frame-path comparison
+
+The user reports 5.79 fps on v5 and 6.62 fps on standalone ngage2.
+At 78 MHz this implies 1.69M extra clocks per native Game frame.
+The same 18,550 captured GLES requests and SDRAM READ/WRITE command
+counts take 284,450 clocks on v5 and 134,704 on ngage2. Posting
+and interleaving save 5,914 clocks on the checked v5 GLES fill and
+pass the retained 15 cases at production pin timing and with added memory waits. Early restart
+saves 47–52 clocks on cold NOR branches whose requested word arrives
+before the delayed tail and has no effect on the two warm replays.
+The standalone Sega result falls from 4,456,598 to 2,440,099 clocks
+with the v5 section XOR alone. SPMark's score uses Symbian elapsed
+wall time. The installed v5 RBF matches CI's `8546db1` artifact
+exactly, and the installed factory firmware pairs are NEM-4 4.03
+and RH-29 4.10. The standalone RBF hash differs from the archived
+78 MHz archive. The user confirmed the current 78 MHz branch tips,
+`8546db1` and `ff6dcff`, which match the simulation sources.
+Independent native render, presentation and guest timing remain open.
+[Frame-path comparison](arm9v2-donor-frame-gap.md).
+
+## 2026-11-19 — v5 restores the 32 KiB flash backing cache
+
+The `ngage-v5` test build selects 32 KiB for the shared D2 flash/MMC
+backing cache with the 39 MHz MMC bus and the folded data section TLB
+index. The 32 KiB unit case passes 3,991 ordered transactions and the
+integrated directed guest passes with divider two. The prior 32 KiB
+placement missed 78 MHz setup by 0.268 ns on the pre-XOR source.
+The combined configuration has simulation evidence.
+
+## 2026-11-19 — v5 enables the folded data section TLB index
+
+The default v5 netlist uses `VA[25:20] ^ VA[31:26]` for data-side
+section lookups and refills. It is byte-identical to the verified
+simulation candidate. The full-phone Sega Rally frame falls from
+3,975,090 to 2,383,065 clocks at 39 MHz MMC and 64 Hz NOS. The six
+SPMark kernels gain 9.37% geometric throughput at `2:9`, and all 15
+payloads pass. Both 400M stock-firmware runs yield the same Nokia logo
+framebuffer with zero data-bus errors. The section contract observes
+two reads after a cold access and after CP15 invalidation.
+[Section index results and regression](arm9v2-section-xor.md).
+
+## 2026-11-18 — ARM9V2 cache associativity sweep
+
+The fitted two-way control reproduced all 15 retained payloads and the
+bus/cache contract. The experimental generator retains 16 KiB per side
+and 32-byte lines while selecting 2 to 64 ways. The generalized two-way
+line-dirty control reproduces the archived cycles and raw windows. The
+first four-way frame exposed a one-bit saved-victim selector. Widening
+it restored exact frame output at both memory profiles. The half-line
+trial exposed a final-beat strobe using the old eight-word bound. The
+shared writeback bound fixed the stalled-bus replay. The two-way
+dirty-clean check now verifies the clean half's backing bytes directly.
+All twelve geometry and writeback combinations pass SPMark, JPEG, the
+seven short game loops, and the directed contracts. The delayed SPMark
+geometric mean improves by at most 0.0072%. Eight-way half-line writes
+give the best completed delayed Sega frame at 1.42% fewer cycles. At the
+requested snapshot, the 32/64-way half-line Sega suites were still
+running. Keep the fitted two-way control with 39 MHz MMC.
+[Associativity scorecard](arm9v2-associativity.md).
+
+## 2026-11-19 — v5 restores the 32 KiB flash backing cache
+
+The `ngage-v5` test build selects 32 KiB for the shared D2 flash/MMC
+backing cache with the 39 MHz MMC bus and the folded data section TLB
+index. The 32 KiB unit case passes 3,991 ordered transactions and the
+integrated directed guest passes with divider two. The prior 32 KiB
+placement missed 78 MHz setup by 0.268 ns on the pre-XOR source.
+The combined configuration has simulation evidence.
+
+## 2026-11-19 — v5 enables the folded data section TLB index
+
+The default v5 netlist uses `VA[25:20] ^ VA[31:26]` for data-side
+section lookups and refills. It is byte-identical to the verified
+simulation candidate. The full-phone Sega Rally frame falls from
+3,975,090 to 2,383,065 clocks at 39 MHz MMC and 64 Hz NOS. The six
+SPMark kernels gain 9.37% geometric throughput at `2:9`, and all 15
+payloads pass. Both 400M stock-firmware runs yield the same Nokia logo
+framebuffer with zero data-bus errors. The section contract observes
+two reads after a cold access and after CP15 invalidation.
+[Section index results and regression](arm9v2-section-xor.md).
+
 ## 2026-11-18 — Stock-ROM game PCM through the UPP DSP
 
 Original NOS routes E8 to internal DSP device 0x7c, object 1. The native
@@ -15,548 +373,38 @@ their ROM inputs. A full-game run on the fitted MiSTer core with the
 factory ROM is the remaining qualification.
 [Protocol and reproduction](game-pcm.md#stock-firmware-over-the-upp-dsp-link).
 
-## 2026-11-18 — Game audio and writable MMC before CPU speed work
+## 2026-11-18 — ngage-v5 adopts 16 KiB I/D and 32-byte fills
 
-Master owns both fixes. The two branches share the audio and MMC implementation.
-Keep each fix in a separate master commit, then apply those commits to
-`ngage-v5` and run the same tests with its ARM9V2 CPU and caches.
+The phone CPU now uses v4's capacity and line width, retaining the donor's
+two ways. It streams aligned fills over the existing SDRAM and DDR line
+interfaces. Full 16 KiB D-cache residency, upper-set maintenance, both line
+widths, fallback, IRQ/FIQ, SWPB and fault checks pass. The pin-model smoke
+and 12 SDRAM controller configurations pass. The resized factory firmware
+reaches kernel and Nokia logo by 400M clocks with zero data-bus errors.
+At 2:9 waits, the six SPMark kernels are 1.643× versus v4 and 1.232× versus
+original ngage2. Matrix improves 47,637→17,793 compared with previous v5,
+while the resized frame fill improves 356,202→237,167 when using bursts.
+The delayed full Sega scan takes 4,502,989 clocks versus 4,503,455 on original
+ngage2 and 8,422,080 on v4. Routed timing for the resized design is pending.
+[Full comparison and replay](arm9v2-cache32.md).
 
-1. **MMC on master passed.** Original FExplorer copied the 374-byte README
-   into `E:\WRITE_TEST` on archived fit `1928aee` at 78 MHz. The Linux image
-   contained the exact bytes, with two matching FATs and just four expected
-   changed sectors. A fresh Main and guest mount reopened and read the file.
-   The offline original FAT replay also passed a four-sector write, independent
-   reopen and read-only rejection. Retain the existing write path and apply
-   the same verification on v5. [Evidence and runner](mmc-write-diagnosis.md)
-2. **Game audio on master.** Original NEM-4 Sega Rally supplies 720-sample
-   mono buffers at 16 kHz. The first `0x23` submission is followed by `0x27`
-   refills after reply `0x24`. The 78 MHz PCM candidate passes the original
-   samples, signed stereo, register/completion and shared SDRAM checks in
-   simulation. The exact-ROM send callback, reply route and deferred work
-   ring pass. The game exits and relaunches with nonzero audio on both
-   launches under the reference kernel. On physical MiSTer the stock NOS
-   route delivered 119 start replies and the original SoundDevice
-   submitted 119 first buffers. The native bridge now handles the shared
-   timer-5 IRQ and produces 48 kHz WAVs from the physical Sega Rally menu,
-   Desert race, and a full game relaunch. LCD DMA overlap is observed.
-   The FExplorer copy read back exactly, with PCM and MMC overlap still
-   measured only in the production-RTL fixture. The fitted PCM-on variant
-   adds 410 ALMs and moves worst 78 MHz setup from −0.868 to −1.598 ns.
-   Both fits miss the timing gate.
-   [Capture, candidate and reproduction](game-pcm.md)
-3. **Port and qualify.** Apply the master commits in the existing v5 worktree.
-   On each CPU, exercise playback during a save and rendering, remount and
-   check the saved bytes, then fit the exact revisions used. Record simulation
-   and MiSTer results separately. Resume CPU speed experiments after the
-   functional checks on both builds.
+## 2026-11-18 — ngage-v5 stock ARM9V2 phone experiment
 
-[Master implementation](codex://threads/01a1eb21-2161-7180-b9a8-4323913fe9f2) ·
-[v5 port and verification](codex://threads/01a1edd3-0b7a-7171-9e56-4780bb15576b)
-
-## 2026-11-18 — Retain indexed STRH credit on the refined frontend
-
-Applying only the previous STRH credit extension to the verified
-4,805-clock frontend drops the original Sega Rally fill to 4,200
-clocks at both waits. There are still 2,567 retirements and 512 checked
-ordered halfword writes. Of 960 saved store-hold clocks, 356 reappear
-as empty operand-stage time. Useful MOV dequeue spans 603 fewer
-clocks. The Sega textured span drops from 32,902 to 31,942. The full
-scan remains at 5,176,864 and 5,308,282. All 42 matched workload
-comparisons and CPU/MMU checks pass. The directed guest checks
-both lanes, load-sourced store data, one serialized uncached write,
-and translation, permission and alignment aborts with no new issue.
-Both sources preserve the existing word-aligned FAR on the two
-translation-class faults. The prior 1.4% matrix cost belongs to the
-refined frontend. Keep the store candidate and the one-file I-cache
-overlay independently reproducible. Routed timing is unmeasured.
-[Scorecard, clocks and qualification](cpu-icache-strh.md).
-
-## 2026-11-18 — Retain isolated resident I-cache streaming overlays
-
-Preserving the two completed I-cache lines across an ordinary resident
-hit cuts the original 512-pixel Sega fill from 9,311 to 5,473 clocks.
-Selecting the next checked PC during invalid request cycles prevents
-old fallthrough lookahead from overwriting the backward target slot
-and cuts it to 4,805 at both waits. The full Sega scan falls to 5,176,864
-and 5,308,282, with the same 1,427,984 retirements and memory effects.
-Both overlays pass all 42 matched workloads and keep 224 starts in
-224 clocks on the favorable ARM stream. The first overlay has no elapsed
-regressions. The second adds a 1.4% matrix cost and improves original
-JPEG by 2.2%. Resident alternate-line, revocation, CPU/MMU and interworking
-checks pass. Routed timing remains unmeasured.
-
-The three predicted-target launch bubbles still occur upstream. The
-faster fetch fills the FIFO and leaves 54 empty operand-stage clocks,
-down from 4,563. The original STRH still accounts for 1,635 data-hold
-clocks in the full fill. Revisit store completion on the faster frontend
-before choosing another global fetch change.
-[Matched scorecard and qualification](cpu-icache-stream.md).
-
-## 2026-11-18 — Sega Rally fill gap traced to instruction delivery
-
-The stock donor receives one instruction every clock and runs the five
-original instructions in five clocks per steady iteration. The tagged core
-predicts the same backward target but leaves three clocks with no fetch
-request while launching it. On crossing to CMP and on returning to MOV,
-each already-resident line takes another five clocks through the
-serialized I-cache reply. All 511 matched fetch recurrences in both wait
-profiles show these same 13 clocks. Of the 6,715-clock whole-window gap
-at 0:0, 6,630 come from the 510 regular executed iterations. This explains
-why the STRH credit moved ADD earlier while the next MOV arrived on the
-same edge. Evaluate continuous delivery of the two resident I-cache
-lines and the correctly predicted backward target as the next CPU question.
-[Exact fetch timeline, state sequence and clock audit](cpu-sega-fill-fetch.md).
-
-## 2026-11-18 — Reject indexed STRH store credit for Sega Rally fill
-
-The retained tagged control, isolated store-credit extension and stock
-ngage2 agree on the original 512-pixel fill, 2,567 retirements and every
-ordered halfword write. Both mainline variants take 9,311 clocks at
-0:0 and 2:9. The donor takes 2,596 and 2,628. The extension releases
-480 resident stores two clocks sooner and advances the independent ADD
-by two clocks on each of those pixels. All 960 saved store-hold clocks
-reappear as empty operand-stage clocks and the next iteration starts on
-the same edge. Forwarding the shifted index produces zero store operand
-locks. The tagged core has 1,958 empty clocks between taken BLE dequeue
-and the next MOV across 511 transitions. The donor takes one clock across
-each of those boundaries. Keep the STRH overlay isolated. The measured
-backedge-delivery opportunity alone leaves a fixed-trace budget of 7,353
-clocks on the tagged core, above the 4,655-clock 2× target.
-[Matched timelines, masks and attribution](cpu-sega-fill-store.md).
-
-## 2026-11-18 — Retain isolated state-tagged fetch
-
-The next master experiment isolates the original five-instruction Sega Rally
-fill. The tagged core takes 9,311 clocks for 512 pixels against 2,596 on stock
-ngage2 at zero extra waits. Both retire 2,567 instructions. Sol is testing
-whether the independent counter increment waits for the preceding resident
-register-offset halfword store. The first comparison measures that delay
-separately from index forwarding and branch delivery. A material store wait
-would justify testing the existing resident-store path on this instruction.
-[Master experiment](codex://threads/01a1eb21-2161-7180-b9a8-4323913fe9f2).
-
-The exact banked, third-slot and qualified Thumb combined baseline and stock
-ngage2 were compared on identical original workloads. At 0:0 the full Sega
-Rally scan takes 8,111,262 clocks on the combined core and 3,471,563 on the
-donor. Cross-state BX intervals account for 2,404 of their 6,509-clock gap
-in the same 52 pixels. Carrying ARM/Thumb state with predictions cuts the
-full scan to 5,375,298 clocks at 0:0 and 5,506,714 at 2:9, a 33.73% and
-33.19% reduction with unchanged original retirements and ordered writes.
-Another 1,319,667 and 1,385,374 clocks must go to reach 2×. The same-address
-wrong-state branch test, precise Thumb abort, 34 CPU diagnostics including
-IRQ and predication, and all 42 workload comparisons pass. The overlay
-stays isolated and routed timing is unmeasured.
-
-The original Sega textured span takes 32,908 clocks on the combined and
-tagged cores versus 15,990 on the donor at 0:0. Original Thumb JPEG takes
-80,473 combined, 80,379 tagged and 36,251 donor. The matched Asphalt trace
-locates a separate warm D-cache gap. Its independent offers are 12 clocks
-apart versus seven on the donor, and the second load to dependent ORR takes
-11 versus four. Continue with resident-load latency and dependency timing.
-Andrea reports 224 versus an expected 500 at 104 MHz. If the index scales
-with throughput, that corresponds to 55.2% fewer clocks. The native phone
-comparison remains pending.
-[Full scorecard, absolute timelines and native comparison method](cpu-state-tagged-fetch.md).
-
-## 2026-11-18 — Matched banked third-slot fit archived
-
-Existing run `44258633306` on published `1928aee` completed. The 178
-effective input hashes match the expected manifest, with exactly two
-changes against banked control run `44160843231`. Seed 42, debugger,
-physical PLL, all eight scenario clocks and timing constraints match.
-Both pass the sixteen SDRAM DQ register checks. The third slot costs
-456 whole-design ALMs and 30 LABs, with unchanged 514 M10Ks. Direct
-D-TLB bookkeeping rises by 109.2 ALMs and 92 fitted registers. Worst
-78 MHz setup slack goes from -0.639 to -0.743 ns, now on reset-drain
-to D-cache MVA. Min hold remains positive, and worst 104 MHz setup
-is -3.948 ns. The RBF and reports are archived with a failed timing gate.
-Combined-source smoke reproduces the warm gains. Keep the slot as a
-performance candidate while addressing routed timing.
-[All eight corners, area and artifact identities](tlb-banked-third-fit.md).
-
-## 2026-11-18 — Retain isolated early ordinary Thumb loads
-
-Experiment 2 freezes exact unbanked 5L and enables private lookup, early
-P1 offer and registered late ADD/CMP pickup for aligned immediate and
-SP-relative Thumb word loads. Four checked JPEG cases use 2.83–3.03%
-fewer clocks. The Sega Rally full scan with original FbsCli uses
-2.12–2.15% fewer clocks. The other fixed-work cases match, including
-six SPMark/GLES kernels and 224 ARM starts in 224 clocks. All 1,051
-matched successful JPEG reports of late pickup shorten the dependent
-ALU interval by two clocks and the retirement interval by one.
-Exact fault with accepted younger flag writer, both instruction phases,
-cold retry, state switching and 32 matched CPU diagnostics pass. The
-Thumb overlay stays isolated pending a routed timing comparison.
-
-Separately, published banked-plus-third-slot `1928aee` matches the
-unbanked third-slot JPEG, Monkey Ball and ARM stream medians at both
-wait profiles. Exact banked controller test sees 1,600 delayed-fill
-edges and rejects a stale third-slot grant when commit revocation is
-suppressed. [Scorecard and verification](cpu-thumb-early-load.md).
-
-## 2026-11-17 — Retain isolated third D-side mapping for a matched fit
-
-Experiment 1 uses exact published 5L `0c380ab` and a two-file D-only
-overlay. Both original Monkey Ball spans reproduce 34,995 / 34,920
-clocks and improve to 31,052 / 31,007, including the separate-small-page
-layout. Scored D searches are 1,536 → 9 against the empty FIFO's
-1,537 → 10 prediction. Sega span improves 11.05%, Asphalt's
-two-lookup loop 6.92%, and the complete Sega scan with original FbsCli
-calls and a synthetic checked bitmap cursor 0.63–0.64%. Matrix uses
-7.56% fewer clocks and the six-kernel throughput geometric mean is 1.01608×
-in both synthetic wait profiles. Four separate JPEG cases use 1.51–1.81%
-fewer clocks. All 21 cases match or improve in both profiles. The ARM
-stream retains 224 starts in 224 clocks. Matched CPU/MMU checks pass,
-including the exact third-slot denial and stale-grant negative.
-Cost is 65 declared bits, one tag compare and an additional priority
-choice on the D hit path. Physical area and timing are unmeasured.
-[Complete A/B scorecard and decision](cpu-third-data-mapping.md) ·
-[Reproducer and isolated RTL patch](../tests/cpu/tlb_three_mapping/README.md).
-
-## 2026-11-17 — CPU speed review after 5L
-
-In the saved 5L pixel trace, 18 complete pixels spend 144 of 1,227 clocks
-with both a data hold and a translation-busy demand. A FIFO replay of all
-4,608 addresses per pattern gives 1,537 misses with two 1 KiB local mappings
-and 10 with three. The fixture uses a single 1 MiB section. Recommend a D-only
-third-slot experiment with a separate small-page control. The original Thumb
-JPEG block also executes 5,088 ordinary immediate/SP-relative word loads
-outside the early-load class, including 1,147 directly feeding ADDS or CMP.
-Recommend testing those Thumb loads separately. These are trace findings and
-proposals. The matched-fit decision remains with its existing owner.
-[Analysis and reproduction](cpu-speed-review-5l.md).
-
-## 2026-11-17 — GBA CPU reference reviewed
-
-Pinned GBA_MiSTer CPU at93790a: independent fetch/decode, serial execution,
-explicit registered arithmetic stages; ordinary immediate ADD has a derived
-five-clock minimum acceptance interval. Guest cycle charges are separate from
-physical clocks. No demonstrated superior DSP mapping, BRAM RF, predictor or
-ARM920 memory overlap. Keep current TLB fit priority. Deferred original idea:
-screen fitted shifter cost, then consider sharing shift networks at unchanged
-latency if justified. Source review only; no production RTL/hardware/build
-changes. [Comparison and evidence](gba-cpu-ideas.md).
-
-## 2026-11-17 — MMC write failure remains a hardware diagnostic task
-
-Operator reports writes still fail; active RBF/image/operation uncorrelated.
-Existing actual-HPS tests verify outgoing bytes and independent modeled
-persistence/remount, not Linux file I/O. New isolated authored-ARM CMD24/TX2
-DMA/full-board/card/adapter test passes297511clocks,4reads/1write,512 stored
-bytes plus PIO readback and all adjacent/footer guards. Deliberate persisted
-last-halfword corruption rejects even after cached readback. No production
-RTL defect demonstrated; no MMC area rewrite, board/card mutation or release
-fit changes. Historical installer manifest has CSD WP but is not tied to the
-current failure. Next obtain installed identity and failing CMD24/25 R1, then
-the first missing data/HPS/persistence milestone. Own generated build retired;
-compact receipts and reproducible synthetic test remain.
-[Diagnosis and observation sequence](mmc-write-diagnosis.md) ·
-[Machine evidence](evidence/mmc-write-diagnosis-20261117.json).
-
-## 2026-11-17 — Matched 5L / banked-TLB builds
-
-Exact qualified 5L published as `0c380ab9bae92916d297b72d6a303d251f1d49d9`;
-[control run44155992918](https://github.com/asturur/test_template_1/actions/runs/44155992918).
-User explicitly approved public push and concurrent banked build after stopping
-monitoring. Exact qualified banked source published as
-`613a3d62abee103660a2475df4abec89e64b1542`;
-[banked run44160843231](https://github.com/asturur/test_template_1/actions/runs/44160843231).
-Both runs confirmed in progress on their immutable SHAs at dispatch verification.
-Both use seed42/debug-on, unchanged production78MHz PLL and178 selected inputs;
-only the expected seven selected RTL hashes differ. All60 qualified hashes and
-patch0082 byte replay PASS before publication. Both remote names resolve to the
-same public repository. No active follower or monitoring; wait for the user to
-report completion before collecting/comparing. No hardware deployment or5M.
-Other chats’ files and runs remain preserved. Publication receipts prevent
-accidental duplicate dispatch.
-[Matched-fit report](tlb-matched-fit.md).
-
-## 2026-11-17 — Banked main-TLB area prototype retained for matched fit
-
-Actual5K baseline40834/41910ALMs,502/553M10Ks,4190/4191LABs; I/D main banks
-2027.1+2068.8=4095.9directALMs. Compared independent MMC2137 and cachemetadata
-3453.7directALMs without summing parents/children. One chosen prototype keeps
-both64-entry mixed-size TLBs:8comparisons/row, BRAMtags, atomic overlap commit,
-queued mutation/CP15busywait andcontext-cancelled installs. No5M or arithmetic/
-issue optimization. Passive exact5L counts matrix160I/801D and JPEG796I/1219D
-fullsearches per scoredwindow; exposedunions1904/3972clocks. Corrected selector
-capture proves scoredhitsrow0; initial allrow7 histogram was discardedbug.
-FinalbankSHA952a5a9bebabe610d6ef3b07ccd9df4abc2b63aa0fa72ddb6d828f12f5b1eec3
-passes strictVerilog2001 and full exact-source qualification. Bothprofiles/five
-scoredwindows/twoequalrepeats/originaloracles/retirements/negatives: sixkernels,
-JPEG84353,game34995/34920,streams343/499 and224starts224clocks unchanged. Cold
-wrapper totals+40..112clocks; JPEG+58/+48. Later rows/misses2..9edges, mutation
-drains8 andqueued14 observed.22matchedCPUdiagnostics pass; shortdataordering
-381→455(+19.42%) at0wait, othercold/mutationcosts recorded. ProperFIQ/SWP/
-translatedprefetch/forcedwrite-walkoverlap and5Lflag/IRQ/fault/MMIOsafety pass.
-Fiveunits plus867-query original-table equivalence with poisonedRAM,329laterrow
-hits,50queuedmutations/50cancelledinstalls pass twice;8entrytruncationnegative
-rejects. Delayed-fill local-slot rule and declaration-order issues corrected;
-no failing assertion waived. Sourcebankstate1744→324 (−2840bits/pair), but
-ALMsaving1000–2500 and+10–16M10Ks are **unfitted estimates**:512–518/553used,
-35–41remaining. No trusted configured localQuartus or CI fit; matched5Lcontrol/
-5L+bank seed42/debug-on/178input/78+104corner plan documented. Retain offline
-for physical measurement, do not promote. Production60CPU/header andMMC hashes
-unchanged, master/public/history/5L/5M/other runs preserved. No hardware/donor
-runs. Own completed compiler/source/private-derived outputs retired; compact
-receipts/logs and reusable tests remain.
-[Area/latency alternatives, proof and fit plan](tlb-area.md) ·
-[Machine evidence](evidence/tlb-area-20261117.json).
-
-## 2026-11-17 — Sega Rally original race payload captured
-
-357 passive snapshots from countdown into racing, 89.5 seconds at 78 MHz. 128 fetch PCs in the game, 227 in firmware. Identified an independent pixel span and a full-screen loop with original FbsCli imports. Private app retained for later replay. [Profile and evidence](sega-rally-profile.md).
-
-## 2026-11-17 — Step5M registered demand admission rejected; keep qualified5L
-
-First completed exact5L broad six-original-workload qualification: no regression,
-triangle23568→23520; separate evidence preserves attribution. Then one offline
-5M permission-register experiment targeted saved5K CP15baddr→context/busy→
-fast_hit/requestACK→retimedlate_p1_ready path13.073ns/11levels. Registered actual
-request/PA/permission/fault plus a registered CP15change event breaks this source
-cone without livewidecontext checks at token consumption. +165sourcebits;
-no RAM/port/geometry/PLL change. Corrected retained-translation cancellation
-exposed by direct context test; no second optimization. Final5M output/guards/
-retirement/repeat/negative checks PASS bothprofiles, but span34995/34920→
-39214/39289 (+4219/+4369), stream343→477 and224starts224→336clocks,
-multiline499→514, guardedtranspose3441→3895; checksum239 unchanged. Span
-read/write stalls account for every added clock; first-cycle hits wait for
-admission and rawP2 fallback probing moves later. Reject this cut on useful-work
-cost, not an artificial104MHz gate. Keep exact5L;5M is unpromoted research.
-Actual Dcache/TLB new-context/maintenance/permission-denial/changed-address/
-kill/invalidate negatives pass twice. ActualCPU flags/predicated writer/IRQ/
-fault/MMIO safety passes twice0:0/2:9/0:97; eightfocuseddiagnostics pass;
-missing response128held/zeroexecute and retry1/twoaccepts/oneexecute pass.
-Unchangedcache collision-pressure evidence reused by exact modulehashes.
-No5M JPEG/fullsix or fit after material regression; no timing/ALM gain claimed.
-78MHz PLL/104MHz objective, production/public history and other runs untouched.
-Own completed generated inputs retired; durable reproducible tests/evidence remain.
-[Measured decision and traced boundary](cpu-load-admission.md) ·
-[Machine receipt](evidence/cpu-load-admission-20261117.json).
-
-## 2026-11-17 — Exact5L broad six-kernel qualification completed before5M
-
-All60retained5L RTL/header hashes match prior game/JPEG/stream/safety receipts.
-Promotedccba54f control reused with matching original programs/payloads/ROM/
-harness/image. Both0:0/2:9, five scored windows/two equal repeats, original
-outputs/oracles/retirements and six wrong-output controls PASS. Matrix45073,
-canonicaltranspose3560, frame71259/201302, halfword1332 and byte1647 unchanged;
-triangle23568→23520. No broad regression. Separate receipt recorded before
-stacking5M; retain5L offline. Prior JPEG84353/game34995/34920 and directed
-safety reused by exact hashes. No production/public changes or new fit.
-[Independent broad receipt](evidence/cpu-late-operand-six-20261117.json).
-
-## 2026-11-17 — Step5L late arithmetic pickup retained offline
-
-Isolated original overlay on promoted ccba54f; production and the other chat's
-5J/5K fit/release untouched. AL ADD/CMP with one unshifted source owned by a
-starting P1 word load may enter Issue early, then capture its registered result
-at the execute-operand boundary. Two state bits; no live ACK→ALU/issue path,
-new RAM/port/adder or cache geometry/PLL change. Both original512pixel patterns
-PASS both0:0/2:9: forward36528→34995 (68.349609375/pixel,−4.1968%),
-reverse36453→34920 (68.203125/pixel,−4.2054%). 1534early accepts per pattern;
-execute/retirement/next useful issue advance1 locally, load-lock−1534 plus
-empty+1 yields actual−1533. First2 destination consumers arrive after P1.
-Original bytes/oracles/full guards/source/stack,10240retirements,512actual
-stores/mutations, repeats/negatives pass. Independent343/multiline499 and
-transpose3441 unchanged; checksum271→239; originalThumbJPEG84353 unchanged.
-All60promoted RTL/header hashes checked; compiler read51; only Core/Issue differ.
-Precise flags/predicated-writer/WAW/IRQ/fault/MMIO checks PASS twice at0:0/2:9/
-0:97; faulting producer's early accepted dependent never executes, saved SPSR
-and destination preserved. Cold hold48/59/145clocks. Separate same-CPU controls:
-missing response held128clocks, zeroexecute; injectedretry1/twoaccepts/oneexecute.
-Eight focused CPU diagnostics PASS. Retain for broader full-kernel qualification
-and timing, do not promote. Two muxes/new control fanout require actual timing;
-78MHz PLL/104MHz target unchanged, area/timing unmeasured. No Quartus, CI,
-hardware, donor or branch/worktree. Own completed generated inputs retired;
-compact reproducible evidence/tests remain, other chats' runs/files preserved.
-[Schedule and decision](cpu-late-operand.md) ·
-[Machine receipt](evidence/cpu-late-operand-20261117.json).
-
-## 2026-11-17 — Combined 5J/5K release fit completed and audited
-
-Promoted/pushed exact ccba54f; published fit report feebc2f. Patch0080 replay and all60CPU input hashes match
-qualified six kernels/JPEG and reused5K game/safety evidence. Public seed42/
-debug-on run44123116917 compiled and produced RBF4,565,516bytes; SHA256
-fc70703be9cbb41f16e1f644fd35adcf85ab68d301dce6644b418402d53ad1e0.
-All178selected inputs and unchanged78MHz physicalPLL/BRAM verified,8routed
-78/104 corners and16SDRAM DQ input/output/OE registers checked. Actual slow
-78 setup−1.069/−1.019ns (5F−0.504/−0.550);104−4.274/−4.224ns
-(5F−3.709/−3.755). All holds positive, minimum0.107ns. Artifact exists but
-78MHz is not timing-closed; no deployment. ALMs40012→40834, registers45173→
-45605; M10Ks502/DSP41/memorybits2760495 unchanged. Broader six-case simulated
-geomean+0.5456%, JPEG unchanged; span~4% remains separate from routed timing.
-Next proposed experiment: registered permission/admission ownership ahead of
-resident response, targeting CP15o_baddr→fast_hit/completion→late_p1_ready
-13.073ns/11levels/8.308nsrouting path while retaining useful starts/game gains.
-No additional optimization or second fit. Only own completed simulator objects/
-derived inputs removed; unrelated dirty files/private inputs preserved.
-[Release, artifact and complete comparison](cpu-load-release.md).
-
-## 2026-11-17 — Combined 5J/5K promoted; exact public fit running
-
-Promoted exact qualified CPU as ccba54f60a2c6f4741e74428b3306a19717ea58d
-on master and public asturur/test_template_1. Patch0080 pristine replay PASS;
-all60frozen RTL/header hashes match game/safety, broader six-kernel and JPEG
-simulation inputs. Matrix45736→45073, transpose3591→3560, triangle23790→23568;
-frame71259/201302 and tails1332/1647 unchanged, both0:0/2:9. Original program
-hashes/oracles, five scored windows/two repeats/retirements/negative controls
-PASS. Separate original Thumb JPEG84353 unchanged in both profiles. Six-case
-geometric throughput1.005456× versus matched5F; game/stream gains remain
-separate. Scoped8-file publication excludes unrelated dirty files and private
-inputs/derived code/disassembly. One requested seed42/debug-on fit44123116917
-runs at exact ccba54f; physical78MHz PLL unchanged. Matching5F fit44082419726
-reports collected (78MHz slow corners already−0.504/−0.550ns). Await routed
-78/104 setup/hold,178input manifest, SDRAM register/area/RBF audit. No hardware
-deployment. Completed simulation compiler trees/derived inputs retired only
-for these new qualification runs. See docs/cpu-load-release.md and local
-build/fit/combined-5jk-20261117/qualification.json.
-
-## 2026-11-17 — Step5K earlier resident lookup advances real span consumers
-
-Production remains exact8e70b1e5F. One bounded addition to 5J's core-only
-overlay presents the existing registered ALU EA to the private probe one clock
-earlier, retaining current P1-memory priority, actual demand permissions and
-existing collision/revoke/response ownership. No new state, RAM port or adder.
-Fresh 5F/5J/combined matched runs PASS both0:0/2:9, five scored samples/two
-equal repeats and zero scored external traffic. Original512pixel forward
-38063→36528(74.341796875→71.34375/pixel,−4.0328%); reverse37988→36453
-(74.1953125→71.197265625/pixel,−4.0407%). All512occurrences of each of three
-load/consumer pairs in both patterns advance one clock: typical use7→6,
-BRAMread5→4 andACK6→5. Read stalls−1536, first backedge delivery empty+1,
-net−1535. Original10240retirements,512actual stores/RAM mutations and guard/
-source/stack checks retained; final cache write completes before window end.
-5J one-line stream343 and224starts/224clocks preserved. New eight-line stream
-5F627/5J619→499, steady224starts452→342clocks; dependent checksum303→271.
-Guarded original transpose3443/3441→3441. All36negative outputs reject.
-Extended CPU stall/IRQ/precise fault/flushed-MMIO/store→fresh-load checks pass
-on all three variants; actual collision-poison cache pressure and eight focused
-ARM/Thumb/FCSE/prefetch/return diagnostics pass. Only overlaycore differs;
-all60frozen RTL/header inputs recorded, actual compiler read set51.
-Retain combined prototype for broader workload/timing qualification. PLL78MHz/
-design104MHz unchanged, timing/ALMs unmeasured; no production adoption,
-hardware, donor, CI, Quartus or branch/worktree. Own generated compiler/source/
-binary inputs retired after hashes; compact receipts and reusable overlay/test
-remain, other chats' files and runs preserved.
-[Schedules, three controls and decision](cpu-load-lookup.md) ·
-[Machine evidence](evidence/cpu-load-lookup-20261117.json).
-
-## 2026-11-17 — Step5J isolated P1 load-start prototype measured
-
-Production remains exact8e70b1e5F. One core-only overlay permits an eligible
-registered P1 load to start while older P2 has no memory/redirect/exception,
-then transfers the identical owner to P2 with the existing completion slot.
-No added state, address arithmetic, ports or cache geometry. Favorable resident
-load/independent-ALU stream598→343cycles, fixed224architectural starts448→224
-clocks and matching retirements446→224: instructionII2→1, loadII4→2. All256region PC starts/
-retirements and128owned load values checked. Both original512pixel patterns
-remain38063/37988cycles(74.341796875/74.1953125perpixel), both0:0/2:9.
-Destination-bias/source-base/bound loads offer5→4 but BRAMread stays+5,
-ACK+6 and useful consumer+7 unchanged;2048earlier span offers are not gains.
-Original-layout transpose3591→3560, matched added-guard layout3443→3441:
-wrapper/warm-state sensitivity retained, no universal31clock claim.
-Five scored samples/two repeats/original references/negative outputs/guards,
-exact retired PC streams/actual RAM mutation and byte counts PASS. Both final
-executables pass cold-load stalls, IRQ, exact FAR/FSR fault, destination sentinel
-and younger/flushed MMIO exclusion; same candidate CPU passes eight focused
-ARM/Thumb/FCSE/prefetch/return diagnostics. One conditional throughput path
-demonstrated; retain as research, no production adoption or timing claim.
-Next dependent-load work needs earlier registered ALU-address lookup/owned
-BRAM response and explicit port/backpressure contract, not another request-only
-advance. PLL78MHz/design104MHz unchanged; no donor/hardware/CI/Quartus/branch.
-Only own completed generated build/source/binary inputs retired after hashes;
-compact receipts, synthetic assembly and maintained overlay/test preserved.
-[Schedules, guarded/legacy measurements and decision](cpu-load-pipeline.md) ·
-[Machine evidence](evidence/cpu-load-pipeline-20261117.json).
-
-## 2026-11-17 — Step5I original Super Monkey Ball span benchmark completed
-
-Exact8e70b1e5F retained. Original app SHA verified; original80-byte span runs
-unchanged with explicit entry/fallthrough exit and bounded synthetic inputs.
-512pixels/10240retired original instructions: forward38063cycles(74.341796875/pixel),
-reverse37988(74.1953125/pixel), both0:0/2:9. Two warm-ups/five equal scored
-windows/two equal repeats per pattern/profile; zero scored external traffic.
-Independent per-pixel math+Unicorn, complete output/guards/source/stack,
-512ordered stores/actualRAM mutations/retirements and real corrupted-output
-rejection PASS. Last cache write ends22clocks before final original branch
-retirement; one killed next-iteration dequeue is excluded from retired work.
-Typical73-clock iteration, source relookup+5 and destination crossing+3
-in measured representatives; only18full-window empty-operand clocks.
-Full-window MLA has2048nonoverlapped busy clocks, including512exposed S2
-accumulation holds. Recommend one future registered-product+addend capture in
-S1, skipping S2: conditional512clocks(~1.35%), not measured elapsed savings.
-All60frozen RTL/header hashes match accepted/master; actual compiler journal
-reads51. No productionRTL change, prototype, donor job, hardware, Quartus,
-fit or branch/worktree. Own completed compiler trees/derived inputs retired;
-compact evidence and reusable test retained; other chats' files/runs preserved.
-[Benchmark and decision](super-monkey-ball-span.md) ·
-[Machine receipt](evidence/super-monkey-ball-span-20261117.json).
-
-## 2026-11-17 — Asphalt Urban GT race capture on 5F
-
-Lap 2 on MiSTer yielded 298 snapshots across 74.5 seconds. Three pixel loops in the matched game executable accounted for 75 fetch-PC samples (25.2%). The largest combines a table lookup, two multiplies and a conditional halfword store. The private executable is available for a later cross-game replay after Step 5I. [Profile and evidence](asphalt-urban-gt-profile.md).
-
-## 2026-11-17 — Step5H useful-target research completed
-
-Retain exact8e70b1e5F; no RTL prototype funded. Passive original matrix/byte
-0:0 reproduce45736/1647; ThumbJPEG both profiles84353. All60 frozen CPU inputs
-match, seven windows/two repeats/original oracles/negative outputs PASS.
-All1024 helper calls/returns and905JPEG calls/returns matched to actual next
-retirement/dequeue; full14353/22508 PC streams equal checked5E. Distinguish
-source encoding, early target hints, accepted selection and126late RAS repairs.
-One registered F-to-empty-FIFO-head model reuses100payload bits plus1consume
-bit; held word can advance while successor demand waits, without earlier requests.
-Conservative frozen-readiness/older-operand-certified exposed clocks1555matrix
-(3.40%),970JPEG(1.15%),6byte; uncertified free-slot screens1856/1360/9 are separate.
-These are counterfactual first-scored counts, not elapsed gains or empty budgets.
-First late JPEG return issue+22→+16 after ALU correction; most byte backedge
-head gains disappear behind older stores. No evidence for planning2287/4218
-clocks; deeper owner/registered-queue work needs a new bounded proposal.
-ProductionRTL/patch/PLL, donor, independentfit and phone untouched. Only own
-completed compiler/frozen-source/generated inputs retired; compact journals,
-fixtures, manifests/oracles/results and executable hashes remain.
-[Report](cpu-useful-target.md) ·
-[Machine receipt](evidence/cpu-useful-target-20261117.json) ·
-[Complete compressed events](evidence/cpu-useful-target-20261117.events.json.gz).
-
-## 2026-11-17 — Super Monkey Ball gameplay profile on 5F
-
-Captured 896 hardware fetch-PC snapshots in three windows and recovered the private game executable. Three original pixel loops account for 90 of 239 snapshots in the window that started during confirmed Floor 01 play. The dominant loop varies with the scene. The first proposed fixed-work replay is the 16-bit span loop. [Profile and evidence](super-monkey-ball-profile.md).
-
-## 2026-11-17 — Step5G line-crossing prototype rejected
-
-Pinned8e70b1e5F control reproduced1332/1647 tail medians. All scored windows have
-63/64 resident physical-line crossings; two-clock old-store drain blocks126/124
-clocks, not the earlier conditional128 byte estimate. One isolated zero-state
-registered lookup-owner overlap moves crossing accept/RAM/retire two clocks
-earlier but halfword1332→1264 and byte1647→1646, both0:0/2:9. Byte fails1581
-retention gate. Disjoint deltas: write−96/empty+29/other−1=−68; write−124/empty+123
-=−1. Subsequent useful byte-loop issue barely changes. Historical5F's250 extra
-empty clocks are not an independent cache savings budget. Original tails,
-oracles/guards/all bytes, repeats/negatives and40 scored journal audits pass;
-20,320 independent main-word mutations and2,540 crossings reconciled. Broader
-candidate safety/warm64/JPEG/kernel campaign deliberately not run after gate
-failure. No candidate qualified/adopted, productionRTL/patch/PLL unchanged,
-no second prototype or fit/CI/donor/hardware/deployment. Preserve separately
-dispatched5F fit. Keep5F; bounded Step5G ends here.
-[Measured schedules and decision](cpu-store-crossing.md) ·
-[Machine evidence](evidence/cpu-store-crossing-20261117.json).
-
-## 2026-11-17 — Integrated accepted 5F performance assessment
-
-All six original kernels are now measured on exact5F, at0:0 and2:9; missing
-triangle passed23790 both, seven windows/two repeats/original oracle/negative.
-Equal-weight geometric throughput versus the actual16-Nov review baseline is
-1.3348079×/1.3347998×. Separate JPEG89610→84353,1.0623×. Stock ngage2 still leads
-six-case throughput1.6485598×/1.3622997×;5F wins frame. Frame2:9 original201302,
-body+first-empty201407 unchanged; warm64 actual issue→lastRAM71. All60 compiled
-RTL hashes match acceptedfae4016; no RTL change, donor run, fit/CI/hardware.
-Ranked opportunities distinguish occupancy from conditional removable stages.
-Exactly one next experiment proposed: registered warm line-transition ownership,
-conditional126/128 local clocks, retain only≥4% both tails with all safety gates
-and≤0.5% other-case regression. Implementation deliberately stopped.
-[Integrated scorecard](cpu-integrated-5f.md) ·
-[Audited machine evidence](evidence/cpu-integrated-5f-20261117.json).
+This branch selects ngage2 `a182204` with stock 16 KiB I and 8 KiB D caches.
+Exact `a2c5863` mainline is the control. Both donor legs match on six SPMark
+kernels, original Thumb JPEG, seven original game loops and the full Sega
+Rally scan with native FbsCli. The six-kernel speedup is 1.732× at 0:0 and
+1.210× at 2:9. The delayed Sega scan is 1.801× faster, while the full-frame
+fill takes 371,988 versus 201,302 mainline clocks. Scalar RTL bus tests pass
+SWPB, IRQ/FIQ, external data and translation faults, late refill abort and
+dirty maintenance. The SDRAM pin-model boot passes. The 78 MHz production
+64 Hz NOS boot reaches kernel, Nokia logo and LCD DMA by 1B clocks with zero
+data errors. The full checkpoint pair is retained. Interactive home-screen
+completion remains open. Seed-42 debug-on fit `44273812397` uses 35,362 ALMs
+and 411 M10Ks, passes the SDRAM pins and produces an RBF. It misses setup by
+1.371 ns at 78 MHz and 4.576 ns at 104 MHz. Retain the branch candidate and
+measure donor-width memory service and cache policy next.
+[Results and replay](arm9v2-phone.md).
 
 ## 2026-11-17 — Step 5F remaining regressions completed
 
@@ -575,12 +423,6 @@ compact logs, manifests, results and guest assembly remain. Original accepted
 qualification evidence is unchanged.
 [Completed assessment and replay](cpu-store-postindex.md) ·
 [Recovery evidence](evidence/cpu-store-postindex-recovery-20261117.json).
-
-## 2026-11-17 — Benchmark and scratch cleanup
-
-The active CPU remains at accepted Step 5F (`fae4016`). For the next comparison, run the [SPMark bench](../tests/cpu/spmark_payload/README.md) using its default local fixture directory. The six original kernels and four JPEG cases passed their Unicorn output checks after relocation. Both C++ board transaction fixtures still match their golden traces. The SDRAM model passed the legacy and current latency tests at 78 and 104 MHz in simulation.
-
-The checkout now occupies about 2.0 GiB including Git, firmware, local observations and the two accepted build bitstreams. Recreate simulator objects, checkpoints and card images on demand. The local [historical test and capture index](../tests/historical/README.md) identifies retained evidence and reference checkout patches. The [current CPU review handoff](../scratch/handoffs/astra-cpu-pipeline-review-20261116.md) and its working notes remain in scratch.
 
 ## 2026-11-17 — Post-indexed store admission retained (Step5F)
 
@@ -1071,7 +913,7 @@ capacity, rechecking ordering/older exceptions rather than assuming eight slots.
 ## 2026-11-16 — Retimed probe matched fit collected (Stop 3D)
 
 **Current mainline decision:** keep the 3C baseline and proceed with the
-[4A CPU store-overlap experiment](../docs/handoffs/sol-high-04a-cpu-store-overlap.md).
+[4A CPU store-overlap experiment](../scratch/handoffs/sol-high-04a-cpu-store-overlap.md).
 The fit's further-retiming recommendation below applies to physical timing
 qualification. CPU performance work proceeds independently. Use local
 registered admission state so extra store credits do not lengthen the
@@ -1143,7 +985,7 @@ No CI/production/CPU admission/PLL/branch/history/phone or other-run changes.
 Stop before fit submission; retain Stop3A/3B as controls. Raw runs under
 `build/sim/probe-retime-*` and `{spmark-payload,jpeg-payload}/probe-retime-*`.
 
-**Current mainline priority:** [Step 4A — CPU admission for consecutive resident stores](../docs/handoffs/sol-high-04a-cpu-store-overlap.md).
+**Current mainline priority:** [Step 4A — CPU admission for consecutive resident stores](../scratch/handoffs/sol-high-04a-cpu-store-overlap.md).
 Start from the verified 3C overlay and measure fewer clocks for the same ARM
 program. Stop 3D is optional timing evidence. If already running, retain its
 result independently. The PLL remains 78 MHz and 104 MHz remains the design
@@ -1176,7 +1018,7 @@ seed/debug QSF; labeled reconstructed. No second fit. Raw outputs under
 HEAD/branch/index/shared production verified unchanged. No RBF installation,
 phone access, CPU admission change, second seed or DDR3 work. Stop after comparison.
 
-Next offline handoff: `docs/handoffs/sol-high-03c-probe-admission-retime.md`.
+Next offline handoff: `scratch/handoffs/sol-high-03c-probe-admission-retime.md`.
 Compare the registered probe boundary against corrected Stop 3A on real CPU
 reads and the resident store stream before selecting the payload for another fit.
 
@@ -1211,7 +1053,7 @@ actual 78MHz / analysis 104MHz. Added state estimate now ~102 FF, 70–210 ALMs,
 No fit submitted, CI/PLL/production/CPU adapter/history/phone/other runs untouched.
 Stop before matched fit submission; no physical or workload claim.
 
-Next Sol handoff: `docs/handoffs/sol-high-03b-resident-store-matched-fit.md`.
+Next Sol handoff: `scratch/handoffs/sol-high-03b-resident-store-matched-fit.md`.
 Match the 78 MHz seed-42 control, then analyze the same routed candidate at
 104 MHz. Select only the three qualified cache RTL files and the production BRAM.
 
@@ -1343,151 +1185,6 @@ docs/evidence/dsp-full-product-production-20261116.json.
 Quartus ALM/DSP mapping and timing remain unmeasured. No physical build or board
 deployment in this step. Phone remains running b707ebd; actual78MHz/104MHz aim.
 Other chats' work and simulations preserved.
-
-## 2026-11-16: 128MB Group1 native discovery verified; cleanup complete
-
-Permanent Ultimate_SIS_Pack/Group_1..4 holds103/89/105/86 installers, each<64MB;
-all383 original SIS instances verified, related title packages kept together.
-Old layout replaced; non-installer resources in Extras; permanent manifests.
-Local build/mmc now ONLY sis-group-1-128mb-ro.mmc + its JSON. All old generated
-MMC/raw/sidecars for user cleanup removed; useful reports moved to scratch.
-Obsolete5 SD installer/control images also deleted after Menu released handles.
-New128MB Group1 copied/synced/full-SHA verified to games/NGage, cold-booted with
-original b707ebd firmware. Final screen App Manager shows Group1 installer names;
-480snapshots/120s no kernel panic/save errors, final save queue0. Phone left
-running there,128MB mounted, physical Save On, saved CFG still Hold/SaveOn.
-Agent sent only verified OSD CPU Run: no installer/date/phone keys or ROM patch.
-Native reads/discovery verified, not all103 installations or full-capacity I/O.
-User may have navigated during capture. Next investigate prior383-file failure
-without asserting capacity as root cause. See sis-library.md and
-scratch/sis-four-groups-20261116/evidence.json. No HDL/PLL change.
-
-## 2026-11-16: Old installer SD cards and build/mmc outputs cleaned
-
-User authorized reboot, then requested full build/mmc cleanup. Confirmed save
-queue0/quiescent, unloaded to Menu, verified no old card handles remained and
-deleted5 obsolete SD MMCs plus stray AppleDouble. Local build/mmc now contains
-only sis-group-1-128mb-ro.mmc and matching JSON. Historical JSON/logs moved to
-scratch/sis-four-groups-20261116/retired-reports; old16MB generated outputs also
-removed per explicit request. No other-chat sources/simulations touched.
-New128MB transfer/native test in progress. Permanent four-group sources verified.
-
-## 2026-11-16: Permanent four SIS groups and verified128MB Group1 ready
-
-User running full SPMark from C:; no phone input/reboot/mount/SD bulk writes.
-Reorganized Ultimate_SIS_Pack in place into Group_1..4:103/89/105/86 installers,
-51.97/53.12/54.69/52.78MiB, title families intact, all383 SIS hashes preserved.
-Old loose layout and two SIS archives replaced after verification; non-SIS
-resources preserved in Extras. Group manifests/readme saved permanently there.
-Built/audited sis-group-1-128mb-ro.mmc:103SIS, FAT16/4KiB, CSD WP,75.38MiB free,
-SHA899ea722eeba5063796d25ed524bb78bbcc0832ba0d119928d91bc55661dabc9.
-Deleted obsolete local installer/control MMCs/sidecars/staging for this scope;
-retained audit/evidence and unrelated16MB cards. SD cleanup/delivery and native
-128MB test pending user's benchmark completion; readiness question outstanding.
-No generic preinstallation claim. See sis-library.md, scratch/sis-four-groups-20261116/.
-
-## 2026-11-16: 64MB small installer card reaches FExplorer prompt
-
-User requested64MB directly after256MB/all383 again closed Main. Cold boot
-with verified games/NGage/ngage-test-64mb-ro.mmc (3SIS, FAT16/4KiB, CSD WP)
-reaches FExplorer Installer information/OK-Cancel screen. No Main error or
-kernel panic in480snapshots/120s; final save queue0, no C:/PMM save errors.
-No installer confirmation/date keys/firmware patch sent. Phone left at prompt,
-64MB card mounted, physical Run/saveOn, original saved CFG Hold/saveOn.
-This verifies native reads/discovery, not completed installation or full-card
-operation. Collection count/content and capacity differ; root cause not yet
-proved. See mmc-large-card-crash.md for images, checksums and captures.
-
-## 2026-11-16: 256MB also closes Main; 64MB small-card boot active
-
-Verified/synced both new read-only cards to SD games/NGage. 256MB/all383SIS
-with4KiB clusters still shows App. closed/Main (user and screenshot agree),
-no kernel panic/save errors. User requested64MB directly; cold replay now
-uses ngage-test-64mb-ro.mmc with SPMark04/FExplorer/Fatal Arena3D.
-Original firmware, installed b707ebd,78MHz unchanged. Save queue confirmed
-zero/quiescent before reload. No tracer/startup patches/date confirmations.
-See mmc-large-card-crash.md and scratch/mmc-1gb-crash-20261116/.
-
-## 2026-11-16: Smaller read-only MMC controls prepared
-
-512MB CSD write-protection control also reproduces Main application error.
-User requested 256MB then64MB. Generated and fully audited 256MB/all383SIS
-and64MB/3SIS cards, both FAT16/4KiB clusters with temporary write protection.
-Native boot results pending; see mmc-large-card-crash.md. Original firmware,
-installed b707ebd RBF and C:/PMM remain unchanged by agent replacement.
-
-## 2026-11-16:512MB size/layout controls also fail; protection control active
-
-512MB with all383SIS at root reproduces Main application error. Moving382to
-INSTALL and leaving only FExplorer at root also reproduces it; one OK then
-reveals a second error naming EtelServer. CPU alive/no kernel panic in both.
-Do not claim512MB fixes it or directory layout is the established cause.
-
-Current mounted SD /media/fat/games/NGage/ultimate-sis-512mb.mmc is now the
-original root layout with CSD temporary write protection, SHA
-16ef5beda7f9a4969b3cc0fa1879f256c60635b38e50a4da7a0b0c431f87c5d4.
-Original383SIS bytes unchanged. This tests guest-advertised protection versus
-b707's forced read-only backing. Its120s original-firmware capture is running;
-no success claimed. Previous folder metadata control is local-only now.
-Other images, original saved settings, firmware and CPU clock unchanged.
-
-## 2026-11-16: Populated512MB also closes Main; empty1GB reaches Phone
-
-Investigating user cold-boot App. closed/Main with1GB library on exactb707ebd
-(old read-only interface). Original crash CPU alive/no panic/save error. Native
-repeat instead hits kernel exception packet PC503416DC/FAR85D03EF8/reason
-10000000, then50324294spin. Empty1GB with identical geometry/identity reaches
-Phone home and reads through FAT root end295424. Same383SIS at512MB root still
-closes Main. Capacity alone is insufficient explanation; no root cause yet.
-
-Current SD /media/fat/games/NGage/ultimate-sis-512mb.mmc is the verified folder
-control (FExplorer root,382SIS under INSTALL), SHA a3bdac23...62ec54a, not the
-original local512MB root-layout image. Replay is active. Matching local control
-build/mmc/ultimate-sis-512mb-folders.mmc.1GBoriginal remains unchanged. No
-observer applied: qualified exit tracer was refused by strict startup guard;
-no bypass. ROM stays original. Saved CFG original000020... (Hold/saveOn),
-physical native replay Run/saveOn. No C:/PMM replacement or PLL/code changes.
-See mmc-large-card-crash.md for exact controls, failed setup and caveats.
-
-## 2026-11-16: Missing Samba SIS card recovered by verified SSH copy
-
-User reports1GB MMC vanished after Finder/Samba copy to
-/Volumes/sdcard/games/NGage. Both Mac/SSH views had only4096-byte AppleDouble
-._ultimate-sis-1gb.mmc, no actual image. Correct share maps to/media/fat;
-149,165,047,808bytes free,exFAT mounted rw. Boot log contains a prior improper
-unmount warning; no live storage I/O/remount error observed. Samba log does not
-identify the failed-copy cause; do not claim a proven Finder/size-limit defect.
-
-Transferred original image over bounded gzip/SSH to a new temporary file,
-fsynced, independently re-read full SD image and matched SHA256
-5e9818892ef158161345a5cac186445994171ee4ca78d4f2a5323a0ab469bdbd;
-then renamed/synced to/media/fat/games/NGage/ultimate-sis-1gb.mmc.
-Exact1,073,480,192bytes. It is visible through the user's mounted Samba path;
-size/MBR/footer match there too. Temporary upload renamed away, no SD backup,
-core input/reload, C:/PMM change, mount or filesystem repair. Current phone
-left running. Evidence scratch/samba-sis-copy-20261116/transfer-result.json.
-
-## 2026-11-16: User reports Unix-time boot without setup prompts
-
-User reports the latest phone startup picked up the Unix timestamp and asked
-for neither date nor time. No agent confirmation helper or key input was sent
-for this reported boot. This is a successful user-observed prompt-free boot,
-superseding the assumption that every startup necessarily asks. Exact loaded
-RBF, save lineage and cold/warm reset type were not independently recaptured;
-no new hardware access was performed. Repeated cold-boot reliability and the
-cause of the difference from earlier prompted boots remain unverified. Keep
-the working session intact and observe the next ordinary boot before injecting
-any setup confirmations. No additional clock patch follows from this report.
-
-## 2026-11-16: MMC write commit pushed; build43846023145 dispatched
-
-Exact7bbf860e7b3481080888bf07e133f9297c536c97 is published on the original
-integration branch. Build43846023145 requested seed43/DDR debugger On. No build
-completion, fit/timing or native-write success claimed. Current phone left
-running b707ebd; no input/reload/media change during this task. Verified1GB
-SIS card is build/mmc/ultimate-sis-1gb.mmc,383packages/806.0625MiB free, root
-aliases with INDEX.TXT. Existing core reads it only; new RBF needed for writes.
-No256MB C: image generated: firmware-visible internal flash remains4MiB.
 
 ## 2026-11-16: 1 GB SIS library complete; MMC writes qualified locally
 
@@ -2081,30 +1778,6 @@ PSR audit: flags-only writes already avoid flush; measured original converter
 has zero PSR/CP15 instructions. Full OS/codec overhead remains unmeasured.
 Original converter executes22500Thumb instructions/64pixels, including5152LDR,
 2360STR,905BL,1107POP,586PUSH; no multiply. This is not a whole-JPEG profile.
-
-## 2026-11-16: SPMark FAT12 tooling promoted; disposable experiment removed
-
-Supplied SIS SHA25636bb9f7d…23393 contains12ordinary app/help files and2text
-notices; all declared payload sizes verified. Ready app, unchanged installer-only
-and blank16MB FAT12 images are now in `build/mmc/`. Reusable builders, extraction,
-independent auditor, frozen donor module, provenance and Docker shortcuts live
-in `tools/mmc-card/`; durable private payload/source folders are `runtime/mmc/`.
-Permanent synthetic file-addition check is `tests/tools/mmc_folder/`; its
-transient fixtures/results use `build/mmc-tests/`. Downloaded mtools is a
-recreatable cache at `build/tools/mtools/`, with maintained setup shortcut.
-
-Relocated rebuild passes for all3cards and produces the exact prior image
-hashes. Independent FAT allocation audits and production footer/CSD/CRC/extent
-inspector pass. Permanent long-name/nested/multi-cluster file control passes.
-The entire `scratch/spmark-card-20261116/` experiment was removed after promotion.
-AGENTS.md now explicitly makes scratch disposable and keeps useful software,
-tests, runtime inputs and findings in their maintained directories.
-
-No HDL, firmware, hardware, mounted media, save, CI or other simulations changed.
-New cards/normal App Manager installation remain untested on hardware. MMC stays
-read-only; installation would require C: if offered. Cold-mounted ready card is
-the established Menu discovery route; offline file addition is not MMC writes.
-[Media/instructions](mmc-spmark04.md#offline-sis-and-reusable-fat12-media-2026-11-16).
 
 ## 2026-11-16: Admission-edge cache read saves2973 JPEG data waits
 

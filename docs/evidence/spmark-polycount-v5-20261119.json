@@ -1,0 +1,1101 @@
+{
+  "status": "PASS",
+  "results": {
+    "i16": {
+      "frames": [
+        {
+          "frame": 0,
+          "clocks": 15520017,
+          "retired": 7338211,
+          "uops": 1112061,
+          "ifills": 184554,
+          "dfills": 8778,
+          "iwalk_words": 62,
+          "dwalk_words": 5,
+          "d_wait": 308493,
+          "d_walk_wait": 153,
+          "execute_wait": 965945,
+          "iwalk_wait": 687,
+          "exposed_i": 1384336,
+          "frontend": 2535805,
+          "other": 1874326,
+          "draws": 1,
+          "swaps": 1
+        },
+        {
+          "frame": 1,
+          "clocks": 15609383,
+          "retired": 7372623,
+          "uops": 1117358,
+          "ifills": 186361,
+          "dfills": 8590,
+          "iwalk_words": 58,
+          "dwalk_words": 1,
+          "d_wait": 306847,
+          "d_walk_wait": 23,
+          "execute_wait": 968888,
+          "iwalk_wait": 600,
+          "exposed_i": 1398701,
+          "frontend": 2557579,
+          "other": 1886764,
+          "draws": 1,
+          "swaps": 1
+        },
+        {
+          "frame": 2,
+          "clocks": 15478142,
+          "retired": 7322287,
+          "uops": 1110106,
+          "ifills": 183925,
+          "dfills": 8508,
+          "iwalk_words": 58,
+          "dwalk_words": 2,
+          "d_wait": 304327,
+          "d_walk_wait": 35,
+          "execute_wait": 960024,
+          "iwalk_wait": 611,
+          "exposed_i": 1381291,
+          "frontend": 2528984,
+          "other": 1870477,
+          "draws": 1,
+          "swaps": 1
+        },
+        {
+          "frame": 3,
+          "clocks": 15431274,
+          "retired": 7301052,
+          "uops": 1108254,
+          "ifills": 182960,
+          "dfills": 8626,
+          "iwalk_words": 58,
+          "dwalk_words": 0,
+          "d_wait": 306350,
+          "d_walk_wait": 0,
+          "execute_wait": 958806,
+          "iwalk_wait": 607,
+          "exposed_i": 1374888,
+          "frontend": 2517945,
+          "other": 1863372,
+          "draws": 1,
+          "swaps": 1
+        }
+      ],
+      "completion": {
+        "cycles": 62046246,
+        "frames": 4,
+        "ddr_reads": 111,
+        "d2_lines": 1024
+      },
+      "output_sha": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+      "netlist_sha": "839201cded8ae0c350d98ed7c23be1c4fdae1b2293f7ce42145f8f10c9445b53",
+      "median_frame": 2,
+      "clocks_per_triangle": 3224.6129166666665,
+      "ktriangles_per_second": 24.188949810642647,
+      "exposed_i_by_module_target": [
+        {
+          "module": "libGLES_CM.dll",
+          "target": "SDRAM",
+          "clocks": 1376530
+        },
+        {
+          "module": "firmware EUSER",
+          "target": "NOR via DDR",
+          "clocks": 4127
+        },
+        {
+          "module": "SPMark.app",
+          "target": "SDRAM",
+          "clocks": 323
+        },
+        {
+          "module": "guest-generated rasterizer",
+          "target": "SDRAM",
+          "clocks": 307
+        },
+        {
+          "module": "fixture TLS/entry",
+          "target": "NOR via DDR",
+          "clocks": 4
+        }
+      ],
+      "execute_wait_by_flag_mask": {
+        "01": 578078,
+        "03": 367832,
+        "09": 14037,
+        "0b": 4,
+        "11": 73
+      },
+      "hotspots": {
+        "I": [
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10105b60",
+            "physical_line": "0x0a205b60",
+            "clocks": 34302
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102ec0",
+            "physical_line": "0x0a202ec0",
+            "clocks": 33526
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10112cdc",
+            "physical_line": "0x0a212cc0",
+            "clocks": 29708
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10112ce0",
+            "physical_line": "0x0a212ce0",
+            "clocks": 29405
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10117c3c",
+            "physical_line": "0x0a217c20",
+            "clocks": 29066
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10105be0",
+            "physical_line": "0x0a205be0",
+            "clocks": 26831
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10105b80",
+            "physical_line": "0x0a205b80",
+            "clocks": 25438
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102e48",
+            "physical_line": "0x0a202e40",
+            "clocks": 25051
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10104f80",
+            "physical_line": "0x0a204f80",
+            "clocks": 25014
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10105bd8",
+            "physical_line": "0x0a205bc0",
+            "clocks": 24202
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10104da0",
+            "physical_line": "0x0a204da0",
+            "clocks": 23926
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10104d50",
+            "physical_line": "0x0a204d40",
+            "clocks": 23804
+          }
+        ],
+        "EXEC": [
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111ac4",
+            "clocks": 16684
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101119f4",
+            "clocks": 14656
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111ad4",
+            "clocks": 14516
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106c60",
+            "clocks": 14400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106c6c",
+            "clocks": 14400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x1011442c",
+            "clocks": 14400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106dd4",
+            "clocks": 12243
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106e28",
+            "clocks": 12243
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111ae4",
+            "clocks": 11594
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106a7c",
+            "clocks": 11350
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111bc4",
+            "clocks": 9473
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10110360",
+            "clocks": 9338
+          }
+        ],
+        "DATA": [
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106b38",
+            "clocks": 49548
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10105aa8",
+            "clocks": 41993
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10104da4",
+            "clocks": 21696
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101118e8",
+            "clocks": 21208
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102b74",
+            "clocks": 17976
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102b7c",
+            "clocks": 17851
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102b6c",
+            "clocks": 17782
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101118f4",
+            "clocks": 13331
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10107170",
+            "clocks": 10834
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10107174",
+            "clocks": 9005
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102ae8",
+            "clocks": 8884
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102af8",
+            "clocks": 8837
+          }
+        ],
+        "UOP": [
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101118e0",
+            "clocks": 65322
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111c18",
+            "clocks": 65322
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111c20",
+            "clocks": 65322
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x1010673c",
+            "clocks": 57600
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106768",
+            "clocks": 38400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106794",
+            "clocks": 38400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106cc8",
+            "clocks": 38400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106db8",
+            "clocks": 32648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106e64",
+            "clocks": 32648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106e8c",
+            "clocks": 32648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106f54",
+            "clocks": 32648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101142ec",
+            "clocks": 29330
+          }
+        ]
+      }
+    },
+    "i32": {
+      "frames": [
+        {
+          "frame": 0,
+          "clocks": 12206982,
+          "retired": 7338211,
+          "uops": 1112061,
+          "ifills": 11738,
+          "dfills": 8778,
+          "iwalk_words": 62,
+          "dwalk_words": 6,
+          "d_wait": 276261,
+          "d_walk_wait": 181,
+          "execute_wait": 910134,
+          "iwalk_wait": 682,
+          "exposed_i": 80356,
+          "frontend": 916871,
+          "other": 1572225,
+          "draws": 1,
+          "swaps": 1
+        },
+        {
+          "frame": 1,
+          "clocks": 12243565,
+          "retired": 7372623,
+          "uops": 1117358,
+          "ifills": 10939,
+          "dfills": 8590,
+          "iwalk_words": 58,
+          "dwalk_words": 0,
+          "d_wait": 273295,
+          "d_walk_wait": 0,
+          "execute_wait": 911958,
+          "iwalk_wait": 601,
+          "exposed_i": 72765,
+          "frontend": 914298,
+          "other": 1580667,
+          "draws": 1,
+          "swaps": 1
+        },
+        {
+          "frame": 2,
+          "clocks": 12160310,
+          "retired": 7322287,
+          "uops": 1110106,
+          "ifills": 11006,
+          "dfills": 8508,
+          "iwalk_words": 58,
+          "dwalk_words": 0,
+          "d_wait": 271674,
+          "d_walk_wait": 0,
+          "execute_wait": 904194,
+          "iwalk_wait": 608,
+          "exposed_i": 73380,
+          "frontend": 909019,
+          "other": 1569042,
+          "draws": 1,
+          "swaps": 1
+        },
+        {
+          "frame": 3,
+          "clocks": 12135231,
+          "retired": 7301052,
+          "uops": 1108254,
+          "ifills": 11191,
+          "dfills": 8626,
+          "iwalk_words": 58,
+          "dwalk_words": 0,
+          "d_wait": 272939,
+          "d_walk_wait": 0,
+          "execute_wait": 903821,
+          "iwalk_wait": 597,
+          "exposed_i": 75130,
+          "frontend": 909074,
+          "other": 1564364,
+          "draws": 1,
+          "swaps": 1
+        }
+      ],
+      "completion": {
+        "cycles": 48753466,
+        "frames": 4,
+        "ddr_reads": 112,
+        "d2_lines": 1024
+      },
+      "output_sha": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+      "netlist_sha": "a8987387f5c9a6e62515e9cdbc9a006693916bb5ba605f77a665ceaac772c637",
+      "median_frame": 2,
+      "clocks_per_triangle": 2533.397916666667,
+      "ktriangles_per_second": 30.788688775203923,
+      "exposed_i_by_module_target": [
+        {
+          "module": "libGLES_CM.dll",
+          "target": "SDRAM",
+          "clocks": 71644
+        },
+        {
+          "module": "firmware EUSER",
+          "target": "NOR via DDR",
+          "clocks": 1524
+        },
+        {
+          "module": "SPMark.app",
+          "target": "SDRAM",
+          "clocks": 189
+        },
+        {
+          "module": "guest-generated rasterizer",
+          "target": "SDRAM",
+          "clocks": 23
+        }
+      ],
+      "execute_wait_by_flag_mask": {
+        "01": 535130,
+        "03": 355549,
+        "09": 13438,
+        "0b": 4,
+        "11": 73
+      },
+      "hotspots": {
+        "I": [
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102f94",
+            "physical_line": "0x0a202f80",
+            "clocks": 19206
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10112f80",
+            "physical_line": "0x0a212f80",
+            "clocks": 12045
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10113078",
+            "physical_line": "0x0a213060",
+            "clocks": 5366
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10103080",
+            "physical_line": "0x0a203080",
+            "clocks": 5088
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10113080",
+            "physical_line": "0x0a213080",
+            "clocks": 2980
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10103060",
+            "physical_line": "0x0a203060",
+            "clocks": 2164
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10107030",
+            "physical_line": "0x0a207020",
+            "clocks": 722
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106d20",
+            "physical_line": "0x0a206d20",
+            "clocks": 697
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10112cdc",
+            "physical_line": "0x0a212cc0",
+            "clocks": 697
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106ff0",
+            "physical_line": "0x0a206fe0",
+            "clocks": 694
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102e80",
+            "physical_line": "0x0a202e80",
+            "clocks": 649
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10107040",
+            "physical_line": "0x0a207040",
+            "clocks": 638
+          }
+        ],
+        "EXEC": [
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101119f4",
+            "clocks": 14648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111ac4",
+            "clocks": 14516
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111ad4",
+            "clocks": 14516
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106c60",
+            "clocks": 14400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106c6c",
+            "clocks": 14400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x1011442c",
+            "clocks": 14400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106dd4",
+            "clocks": 12243
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106e28",
+            "clocks": 12243
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106a7c",
+            "clocks": 11154
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10110360",
+            "clocks": 9338
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101127c8",
+            "clocks": 9302
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10113be4",
+            "clocks": 8872
+          }
+        ],
+        "DATA": [
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106b38",
+            "clocks": 49541
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10105aa8",
+            "clocks": 22652
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101118e8",
+            "clocks": 21226
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102b6c",
+            "clocks": 17865
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102b74",
+            "clocks": 17814
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102b7c",
+            "clocks": 17685
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10104da4",
+            "clocks": 13891
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101118f4",
+            "clocks": 13339
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10107170",
+            "clocks": 10567
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102af0",
+            "clocks": 9051
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10107174",
+            "clocks": 8983
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102af8",
+            "clocks": 8920
+          }
+        ],
+        "UOP": [
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101118e0",
+            "clocks": 65322
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111c18",
+            "clocks": 65322
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111c20",
+            "clocks": 65322
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x1010673c",
+            "clocks": 57600
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106768",
+            "clocks": 38400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106794",
+            "clocks": 38400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106cc8",
+            "clocks": 38400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106db8",
+            "clocks": 32648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106e64",
+            "clocks": 32648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106e8c",
+            "clocks": 32648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106f54",
+            "clocks": 32648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101142ec",
+            "clocks": 29330
+          }
+        ]
+      }
+    },
+    "ideal": {
+      "frames": [
+        {
+          "frame": 0,
+          "clocks": 11987191,
+          "retired": 7338211,
+          "uops": 1112061,
+          "ifills": 0,
+          "dfills": 8778,
+          "iwalk_words": 62,
+          "dwalk_words": 6,
+          "d_wait": 275312,
+          "d_walk_wait": 93,
+          "execute_wait": 904867,
+          "iwalk_wait": 695,
+          "exposed_i": 0,
+          "frontend": 802079,
+          "other": 1553873,
+          "draws": 1,
+          "swaps": 1
+        },
+        {
+          "frame": 1,
+          "clocks": 12040673,
+          "retired": 7372623,
+          "uops": 1117358,
+          "ifills": 0,
+          "dfills": 8590,
+          "iwalk_words": 58,
+          "dwalk_words": 2,
+          "d_wait": 272961,
+          "d_walk_wait": 42,
+          "execute_wait": 907581,
+          "iwalk_wait": 604,
+          "exposed_i": 0,
+          "frontend": 806695,
+          "other": 1562809,
+          "draws": 1,
+          "swaps": 1
+        },
+        {
+          "frame": 2,
+          "clocks": 11956024,
+          "retired": 7322287,
+          "uops": 1110106,
+          "ifills": 0,
+          "dfills": 8508,
+          "iwalk_words": 58,
+          "dwalk_words": 2,
+          "d_wait": 271326,
+          "d_walk_wait": 42,
+          "execute_wait": 899664,
+          "iwalk_wait": 600,
+          "exposed_i": 0,
+          "frontend": 800992,
+          "other": 1551007,
+          "draws": 1,
+          "swaps": 1
+        },
+        {
+          "frame": 3,
+          "clocks": 11927307,
+          "retired": 7301052,
+          "uops": 1108254,
+          "ifills": 0,
+          "dfills": 8626,
+          "iwalk_words": 58,
+          "dwalk_words": 2,
+          "d_wait": 272660,
+          "d_walk_wait": 42,
+          "execute_wait": 899227,
+          "iwalk_wait": 605,
+          "exposed_i": 0,
+          "frontend": 799226,
+          "other": 1546241,
+          "draws": 1,
+          "swaps": 1
+        }
+      ],
+      "completion": {
+        "cycles": 47918548,
+        "frames": 4,
+        "ddr_reads": 8,
+        "d2_lines": 1024
+      },
+      "output_sha": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77",
+      "netlist_sha": "27bedb82c8a780237aaf26224bc2bcbef70c4bec93cda68835e8ca34a3e8785a",
+      "median_frame": 2,
+      "clocks_per_triangle": 2490.838333333333,
+      "ktriangles_per_second": 31.314758150368384,
+      "exposed_i_by_module_target": [],
+      "execute_wait_by_flag_mask": {
+        "01": 530682,
+        "03": 355532,
+        "09": 13373,
+        "0b": 4,
+        "11": 73
+      },
+      "hotspots": {
+        "I": [],
+        "EXEC": [
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101119f4",
+            "clocks": 14645
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111ac4",
+            "clocks": 14516
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111ad4",
+            "clocks": 14516
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106c60",
+            "clocks": 14400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106c6c",
+            "clocks": 14400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x1011442c",
+            "clocks": 14400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106dd4",
+            "clocks": 12243
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106e28",
+            "clocks": 12243
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106a7c",
+            "clocks": 11129
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10110360",
+            "clocks": 9342
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101127c8",
+            "clocks": 9302
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10113be4",
+            "clocks": 8881
+          }
+        ],
+        "DATA": [
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106b38",
+            "clocks": 49523
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10105aa8",
+            "clocks": 22524
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101118e8",
+            "clocks": 21260
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102b74",
+            "clocks": 17882
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102b6c",
+            "clocks": 17813
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102b7c",
+            "clocks": 17755
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10104da4",
+            "clocks": 13890
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101118f4",
+            "clocks": 13324
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10107170",
+            "clocks": 10553
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10107174",
+            "clocks": 9001
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102ae8",
+            "clocks": 8864
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10102af0",
+            "clocks": 8864
+          }
+        ],
+        "UOP": [
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101118e0",
+            "clocks": 65322
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111c18",
+            "clocks": 65322
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10111c20",
+            "clocks": 65322
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x1010673c",
+            "clocks": 57600
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106768",
+            "clocks": 38400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106794",
+            "clocks": 38400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106cc8",
+            "clocks": 38400
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106db8",
+            "clocks": 32648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106e64",
+            "clocks": 32648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106e8c",
+            "clocks": 32648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x10106f54",
+            "clocks": 32648
+          },
+          {
+            "module": "libGLES_CM.dll",
+            "pc": "0x101142ec",
+            "clocks": 29330
+          }
+        ]
+      }
+    }
+  },
+  "pin_model_sha": "61af63207be722deaf2b97a892ee76cbb26e8cb21013db6b60a5566f6985952b",
+  "snapshot_sha": "17345b257e390e4201b949d68b5af75da0260b9f9b4c0cbadbe11758ea5f801c",
+  "baseline_commit": "70b8ef3ea2855699bbadbebbaabac3c796504cef",
+  "nominal_clock_hz": 78000000,
+  "clock_target_per_frame": 10118918.918918919,
+  "native_submitted_triangles": 4800,
+  "original_module_sha": {
+    "SPMark.app": "f4d3819d0d7c21f6f669835d03cf9fd8c8b50aa3e0bac6975c4cbaccb09b3a4e",
+    "3DTEST.DLL": "5b918e3d10a8b4e91265325649c98c72fba7260be6cab37a102d7f50cd7eebef",
+    "libGLES_CM.dll": "3008a3900a91471200ea00b26733066aad288d589a7f48cefbfc0c6b62ebad2b"
+  },
+  "original_rom_sha": "be8b2ecdf5ff81f424b58838a8b93a1d1f65c0ae74890d2b96df8d5a7189b524",
+  "pbuffer": {
+    "width": 176,
+    "height": 208,
+    "color": "RGB444",
+    "color_storage_bits": 16,
+    "depth_bits": 32
+  },
+  "warmup_windows": 1,
+  "instruction_footprint": {
+    "lines": 819,
+    "bytes": 26208,
+    "over_two_ways_i16": 168,
+    "over_two_ways_i32": 91
+  },
+  "native_outputs": {
+    "object": "6dad53b541a0e8959005128791d945945571b9f9212c38157b20ccf44cba444b",
+    "indices": "287c1a88a2c5d854b5e1e80c91e2bfd2df84c5f1c130c7113360e5b0f1849080",
+    "surface0": "1b61a3475d5b26e9482f5638940eaafbfe2b214cc217ed22150fab16774d50d5",
+    "surface1": "3d26fece47313215db45e475cebad9b3d319d24e5cf79214505477251b03b1fc"
+  },
+  "donor_control": {
+    "clock_mhz": 104,
+    "d32_i16": 29.58,
+    "d32_i32": 37.11,
+    "d8_i16": 28.2,
+    "d8_i32": 35.13
+  }
+}

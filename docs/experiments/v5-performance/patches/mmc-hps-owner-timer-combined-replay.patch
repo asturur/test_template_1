@@ -1,0 +1,1629 @@
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-fit.py b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-fit.py
+new file mode 100644
+index 0000000..0abed0d
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-fit.py
+@@ -0,0 +1,246 @@
++"""Prepare private MMC HPS owner fits for either outcome of the footer trial."""
++from hashlib import sha256
++import json
++import os
++from pathlib import Path
++import subprocess
++import tarfile
++from io import BytesIO
++
++
++area = Path(__file__).resolve().parent
++root = area.parents[2]
++catalog = root / 'docs/experiments/v5-performance'
++footer_stage = area.parent / 'mmc-footer-timer-combined/dispatch-20261126'
++active_footer = '3e3dc325a809e0010c77fd1ec23216495bbd15a8'
++active_timer = '9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e'
++retained = '11c4a0c32983cc9aba89cae986684558583a33f2'
++private = area / 'dispatch-20261126'
++objects = private / 'objects'
++objects.mkdir(parents=True, exist_ok=True)
++controls = {13: 45824513460, 43: 45824520116, 31337: 45824525843}
++
++
++def git(*args, env=None):
++    return subprocess.check_output(['git', '-C', str(root), *args], env=env)
++
++
++def sha(data):
++    return sha256(data).hexdigest()
++
++
++shared_objects = git('rev-parse', '--path-format=absolute', '--git-path', 'objects').decode().strip()
++older_objects = (footer_stage / 'alternate-objects.txt').read_text().strip().split(os.pathsep)
++alternates = os.pathsep.join(dict.fromkeys([shared_objects, str(footer_stage / 'objects'), *older_objects]))
++assert all(Path(path).is_absolute() and Path(path).is_dir() for path in alternates.split(os.pathsep))
++(private / 'alternate-objects.txt').write_text(alternates + '\n')
++
++
++def context(index):
++    return os.environ | {
++        'GIT_OBJECT_DIRECTORY': str(objects),
++        'GIT_ALTERNATE_OBJECT_DIRECTORIES': alternates,
++        'GIT_INDEX_FILE': str(private / f'index-{index}'),
++    }
++
++
++def subject(revision, env):
++    return git('rev-parse', revision, env=env).decode().strip()
++
++
++def tree(revision, env):
++    return subject(f'{revision}^{{tree}}', env)
++
++
++def changes(before, after, env):
++    records = git('diff', '--name-only', '-z', before, after, env=env).split(b'\0')
++    return sorted(name.decode() for name in records if name)
++
++
++def file_hashes(revision, paths, env):
++    return {name: sha(git('show', f'{revision}:{name}', env=env)) for name in paths}
++
++
++def stage_tree(base, patches, env):
++    git('read-tree', base, env=env)
++    for patch in patches:
++        git('apply', '--cached', '--check', str(patch), env=env)
++        git('apply', '--cached', str(patch), env=env)
++    return git('write-tree', env=env).decode().strip()
++
++
++def commit(tree_id, base, message, env):
++    timestamp = int(git('show', '-s', '--format=%ct', base, env=env)) + 1
++    date = f'@{timestamp} +0000'
++    dated = env | {'GIT_AUTHOR_DATE': date, 'GIT_COMMITTER_DATE': date}
++    result = git('commit-tree', tree_id, '-p', base, '-m', message, env=dated).decode().strip()
++    assert tree(result, env) == tree_id and subject(f'{result}^', env) == base
++    return result
++
++
++def read_json(path):
++    return json.loads(path.read_text())
++
++
++entries = {entry['id']: entry for entry in read_json(catalog / 'manifest.json')}
++names = ('timer-write-prepare', 'mmc-footer-crc-direct', 'mmc-hps-cancel-owner')
++timer, footer, owner = (entries[name] for name in names)
++patches = {name: catalog / entries[name]['patches'][0] for name in names}
++proofs = {name: read_json(root / f'docs/evidence/v5-104-{name}.json') for name in names}
++patch_hashes = {name: sha(path.read_bytes()) for name, path in patches.items()}
++for name in names:
++    assert proofs[name]['status'] == 'PASS' and entries[name]['base'] == retained
++    assert patch_hashes[name] == entries[name]['sha256'][0] == proofs[name]['design_patch_sha256']
++
++timer_patch, footer_patch, owner_patch = (patches[name] for name in names)
++hps_rtl = 'rtl/ngage_mmc_hps.v'
++timer_hashes = timer['measured_sha256']
++footer_hashes = footer['measured_sha256']
++owner_hashes = owner['measured_sha256']
++assert footer['affected_paths'] == owner['affected_paths'] == [hps_rtl]
++assert hps_rtl not in timer_hashes
++assert footer_hashes[hps_rtl] == proofs[names[1]]['candidate_sha256']
++assert owner_hashes[hps_rtl] == proofs[names[2]]['candidate_sha256']
++assert (footer_stage / 'published.sha').read_text().strip() == active_footer
++
++env = context('proof')
++exact_retained = tree(retained, env)
++assert exact_retained == tree('e9552bd', env) == proofs[names[0]]['baseline_tree']
++assert exact_retained == proofs[names[1]]['base_tree'] == proofs[names[2]]['base_tree']
++assert subject(f'{active_footer}^', env) == active_timer
++timer_tree = stage_tree(retained, [timer_patch], env)
++assert timer_tree == tree(active_timer, env)
++assert changes(retained, active_timer, env) == sorted(timer_hashes)
++assert file_hashes(active_timer, timer_hashes, env) == timer_hashes
++assert stage_tree(retained, [timer_patch, footer_patch], env) == tree(active_footer, env)
++assert changes(active_timer, active_footer, env) == [hps_rtl]
++assert file_hashes(active_footer, footer_hashes, env) == footer_hashes
++assert file_hashes(retained, (hps_rtl,), env)[hps_rtl] == proofs[names[2]]['reference_sha256']
++assert file_hashes(stage_tree(retained, [owner_patch], env), (hps_rtl,), env) == owner_hashes
++
++restore = commit(timer_tree, active_footer, 'revert: restore retained timer fit tree', env)
++assert changes(active_footer, restore, env) == [hps_rtl]
++(private / 'restore.sha').write_text(restore + '\n')
++message = 'perf: qualify MMC HPS owner with cancellation'
++variants = {}
++for label, parent in (('owner-plus-timer', restore), ('owner-plus-footer-timer', active_footer)):
++    env = context(label)
++    candidate_tree = stage_tree(parent, [owner_patch], env)
++    candidate = commit(candidate_tree, parent, message, env)
++    keeps_footer = label == 'owner-plus-footer-timer'
++    assert changes(parent, candidate, env) == [hps_rtl]
++    exact_paths = timer_hashes | file_hashes(candidate, (hps_rtl,), env)
++    assert changes(retained, candidate, env) == sorted(exact_paths)
++    assert changes(active_timer, candidate, env) == [hps_rtl]
++    assert file_hashes(candidate, timer_hashes, env) == timer_hashes
++    if keeps_footer:
++        assert stage_tree(retained, [owner_patch, footer_patch, timer_patch], context('compose')) == candidate_tree
++        assert stage_tree(retained, [footer_patch, owner_patch, timer_patch], context('compose')) == candidate_tree
++        # v5 footer and owner keep their full archived patches. Record the
++        # context-adjusted kept-footer delta directly between measured blobs.
++        delta = git('diff', active_footer, candidate, '--', hps_rtl, env=env)
++        combined_patch = area / 'mmc-hps-cancel-owner-on-footer.patch'
++        combined_patch.write_bytes(delta)
++        assert stage_tree(active_footer, [combined_patch], context('compose')) == candidate_tree
++    else:
++        assert stage_tree(retained, [owner_patch, timer_patch], context('compose')) == candidate_tree
++        assert file_hashes(candidate, (hps_rtl,), env) == owner_hashes
++    variants[label] = {'sha': candidate, 'parent': parent, 'tree': candidate_tree,
++                       'paths_since_parent': [hps_rtl], 'hashes_from_retained': exact_paths,
++                       'hps_reference': parent if keeps_footer else retained}
++    (private / f'{label}.sha').write_text(candidate + '\n')
++
++    included = ('rtl', 'tools', 'sys', '.rules.verible_format', 'tests/cpu/arm9v2_board',
++                'tests/cpu/spmark_payload', 'tests/phone/mmc_hps', 'tests/phone/upp_ddr_ram/peer.v',
++                'tests/phone/timers', 'tests/phone/timer_rates', 'tests/phone/timer_conformance',
++                'tests/phone/timer_original', 'tests/phone/upp_request_stage', 'tests/phone/register_ram',
++                'tests/phone/peripheral_response', 'sim/programs/link.ld')
++    for leg, revision in (('source', candidate), ('reference', retained),
++                          ('hps-reference', variants[label]['hps_reference'])):
++        directory = area / label / leg
++        directory.mkdir(parents=True, exist_ok=True)
++        content = git('archive', revision, *included, env=env)
++        with tarfile.open(fileobj=BytesIO(content)) as archive:
++            archive.extractall(directory, filter='data')
++    replay = area / label
++    for name, value in exact_paths.items():
++        assert sha((replay/'source'/name).read_bytes()) == value, (label, name)
++    (replay/'ngage_cpu.sv').write_bytes((replay/'source/rtl/ngage_cpu.sv').read_bytes())
++
++production_tools = ('set_quartus_seed', 'set_quartus_debug', 'record_fit_inputs')
++for label, metadata in variants.items():
++    env = context(label)
++    candidate = metadata['sha']
++    variant_dir = private / 'preflight' / label
++    variant_dir.mkdir(parents=True, exist_ok=True)
++    metadata['production'] = {}
++    for seed, run in controls.items():
++        control_dir = root / f'build/timing-audit-{run}/output_files'
++        control = read_json(control_dir / 'resident-fit-manifest.json')
++        basenames = control['compiled_source_sha256'].keys()
++        assert control['actual_commit'] == active_timer and tree(control['actual_commit'], env) == timer_tree
++        assert control['seed'] == seed and control['physical_cpu_mhz'] == 104 and control['debugger'] is False
++        assert len(basenames) == 133 and 'Template.qsf' in basenames
++        seed_dir = variant_dir / str(seed)
++        output_dir = seed_dir / 'output_files'
++        output_dir.mkdir(parents=True, exist_ok=True)
++        source_graph = (control_dir / 'source-graph.txt').read_text()
++        graphed = {line.removeprefix('SOURCE /project/') for line in source_graph.splitlines()
++                   if line.startswith('SOURCE ')}
++        assert graphed == set(basenames), sorted(graphed ^ set(basenames))
++        (output_dir / 'source-graph.txt').write_text(source_graph)
++        for name in (*basenames, *(f'tools/{tool}.py' for tool in production_tools)):
++            assert not Path(name).is_absolute() and '..' not in Path(name).parts
++            path = seed_dir / name
++            path.parent.mkdir(parents=True, exist_ok=True)
++            path.write_bytes(git('show', f'{candidate}:{name}', env=env))
++        local_env = os.environ | {'GITHUB_SHA': candidate}
++        for name in ('GITHUB_STEP_SUMMARY', 'GITHUB_RUN_ID'):
++            local_env.pop(name, None)
++        for tool, *args in (
++            ('set_quartus_seed', 'Template.qsf', '--seed', str(seed)),
++            ('set_quartus_debug', 'Template.qsf', '--enabled', 'false'),
++        ):
++            subprocess.run(['python3', '-B', f'tools/{tool}.py', *args],
++                           cwd=seed_dir, env=local_env, check=True, stdout=subprocess.PIPE)
++        qsf = seed_dir / 'Template.qsf'
++        # Quartus on the runner rewrites the version line with LF, leaving
++        # the rest of the generated QSF at its original CRLF line endings.
++        qsf.write_bytes(qsf.read_bytes().replace(b'LAST_QUARTUS_VERSION "17.0.2 Standard Edition"\r\n',
++                                                 b'LAST_QUARTUS_VERSION "17.0.2 Lite Edition"\n'))
++        subprocess.run(['python3', '-B', 'tools/record_fit_inputs.py'],
++                       cwd=seed_dir, env=local_env, check=True, stdout=subprocess.PIPE)
++        effective = output_dir / 'resident-fit-manifest.json'
++        compiled = read_json(effective)
++        assert compiled['actual_commit'] == candidate
++        actual_hashes = compiled['compiled_source_sha256']
++        expected_delta = {hps_rtl: metadata['hashes_from_retained'][hps_rtl]}
++        if label == 'owner-plus-footer-timer':
++            footer_manifest = footer_stage / f'preflight/footer-plus-timer/{seed}/output_files/resident-fit-manifest.json'
++            prepared_footer = read_json(footer_manifest)
++            assert prepared_footer['actual_commit'] == active_footer
++            assert {name for name in basenames
++                    if actual_hashes[name] != prepared_footer['compiled_source_sha256'][name]} == {hps_rtl}
++            assert all(prepared_footer[field] == compiled[field]
++                       for field in compiled.keys() - {'actual_commit', 'compiled_source_sha256'})
++        actual_delta = {name: actual_hashes[name] for name in basenames
++                        if actual_hashes[name] != control['compiled_source_sha256'][name]}
++        assert actual_delta == expected_delta, (label, seed, actual_delta, expected_delta)
++        for field in control.keys() - {'actual_commit', 'compiled_source_sha256'}:
++            assert control[field] == compiled[field], field
++        metadata['production'][seed] = {
++            'control_run': run, 'physical_cpu_mhz': compiled['physical_cpu_mhz'],
++            'ddr_debug': compiled['debugger'], 'compiled_source_count': len(basenames),
++            'compiled_input_delta': expected_delta, 'manifest_sha256': sha(effective.read_bytes()),
++        }
++        print(f'PASS {label} seed {seed}, 104 MHz, DDR debug off, {len(basenames)} inputs', flush=True)
++
++receipt = {'status': 'PASS', 'active_timer': active_timer, 'active_footer': active_footer,
++           'retained': retained, 'retained_tree': exact_retained, 'timer_tree': timer_tree,
++           'restore': restore, 'restore_parent': active_footer, 'archive_patch_sha256': patch_hashes,
++           'owner_on_footer_patch_sha256': sha(combined_patch.read_bytes()),
++           'private_objects': str(objects), 'alternate_objects': alternates, 'variants': variants}
++(private / 'prepare.json').write_text(json.dumps(receipt, indent=2) + '\n')
++for label, variant in variants.items():
++    print(label, variant['sha'], variant['parent'], variant['tree'])
++print('restore', restore, active_footer, timer_tree)
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/qualify.sh b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/qualify.sh
+new file mode 100644
+index 0000000..d03017f
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/qualify.sh
+@@ -0,0 +1,98 @@
++#!/bin/sh
++set -eu
++variant=${1:?supply the candidate variant}
++phase=${2:-all}
++case "$variant" in
++  owner-plus-timer|owner-plus-footer-timer) ;;
++  *) exit 2 ;;
++esac
++area=scratch/v5-fit-loop/mmc-hps-owner-timer-combined
++stage=$area/$variant
++out=build/sim/v5-104-mmc-hps-owner-timer-combined/$variant
++image=jotego/simulator:arm64
++mkdir -p "$out"
++
++hps() {
++  mkdir -p "$out/units/source"
++  docker image inspect -f '{{.Id}} {{.Os}}/{{.Architecture}}' "$image" > "$out/image.id"
++  docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD/$stage/source:/bench:ro" -v "$PWD/$out/units:/results" -w /bench \
++    -e MMC_HPS_OUT=/results/source --entrypoint sh "$image" \
++    -ec 'iverilog -g2001 -s ngage_mmc_hps -o /results/source/elaborate rtl/ngage_mmc_hps.v
++         sh tests/phone/mmc_hps/run.sh' > "$out/units/source.log"
++  grep '^PASS ' "$out/units/source.log"
++}
++
++owner_miter() {
++  python3 -B "$area/prepare-owner-miter.py" "$variant"
++  docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD/$out/owner-miter:/work" -w /work --entrypoint sh "$image" -ec '
++    iverilog -g2001 -s tb -o miter tb.v retained.v trial.v
++    vvp miter > miter.log
++    grep "^PASS owner miter " miter.log'
++}
++
++crc() {
++  python3 -B "$area/prepare-verify.py" "$variant"
++  docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD/$stage:/bench:ro" -v "$PWD/$out/verify:/results" -w /results \
++    --entrypoint sh "$image" -ec '
++    for leg in reference source; do
++      iverilog -g2001 -s tb -o "$leg" "/bench/$leg/rtl/ngage_mmc_hps.v" tb.v
++      vvp "$leg" > "$leg.log"
++      grep -E "^(CRC_EDGE|PASS) " "$leg.log" > "$leg.trace"
++      grep -q "^PASS MMC HPS direct " "$leg.trace"
++    done
++    cmp reference.trace source.trace
++    grep "^PASS " source.trace'
++}
++
++timer() {
++  python3 -B "$area/prepare-directed.py" "$variant"
++  docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD/$stage:/bench:ro" -v "$PWD/$out/directed:/results" -w /results \
++    --entrypoint sh "$image" -ec '
++    for leg in reference source; do
++      base=/bench/$leg/rtl
++      set --
++      if [ "$leg" = reference ]; then set -- -DREFERENCE; fi
++      iverilog -g2012 -s tb "$@" -y "$base" -I "$base" -o "$leg" \
++        "$base/ngage_upp.v" "$base/ngage_upp_euart.v" tb.sv
++      vvp "$leg" > "$leg.log"
++      grep -E "^(TRACE|PASS) " "$leg.log" > "$leg.trace"
++    done
++    cmp reference.trace source.trace
++    grep "^PASS " source.trace'
++}
++
++physical() {
++  python3 -B "$area/mixed.py" "$variant"
++  mixed="$out/mixed"
++  retained=build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed
++  docker run --rm --pull=never --network none --platform linux/arm64 \
++    -v "$PWD:/work" -w /work --entrypoint sh "$image" -ec "sh '$mixed/build.sh'
++'$mixed/obj/Vtb' +upp_stress '+compare_trace=$mixed/traffic.log' > '$mixed/replay.log'"
++  cmp "$retained/traffic.log" "$mixed/traffic.log"
++  sh "$area/coexistence.sh" "$variant"
++}
++
++case "$phase" in
++  hps) hps ;;
++  miter) owner_miter ;;
++  crc) crc ;;
++  timer) timer ;;
++  physical) physical ;;
++  fixed|native) python3 -B "$area/replay.py" "$variant" "$phase" --output qualification ;;
++  all)
++    hps
++    owner_miter
++    crc
++    timer
++    for kind in fixed native; do
++      python3 -B "$area/replay.py" "$variant" "$kind" --output qualification
++    done
++    physical
++    python3 -B "$area/record.py" "$variant"
++    ;;
++  *) exit 2 ;;
++esac
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/record.py b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/record.py
+new file mode 100644
+index 0000000..cc4f432
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/record.py
+@@ -0,0 +1,140 @@
++"""Confirm the exact selected inputs and qualification traces for either MMC owner trial."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import sys
++
++
++area = Path(__file__).resolve().parent
++root = area.parents[2]
++variant = sys.argv[1]
++assert variant in ('owner-plus-timer', 'owner-plus-footer-timer')
++stage = area / variant
++out = root / 'build/sim/v5-104-mmc-hps-owner-timer-combined' / variant
++original = root / 'docs/evidence/v5-104-mmc-hps-cancel-owner.json'
++footer = root / 'docs/evidence/v5-104-mmc-footer-crc-direct.json'
++prepared = area / 'dispatch-20261126/prepare.json'
++retained = root / 'build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed'
++footer_path = 'rtl/ngage_mmc_hps.v'
++owner_original = json.loads(original.read_bytes())
++footer_original = json.loads(footer.read_bytes())
++plan = json.loads(prepared.read_bytes())
++stack = plan['variants'][variant]
++pinned = {name: value for name, value in stack['hashes_from_retained'].items() if name.startswith('rtl/')}
++
++
++def digest(path):
++    return sha256(path.read_bytes()).hexdigest()
++
++
++def read_json(path):
++    return json.loads(path.read_bytes())
++
++
++def passes(path):
++    return [line for line in path.read_text().splitlines() if line.startswith('PASS ')]
++
++
++def fingerprints(manifest, sources):
++    items = [shlex.split(line) for line in manifest.read_text().splitlines() if line.startswith('S ')]
++    result = {}
++    for name in sources:
++        (row,) = [row for row in items if row[-1].endswith(name)]
++        result[name] = row[-2]
++    return result
++
++
++assert len(pinned) == 4 and all(digest(stage / 'source' / name) == sha for name, sha in pinned.items())
++assert owner_original['status'] == footer_original['status'] == plan['status'] == 'PASS'
++assert (pinned[footer_path] == owner_original['candidate_sha256']) == (variant == 'owner-plus-timer')
++assert pinned[footer_path] != footer_original['candidate_sha256']
++source = stage / 'source' / footer_path
++owner_reference = stage / 'hps-reference' / footer_path
++expected_ref_sha = footer_original['candidate_sha256'] if variant == 'owner-plus-footer-timer' else owner_original['reference_sha256']
++assert digest(owner_reference) == expected_ref_sha
++
++mixed = out / 'mixed'
++physical_hashes = read_json(mixed / 'source-hashes.json')
++baseline_hashes = read_json(retained / 'source-hashes.json')
++assert len(physical_hashes) == 114 and physical_hashes.keys() == baseline_hashes.keys()
++assert {name: value for name, value in physical_hashes.items() if baseline_hashes[name] != value} == pinned
++compiled = fingerprints(mixed / 'obj/Vtb__verFiles.dat', pinned)
++
++workloads = {}
++for kind, field, expected in (('fixed', 'windows', 105), ('native', 'frames', 4)):
++    receipt = out / f'qualification/{kind}.json'
++    results = read_json(receipt)
++    assert results['status'] == 'PASS'
++    assert all(row['candidate'] == row['control'] for row in results['rows'])
++    count = sum(len(row['candidate'][field]) for row in results['rows'])
++    assert count == expected
++    assert {name: results['source_sha256'][Path(name).name] for name in pinned} == pinned
++    assert fingerprints(out / f'qualification/obj-{kind}/Vtb__verFiles.dat', pinned) == compiled
++    workloads[kind] = {'count': count, 'receipt_sha256': digest(receipt)}
++    if kind == 'fixed':
++        cases = [row['candidate']['case'] for row in results['rows']]
++        assert len(cases) == len(set(cases)) == 15
++        for case in cases:
++            assert (out / f'qualification/{case}-00-1.log').is_file()
++            wrong = out / f'qualification/{case}-00-0-wrong.log'
++            assert 'Guest output check rejected payload' in wrong.read_text()
++        workloads[kind].update(repeated_cases=len(cases), rejected_wrong_outputs=len(cases))
++native = results['rows'][0]['candidate']
++workloads['native']['cycles'] = [row['clocks'] for row in native['frames']]
++workloads['native']['guest_result_sha256'] = native['output_sha256']
++
++suite = out / 'units/source.log'
++assert passes(suite) == owner_original['direct_and_native_hps']['passes']
++actual_hash = fingerprints(out / 'units/source/obj/Vactual_tb__verFiles.dat', [footer_path])
++assert actual_hash[footer_path] == compiled[footer_path]
++assert (actual_hash[footer_path] == owner_original['direct_and_native_hps']['candidate_source_fingerprint']) == (variant == 'owner-plus-timer')
++
++miter = out / 'owner-miter'
++assert (miter / 'retained.v').read_text().replace('module retained_hps (', 'module ngage_mmc_hps (') == owner_reference.read_text()
++assert (miter / 'trial.v').read_text().replace('module trial_hps (', 'module ngage_mmc_hps (') == source.read_text()
++miter_pass = passes(miter / 'miter.log')
++assert miter_pass == owner_original['owner_equivalence_miter']['passes']
++counts = re.fullmatch(r'PASS owner miter cases=(\d+) wrap=(\d+) reserved=(\d+) random_edges=(\d+) compared=(\d+)',
++                      miter_pass[-1])
++assert counts and tuple(map(int, counts.groups())) == (448, 49, 24, 7168, 379781)
++
++verify = out / 'verify/source.trace'
++assert digest(verify) == digest(out / 'verify/reference.trace') == footer_original['crc_cancel_and_corroboration']['trace_sha256']
++assert sum(line.startswith('CRC_EDGE ') for line in verify.read_text().splitlines()) == 1186
++
++timer = out / 'directed/source.trace'
++assert digest(timer) == digest(out / 'directed/reference.trace')
++assert len(timer.read_bytes().splitlines()) == 8397
++assert passes(timer) == ['PASS timer held packet decode=8192 responses=6025 clocks=41235']
++
++physical = {}
++overlap = out / 'coexistence'
++for name, base_trace, trace, log, count, cycles in (
++    ('normal', retained / 'traffic.log', mixed / 'traffic.log', mixed / 'replay.log', 171496, 1201547),
++    ('timer_mmc_lcd', overlap / 'retained.trace', overlap / 'candidate.trace',
++     overlap / 'candidate.log', 171497, 1201528),
++):
++    assert digest(base_trace) == digest(trace)
++    assert len(trace.read_bytes().splitlines()) == count
++    assert len(passes(log)) == 4 and f'cycles={cycles} reads=4 writes=1' in passes(log)[-1]
++    physical[name] = {'events': count, 'cycles': cycles, 'traffic_sha256': digest(trace),
++                      'passes': passes(log)}
++assert passes(overlap / 'retained.log') == passes(overlap / 'candidate.log')
++physical['timer_mmc_lcd']['guest_sha256'] = digest(overlap / 'stress-timer.hex')
++
++report = {'status': 'PASS', 'variant': variant, 'candidate': stack['sha'],
++          'parent': stack['parent'], 'tree': stack['tree'], 'hps_reference': stack['hps_reference'],
++          'fit_preflight_sha256': digest(prepared), 'standalone_owner_qualification_sha256': digest(original),
++          'standalone_footer_qualification_sha256': digest(footer),
++          'simulator': (out / 'image.id').read_text().strip(), 'verified_source_sha256': pinned,
++          'compiled_source_fingerprints': compiled, 'physical_source_count': len(physical_hashes),
++          'native_hps_pass': passes(suite), 'workload_digest_controls': workloads,
++          'owner_miter': {'passes': miter_pass, 'reference_rtl_sha256': expected_ref_sha,
++                          'bench_sha256': digest(miter / 'tb.v'), 'log_sha256': digest(miter / 'miter.log')},
++          'crc_directed': {'pass': passes(verify), 'trace_sha256': digest(verify)},
++          'timer_directed': {'pass': passes(timer), 'trace_sha256': digest(timer)},
++          'physical_replays': physical}
++(stage / 'qualification.json').write_text(json.dumps(report, indent=2) + '\n')
++print(f'PASS {variant}, exact HPS and timer sources tested')
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-owner-miter.py b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-owner-miter.py
+new file mode 100644
+index 0000000..24c379a
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-owner-miter.py
+@@ -0,0 +1,77 @@
++"""Build a dual-instance Verilog-2001 miter around the retained HPS fixture."""
++from pathlib import Path
++import sys
++import re
++
++
++area = Path(__file__).resolve().parent
++variant = sys.argv[1]
++assert variant in ('owner-plus-timer', 'owner-plus-footer-timer')
++stage = area / variant
++work = Path(f'build/sim/v5-104-mmc-hps-owner-timer-combined/{variant}/owner-miter')
++work.mkdir(parents=True, exist_ok=True)
++rtl = 'rtl/ngage_mmc_hps.v'
++original, trial = ((stage / leg / rtl).read_text() for leg in ('hps-reference', 'source'))
++registers = original.split('    // Configuration-time initialization')[0].split('    reg [2:0] state;', 1)[1]
++common = ['state'] + [name.strip() for group in re.findall(r'^    reg\s+(?:\[[^]]+\]\s*)?([^;]+);$', registers, re.M)
++                     for name in group.split(',') if 'generation' not in name]
++assert not re.search(r'\b(?:generation|request_generation)\b', trial)
++for filename, module, source in (('retained.v', 'retained_hps', original), ('trial.v', 'trial_hps', trial)):
++    assert source.count('module ngage_mmc_hps (') == 1
++    (work / filename).write_text(source.replace('module ngage_mmc_hps (', f'module {module} ('))
++
++ports = dict((name, width.strip()) for width, name in
++    re.findall(r'^    output (?:wire|reg)\s+(\[[^]]+\])?\s*(\w+)\s*,?$', original, re.M))
++assert len(ports) == 15
++bench = (stage / 'reference/tests/phone/mmc_hps/tb.v').read_text()
++instance = re.search(r'^  ngage_mmc_hps dut \(.*?^  \);$', bench, re.M | re.S)[0]
++declarations = ''.join(f'  wire {width} trial_{name};\n' for name, width in ports.items())
++candidate = instance.replace('ngage_mmc_hps dut', 'trial_hps trial')
++for port in ports:
++    candidate = re.sub(rf'\.{port}\([^)]*\)', f'.{port}(trial_{port})', candidate)
++bench = bench.replace(instance, instance.replace('ngage_mmc_hps dut', 'retained_hps dut') +
++    '\n' + declarations + candidate)
++
++def pack(signals):
++    return '{\n        ' + ',\n        '.join(signals) + '\n    }'
++
++checks = f"""
++  wire public_equal =
++    {pack(f'dut.{name}' for name in ports)} === {pack(f'trial_{name}' for name in ports)};
++  wire states_equal =
++    {pack(f'dut.{name}' for name in common)} === {pack(f'trial.{name}' for name in common)};
++  integer comparison_points = 0;
++  task check_owner;
++    begin
++      if (!public_equal || !states_equal) begin
++        $display("DIFF state=%0d/%0d cancelled=%b/%b events=%b ack=%b addr=%h",
++                 dut.state, trial.state, dut.cancelled, trial.cancelled,
++                 {{init_reset, guest_reset, mount}}, h_ack, h_addr);
++        fail("owner miter changed output or state");
++      end
++      if (dut.state > 0 && dut.state <= 4 && !dut.cancelled &&
++          dut.request_generation !== dut.generation)
++        fail("live admitted owner has stale generation");
++      comparison_points = comparison_points + 1;
++    end
++  endtask
++  always @(negedge clk) begin
++    #1;
++    check_owner;
++  end
++  always @(posedge clk) begin
++    #2;
++    check_owner;
++  end
++"""
++bench = bench.replace('  reg [7:0] footer[0:511];',
++    '  reg owner_phase = 0;\n' + checks + '\n  reg [7:0] footer[0:511];')
++bench = bench.replace('    cycles = cycles + 1;\n', '    cycles = cycles + 1;\n    if (!owner_phase) begin\n', 1)
++bench = bench.replace('    stable_count = h_count;\n', '    stable_count = h_count;\n    end\n', 1)
++marker = '  initial begin\n    repeat (3) tick;'
++assert bench.count(marker) == 1
++bench = bench.replace(marker, (area / 'owner-phase.vh').read_text() + '\n' + marker)
++marker = '             copies, cycles);\n    $finish;'
++assert bench.count(marker) == 1
++bench = bench.replace(marker, '             copies, cycles);\n    test_owner_events;\n    $finish;')
++(work / 'tb.v').write_text(bench)
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-verify.py b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-verify.py
+new file mode 100644
+index 0000000..0f8b8e5
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-verify.py
+@@ -0,0 +1,78 @@
++"""Extend the pinned HPS direct test with CRC cycle and interruption checks."""
++from pathlib import Path
++import sys
++
++
++area = Path(__file__).resolve().parent
++variant = sys.argv[1]
++assert variant in ('owner-plus-timer', 'owner-plus-footer-timer')
++stage = area / variant
++out = Path(f'build/sim/v5-104-mmc-hps-owner-timer-combined/{variant}/verify')
++out.mkdir(parents=True, exist_ok=True)
++bench = (stage / 'reference/tests/phone/mmc_hps/tb.v').read_text()
++summary = '    $display("PASS MMC HPS direct cases=%0d mounts=%0d copies=%0d clocks=%0d"'
++assert bench.count(summary) == 1
++bench = bench.replace(summary, '''    // Corrupt each data byte in both protected footer records.
++    for (j = 0; j < 30; j = j + 1) begin
++      make_footer(0);
++      if (j < 15) footer[16+j] = footer[16+j] ^ 1;
++      else footer[32+j-15] = footer[32+j-15] ^ 1;
++      do_mount(2048);
++      wait_mount;
++      base_falls = ack_falls;
++      footer_read(256);
++      expect_fault;
++      if (ack_falls != base_falls) fail("corrupted CRC payload completed");
++    end
++
++    // Interrupt the CRC pass with each ownership-changing event, then check a new footer.
++    for (j = 0; j < 3; j = j + 1) begin
++      make_footer(0);
++      do_mount(2048);
++      wait_mount;
++      begin_read((size >> 9) - 1, 0);
++      accept_read;
++      for (n = 0; n < 256; n = n + 1) beat(n, {footer[n*2+1], footer[n*2]});
++      @(negedge clk);
++      h_ack = 0;
++      repeat (8) tick;
++      if (dut.state != dut.VERIFY || !ack || fault || dut.crc_left >= 15)
++        fail("missing active VERIFICATION pass");
++      // Another unselected slot's shared bus strobe cannot modify the footer.
++      base_copies = copies;
++      beat(8, 16'hbadd);
++      if (dut.state != dut.VERIFY || copies != base_copies || fault)
++        fail("shared bus strobe entered VERIFY");
++      base_falls = ack_falls;
++      base_mounts = mounts;
++      @(negedge clk);
++      case (j)
++        0: guest_reset = 1;
++        1: init_reset = 1;
++        2: begin size = 1024; mount = 1; end
++      endcase
++      tick;
++      if (dut.state != dut.IDLE || ack || dut.admitted || fault)
++        fail("interrupted CRC verification completed");
++      @(negedge clk);
++      guest_reset = 0;
++      init_reset = 0;
++      mount = 0;
++      settle;
++      if (ack_falls != base_falls) fail("interrupted CRC exposed an ACK fall");
++      if (j == 1) begin
++        if (!card_reset || mounts != base_mounts) fail("init inferred a stale remount");
++        do_mount(2048);
++        wait_mount;
++      end else if (mounts != base_mounts + 1 || card_size != size)
++        fail("CRC cancellation lost retained/remounted media");
++      footer_read(256);
++      if (fault || !dut.admitted) fail("fresh CRC verification failed");
++    end
++''' + summary)
++monitor = '''
++  always @(negedge clk) if (dut.state == dut.VERIFY)
++    $display("CRC_EDGE clock=%0d byte=%0d cid=%h csd=%h ack=%b admitted=%b fault=%b",
++             cycles, dut.crc_left, dut.cid_crc, dut.csd_crc, ack, dut.admitted, fault);
++'''
++(out / 'tb.v').write_text(bench.rsplit('endmodule', 1)[0] + monitor + 'endmodule\n')
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-directed.py b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-directed.py
+new file mode 100644
+index 0000000..5838694
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-directed.py
+@@ -0,0 +1,25 @@
++"""Reuse the archived peripheral responder wiring for the timer differential."""
++from pathlib import Path
++import sys
++
++
++area = Path(__file__).resolve().parent
++variant = sys.argv[1]
++assert variant in ('owner-plus-timer', 'owner-plus-footer-timer')
++stage = area / variant
++out = Path(f'build/sim/v5-104-mmc-hps-owner-timer-combined/{variant}/directed')
++out.mkdir(parents=True, exist_ok=True)
++original = Path('docs/experiments/v5-performance/patches/peripheral-lane13.patch').read_text()
++section = original.split('+++ b/tests/phone/upp_lane13/tb.sv\n', 1)[1].split('diff --git', 1)[0]
++archive = '\n'.join(line[1:] for line in section.splitlines() if line.startswith('+'))
++wiring = archive[archive.index('    ngage_upp_request_stage #('):archive.index('    always @(posedge clk) begin')]
++wiring = wiring.replace('EUART_PREDECODE', 'TIMER_PREDECODE')
++wiring = wiring.replace('.in_live         (live)', '.in_live         (packet_live)')
++wiring = wiring.replace('.out_euart_select(select_word),',
++                        '.timer_count_write(count_select), .timer_stop(stop_select),')
++wiring = wiring.replace('.euart_select        (select_word),',
++                        '.timer_count_write(count_select), .timer_stop(stop_select),')
++assert 'select_word' not in wiring
++bench = (area / 'timer-directed.sv').read_text()
++assert bench.count('    // Fixture wiring') == 1
++(out / 'tb.sv').write_text(bench.replace('    // Fixture wiring', wiring))
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-coexistence.py b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-coexistence.py
+new file mode 100644
+index 0000000..90d1b8a
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-coexistence.py
+@@ -0,0 +1,55 @@
++"""Insert a one-shot timer into the active physical MMC/LCD replay."""
++from pathlib import Path
++import sys
++import subprocess
++
++
++area = Path(__file__).resolve().parent
++variant = sys.argv[1]
++assert variant in ('owner-plus-timer', 'owner-plus-footer-timer')
++stage = area / variant
++out = Path(f'build/sim/v5-104-mmc-hps-owner-timer-combined/{variant}/coexistence')
++out.mkdir(parents=True, exist_ok=True)
++base = Path('build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed')
++guest = (base / 'stress.S').read_text()
++marker = ' // Read/copy/partial-write round trips while LCD DMA and PCM are active.'
++assert guest.count(marker) == 1
++guest = guest.replace(marker, ''' // Timer4 must expire with both transfers still active.
++ mov r12,#83
++ ldr r0,=0x0c120a80
++ put r0,4,1
++ put r0,0x10,13
++timer4_wait:
++ ldr r4,[r0,#8]
++ tst r4,#1
++ beq timer4_wait
++ ldr r4,[r8,#0x18]
++ tst r4,#4
++ beq fail
++ ldr r1,=0x0c120348
++ ldr r4,[r1]
++ cmp r4,#0
++ beq fail
++ put r0,4,0
++ put r0,8,0
++ ldr r4,[r0,#8]
++ tst r4,#1
++ bne fail
++
++''' + marker)
++assembly = out / 'stress-timer.S'
++obj = assembly.with_suffix('.o')
++elf = assembly.with_suffix('.elf')
++binary = assembly.with_suffix('.bin')
++assembly.write_text(guest)
++for command in (
++    ['arm-none-eabi-gcc', '-c', '-mcpu=arm920t', '-marm', assembly, '-o', obj],
++    ['arm-none-eabi-ld', '-T', stage / 'source/sim/programs/link.ld', obj, '-o', elf],
++    ['arm-none-eabi-objcopy', '-O', 'binary', elf, binary],
++):
++    subprocess.run(command, check=True)
++raw = binary.read_bytes()
++assert len(raw) % 4 == 0 and len(raw) <= 8192
++assembly.with_suffix('.hex').write_text(''.join(
++    f'{int.from_bytes(raw[i:i+4], "little"):08x}\n' for i in range(0, len(raw), 4)
++))
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/coexistence.sh b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/coexistence.sh
+new file mode 100644
+index 0000000..1d7c21e
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/coexistence.sh
+@@ -0,0 +1,20 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/mmc-hps-owner-timer-combined
++variant=${1:?supply the candidate variant}
++out=build/sim/v5-104-mmc-hps-owner-timer-combined/$variant/coexistence
++retained=build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed
++candidate=build/sim/v5-104-mmc-hps-owner-timer-combined/$variant/mixed
++python3 -B "$area/prepare-coexistence.py" "$variant"
++for leg in retained candidate; do
++  if [ "$leg" = retained ]; then replay=$retained; else replay=$candidate; fi
++  docker run --rm --pull=never --network none --platform linux/arm64 -v "$PWD:/work" \
++    -v "$PWD/$out/stress-timer.hex:/work/$retained/stress.hex:ro" -w /work \
++    --entrypoint "/work/$replay/obj/Vtb" jotego/simulator:arm64 \
++    +upp_stress "+compare_trace=$out/$leg.trace" > "$out/$leg.log"
++  grep '^PASS ' "$out/$leg.log" > "$out/$leg.pass"
++done
++cmp "$out/retained.trace" "$out/candidate.trace"
++cmp "$out/retained.pass" "$out/candidate.pass"
++wc -l "$out/candidate.trace"
++cat "$out/candidate.pass"
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/mixed.py b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/mixed.py
+new file mode 100644
+index 0000000..f155210
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/mixed.py
+@@ -0,0 +1,39 @@
++"""Stage the frozen physical-SDRAM replay with prepared timer writes and direct footer CRC."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import sys
++import shutil
++
++
++area = Path(__file__).resolve().parent
++variant = sys.argv[1]
++assert variant in ('owner-plus-timer', 'owner-plus-footer-timer')
++stage = area / variant
++base = Path('build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed')
++trial = Path(f'build/sim/v5-104-mmc-hps-owner-timer-combined/{variant}/mixed')
++changed = {'rtl/ngage_mmc_hps.v', 'rtl/ngage_timers.v', 'rtl/ngage_upp.v', 'rtl/ngage_upp_peripherals.v'}
++peer = 'tests/phone/upp_ddr_ram/peer.v'
++
++trial.mkdir(parents=True, exist_ok=True)
++shutil.copytree(base / 'source', trial / 'source', dirs_exist_ok=True)
++for name in ('stress.hex', 'image.hex', 'program.hex'):
++    shutil.copyfile(base / name, trial / name)
++(trial / 'source' / peer).parent.mkdir(parents=True, exist_ok=True)
++shutil.copyfile(stage / 'source' / peer, trial / 'source' / peer)
++for name in changed:
++    shutil.copyfile(stage / 'source' / name, trial / 'source' / name)
++
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert changed <= hashes.keys() and peer in hashes
++for name, reference in hashes.items():
++    if name.startswith('rtl/'):
++        assert sha256((stage / 'reference' / name).read_bytes()).hexdigest() == reference, name
++    actual = sha256((trial / 'source' / name).read_bytes()).hexdigest()
++    assert (actual != reference) == (name in changed), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++
++build = (base / 'build.sh').read_text().replace(str(base), str(trial))
++build = build.replace(f' {peer} ', f' {trial}/source/{peer} ')
++(trial / 'build.sh').write_text(build)
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/replay.py b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/replay.py
+new file mode 100644
+index 0000000..e12dec0
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/replay.py
+@@ -0,0 +1,185 @@
++"""Replay MMC footer CRC with prepared timer writes on retained 104 MHz."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('variant', choices=('owner-plus-timer', 'owner-plus-footer-timer'))
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++area = Path(__file__).resolve().parent
++repo = area.parents[2]
++stage = area / args.variant
++work = repo / 'build/sim/v5-104-mmc-hps-owner-timer-combined' / args.variant / args.output
++work.mkdir(parents=True, exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(stage / 'source/tests/cpu/arm9v2_board'))
++import payload_clocks
++payload_clocks.OUT = repo / "build/sim"
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    observer = (area / 'architectural_trace.vh').read_text() + (area / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_upp_peripherals.v', 'rtl/ngage_keypad.v', 'rtl/ngage_upp_euart.v', 'rtl/ngage_timers.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(options.index('--Mdir') + 2, frozen(stage / 'source/rtl/ngage_mmc_hps.v'))
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith(f'/mmc-hps-owner-timer-combined/{args.variant}/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_upp_peripherals.v', 'ngage_keypad.v', 'ngage_upp_euart.v', 'ngage_timers.v', 'ngage_mmc_hps.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/mmc-hps-owner-timer-combined/{args.variant}/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((area.parent/'prepared-wb-write-data'/'candidate'/f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                source_sha256={name:digest(stage / 'source/rtl' / name) for name in ('ngage_upp.v','ngage_upp_peripherals.v','ngage_upp_euart.v', 'ngage_timers.v','ngage_keypad.v','ngage_mmc_hps.v')}, rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/timer-directed.sv b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/timer-directed.sv
+new file mode 100644
+index 0000000..f87ab96
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/timer-directed.sv
+@@ -0,0 +1,271 @@
++`timescale 1ns / 1ps
++module tb;
++    localparam KEYPAD_ENABLE = 0;
++    reg clk = 0;
++    always #4.807692 clk = ~clk;
++    reg reset = 1, cold_reset = 1, offered = 0, live = 0, we = 0, allow = 0;
++    wire packet_live = live;
++    wire tx_ready = 1, rx_valid = 0, card_busy = 0, cfg_keypad = 0;
++    wire [7:0] rx_data = 0;
++    wire [25:0] keys = 0;
++    reg [31:0] address = 0, data = 0;
++    reg [3:0] sel = 0;
++    wire packet, wr;
++    wire [31:0] addr, wdata, rdata;
++    wire [3:0] lanes;
++    wire claim, ready, error, init_done, pending, irq, fiq, tx_valid, rx_ready;
++    wire [7:0] tx_data;
++    wire [5:0] count_select, stop_select;
++    wire commit = packet && !reset && init_done && !pending && allow;
++    wire [31:0] count[0:5], reload[0:5];
++    wire [5:0] running, status, interrupt, expiry, writing, stopping;
++    wire timer_ce = dut.timers.timer_ce;
++    integer clocks = 0, samples = 0, decode_cases = 0;
++    integer idx, word, lane, alias_bits, direction, i;
++    localparam [31:0] BASE = 32'h0c120a00;
++    localparam [31:0] TIMER4 = BASE + 128;
++
++    // Fixture wiring
++
++    genvar unit_index;
++    generate
++        for (unit_index = 0; unit_index < 6; unit_index = unit_index + 1) begin : observed
++            assign count[unit_index] = dut.timers.g_timer[unit_index].count;
++            assign reload[unit_index] = dut.timers.g_timer[unit_index].reload;
++            assign running[unit_index] = dut.timers.g_timer[unit_index].running;
++            assign status[unit_index] = dut.timers.g_timer[unit_index].status;
++            assign interrupt[unit_index] = dut.timers.g_timer[unit_index].pending;
++            assign expiry[unit_index] = dut.timers.g_timer[unit_index].expiry;
++            assign writing[unit_index] = dut.timers.g_timer[unit_index].count_write;
++            assign stopping[unit_index] = dut.timers.g_timer[unit_index].stopping;
++        end
++    endgenerate
++
++    always @(posedge clk) begin
++        clocks <= clocks + 1;
++        if (!reset && init_done) begin
++            // Check each actual count/stop enable against the retained live
++            // predicate, including invalid lanes, unaligned aliases and wait.
++            for (i = 0; i < 6; i = i + 1) begin
++                if (writing[i] !== (commit && wr && lanes == 15 &&
++                      {addr[31:2], 2'b00} == BASE + 32*i + 16))
++                    $fatal(1, "Count write qualifier differed at %h unit %0d", addr, i);
++                if (stopping[i] !== (commit && wr && lanes == 15 && wdata[1:0] == 0 &&
++                      {addr[31:2], 2'b00} == BASE + 32*i + 4))
++                    $fatal(1, "Stop qualifier differed at %h unit %0d", addr, i);
++            end
++            if (commit && claim && dut.local_ready)
++                samples <= samples + 1;
++            if (packet || |expiry)
++                $display("TRACE %0d %b%b%b%b%b %h %h %h %h %h %h %h %h %h %h",
++                         clocks, commit, claim, ready, error, pending, addr,
++                         writing, stopping, expiry, status, interrupt, running,
++                         count[4], reload[4], pending && packet ? rdata : 32'b0);
++        end
++        if (clocks > 45000) $fatal(1, "Timer packet test timed out");
++    end
++
++    task tick;
++        @(negedge clk);
++    endtask
++
++    task offer;
++        input [31:0] target, value;
++        input [3:0] lanes_in;
++        input write_op;
++        begin
++            offered = 1;
++            live = 1;
++            allow = 0;
++            we = write_op;
++            address = target;
++            data = value;
++            sel = lanes_in;
++            tick;
++            offered = 0;
++            // The offered payload is unrelated to the held transaction now.
++            address = 32'h0c120a10;
++            data = ~value;
++            we = !write_op;
++            sel = ~lanes_in;
++            if (!packet || addr !== target || wdata !== value || lanes !== lanes_in || wr !== write_op)
++                $fatal(1, "Packet did not hold its captured fields");
++        end
++    endtask
++
++    task retire;
++        begin
++            allow = 0;
++            live = 0;
++            tick;
++            if (pending || packet) $fatal(1, "Retired request remained pending");
++        end
++    endtask
++
++    task grant;
++        input expected_error;
++        begin
++            allow = 1;
++            tick;
++            if (!claim || !pending || !ready || error !== expected_error)
++                $fatal(1, "Wrong response phase for %h, err=%b", addr, error);
++        end
++    endtask
++
++    task write4;
++        input [4:0] word_offset;
++        input [31:0] value;
++        begin
++            offer(TIMER4 + word_offset, value, 4'hf, 1);
++            grant(0);
++            retire;
++        end
++    endtask
++
++    task read_status;
++        input [31:0] expected;
++        integer waits;
++        begin
++            offer(TIMER4 + 8, 0, 4'hf, 0);
++            allow = 1;
++            waits = 0;
++            while (!ready && waits < 3) begin
++                tick;
++                waits = waits + 1;
++            end
++            if (!ready || error || rdata !== expected)
++                $fatal(1, "Status response %h expected %h", rdata, expected);
++            retire;
++        end
++    endtask
++
++    task wait_expiry_edge;
++        begin
++            while (!(count[4] == 1 && running[4] && timer_ce)) tick;
++        end
++    endtask
++
++    initial begin
++        repeat (3) tick;
++        cold_reset = 0;
++        wait (init_done);
++        tick;
++        reset = 0;
++
++        // Check the real held decode on every six-timer word, both directions,
++        // all 16 masks and each low-address alias. The extra units miss.
++        for (idx = 0; idx < 8; idx = idx + 1)
++            for (word = 0; word < 8; word = word + 1)
++                for (lane = 0; lane < 16; lane = lane + 1)
++                    for (direction = 0; direction < 2; direction = direction + 1)
++                        for (alias_bits = 0; alias_bits < 4; alias_bits = alias_bits + 1) begin
++                            offer(BASE + 32*idx + 4*word + alias_bits, alias_bits[0], lane[3:0], direction[0]);
++                            allow = 1;
++                            #1;
++                            if (dut.timer_claim !== (idx < 6) ||
++                                dut.timer_bad !== (idx < 6 && lane != 15))
++                                $fatal(1, "Timer ownership changed for %h mask %h", addr, lanes);
++                            tick;
++                            decode_cases = decode_cases + 1;
++                            retire;
++                        end
++        reset = 1;
++        tick;
++        reset = 0;
++        write4(16, 99);
++        repeat (5) tick;
++        if (count[4] != 99 || running[4]) $fatal(1, "Disabled timer counted");
++
++        // A new count replaces coincident expiry and clears passive status.
++        write4(8, 32'hface0001);
++        read_status(32'hface0001);
++        write4(4, 1);
++        write4(16, 8);
++        offer(TIMER4 + 16, 4, 4'hf, 1);
++        wait_expiry_edge;
++        grant(0);
++        if (count[4] != 4 || status[4] || interrupt[4])
++            $fatal(1, "Count write did not cancel expiry");
++        retire;
++        read_status(0);
++        wait_expiry_edge;
++        tick;
++        if (!status[4] || !interrupt[4] || running[4]) $fatal(1, "One-shot expiry missing");
++        write4(16, 8);
++        if (status[4] || !interrupt[4] || !running[4]) $fatal(1, "Count rearm acknowledged older IRQ");
++
++        // Stop suppresses expiry without acknowledging the old interrupt.
++        offer(TIMER4 + 4, 32'hffff0000, 4'hf, 1);
++        wait_expiry_edge;
++        grant(0);
++        if (count[4] != 1 || status[4] || !interrupt[4] || running[4])
++            $fatal(1, "Stop priority or count retention changed");
++        retire;
++        write4(8, 0);
++        if (interrupt[4]) $fatal(1, "Explicit ACK lost");
++
++        // Acknowledgement loses to a new expiry, including upper status bits.
++        write4(16, 8);
++        write4(4, 1);
++        offer(TIMER4 + 8, 32'hface0000, 4'hf, 1);
++        wait_expiry_edge;
++        grant(0);
++        if (!status[4] || !interrupt[4] || count[4] != 0) $fatal(1, "Expiry lost to ACK");
++        retire;
++        read_status(1);
++
++        // Periodic expiry uses the old reload on a coincident reload write.
++        write4(24, 17);
++        write4(16, 8);
++        write4(4, 2);
++        offer(TIMER4 + 24, 27, 4'hf, 1);
++        wait_expiry_edge;
++        grant(0);
++        if (count[4] != 17 || reload[4] != 27 || !status[4])
++            $fatal(1, "Reload and expiry ordering changed");
++        retire;
++
++        // Invalid mask and live cancellation both leave the old deadline.
++        write4(16, 8);
++        offer(TIMER4 + 16, 44, 4'h3, 1);
++        wait_expiry_edge;
++        grant(1);
++        if (count[4] != 27 || !status[4]) $fatal(1, "Bad count write suppressed expiry");
++        retire;
++        write4(16, 8);
++        offer(TIMER4 + 4, 0, 4'hf, 1);
++        wait_expiry_edge;
++        retire;
++        if (count[4] != 27 || !status[4] || !running[4]) $fatal(1, "Cancelled stop changed timer");
++
++        // Hold response over several clocks, so the programmed count may
++        // advance instead of getting written again on each held request.
++        offer(TIMER4 + 16, 20, 4'hf, 1);
++        grant(0);
++        repeat (8) tick;
++        if (count[4] != 18 || !pending) $fatal(1, "Held count write repeated");
++        retire;
++        write4(4, 0);
++        write4(16, 0);
++        write4(4, 1);
++        if (count[4] == 0) begin
++            while (!timer_ce) tick;
++            tick;
++        end
++        if (count[4] != 32'hffffffff) $fatal(1, "Zero counter did not wrap");
++
++        offer(TIMER4 + 16, 44, 4'hf, 1);
++        reset = 1;
++        allow = 1;
++        tick;
++        if (count[4] != 0 || status[4] || interrupt[4] || packet || pending)
++            $fatal(1, "Reset did not retire prepared write and clear timer");
++        allow = 0;
++        live = 0;
++        reset = 0;
++        repeat (5) tick;
++        if (count[4] != 0 || running[4]) $fatal(1, "Reset replayed a timer write");
++        $display("PASS timer held packet decode=%0d responses=%0d clocks=%0d", decode_cases, samples, clocks);
++        $finish;
++    end
++endmodule
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/owner-phase.vh b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/owner-phase.vh
+new file mode 100644
+index 0000000..917f42e
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/owner-phase.vh
+@@ -0,0 +1,144 @@
++  integer phase_context, event_mask, host_bits, random_edge, reserved_state;
++  integer event_cases = 0, wrapped_events = 0, recovery_cases = 0;
++  reg [31:0] random_word = 32'h9ea10b42;
++  reg used_wrap;
++
++  function [31:0] next_word;
++    input [31:0] word;
++    reg [31:0] value;
++    begin
++      value = word ^ (word << 13);
++      value = value ^ (value >> 17);
++      next_word = value ^ (value << 5);
++    end
++  endfunction
++
++  task drain_owner;
++    begin
++      @(negedge clk);
++      init_reset = 1;
++      guest_reset = 0;
++      mount = 0;
++      rd = 0;
++      wr = 0;
++      h_we = 0;
++      h_ack = dut.state == 1;
++      tick;
++      @(negedge clk);
++      h_ack = 0;
++      repeat (8) tick;
++      if (dut.state != 0) fail("phase fixture could not drain");
++      @(negedge clk);
++      init_reset = 0;
++      ro = 0;
++      repeat (5) tick;
++    end
++  endtask
++
++  task prime_owner;
++    input integer target;
++    input write_owner;
++    begin
++      drain_owner;
++      if (write_owner) begin
++        admission(2048, 0);
++        if (target == 1) offer_write(0);
++        else begin
++          begin_write(0);
++          write_progress(1);
++        end
++      end else begin
++        make_footer(0);
++        do_mount(2048);
++        wait_mount;
++        begin_read(3, 0);
++        if (target != 1) begin
++          accept_read;
++          if (target == 4) begin
++            for (n = 0; n < 256; n = n + 1) beat(n, {footer[2*n+1], footer[2*n]});
++          end else beat(0, {footer[1], footer[0]});
++        end
++      end
++      if (target >= 3) begin
++        @(negedge clk);
++        h_ack = 0;
++        tick;
++        if (target == 4) repeat (4) tick;
++        else if (random_word[0]) repeat (3) tick;
++      end
++      if (dut.state != target || dut.cancelled || dut.owned_write != write_owner)
++        fail("phase fixture did not reach an uncancelled owner");
++    end
++  endtask
++
++  task test_owner_events;
++    begin
++      owner_phase = 1;
++      // All reset/mount combinations, with and without selected ACK,
++      // shared-bus ingress, and valid/invalid address progress.
++      for (phase_context = 0; phase_context < 7; phase_context = phase_context + 1) begin
++        for (event_mask = 0; event_mask < 8; event_mask = event_mask + 1) begin
++          for (host_bits = 0; host_bits < 8; host_bits = host_bits + 1) begin
++            prime_owner(phase_context == 6 ? 4 : 1 + phase_context % 3,
++                phase_context >= 3 && phase_context < 6);
++            @(negedge clk);
++            used_wrap = event_mask != 0 && host_bits == 3;
++            if (used_wrap) begin
++              dut.generation = 32'hffffffff;
++              dut.request_generation = 32'hffffffff;
++            end
++            {mount, guest_reset, init_reset} = event_mask[2:0];
++            {h_we, h_ack} = host_bits[1:0];
++            h_addr = dut.received_words + dut.owned_write + (host_bits[2] ? 2 : 0);
++            random_word = next_word(random_word);
++            h_data = random_word[15:0];
++            size = random_word[0] ? 64'd4096 : 64'd1025;
++            ro = random_word[1];
++            tick;
++            if (used_wrap) begin
++              if (dut.generation !== 32'd0 || dut.request_generation !== 32'hffffffff ||
++                  !dut.cancelled) fail("wrap fixture did not cancel the old owner");
++              wrapped_events = wrapped_events + 1;
++            end
++            event_cases = event_cases + 1;
++            for (random_edge = 0; random_edge < 16; random_edge = random_edge + 1) begin
++              @(negedge clk);
++              random_word = next_word(random_word);
++              {init_reset, guest_reset, mount, h_ack, h_we, rd, wr, ro} = random_word[7:0];
++              h_addr = random_word[20:8];
++              h_data = random_word[31:16];
++              lba = {29'd0, random_word[10:8]};
++              count = {3'd0, random_word[13:11]};
++              tick;
++            end
++          end
++        end
++      end
++
++      // Exercise invalid encodings separately from the reachable-state
++      // induction, with deliberately unequal retained generation registers.
++      for (reserved_state = 5; reserved_state <= 7; reserved_state = reserved_state + 1) begin
++        for (event_mask = 0; event_mask < 8; event_mask = event_mask + 1) begin
++          drain_owner;
++          @(negedge clk);
++          dut.state = reserved_state[2:0];
++          trial.state = reserved_state[2:0];
++          dut.cancelled = 0;
++          trial.cancelled = 0;
++          dut.generation = 32'h21;
++          dut.request_generation = 32'h20;
++          {mount, guest_reset, init_reset} = event_mask[2:0];
++          h_ack = 1;
++          h_we = 1;
++          tick;
++          if (dut.state != 0 || !fault) fail("reserved state did not recover to IDLE and fault");
++          recovery_cases = recovery_cases + 1;
++        end
++      end
++
++      drain_owner;
++      @(negedge clk);
++      $display("PASS owner miter cases=%0d wrap=%0d reserved=%0d random_edges=%0d compared=%0d",
++          event_cases, wrapped_events, recovery_cases, event_cases * 16, comparison_points);
++    end
++  endtask
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/architectural_trace.vh b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/architectural_trace.vh
+new file mode 100644
+index 0000000..88b6546
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/architectural_trace.vh
+@@ -0,0 +1,69 @@
++`define RESUPP dut.board.upp.cpu_inside
++`define RESZAP `RESUPP.cpu.u_arm925t.u_zap
++`define RESCORE `RESZAP.g_arm9.u_arm9_core
++`define RESFETCH `RESCORE.u_front_decode.u_fetch
++
++reg [31:0] res_begin, res_end;
++integer res_window = 0;
++integer res_retired, res_data, res_mmio, res_recover;
++reg res_active = 0;
++reg [63:0] res_retire_hash, res_data_hash, res_mmio_hash;
++localparam [63:0] RES_INITIAL = 64'hcbf29ce484222325;
++initial begin
++    if (!$value$plusargs("begin_pc=%h", res_begin) || !$value$plusargs("end_pc=%h", res_end))
++        $fatal(1, "Missing architectural digest window");
++end
++
++function automatic [63:0] res_mix(input [63:0] digest, input [63:0] data);
++    res_mix = (digest ^ data) * 64'h00000100000001b3;
++endfunction
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        res_active = 1;
++        res_retired = 0;
++        res_data = 0;
++        res_mmio = 0;
++        res_recover = 0;
++        res_retire_hash = RES_INITIAL;
++        res_data_hash = RES_INITIAL;
++        res_mmio_hash = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && res_active) begin
++        $display("RES_ARCH window=%0d retired=%0d data=%0d mmio=%0d recover=%0d retire_hash=%016x data_hash=%016x mmio_hash=%016x",
++                 res_window, res_retired, res_data, res_mmio, res_recover,
++                 res_retire_hash, res_data_hash, res_mmio_hash);
++        res_window++;
++        res_active = 0;
++    end else if (res_active) begin
++        if (`RESCORE.wb_complete) begin
++            res_retired++;
++            res_retire_hash = res_mix(res_retire_hash, {`RESCORE.w[526:495], `RESCORE.w[494:463]});
++            res_retire_hash = res_mix(res_retire_hash, {25'b0, exceptions, `RESCORE.cpsr_next});
++            if (`RESCORE.wb_valid) begin
++                if (`RESCORE.wb_tag0 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {26'b0, `RESCORE.wb_tag0, `RESCORE.wb_data0});
++                if (`RESCORE.wb_pair && `RESCORE.wb_tag1 != 6'd16)
++                    res_retire_hash = res_mix(res_retire_hash, {25'b0, 1'b1, `RESCORE.wb_tag1, `RESCORE.wb_data1});
++            end
++        end
++        if (`RESZAP.o_dbg_d_done) begin
++            res_data++;
++            res_data_hash = res_mix(res_data_hash, {26'b0, `RESZAP.data_err, `RESZAP.o_dbg_d_we,
++                                                   `RESZAP.o_dbg_d_sel, `RESZAP.o_dbg_d_va});
++            res_data_hash = res_mix(res_data_hash, {32'b0, `RESZAP.o_dbg_d_we ?
++                                                   `RESZAP.o_dbg_d_wdata : `RESZAP.o_dbg_d_rdata});
++        end
++        if (`RESUPP.master_cyc && `RESUPP.master_stb && !`RESUPP.master_code &&
++            (`RESUPP.slow_ack || `RESUPP.slow_error)) begin
++            res_mmio++;
++            res_mmio_hash = res_mix(res_mmio_hash, {26'b0, `RESUPP.slow_error, `RESUPP.master_we,
++                                                   `RESUPP.master_sel, `RESUPP.master_address});
++            res_mmio_hash = res_mix(res_mmio_hash, {32'b0, `RESUPP.master_we ?
++                                                   `RESUPP.master_data : `RESUPP.slow_read_data});
++        end
++    end
++end
++`undef RESFETCH
++`undef RESCORE
++`undef RESZAP
++`undef RESUPP
+diff --git a/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/wb-write-trace.vh b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/wb-write-trace.vh
+new file mode 100644
+index 0000000..e4ee4c7
+--- /dev/null
++++ b/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/wb-write-trace.vh
+@@ -0,0 +1,98 @@
++`define WC dut.board.upp.cpu_inside.cpu
++`define WZ `WC.u_arm925t.u_zap
++`define WD `WZ.l_generate_with_cache_mmu.u_data_cache
++`define WM `WZ.l_merger_for_core_with_cache_mmu.u_zap_wb_merger
++wire obs_bus_on = `WM.o_wb_cyc && `WM.o_wb_stb;
++wire obs_write = obs_bus_on && `WM.o_wb_wen;
++wire obs_ack = obs_bus_on && `WM.i_wb_ack && !`WM.i_wb_err;
++wire obs_err = obs_bus_on && `WM.i_wb_err;
++wire obs_native = obs_write && `WC.wb_write_block;
++wire [3:0] obs_owner = `WM.o_dbg_data_owner ? `WD.state_ff : 4'b0;
++wire [7:0] obs_ctl = {`WM.o_wb_cti, `WM.o_wb_sel, obs_native};
++wire [31:0] obs_adr = `WM.o_wb_adr;
++wire [31:0] obs_data = `WM.o_wb_dat;
++wire [127:0] obs_block = obs_native ? `WC.wb_block_data : 128'b0;
++wire [199:0] obs_payload = {obs_adr, obs_ctl, obs_data, obs_block};
++wire [2:0] obs_source = {obs_native, `WD.u_zap_cache_fsm.state_ff[`WD.u_zap_cache_fsm.CLEAN_SINGLE], `WM.o_dbg_data_owner};
++
++integer wbt_window = 0;
++integer wbt_clock, wbt_writes, wbt_stalls, wbt_read_acks, wbt_write_acks, wbt_errors;
++integer wbt_read_to_write, wbt_write_next_changed, wbt_owner_changes;
++integer wbt_tag_changed, wbt_cch_changed, wbt_native_changed, wbt_post_changed, wbt_unc_changed;
++integer wbt_tag, wbt_cch, wbt_native, wbt_post, wbt_unc;
++reg wbt_active = 0;
++reg wbt_prev_read_ack, wbt_prev_write_ack, wbt_prev_stalled;
++reg [3:0] wbt_prev_owner;
++reg [199:0] wbt_prev_payload;
++reg [63:0] wbt_digest;
++
++always @(posedge clk) if (!reset) begin
++    if (retire && retire_pc == res_begin) begin
++        wbt_active = 1;
++        wbt_clock = 0;
++        wbt_writes = 0; wbt_stalls = 0; wbt_read_acks = 0; wbt_write_acks = 0; wbt_errors = 0;
++        wbt_read_to_write = 0; wbt_write_next_changed = 0; wbt_owner_changes = 0;
++        wbt_tag_changed = 0; wbt_cch_changed = 0; wbt_native_changed = 0;
++        wbt_post_changed = 0; wbt_unc_changed = 0;
++        wbt_tag = 0; wbt_cch = 0; wbt_native = 0; wbt_post = 0; wbt_unc = 0;
++        wbt_prev_read_ack = 0; wbt_prev_write_ack = 0; wbt_prev_stalled = 0;
++        wbt_prev_owner = 0; wbt_prev_payload = 0;
++        wbt_digest = RES_INITIAL;
++    end else if (retire && retire_pc == res_end && wbt_active) begin
++        $display("RES_WB window=%0d offer=%0d stall=%0d read_ack=%0d write_ack=%0d write_error=%0d read_to_write=%0d changed_after_write_ack=%0d owner_changes=%0d tag=%0d evict_scalar=%0d evict_native=%0d post=%0d unc=%0d tag_changed=%0d evict_scalar_changed=%0d evict_native_changed=%0d post_changed=%0d unc_changed=%0d write_hash=%016x",
++                 wbt_window,wbt_writes,wbt_stalls,wbt_read_acks,wbt_write_acks,wbt_errors,
++                 wbt_read_to_write,wbt_write_next_changed,wbt_owner_changes,
++                 wbt_tag,wbt_cch,wbt_native,wbt_post,wbt_unc,wbt_tag_changed,
++                 wbt_cch_changed,wbt_native_changed,wbt_post_changed,wbt_unc_changed,wbt_digest);
++        wbt_window++;
++        wbt_active = 0;
++    end else if (wbt_active) begin
++        wbt_clock++;
++        if (obs_ack && !obs_write) wbt_read_acks++;
++        if (wbt_prev_stalled && !obs_write) $fatal(1, "write withdrawn while stalled");
++        if (obs_write) begin
++            wbt_writes++;
++            if (wbt_prev_stalled && obs_payload !== wbt_prev_payload)
++                $fatal(1, "stalled write changed payload");
++            if (obs_ack) begin
++                wbt_write_acks++;
++                case (obs_owner)
++                    4'b0010: wbt_tag++;
++                    4'b1000: wbt_post++;
++                    4'b0001: if (obs_native) wbt_native++; else if (obs_source[1]) wbt_cch++; else wbt_unc++;
++                    default: $fatal(1, "unexpected write owner %b", obs_owner);
++                endcase
++            end else if (obs_err) wbt_errors++;
++            else wbt_stalls++;
++            if (wbt_prev_read_ack) wbt_read_to_write++;
++            if (wbt_prev_write_ack) begin
++                if (wbt_prev_owner != obs_owner) wbt_owner_changes++;
++                if (obs_payload[159:0] != wbt_prev_payload[159:0]) begin
++                    wbt_write_next_changed++;
++                    if (wbt_prev_owner == obs_owner)
++                        case (obs_owner)
++                            4'b0010: wbt_tag_changed++;
++                            4'b1000: wbt_post_changed++;
++                            4'b0001: if (obs_native) wbt_native_changed++; else if (obs_source[1]) wbt_cch_changed++; else wbt_unc_changed++;
++                            default: ;
++                        endcase
++                end
++            end
++            wbt_digest = res_mix(wbt_digest, {obs_adr, wbt_clock[21:0], obs_ctl, obs_ack, obs_err});
++            wbt_digest = res_mix(wbt_digest, {31'b0, `WC.wb_lock, obs_data});
++            if (obs_native) begin
++                wbt_digest = res_mix(wbt_digest, obs_block[63:0]);
++                wbt_digest = res_mix(wbt_digest, obs_block[127:64]);
++            end
++        end
++        wbt_prev_read_ack = obs_ack && !obs_write;
++        wbt_prev_write_ack = obs_ack && obs_write;
++        wbt_prev_stalled = obs_write && !obs_ack && !obs_err;
++        wbt_prev_owner = obs_owner;
++        wbt_prev_payload = obs_payload;
++    end
++end
++`undef WM
++`undef WD
++`undef WZ
++`undef WC

@@ -8,7 +8,7 @@ module tb;
   wire claim, bad, irq;
   wire [31:0] dout;
   ngage_cbus_uem #(
-      .SECOND_TICKS    (40),
+      .SECOND_TICKS    (100),
       .ALARM_TICKS     (8),
       .ALARM_INTERVAL  (1),
       .POWER_KEY_ENABLE(1),
@@ -112,6 +112,12 @@ module tb;
     rd('h0c150420, 'h535);
     rd('h0c150424, 'h18);
     cfg('hf);
+    command('h35);
+    payload('h8);
+    cfg('hf);
+    command('h135);
+    rd('h0c150424, 'h10);
+    cfg('hf);
     command('h36);
     payload('hfff7);
     repeat (9) tick();
@@ -123,10 +129,16 @@ module tb;
     cfg(7);
     command('h135);
     rd('h0c150424, 'h8);
+    cfg('hf);
+    command('h35);
+    payload('h8);
+    cfg('hf);
+    command('h135);
+    rd('h0c150424, 0);
     power = 1;
-    rd('h0c150424, 'h18);
+    rd('h0c150424, 'h10);
     power = 0;
-    rd('h0c150424, 'h8);
+    rd('h0c150424, 0);
     cfg(7);
     command('h13f);
     rd('h0c150424, POWERUP_STATUS & 16'hfffd);
@@ -143,8 +155,11 @@ module tb;
     command('h132);
     rd('h0c150424, 0);
     periodic = 1;
-    repeat (41) tick();
+    repeat (101) tick();
     if (!irq) $fatal(1, "periodic RTC irq");
+    cfg('hf);
+    command('h135);
+    rd('h0c150424, 0);
     $display("PASS CBUS sequencing, RTC and ADC hypotheses");
     $finish;
   end

@@ -1,0 +1,222 @@
+diff --git a/Template.sv b/Template.sv
+index 82ff793b9ec32d2ad3ee45d97411d0071f78c84c..9910937a8e47df31677492d651654471e58372e2 100644
+--- a/Template.sv
++++ b/Template.sv
+@@ -1154,18 +1154,17 @@ module emu (
+     // NOS IRQ deadlines remain firmware-controlled; this is not phone-verified.
+     // Synthetic no-PIN card supplies SIMIF bytes; no NOS/SIM-state override.
+     ngage_mister #(
+-        .ENABLE_DEBUGGER   (`ENABLE_DEBUGGER),
+-        .LINE_REFILL       (1),
+-        .RAM_LINE_EARLY    (1),
+-        .LCD_LINE_BYTES    (LCD_LINE_BYTES),
+-        .DMA_LOCAL         (1),
+-        .GAME_PCM          (1),
+-        .MMC_CLK_DIV       (MMC_CLK_DIV),
+-        .ANALOG_LINE_PIXELS(414),
+-        .TEST_SIM_ENABLE   (1),
+-        .TIMER_CLK_DIV     (SYS_CLK_HZ / 26000000),
+-        .NOS_TICK_HZ       (64),
+-        .SYS_CLK_HZ        (SYS_CLK_HZ)
++        .ENABLE_DEBUGGER(`ENABLE_DEBUGGER),
++        .LINE_REFILL    (1),
++        .RAM_LINE_EARLY (1),
++        .LCD_LINE_BYTES (LCD_LINE_BYTES),
++        .DMA_LOCAL      (1),
++        .GAME_PCM       (1),
++        .MMC_CLK_DIV    (MMC_CLK_DIV),
++        .TEST_SIM_ENABLE(1),
++        .TIMER_CLK_DIV  (SYS_CLK_HZ / 26000000),
++        .NOS_TICK_HZ    (64),
++        .SYS_CLK_HZ     (SYS_CLK_HZ)
+     ) core (
+         .ddram_line(core_ddr_line),
+         .ddram_beat_valid(core_beat_valid),
+diff --git a/rtl/ngage_board.v b/rtl/ngage_board.v
+index 0efde1248066dcb38cd302910c1f2b7787590e9f..7c1970542d07745565495999fd8856ef3535f5c5 100644
+--- a/rtl/ngage_board.v
++++ b/rtl/ngage_board.v
+@@ -19,8 +19,7 @@ module ngage_board #(
+               UEM_POWERUP_STATUS = 1,
+               SYS_CLK_HZ         = 104000000,
+               TIMER_CLK_DIV      = 1,
+-              NOS_TICK_HZ        = 1000,
+-              ANALOG_LINE_PIXELS = 400
++              NOS_TICK_HZ        = 1000
+ ) (
+ 
+     input  tri0 [ 32:0] host_timestamp,
+@@ -328,8 +327,7 @@ module ngage_board #(
+                 .out_data (queued_data)
+             );
+             ngage_lcd_display #(
+-                .PIXEL_DIV  (SYS_CLK_HZ / 6500000),
+-                .LINE_PIXELS(ANALOG_LINE_PIXELS)
++                .PIXEL_DIV(SYS_CLK_HZ / 6500000)
+             ) lcd (
+                 .clk              (clk),
+                 .reset            (rst),
+diff --git a/rtl/ngage_lcd_display.v b/rtl/ngage_lcd_display.v
+index 8cc37863ff2b9a40ebc96fcd6d686e2971af81fe..af213dc68ba85c814e0d56ca94e52186498024ff 100644
+--- a/rtl/ngage_lcd_display.v
++++ b/rtl/ngage_lcd_display.v
+@@ -3,8 +3,7 @@
+ // header/RGB444 assumptions follow scratch/current-boot/direct_lcd.py; these
+ // signals do not model the physical LCD serial bus or verified scan timing.
+ module ngage_lcd_display #(
+-    parameter integer PIXEL_DIV   = 16,
+-    parameter integer LINE_PIXELS = 400
++    parameter integer PIXEL_DIV = 16
+ ) (
+     input  wire        clk,
+     input  wire        reset,
+@@ -133,8 +132,7 @@ module ngage_lcd_display #(
+         ce_pix            <= div == 0;
+         unsupported_valid <= 0;
+         if (div == 0) begin
+-            // Extend the trailing blank only when the board selects a longer line.
+-            if (x == LINE_PIXELS - 1) begin
++            if (x == 399) begin
+                 x <= 0;
+                 if (y == 261) y <= 0;
+                 else y <= y + 1'b1;
+diff --git a/rtl/ngage_mister.v b/rtl/ngage_mister.v
+index c386894c99921e04c7d5fe87094c75901d9fbc46..a720c3fc3552750df43901a0321acea27f015e94 100644
+--- a/rtl/ngage_mister.v
++++ b/rtl/ngage_mister.v
+@@ -25,8 +25,7 @@ module ngage_mister #(
+                       SYS_CLK_HZ         = 104000000,
+                       TIMER_CLK_DIV      = 1,
+                       NOS_TICK_HZ        = 1000,
+-                      RAM_LINE_EARLY     = 0,
+-                      ANALOG_LINE_PIXELS = 400
++                      RAM_LINE_EARLY     = 0
+ ) (
+     output wire         ddram_line,
+     input  wire         ddram_beat_valid,
+@@ -240,7 +239,6 @@ module ngage_mister #(
+         .LCD_DMA_ENABLE    (1),
+         .GENERAL_DMA       (GENERAL_DMA),
+         .LCD_LINE_BYTES    (LCD_LINE_BYTES),
+-        .ANALOG_LINE_PIXELS(ANALOG_LINE_PIXELS),
+         .GAME_PCM          (GAME_PCM),
+         .MMC_CLK_DIV       (MMC_CLK_DIV),
+         .UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)
+diff --git a/tests/cpu/arm9v2_board/payload_clocks.py b/tests/cpu/arm9v2_board/payload_clocks.py
+index 0f072c66edaf6b69ed19650468dc2665afef1835..48d3baed7322c6642fa6f52e62ca4842afa41b07 100644
+--- a/tests/cpu/arm9v2_board/payload_clocks.py
++++ b/tests/cpu/arm9v2_board/payload_clocks.py
+@@ -161,7 +161,7 @@ def compile_phone(out, divider, hz, arm9v2_netlist, flash_cache_bytes, sdram_mod
+                        '-DNGAGE_POWERUP_NORMAL', '-Wno-fatal', '-Wno-lint', '-Irtl/arm',
+                        '--top-module', 'tb', '--Mdir', container_path(obj), '-GLINE_REFILL=1',
+                        f'-GSYS_CLK_HZ={sys_clk_hz}', f'-GTIMER_CLK_DIV={sys_clk_hz // 26_000_000}',
+-                       f'-GANALOG_LINE_PIXELS={414 if sys_clk_hz == 104_000_000 else 400}', '-GGAME_PCM=1',
++                       '-GGAME_PCM=1',
+                        f'-GFLASH_CACHE_BYTES={flash_cache_bytes}', '-GBOUNDED_CYCLES=120000000', *real_sdram,
+                        f'-GNOS_TICK_HZ={hz}', f'-GMMC_CLK_DIV={divider}', *rtl],
+                        cwd=ROOT, stdout=log, stderr=subprocess.STDOUT, check=True)
+diff --git a/tests/phone/clock_rates/run.sh b/tests/phone/clock_rates/run.sh
+index c15cbe66a9dc2579e44accdde8b7bae245ef3811..b16e93cd3baa79db38bec6eb4b78b031aa0b6aa2 100644
+--- a/tests/phone/clock_rates/run.sh
++++ b/tests/phone/clock_rates/run.sh
+@@ -11,7 +11,7 @@ assert p.count('104.000000 MHz')==2 and '.phase_shift1("-2404ps")' in ''.join(p.
+ assert '.SD_TIMEOUT(SYS_CLK_HZ)' in s
+ assert '.SYS_CLK_HZ(SYS_CLK_HZ)' in s and '.outclk_1()' in s
+ assert 'MMC_CLK_DIV=3;' in s and '.MMC_CLK_DIV(MMC_CLK_DIV)' in s
+-assert '.ANALOG_LINE_PIXELS(414)' in s and 'assignVGA_HS=core_hsync;' in s and 'assignVGA_VS=core_vsync;' in s
++assert 'assignVGA_HS=core_hsync;' in s and 'assignVGA_VS=core_vsync;' in s
+ assert '.TIMER_CLK_DIV(SYS_CLK_HZ/26000000)' in s and '.NOS_TICK_HZ(64)' in s
+ assert 'ngage_sdram_clock' in s and '.sdram_clk(SDRAM_CLK)' in s
+ assert '.CLK_HZ(SYS_CLK_HZ)' in s
+@@ -20,10 +20,12 @@ PY
+ iverilog -g2012 -s tb -o "$out/test" rtl/ngage_simif.v rtl/ngage_test_sim.v rtl/ngage_mmc_host.v rtl/ngage_mmc_card.v rtl/ngage_mmc_dpram.v rtl/ngage_board.v rtl/ngage_upp.v rtl/ngage_upp_peripherals.v rtl/ngage_upp_euart.v rtl/ngage_uem.v rtl/ngage_adsp.v rtl/ngage_adsp_bootstrap_tx.v rtl/ngage_adsp_diagnostic.v rtl/ngage_aic23.v rtl/ngage_lrb2.v rtl/ngage_mjoelner.v rtl/ngage_bram.v rtl/ngage_bram_be.v rtl/ngage_sparse_regs.v rtl/ngage_icu.v rtl/ngage_icu_extra.v rtl/ngage_timers.v rtl/ngage_nos_io.v rtl/ngage_mdi_stub.v rtl/ngage_upp_dsp_peer.v rtl/ngage_upp_mdi.v rtl/ngage_cbus_uem.v rtl/ngage_gpio_loopback.v rtl/ngage_boot_regs.v rtl/ngage_trace_sink.v rtl/ngage_lcd_display.v rtl/ngage_sdram_adapter.v tests/phone/clock_rates/tb.sv
+ vvp "$out/test"
+ 
+-for config in '104000000 16 414' '78000000 12 400'; do
++for config in '104000000 16' '78000000 12'; do
+  set -- $config
+- iverilog -g2005 -s tb -Ptb.SYS_HZ="$1" -Ptb.PIXEL_DIV="$2" -Ptb.LINE_PIXELS="$3" \
++ iverilog -g2005 -s tb -Ptb.SYS_HZ="$1" -Ptb.PIXEL_DIV="$2" \
+     -o "$out/video" rtl/ngage_bram.v rtl/ngage_lcd_display.v tests/phone/lcd_display/native_tb.v
+  vvp "$out/video" > "$out/video-$2.log"
+  cat "$out/video-$2.log"
++ grep '^PASS native ' "$out/video-$2.log" > "$out/raster-$2.txt"
+ done
++cmp "$out/raster-16.txt" "$out/raster-12.txt"
+diff --git a/tests/phone/clock_rates/tb.sv b/tests/phone/clock_rates/tb.sv
+index e33c758ca1058e4d5af6497475562201a0e58b38..279852de2bb81feeb20079931c249b6f1982f969 100644
+--- a/tests/phone/clock_rates/tb.sv
++++ b/tests/phone/clock_rates/tb.sv
+@@ -7,14 +7,12 @@ module clock_case #(
+     output reg  done = 0
+ );
+   localparam PIX = HZ / 6500000, SIM = HZ / 3250000, FAST = (HZ + 16384) / 32768;
+-  localparam LINE_PIXELS = HZ == 104000000 ? 414 : 400;
+   localparam REFRESH = (64'd6800 * HZ) / 104000000;
+   wire ce, rfsh;
+   ngage_board #(
+-      .SYS_CLK_HZ(HZ),
+-      .LCD_ENABLE(1),
+-      .SIMIF_ENABLE(1),
+-      .ANALOG_LINE_PIXELS(LINE_PIXELS)
++      .SYS_CLK_HZ  (HZ),
++      .LCD_ENABLE  (1),
++      .SIMIF_ENABLE(1)
+   ) dut (
+       .clk(clk),
+       .rst(reset),
+@@ -100,8 +98,7 @@ module clock_case #(
+     if(dut.uem.cbus.SECOND_TICKS!=HZ || dut.uem.cbus.ALARM_TICKS!=(64'd7995392*HZ)/104000000 ||
+      dut.uem.cbus.ALARM_INTERVAL!=(64'd65536*HZ)/104000000)
+       $fatal(1, "UEM wall-time parameters");
+-    if(dut.display.lcd.PIXEL_DIV!=PIX || dut.display.lcd.LINE_PIXELS!=LINE_PIXELS ||
+-     dut.test_card.card.CLOCK_DIV!=SIM)
++    if (dut.display.lcd.PIXEL_DIV != PIX || dut.test_card.card.CLOCK_DIV != SIM)
+       $fatal(1, "clock propagation changed");
+     if (pixels < 19000 || sim_ticks < 9000 || refreshes < 40) $fatal(1, "missing clock events");
+     $display(
+diff --git a/tests/phone/hardware_boot/tb.v b/tests/phone/hardware_boot/tb.v
+index 43c8436df9d3ce2121ac2cad1848f123b682a1ac..4820ec28f438287b9b73dd06dedceda8e31c8390 100644
+--- a/tests/phone/hardware_boot/tb.v
++++ b/tests/phone/hardware_boot/tb.v
+@@ -140,7 +140,6 @@ parameter integer OVERLAY_COMPONENT=1;
+ parameter integer SYS_CLK_HZ=104000000;
+ parameter integer TIMER_CLK_DIV=1,NOS_TICK_HZ=1000;
+ parameter integer FLASH_CACHE_BYTES=8192, MMC_CLK_DIV=4, GAME_PCM=0;
+-parameter integer ANALOG_LINE_PIXELS=400;
+ parameter integer ROM_CACHE=0;
+ parameter integer DIRECT_SDRAM=1;
+ parameter integer LINE_REFILL=0;
+@@ -322,7 +321,7 @@ parameter integer ROM_CACHE_BITS=64,ROM_CACHE_BYTES=1024;
+  wire cpu_ram_accept;
+  wire cpu_write_block, mem_write_block;
+  wire [127:0] cpu_block_data, mem_block_data;
+- ngage_mister #(.ENABLE_DEBUGGER(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.ANALOG_LINE_PIXELS(ANALOG_LINE_PIXELS),.GAME_PCM(GAME_PCM)) dut(
++ ngage_mister #(.ENABLE_DEBUGGER(1),.GENERAL_DMA(1),.DMA_LOCAL(1),.LINE_REFILL(LINE_REFILL),.TIMER_CLK_DIV(TIMER_CLK_DIV),.NOS_TICK_HZ(NOS_TICK_HZ),.DIRECT_SDRAM(DIRECT_SDRAM),.UEM_POWERUP_STATUS(UEM_POWERUP_STATUS),.SYS_CLK_HZ(SYS_CLK_HZ),.MMC_CLK_DIV(MMC_CLK_DIV),.GAME_PCM(GAME_PCM)) dut(
+   .mmc_card_reset(1'b0),.mmc_img_mounted(1'b0),.mmc_img_readonly(1'b1),.mmc_img_size(64'd0),
+   .mmc_sd_ack(1'b0),.mmc_sd_buff_addr(13'd0),.mmc_sd_buff_dout(16'd0),.mmc_sd_buff_wr(1'b0),
+ .ddram_line(ddr_line),.ddram_beat_valid(core_beat_valid),.ddram_beat_data(core_beat_data),.ddram_beat_last(core_beat_last),
+diff --git a/tests/phone/lcd_display/native_tb.v b/tests/phone/lcd_display/native_tb.v
+index 85fd067de974bda782e24a4738f289f354ecc5b5..d6989c0dd3b3821f3ba5cca5b219a94244d24bba 100644
+--- a/tests/phone/lcd_display/native_tb.v
++++ b/tests/phone/lcd_display/native_tb.v
+@@ -1,7 +1,8 @@
+ `timescale 1ns / 1ps
+ // Check the actual CE/DE stream, not a host crop of a padded screenshot.
+ module tb;
+-  parameter PIXEL_DIV = 16, LINE_PIXELS = 400, SYS_HZ = 104000000;
++  parameter  PIXEL_DIV   = 16, SYS_HZ = 104000000;
++  localparam LINE_PIXELS = 400;
+   reg clk = 0, reset = 1, diagnostic = 0, wv = 0, dv = 0, full = 0;
+   reg [31:0] wa = 0, wd = 0, dd = 0;
+   reg [14:0] da = 0;
+@@ -15,8 +16,7 @@ module tb;
+   always #(500000000.0 / SYS_HZ) clk = ~clk;
+   always @(posedge clk) sys_clock = sys_clock + 1;
+   ngage_lcd_display #(
+-      .PIXEL_DIV  (PIXEL_DIV),
+-      .LINE_PIXELS(LINE_PIXELS)
++      .PIXEL_DIV(PIXEL_DIV)
+   ) dut (
+       .clk(clk),
+       .reset(reset),

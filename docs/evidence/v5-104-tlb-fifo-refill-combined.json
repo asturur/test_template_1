@@ -1,0 +1,80 @@
+{
+  "status": "PASS",
+  "candidate": "b9e13fcc302434845a026b133b15428ce967b055",
+  "base": "99299836993ad77d812d314c78134ef6727d913e",
+  "tree": "93f6ad1007a1ac9b6c12257303fb16df8044529b",
+  "source_sha256": {
+    "rtl/ngage_cpu.sv": "ffd3ec6e88d3f7671e9a0c31efdaef5a6d6d204c41505966a2eae86df8efae11",
+    "rtl/arm9v2/arm925t_phone.v": "07428d764ed75a2f42e4a71aebf5ff5870cd2041099c2cf9c9f66d6d0a9e0eab",
+    "rtl/ngage_mmc_host.v": "6cf5cae2039d19fe6ca4f6d70ff8f514fa3f98097f894429892af38deea13d87",
+    "tools/gen_arm9v2_phone.py": "33ad2d5f955ae4d6cefc48bd86d3cb8e513cd3fe411ab676995ef7761ed4fd11"
+  },
+  "preflight_sha256": "ccf994a8fb2488934359a296c0446e2c8e69b1b3a102a63c3d8e0b0893b5e5ff",
+  "ram_qualification_sha256": "50aba6db22dd4be800f71c2bb9341b1217f42e76e49251dcff048e0366d98ca5",
+  "refill_qualification_sha256": "e71d4c7d4ae48018de73eedbd2b71ec4a007c9a7ad11649295d9de2760da6465",
+  "compiled_fingerprints": {
+    "rtl/arm9v2/arm925t_phone.v": "B0KNdk7XWi9C5Kca6BXBWHDNIEEJnCz5yfZtbQqe",
+    "rtl/ngage_mmc_host.v": "bPXK4gOdGf5spPbXDBj1FPoBmAlBiUQpiSrzje6h",
+    "rtl/ngage_cpu.sv": "B9PsbojT92cemgwx79rvWm1tIExBUFlmourobfjv"
+  },
+  "mixed_sources": 114,
+  "simulator": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "workload": {
+    "fixed": {
+      "count": 105,
+      "receipt_sha256": "c9512d1f95b04726b2570c0e77806e2e44ef8225ee0d4af8bb7eb6095dd9c32c"
+    },
+    "native": {
+      "count": 4,
+      "receipt_sha256": "d4043476b450fec07c6b2fd633b23d07b3b1e801f631f1eb535ef1c6eacd1b49",
+      "cycles": [
+        14391395,
+        14467552,
+        14346201,
+        14303223
+      ],
+      "guest_output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77"
+    }
+  },
+  "board": {
+    "burst-0-wait-0": {
+      "trace_sha256": "5eb36a2549bc68ac5e750b70d2e5ddb95e97900ce3d5a39ecfa59971bdc46c57",
+      "cycles": 33464
+    },
+    "burst-0-wait-5": {
+      "trace_sha256": "6d7c90428c2072dcba11c44b696e1e2d19b8d6f46f38973b840f09f1ecfed809",
+      "cycles": 67865
+    },
+    "burst-1-wait-0": {
+      "trace_sha256": "31cd1b51eb82c54931c436fcfa8b933f8fba7b6dcac00d9bb26f3df437b0f2ee",
+      "cycles": 28464
+    },
+    "burst-1-wait-5": {
+      "trace_sha256": "12349a2fe3c61600eb64ba3f1214fbdc25324d5fb59e6f5a90e96511eb6d26f4",
+      "cycles": 42543
+    }
+  },
+  "directed": [
+    "PASS walker check=1 cycles=7765 resolved=1132 l1=592 l2=592 small_fills=592",
+    "PASS walker check=0 cycles=7765 resolved=1132 l1=592 l2=592 small_fills=592",
+    "PASS MMC host data peer DIV=2 FIFO=16 cases=28 clocks=41152: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering",
+    "PASS MMC host data peer DIV=3 FIFO=16 cases=28 clocks=61578: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering",
+    "PASS MMC host data peer DIV=4 FIFO=16 cases=28 clocks=82004: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering",
+    "PASS MMC host data peer DIV=12 FIFO=8 cases=28 clocks=244751: exact TX/RX lengths, rounded4 padding, stalls, CRC/token/busy/start errors, reset and 5/6/7/8/9/10 ordering",
+    "PASS MMC FIFO all masks, wrap=260 forwarded=939 simultaneous TX=331 RX=312",
+    "PASS CMD16 accepted-length cache: 33 pin-observed probes, R1 error bits, CRC/framing/type rejection, status-only success and reset in 126430 clocks",
+    "PASS MMC integer /3 clock: CMD0=12, rises=696, falls=696"
+  ],
+  "physical_replays": {
+    "normal": {
+      "cycles": 1201547,
+      "events": 171496,
+      "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26"
+    },
+    "overlap": {
+      "cycles": 1201528,
+      "events": 171497,
+      "trace_sha256": "0e9fb47c965bab211b315c129e08effab414ed1ccc9e579aee4d56d9d29ba824"
+    }
+  }
+}

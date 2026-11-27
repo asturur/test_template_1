@@ -1,0 +1,420 @@
+--- /dev/null
++++ b/scratch/icache-lookahead-739d3bd/lookahead.vh
+@@ -0,0 +1,204 @@
++`define LA_CPU dut.board.upp.cpu_inside.cpu
++`define LA_ZAP `LA_CPU.u_arm925t.u_zap
++`define LA_CORE `LA_ZAP.g_arm9.u_arm9_core
++`define LA_FETCH `LA_CORE.u_front_decode.u_fetch
++`define LA_IC `LA_ZAP.l_generate_with_cache_mmu.u_code_cache
++`define LA_CACHE `LA_IC.u_zap_cache_fsm
++`define LA_DC `LA_ZAP.l_generate_with_cache_mmu.u_data_cache
++
++// Reproduce F1/F2 advancement with one provenance bit only. Numerically
++// adjacent targets launched by prediction or redirect never count.
++reg seq_f1 = 0, seq_f2 = 0;
++always @(posedge clk) begin
++    if (reset || `LA_FETCH.i_redirect)
++        {seq_f1, seq_f2} <= 0;
++    else if (`LA_FETCH.advance) begin
++        seq_f2 <= seq_f1 && !`LA_FETCH.retry && !`LA_FETCH.killed;
++        seq_f1 <= !`LA_FETCH.retry && !`LA_FETCH.killed && !`LA_FETCH.predicted &&
++            `LA_FETCH.f1[35] && `LA_FETCH.f1[33:32] == `LA_FETCH.epoch &&
++            `LA_FETCH.f1[34] == `LA_FETCH.launch_thumb &&
++            `LA_FETCH.launch_pc[4:0] == 0 &&
++            `LA_FETCH.launch_pc == `LA_FETCH.f1[31:0] +
++                                    (`LA_FETCH.launch_thumb ? 32'd2 : 32'd4);
++    end
++end
++
++wire [47:0] la_context = {`LA_IC.i_mmu_en, `LA_IC.i_cache_en, `LA_IC.i_cpsr,
++    `LA_IC.i_sr, `LA_IC.i_dac_reg, `LA_CORE.o_pid[6:0]};
++wire la_invalidate = `LA_IC.i_tlb_inv || `LA_IC.i_cache_inv_req || `LA_IC.i_cache_clean_req;
++wire la_d_line = `LA_CPU.refill.state == 1 && !`LA_CPU.wb_code;
++wire la_d_pending = csreq || la_d_line || `LA_CORE.request ||
++    `LA_DC.o_writeback_busy;
++wire la_lcd_pending = lcd_fast_req || shared_dma_req;
++wire la_bus_free = !lock && !sreq && !sdr_busy && !ram_line_req && ram_line_ready &&
++    dut.line_ready && `LA_CPU.refill.state == 0 && !`LA_CPU.wb_cyc &&
++    !la_d_pending && !la_lcd_pending;
++wire la_i_exposed = !retire && !`LA_CPU.u_arm925t.dbg_wb_valid &&
++    !`LA_CPU.u_arm925t.dbg_wb_dvalid &&
++    !(`LA_CPU.u_arm925t.dbg_stall[0] || `LA_CORE.request) &&
++    !(|`LA_CPU.u_arm925t.dbg_stall[7:3]) &&
++    `LA_CPU.u_arm925t.dbg_stall[2] && `LA_CPU.u_arm925t.dbg_icache[5] && !`LA_IC.tlb_busy;
++
++integer hist_live, hist_adjacency, hist_seq, hist_seq_samepage, hist_word0_nonseq, hist_nonzero;
++integer tail_cancelled, tail_hints, tail_page_boundary;
++integer hist_hinted, hist_first_free, hist_free_run, hist_first_lead, hist_run_lead;
++integer hist_d_interposed, hist_lcd_interposed, hist_no_free, hist_exposed;
++integer hist_ideal_exposed, hist_order_exposed, hist_max_order_lead;
++reg hint_valid = 0;
++reg [31:0] hint_target;
++reg [1:0] hint_epoch;
++reg [47:0] hint_context;
++integer hint_clock, hint_first_free, hint_idle_run;
++reg hint_to_demand = 0, hint_saw_d = 0, hint_saw_lcd = 0;
++reg last_fill_valid = 0;
++reg [31:0] last_va, last_pa;
++reg [1:0] last_epoch;
++reg [47:0] last_context;
++reg demand_valid = 0, demand_seq;
++reg [31:0] demand_va, demand_pa;
++reg [1:0] demand_epoch;
++reg [47:0] demand_context;
++reg live_miss = 0;
++integer miss_ideal_lead, miss_order_lead, miss_exposed;
++
++function integer la_min(input integer a, b);
++    la_min = a < b ? a : b;
++endfunction
++
++task automatic reset_lookahead;
++    hist_live = 0; hist_adjacency = 0; hist_seq = 0; hist_seq_samepage = 0;
++    hist_word0_nonseq = 0; hist_nonzero = 0; tail_cancelled = 0; tail_hints = 0;
++    tail_page_boundary = 0; hist_hinted = 0; hist_first_free = 0; hist_free_run = 0;
++    hist_first_lead = 0; hist_run_lead = 0; hist_d_interposed = 0; hist_lcd_interposed = 0;
++    hist_no_free = 0; hist_exposed = 0; hist_ideal_exposed = 0; hist_order_exposed = 0;
++    hist_max_order_lead = 0;
++    live_miss = 0; demand_valid = 0; last_fill_valid = 0; hint_valid = 0;
++endtask
++
++task automatic observe_lookahead;
++    reg board_claim, same_page_seq, hint_match, prior_page;
++    reg [31:0] tail_pc, next_line;
++    board_claim = `LA_CPU.line_req && `LA_CPU.line_ready && `LA_CPU.wb_code;
++    if (la_invalidate || !`LA_IC.i_cache_en) begin
++        hint_valid = 0;
++        last_fill_valid = 0;
++    end
++    if (hint_valid && (cycles-hint_clock >= 64 || `LA_FETCH.i_redirect ||
++                       hint_epoch != `LA_FETCH.epoch || hint_context != la_context)) begin
++        tail_cancelled++;
++        hint_valid = 0;
++    end
++    // Current request is the I cache's owned miss. Do not count a request
++    // already selected by the I cache as a lookahead from decode.
++    if (`LA_CACHE.state_ff == `LA_CACHE.IDLE && `LA_CACHE.state_nxt == `LA_CACHE.FETCH_SINGLE) begin
++        demand_valid = `LA_FETCH.o_request && `LA_FETCH.f2[35] && !`LA_FETCH.killed;
++        demand_va = `LA_FETCH.f2[31:0];
++        demand_pa = `LA_CACHE.i_phy_addr;
++        demand_epoch = `LA_FETCH.f2[33:32];
++        demand_context = la_context;
++        demand_seq = seq_f2 && demand_va[4:0] == 0;
++        hint_to_demand = hint_valid && demand_seq && hint_target == demand_va &&
++                         hint_epoch == demand_epoch && hint_clock < cycles;
++    end
++
++    if (live_miss) begin
++        if (la_i_exposed) miss_exposed++;
++        if (`LA_FETCH.i_redirect || demand_epoch != `LA_FETCH.epoch)
++            live_miss = 0;
++        else if (`LA_CACHE.take && `LA_CACHE.o_wb_adr_ff[4:2] == demand_pa[4:2]) begin
++            hist_exposed += miss_exposed;
++            hist_ideal_exposed += la_min(miss_exposed, miss_ideal_lead);
++            hist_order_exposed += la_min(miss_exposed, miss_order_lead);
++            live_miss = 0;
++        end
++    end
++
++    if (board_claim) begin
++        prior_page = last_fill_valid && last_va[31:12] == demand_va[31:12] &&
++                     last_pa[31:12] == demand_pa[31:12] &&
++                     last_epoch == demand_epoch && last_context == demand_context;
++        same_page_seq = demand_seq && demand_va[11:0] != 0;
++        hint_match = hint_valid && hint_to_demand && prior_page && same_page_seq &&
++                     hint_target == demand_va && hint_epoch == demand_epoch &&
++                     hint_context == demand_context;
++        if (demand_valid && demand_pa[31:24] == 8'h0a &&
++            `LA_CPU.line_addr[31:5] == demand_pa[31:5] && dut.line_no_late_error) begin
++            hist_live++;
++            if (prior_page && last_va[31:5] + 27'd1 == demand_va[31:5] &&
++                last_pa[31:5] + 27'd1 == demand_pa[31:5])
++                hist_adjacency++;
++            if (demand_seq) hist_seq++;
++            else if (demand_va[4:0] == 0) hist_word0_nonseq++;
++            else hist_nonzero++;
++            if (same_page_seq) hist_seq_samepage++;
++            if (hint_match) begin
++                hist_hinted++;
++                miss_ideal_lead = 0;
++                miss_order_lead = 0;
++                if (hint_first_free >= 0) begin
++                    hist_first_free++;
++                    miss_ideal_lead = cycles - hint_first_free;
++                    hist_first_lead += miss_ideal_lead;
++                    hist_d_interposed += hint_saw_d;
++                    hist_lcd_interposed += hint_saw_lcd;
++                end else hist_no_free++;
++                if (hint_idle_run > 0) begin
++                    hist_free_run++;
++                    miss_order_lead = hint_idle_run;
++                    hist_run_lead += miss_order_lead;
++                    if (miss_order_lead > hist_max_order_lead)
++                        hist_max_order_lead = miss_order_lead;
++                end
++                live_miss = 1;
++                miss_exposed = 0;
++                hint_valid = 0;
++            end
++            last_va = demand_va; last_pa = demand_pa;
++            last_epoch = demand_epoch; last_context = demand_context;
++            last_fill_valid = 1;
++        end else last_fill_valid = 0;
++    end
++
++    if (hint_valid) begin
++        if (la_bus_free) begin
++            if (hint_first_free < 0) hint_first_free = cycles;
++            hint_idle_run++;
++        end else begin
++            hint_idle_run = 0;
++            if (hint_first_free >= 0) begin
++                hint_saw_d |= la_d_pending;
++                hint_saw_lcd |= la_lcd_pending;
++            end
++        end
++    end
++
++    // The decode input consumes a real frontend packet in the last two ARM
++    // word positions. Thumb halfwords in the same region also qualify.
++    tail_pc = `LA_FETCH.o_pc;
++    next_line = {tail_pc[31:5] + 27'd1, 5'd0};
++    if (`LA_FETCH.pop && tail_pc[4:3] == 2'b11 && !`LA_FETCH.o_predicted &&
++        !`LA_FETCH.o_fault && !`LA_FETCH.i_redirect && !la_invalidate &&
++        !(hint_valid && hint_target == next_line && hint_epoch == `LA_FETCH.epoch)) begin
++        if (tail_pc[11:5] == 7'h7f) tail_page_boundary++;
++        else begin
++            tail_hints++;
++            hint_valid = 1;
++            hint_target = next_line; hint_epoch = `LA_FETCH.epoch;
++            hint_context = la_context; hint_clock = cycles+1;
++            hint_first_free = -1; hint_idle_run = 0; hint_to_demand = 0;
++            hint_saw_d = 0; hint_saw_lcd = 0;
++        end
++    end
++endtask
++
++task automatic report_lookahead;
++    $display("LOOKAHEAD_DEMAND frame=%0d narrow=%0d adjacent=%0d sequential=%0d same_page=%0d word0_nonseq=%0d nonzero=%0d",
++        frame, hist_live, hist_adjacency, hist_seq, hist_seq_samepage, hist_word0_nonseq, hist_nonzero);
++    $display("LOOKAHEAD_HINT frame=%0d created=%0d page_boundary=%0d cancelled=%0d matched=%0d",
++        frame, tail_hints, tail_page_boundary, tail_cancelled, hist_hinted);
++    $display("LOOKAHEAD_BUS frame=%0d first_free=%0d no_free=%0d contiguous=%0d first_lead=%0d order_lead=%0d max_order=%0d d_interposed=%0d lcd_interposed=%0d",
++        frame, hist_first_free, hist_no_free, hist_free_run, hist_first_lead, hist_run_lead,
++        hist_max_order_lead, hist_d_interposed, hist_lcd_interposed);
++    $display("LOOKAHEAD_STALL frame=%0d matching_exposed=%0d ideal_exposed_bound=%0d order_exposed_bound=%0d",
++        frame, hist_exposed, hist_ideal_exposed, hist_order_exposed);
++endtask
+--- /dev/null
++++ b/scratch/icache-lookahead-739d3bd/run.py
+@@ -0,0 +1,67 @@
++from pathlib import Path
++import hashlib
++import json
++import re
++import shlex
++import subprocess
++
++area = Path(__file__).resolve().parent
++repo = area.parents[1]
++workspace = area / "leg"
++frozen = repo / "build/sim/polycount/v5-104-all-four-ram-candidate"
++compiler = frozen / "i16/mmc3-nos64/Vtb__verFiles.dat"
++options = next(line for line in compiler.read_text().splitlines() if line.startswith("C "))
++argv = shlex.split(options.removeprefix('C "').removesuffix('"'))
++observer = (area / "lookahead.vh").read_text()
++raw = (frozen / "i16/tb.v").read_text()
++for old, new in (
++    ("        start_clock = cycles;", "        start_clock = cycles;\n        reset_lookahead();"),
++    ("    end else if (start_clock >= 0) begin", "    end else if (start_clock >= 0) begin\n        observe_lookahead();"),
++    ('            $display("POLY_FRAME', '            report_lookahead();\n            $display("POLY_FRAME'),
++):
++    assert raw.count(old) == 1
++    raw = raw.replace(old, new)
++(workspace / "bench.sv").write_text(raw.rsplit("endmodule", 1)[0] + observer + "\nendmodule\n")
++for index, option in enumerate(argv):
++    if option.startswith("/work/") and option.endswith("/tb.v"):
++        argv[index] = "bench.sv"
++    elif option.startswith("/work/") and option.endswith((".sv", ".v")):
++        argv[index] = option.replace("/work/", "/frozen/", 1)
++argv[argv.index("--Mdir") + 1] = "obj"
++driver = ["docker", "run", "--rm", "--pull=never", "--network", "none", "--platform", "linux/arm64",
++          "-v", f"{workspace}:/work", "-v", f"{repo}:/frozen:ro", "-w", "/work", "--entrypoint"]
++image = "jotego/simulator:arm64"
++with (area / "build.log").open("w") as handle:
++    subprocess.run(driver + ["verilator", image] + argv, stdout=handle, stderr=subprocess.STDOUT, check=True)
++for path in (workspace / "obj").glob("*.gch"):
++    path.unlink()
++inputs = {key: "/frozen/" + str((frozen / filename).relative_to(repo))
++          for key, filename in (("core", "core.bin"), ("cdrive", "cdrive.bin"), ("snapshot", "snapshot.bin"))}
++with (area / "run.log").open("w") as handle:
++    subprocess.run(driver + ["/work/obj/Vtb", image, "+ngage-compact-trace", "+no-board-log",
++        "+extension=/frozen/build/firmware/nem4-factory/extension.bin",
++        "+results=/work/polycount", "+begin_pc=68", "+end_pc=6c", "+done_pc=80", "+fail_pc=84"] +
++        [f"+{key}={path}" for key, path in inputs.items()],
++        stdout=handle, stderr=subprocess.STDOUT, check=True)
++
++lines = (area / "run.log").read_text().splitlines()
++def stats(prefix):
++    return [dict((k, int(v)) for k, v in re.findall(r"(\w+)=(-?\d+)", line))
++            for line in lines if line.startswith(prefix + " ")]
++ref = json.loads((frozen / "result.json").read_text())["results"]["i16"]
++digest = hashlib.sha256((workspace / "polycount.bin").read_bytes()).hexdigest()
++assert digest == ref["output_sha"]
++assert stats("POLY_FRAME") == ref["frames"]
++assert stats("PASS_POLYCOUNT") == [ref["completion"]]
++kinds = ("LOOKAHEAD_DEMAND", "LOOKAHEAD_HINT", "LOOKAHEAD_BUS", "LOOKAHEAD_STALL")
++rows = {kind: stats(kind) for kind in kinds}
++assert all(len(value) == 4 for value in rows.values())
++netlist = hashlib.sha256((workspace/"rtl/arm9v2/arm925t_phone.v").read_bytes()).hexdigest()
++assert netlist == ref["netlist_sha"]
++results = dict(commit="739d3bdb6a10ad975df500576bbde39f7676ff47", clock_hz=104_000_000,
++               netlist_sha256=netlist, output_sha256=digest, rows=rows, frames=stats("POLY_FRAME"))
++results["sum"] = {name: {key: sum(row[key] for row in data) for key in data[0]
++                        if key not in ("frame", "max_order")} for name, data in rows.items()}
++(area / "result.json").write_text(json.dumps(results, indent=2) + "\n")
++for name, values in results["sum"].items():
++    print(name, values)
+--- /dev/null
++++ b/scratch/icache-lookahead-739d3bd/run_payload.py
+@@ -0,0 +1,73 @@
++from concurrent.futures import ThreadPoolExecutor
++import hashlib
++import json
++from pathlib import Path
++import re
++import shlex
++import subprocess
++import sys
++
++area = Path(__file__).resolve().parent
++repo = area.parents[1]
++workspace = area / "leg"
++frozen = repo / "build/sim/payload-clocks/v5-104-all-four-ram-candidate"
++compiler = frozen / "mmc3-nos64/Vtb__verFiles.dat"
++command = next(line for line in compiler.read_text().splitlines() if line.startswith("C "))
++argv = shlex.split(command.removeprefix('C "').removesuffix('"'))
++observer = (area / "lookahead.vh").read_text()
++observer = observer.replace("        frame,", "        window,")
++raw = (frozen / "tb.v").read_text()
++for old, new in (
++    ("        first_clock = cycles;", "        first_clock = cycles;\n        reset_lookahead();"),
++    ("    if (first_clock >= 0) begin", "    if (first_clock >= 0 && first_clock != cycles) observe_lookahead();\n    if (first_clock >= 0) begin"),
++    ('            $display("PAYLOAD_RESULT', '            report_lookahead();\n            $display("PAYLOAD_RESULT'),
++):
++    assert raw.count(old) == 1
++    raw = raw.replace(old, new)
++(workspace / "payload.sv").write_text(raw.rsplit("endmodule", 1)[0] + observer + "\nendmodule\n")
++for index, option in enumerate(argv):
++    if option.startswith("/work/") and option.endswith("/tb.v"):
++        argv[index] = "payload.sv"
++    elif option.startswith("/work/") and option.endswith((".sv", ".v")):
++        argv[index] = option.replace("/work/", "/frozen/", 1)
++argv[argv.index("--Mdir") + 1] = "obj-payload"
++driver = ["docker", "run", "--rm", "--pull=never", "--network", "none", "--platform", "linux/arm64",
++          "-v", f"{workspace}:/work", "-v", f"{repo}:/frozen:ro", "-w", "/work", "--entrypoint"]
++image = "jotego/simulator:arm64"
++with (area / "build-payload.log").open("w") as handle:
++    subprocess.run(driver + ["verilator", image] + argv, stdout=handle, stderr=subprocess.STDOUT, check=True)
++for path in (workspace / "obj-payload").glob("*.gch"):
++    path.unlink()
++sys.path.insert(0, str(repo / "tests/cpu/arm9v2_board"))
++from payload_clocks import qualified_inputs
++ref = {r["case"]: r for r in json.loads((frozen / "result.json").read_text())["rows"]}
++kinds = ("LOOKAHEAD_DEMAND", "LOOKAHEAD_HINT", "LOOKAHEAD_BUS", "LOOKAHEAD_STALL")
++def simulate(case):
++    name = case["name"]
++    trace = f"requests-{name}.txt"
++    log = area / f"payload-{name}.log"
++    common = "+core=/frozen/" + str((frozen / f"{name}-False.bin").relative_to(repo))
++    with log.open("w") as handle:
++        subprocess.run(driver + ["/work/obj-payload/Vtb", image, "+ngage-compact-trace", "+no-board-log", common,
++            "+extension=/frozen/build/firmware/nem4-factory/extension.bin",
++            "+cdrive=/frozen/" + str((frozen / "cdrive.bin").relative_to(repo)),
++            f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++            f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}',
++            "+sdram-trace=/work/" + trace], stdout=handle, stderr=subprocess.STDOUT, check=True)
++    def stats(prefix):
++        return [dict((k, int(v)) for k, v in re.findall(r"(\w+)=(-?\d+)", line))
++                for line in log.read_text().splitlines() if line.startswith(prefix + " ")]
++    assert stats("PAYLOAD_RESULT") == ref[name]["windows"] and len(stats("PAYLOAD_PASS")) == 1
++    assert (workspace / trace).read_bytes() == (frozen / f"{name}-3-64-requests.txt").read_bytes()
++    rows = {kind: stats(kind) for kind in kinds}
++    assert all(len(group) == 7 for group in rows.values())
++    return name, rows
++
++with ThreadPoolExecutor(max_workers=4) as pool:
++    result = dict(pool.map(simulate, qualified_inputs()))
++assert result.keys() == ref.keys() and len(result) == 15
++(area / "payload.json").write_text(json.dumps(result, indent=2) + "\n")
++print("PASS all 15 fixed-work traces and their 105 timed windows")
++for kind in kinds:
++    print(kind, {k: sum(w[k] for record in result.values() for w in record[kind])
++                 for k in next(iter(result.values()))[kind][0] if k not in ("frame", "max_order")})
+--- /dev/null
++++ b/scratch/icache-lookahead-739d3bd/timing_split.py
+@@ -0,0 +1,64 @@
++"""Separate preparation after a checked miss from blind early pin motion."""
++from pathlib import Path
++
++area = Path(__file__).resolve().parent
++source = (area / "lookahead.vh").read_text()
++
++def edit(text, old, new):
++    assert text.count(old) == 1, old
++    return text.replace(old, new)
++
++source = edit(source, "integer miss_ideal_lead, miss_order_lead, miss_exposed;",
++"""integer miss_ideal_lead, miss_order_lead, miss_exposed;
++integer miss_selected_clock;
++integer prep_cap, issue1_cap, issue2_cap, strict_cap;
++integer safe_matches, measure_prep, measure_issue1, measure_issue2, measure_strict;""")
++source = edit(source, "    hist_max_order_lead = 0;",
++"""    hist_max_order_lead = 0;
++    safe_matches = 0; measure_prep = 0; measure_issue1 = 0; measure_issue2 = 0;
++    measure_strict = 0;""")
++source = edit(source, "        demand_valid = `LA_FETCH.o_request",
++              "        miss_selected_clock = cycles;\n        demand_valid = `LA_FETCH.o_request")
++source = edit(source, "            hist_order_exposed += la_min(miss_exposed, miss_order_lead);",
++"""            hist_order_exposed += la_min(miss_exposed, miss_order_lead);
++            measure_prep += la_min(miss_exposed, prep_cap);
++            measure_issue1 += la_min(miss_exposed, issue1_cap);
++            measure_issue2 += la_min(miss_exposed, issue2_cap);
++            measure_strict += la_min(miss_exposed, strict_cap);""")
++source = edit(source, "                live_miss = 1;",
++"""                prep_cap = 0; issue1_cap = 0; issue2_cap = 0; strict_cap = 0;
++                // Tiny pages and small-page permission fields meet at 1 KiB.
++                // The last accepted virtual / physical mapping must match
++                // this subpage; skip hints crossing a subpage themselves.
++                if (last_va[31:10] == demand_va[31:10] &&
++                    last_pa[31:10] == demand_pa[31:10] && demand_va[9:0] != 0) begin
++                    safe_matches++;
++                    strict_cap = miss_order_lead;
++                    prep_cap = la_min(miss_order_lead, $max(0, cycles-miss_selected_clock-1));
++                    issue1_cap = la_min(miss_order_lead, $max(0, cycles-hint_clock-1));
++                    issue2_cap = la_min(miss_order_lead, $max(0, cycles-hint_clock-2));
++                end
++                live_miss = 1;""")
++source = source.replace("$max(0, cycles-miss_selected_clock-1)", "(cycles > miss_selected_clock + 1 ? cycles-miss_selected_clock-1 : 0)")
++source = source.replace("$max(0, cycles-hint_clock-1)", "(cycles > hint_clock + 1 ? cycles-hint_clock-1 : 0)")
++source = source.replace("$max(0, cycles-hint_clock-2)", "(cycles > hint_clock + 2 ? cycles-hint_clock-2 : 0)")
++source = edit(source, "        frame, hist_exposed, hist_ideal_exposed, hist_order_exposed);",
++"""        frame, hist_exposed, hist_ideal_exposed, hist_order_exposed);
++    $display("LOOKAHEAD_SPLIT frame=%0d safe_1k=%0d strict=%0d prep=%0d issue1=%0d issue2=%0d",
++        frame, safe_matches, measure_strict, measure_prep, measure_issue1, measure_issue2);""")
++
++runner = (area / "run.py").read_text()
++runner = edit(runner, 'observer = (area / "lookahead.vh").read_text()', 'observer = __observer')
++runner = edit(runner, 'assert raw.count(old) == 1\n    raw = raw.replace(old, new)',
++              'assert raw.count(old) == 1\n    raw = raw.replace(old, new)\nraw = raw.replace("            frame += 1;", "            $finish;\n            frame += 1;", 1)'.replace('$finish;\n', '$finish;\\n'))
++if "frame += 1" not in (area.parent.parent/"build/sim/polycount/v5-104-all-four-ram-candidate/i16/tb.v").read_text():
++    runner = runner.replace("frame += 1", "frame = frame + 1'b1")
++runner = runner.replace('"bench.sv"', '"split.sv"').replace('"obj"', '"obj-split"').replace('"/work/obj/Vtb"', '"/work/obj-split/Vtb"')
++runner = runner.replace('"build.log"', '"build-split.log"').replace('"run.log"', '"run-split.log"')
++runner = runner.replace('+results=/work/polycount', '+results=/work/split')
++runner = runner[:runner.index('digest = hashlib.sha256((workspace')] + """
++assert stats("POLY_FRAME") == ref["frames"][:1]
++print(stats("LOOKAHEAD_SPLIT"))
++(area / "split.json").write_text(json.dumps(stats("LOOKAHEAD_SPLIT"), indent=2) + "\\n")
++"""
++exec(compile(runner, str(area / "run.py"), "exec"), {"__file__": str(area/"run.py"), "__observer": source})

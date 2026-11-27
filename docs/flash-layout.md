@@ -15,6 +15,12 @@ independently shows D310/D311/D313 as AM29N643 devices, each labeled 4M x 16:
 The existing page render is `scratch/research/schematics/memories.png`.
 These are flash devices, distinct from the SDRAM on the same sheet.
 
+The confirmed package marking `N643GT7MI` appears in AMD's ordering
+table for `Am29BDS643GT7MVAI`. A captured NEM-4 service-tool run reports
+manufacturer `0001` and device word `257E` on all three chip selects.
+The public table gives `227E` for the device word. The full autoselect
+sequence on a marked NEM-4 is still unmeasured. [AMD datasheet](https://datasheet4u.com/pdf/564541/AM29BDS643G.pdf) · [NEM-4 service log](https://forum.gsmhosting.com/vbb/f550/error-n-gage-flashing-mxkey-867124-print/)
+
 The user-visible drive capacity does not specify its physical start/end or the
 allocation of reserved sectors. Do not treat it as the missing tail of SYM.ROM.
 

@@ -1,0 +1,2809 @@
+[
+  {
+    "id": "upp-ddr",
+    "kind": "design",
+    "base": "87b076a944631e87ed62b3548006a88c62cf998f",
+    "target": "61d51feb871a31c92d49957c048129de44a442e0",
+    "patches": [
+      "patches/upp-ddr.patch"
+    ],
+    "sha256": [
+      "883cc3f5ec8b32afb755a96662a3a7af317d7ec173ccba630250271f4567d100"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "files.qip",
+      "rtl/ngage_board.v",
+      "rtl/ngage_ddr_flash_adapter.v",
+      "rtl/ngage_ddr_stream.v",
+      "rtl/ngage_ddr_stream_legacy.v",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_ddr_port.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/upp_ddr_ram/README.md",
+      "tests/phone/upp_ddr_ram/atomic.S",
+      "tests/phone/upp_ddr_ram/mixed.vh",
+      "tests/phone/upp_ddr_ram/peer.v",
+      "tests/phone/upp_ddr_ram/peripherals_tb.v",
+      "tests/phone/upp_ddr_ram/prepare.py",
+      "tests/phone/upp_ddr_ram/run.sh",
+      "tests/phone/upp_ddr_top/run.sh",
+      "tests/phone/upp_ddr_top/tb.sv",
+      "tests/phone/upp_ddr_transport/run.sh",
+      "tests/phone/upp_ddr_transport/tb.sv"
+    ]
+  },
+  {
+    "id": "ras-m10k",
+    "kind": "design",
+    "base": "29479fecc32fe8a787378222f1ac2010a0eaf8a7",
+    "target": "09653728f301c2c1732d6559465d7d509c2efdfc",
+    "patches": [
+      "patches/ras-m10k.patch"
+    ],
+    "sha256": [
+      "8bda96a3b7c47f5ee0e9e7376ade5283a132c4e621bfac5974470236360a2d3b"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_ras/run.sh",
+      "tests/cpu/arm9v2_ras/tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "mmc-stream-tags",
+    "kind": "design",
+    "base": "09653728f301c2c1732d6559465d7d509c2efdfc",
+    "target": "341a45421019398c2a44bf6f9ce79d312e0cdbac",
+    "patches": [
+      "patches/mmc-stream-tags.patch"
+    ],
+    "sha256": [
+      "777f6bfd96948c45f7dc0ce38cdd9e6c0c609eee6fb57a9ead4fcf4c99fab0de"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_card.v",
+      "tests/phone/mmc_card/README.md",
+      "tests/phone/mmc_card/equivalence.v",
+      "tests/phone/mmc_card/run-donor.sh",
+      "tests/phone/mmc_card/run-stream-tags.sh",
+      "tests/phone/mmc_card/run.sh",
+      "tests/phone/mmc_card/stream_lookup_tb.sv",
+      "tests/phone/mmc_hps/run.sh"
+    ]
+  },
+  {
+    "id": "posted-store-queue",
+    "kind": "design",
+    "base": "341a45421019398c2a44bf6f9ce79d312e0cdbac",
+    "target": "5700837df3721fbaf0c6b57077b02d4c2360e407",
+    "patches": [
+      "patches/posted-store-queue.patch"
+    ],
+    "sha256": [
+      "531db9193dfcf6e1d67e9086bc37fc69fd915f277f4da95069da9b46bbd377db"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_store_queue/ordering.patch",
+      "tests/cpu/arm9v2_store_queue/run-ordering.sh",
+      "tests/cpu/arm9v2_store_queue/run.sh",
+      "tests/cpu/arm9v2_store_queue/tb.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "fetch-queue",
+    "kind": "design",
+    "base": "341a45421019398c2a44bf6f9ce79d312e0cdbac",
+    "target": "d127eb3d40a7b29303d4284e98c47203a42fe049",
+    "patches": [
+      "patches/fetch-queue.patch"
+    ],
+    "sha256": [
+      "705ec07e568a7f6eb45b6da0bb194fbcc33008adf45984f2b59287d495963e47"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/fetch_ram_tb.sv",
+      "tests/cpu/arm9v2_board/run-fetch-ram.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "all-four",
+    "kind": "design",
+    "base": "29479fecc32fe8a787378222f1ac2010a0eaf8a7",
+    "target": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/all-four.patch"
+    ],
+    "sha256": [
+      "236a8393a934656ce31e5f3bf5b628a36357e8fd478fa767f78623baaffd66f8"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "rtl/ngage_mmc_card.v",
+      "tests/cpu/arm9v2_board/fetch_ram_tb.sv",
+      "tests/cpu/arm9v2_board/run-fetch-ram.sh",
+      "tests/cpu/arm9v2_ras/run.sh",
+      "tests/cpu/arm9v2_ras/tb.sv",
+      "tests/cpu/arm9v2_store_queue/ordering.patch",
+      "tests/cpu/arm9v2_store_queue/run-ordering.sh",
+      "tests/cpu/arm9v2_store_queue/run.sh",
+      "tests/cpu/arm9v2_store_queue/tb.v",
+      "tests/phone/mmc_card/README.md",
+      "tests/phone/mmc_card/equivalence.v",
+      "tests/phone/mmc_card/run-donor.sh",
+      "tests/phone/mmc_card/run-stream-tags.sh",
+      "tests/phone/mmc_card/run.sh",
+      "tests/phone/mmc_card/stream_lookup_tb.sv",
+      "tests/phone/mmc_hps/run.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "refill-m10k",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "target": "13a471b684c6730c37d9890c057c95e966a50ec0",
+    "patches": [
+      "patches/refill-m10k.patch"
+    ],
+    "sha256": [
+      "0ae22a6f55b7cb7cbabebd17d3ca75403efb8790433c9697a853dbb0412578c9"
+    ],
+    "affected_paths": [
+      "rtl/ngage_cpu.sv",
+      "tests/cpu/arm9v2_board/refill_ram_tb.sv",
+      "tests/cpu/arm9v2_board/run-refill-ram.sh"
+    ]
+  },
+  {
+    "id": "icu-probe-m10k",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "target": "fa1b2f1b62b1452343dc1a9258b7601cf1acb5af",
+    "patches": [
+      "patches/icu-probe-m10k.patch"
+    ],
+    "sha256": [
+      "202b5966199a8436a5455ee27983b16bad4104509f28914c98d6faacda0a9d05"
+    ],
+    "affected_paths": [
+      "rtl/ngage_icu_extra.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/register_ram/probe_tb.sv",
+      "tests/phone/register_ram/run-probe.sh"
+    ]
+  },
+  {
+    "id": "mmc-host-fifo-m10k",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "target": "d790e966390a2fa2af10a836ec0d4543037c509a",
+    "patches": [
+      "patches/mmc-host-fifo-m10k.patch"
+    ],
+    "sha256": [
+      "2363c6b282083a7a3f52934b585485157741e9521c40fbfbeccd7e79181158cd"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_host.v",
+      "tests/phone/direct_sdram/run-route.sh",
+      "tests/phone/mmc_host/README.md",
+      "tests/phone/mmc_host/fifo_banks_tb.sv",
+      "tests/phone/mmc_host/fifo_reference.vh",
+      "tests/phone/mmc_host/run-fifo.sh",
+      "tests/phone/mmc_host/run-pinned.sh",
+      "tests/phone/mmc_host/run.sh",
+      "tests/phone/upp_bus_bridge/run.sh"
+    ]
+  },
+  {
+    "id": "tlb-victims-m10k",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "target": "723e2b7eb3ce77a36550c32bd2230e8145813078",
+    "patches": [
+      "patches/tlb-victims-m10k.patch"
+    ],
+    "sha256": [
+      "32136bfde35c34aa43123c5e98d0ae4d11297196b335fbb3201c0528cc987282"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/run-tlb-victim.sh",
+      "tests/cpu/arm9v2_board/tlb_victim_tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "thumb-parallel-valid",
+    "kind": "design",
+    "base": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a",
+    "target": "f7d574611c1efd75cad82e90828c13f24d6c84ef",
+    "patches": [
+      "patches/thumb-parallel-valid.patch"
+    ],
+    "sha256": [
+      "edc00225c8ec355e90102171ad358baec17f19178bc93836111390554038e96e"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/predictor_recovery_tb.sv",
+      "tests/cpu/arm9v2_board/run-predictor-recovery.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "paired-load-address",
+    "kind": "historical",
+    "base": "237117d4654d4b64ff631818d07652a19726b3e8",
+    "target": "b378969dedf8cf9e0987023efd67965c48c2d7c0",
+    "patches": [
+      "historical/paired-load-address.patch"
+    ],
+    "sha256": [
+      "ad2c10270e194c4443f8a46f2e09e9306cc1e8147659662410e2c9572ed064ae"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/paired_match_tb.v",
+      "tools/arm9v2_issue_ldm.py"
+    ]
+  },
+  {
+    "id": "wishbone-refill-classification",
+    "kind": "historical",
+    "base": "b378969dedf8cf9e0987023efd67965c48c2d7c0",
+    "target": "2cf19f085073cb3fb5fa67d78f0236b82a58b882",
+    "patches": [
+      "historical/wishbone-refill-classification.patch"
+    ],
+    "sha256": [
+      "135860915d14aa92d3d8e3c554850ace10ec887ddb109d3e7d286207402d20e3"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "rtl/ngage_cpu.sv",
+      "tests/cpu/arm9v2_board/refill_candidate_tb.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "pair-hint-clocked-base",
+    "kind": "historical",
+    "base": "2cf19f085073cb3fb5fa67d78f0236b82a58b882",
+    "target": "9637fca2bfcbe631284e15f88e670c3a1ef9cd5c",
+    "patches": [
+      "historical/pair-hint-clocked-base.patch"
+    ],
+    "sha256": [
+      "ecce7a4038239476fb2865decee4611ed4676489d1d3589262d4955eaf8fe033"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/arm9v2_issue_ldm.py"
+    ]
+  },
+  {
+    "id": "dma-command-flops",
+    "kind": "historical",
+    "base": "9637fca2bfcbe631284e15f88e670c3a1ef9cd5c",
+    "target": "11d468fe78050e711c1431b34b7bf98afc6cd81a",
+    "patches": [
+      "historical/dma-command-flops.patch"
+    ],
+    "sha256": [
+      "45a8aab01819bea20ea0d1c8d9a0ba7e9ea75b23c477163f94372d3e324f48d2"
+    ],
+    "affected_paths": [
+      "rtl/ngage_dma_engine.v"
+    ]
+  },
+  {
+    "id": "scalar-reply-ownership",
+    "kind": "historical",
+    "base": "11d468fe78050e711c1431b34b7bf98afc6cd81a",
+    "target": "f2d9c04a10a8f6b4458568b6cb37b55c6865f506",
+    "patches": [
+      "historical/scalar-reply-ownership.patch"
+    ],
+    "sha256": [
+      "fb2de9175296b4541c8f14c94215df0b84eecae5592880f0f93a344f4255866f"
+    ],
+    "affected_paths": [
+      "rtl/ngage_cpu.sv",
+      "rtl/ngage_dma_engine.v",
+      "rtl/ngage_upp.v",
+      "tests/cpu/arm9v2_board/scalar_reply_tb.v"
+    ]
+  },
+  {
+    "id": "sdram-packet-lock",
+    "kind": "historical",
+    "base": "f2d9c04a10a8f6b4458568b6cb37b55c6865f506",
+    "target": "581f8e68216b0640f25fc5205541f2b44b4e96de",
+    "patches": [
+      "historical/sdram-packet-lock.patch"
+    ],
+    "sha256": [
+      "0724fc78a0d2c20191d8fadf51932a56a6f766b3944274940a733f692d567d2a"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/ngage_sdram_arbiter.v",
+      "rtl/ngage_sdram_stream.v",
+      "tests/cpu/arm9v2_board/frame_gap_donor_sdram.py",
+      "tests/phone/lcd_stream/physical_tb.sv",
+      "tests/phone/sdram/stream_tb.sv"
+    ]
+  },
+  {
+    "id": "sdram-physical-command-slot",
+    "kind": "historical",
+    "base": "581f8e68216b0640f25fc5205541f2b44b4e96de",
+    "target": "6c195402d3854dceed9a5ff9024d2fb76ee49cee",
+    "patches": [
+      "historical/sdram-physical-command-slot.patch"
+    ],
+    "sha256": [
+      "7d8f5b6a85ce452cdfd25f5941dc09f5cfdd6836ef3b60542e7ea168d3d2f1f9"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_sdram_stream.v",
+      "rtl/sdram/ngage_sdram_scheduler.v",
+      "tests/cpu/arm9v2_board/frame_gap_donor_sdram.py",
+      "tests/phone/lcd_stream/physical_tb.sv",
+      "tests/phone/lcd_stream/run-physical.sh",
+      "tests/phone/sdram/run-stream.sh",
+      "tests/phone/sdram/stream_tb.sv"
+    ]
+  },
+  {
+    "id": "serial-arm-ldm",
+    "kind": "historical",
+    "base": "6c195402d3854dceed9a5ff9024d2fb76ee49cee",
+    "target": "a5a73496458e4c6219257232080bd100d87f8808",
+    "patches": [
+      "historical/serial-arm-ldm.patch"
+    ],
+    "sha256": [
+      "2457958406343f93527251927dd17311748330bff6dc51095b58f713b974a2f8"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "first-line-classification",
+    "kind": "historical",
+    "base": "a5a73496458e4c6219257232080bd100d87f8808",
+    "target": "7b1075492bfb33b0ab3165ce4280e3a41cb23270",
+    "patches": [
+      "historical/first-line-classification.patch"
+    ],
+    "sha256": [
+      "84fc95541425da7e25b1e12aee9356f9cf99c917608234b717e7b40c50e2897e"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/refill_candidate_tb.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "physical-104mhz-clock",
+    "kind": "historical",
+    "base": "7b1075492bfb33b0ab3165ce4280e3a41cb23270",
+    "target": "295b7ef43c06a4a9ab41cd7ba2692209584cd382",
+    "patches": [
+      "historical/physical-104mhz-clock.patch"
+    ],
+    "sha256": [
+      "20b0c1d1a74a55cf97b615d76dd7e54eeb2723b8abc2d02e402a0993d6e67379"
+    ],
+    "affected_paths": [
+      ".github/workflows/ci_build.yml",
+      "Template.sv",
+      "rtl/ngage_board.v",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_mmc_card.v",
+      "rtl/ngage_mmc_host.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "rtl/pll/pll_0002.v",
+      "tests/cpu/arm9v2_board/payload_clocks.py",
+      "tests/phone/clock_rates/run.sh",
+      "tests/phone/hardware_boot/tb.v",
+      "tests/phone/mmc_host/frac_clock_tb.v",
+      "tools/check_quartus_timing.py",
+      "tools/probe_retime_fit/report.tcl",
+      "tools/record_fit_inputs.py"
+    ]
+  },
+  {
+    "id": "mmc-and-analog-clock-dividers",
+    "kind": "historical",
+    "base": "295b7ef43c06a4a9ab41cd7ba2692209584cd382",
+    "target": "2bc545b2ee7382894cb82626ba1a8b2a4560ad37",
+    "patches": [
+      "historical/mmc-and-analog-clock-dividers.patch"
+    ],
+    "sha256": [
+      "a410ca23517d8d48da9694fe19973c667cbc659243b19c883e36428f9b4bf666"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/ngage_board.v",
+      "rtl/ngage_lcd_display.v",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_mmc_host.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/cpu/arm9v2_board/payload_clocks.py",
+      "tests/phone/clock_rates/run.sh",
+      "tests/phone/clock_rates/tb.sv",
+      "tests/phone/hardware_boot/tb.v",
+      "tests/phone/lcd_display/native_tb.v",
+      "tests/phone/mmc_host/data_tb.v",
+      "tests/phone/mmc_host/integer_clock_tb.v",
+      "tests/phone/mmc_host/run.sh"
+    ]
+  },
+  {
+    "id": "original-analog-raster",
+    "kind": "historical",
+    "base": "2bc545b2ee7382894cb82626ba1a8b2a4560ad37",
+    "target": "9405da98459552d3d240d2ebd29c80d82da72a2b",
+    "patches": [
+      "historical/original-analog-raster.patch"
+    ],
+    "sha256": [
+      "88b707b645a81a24804f4c1f0ae8f1977bf9300ec8f22bc28e61cfa025856288"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/ngage_board.v",
+      "rtl/ngage_lcd_display.v",
+      "rtl/ngage_mister.v",
+      "tests/cpu/arm9v2_board/payload_clocks.py",
+      "tests/phone/clock_rates/run.sh",
+      "tests/phone/clock_rates/tb.sv",
+      "tests/phone/hardware_boot/tb.v",
+      "tests/phone/lcd_display/native_tb.v"
+    ]
+  },
+  {
+    "id": "lcd-dma-eligibility",
+    "kind": "historical",
+    "base": "9405da98459552d3d240d2ebd29c80d82da72a2b",
+    "target": "993eb2b1aa7f729784b09f7ef36f167094f54ef1",
+    "patches": [
+      "historical/lcd-dma-eligibility.patch"
+    ],
+    "sha256": [
+      "03399363d7c19cd4743f9b4f7166aa6751207c5045af55fa2dbb4c1cdbd14dc0"
+    ],
+    "affected_paths": [
+      "rtl/ngage_lcd_stream.v",
+      "tests/phone/lcd_stream/README.md"
+    ]
+  },
+  {
+    "id": "sdram-scalar-read-completion",
+    "kind": "historical",
+    "base": "993eb2b1aa7f729784b09f7ef36f167094f54ef1",
+    "target": "ae3ff842d227f970547db278b976e714b23460c0",
+    "patches": [
+      "historical/sdram-scalar-read-completion.patch"
+    ],
+    "sha256": [
+      "cb5113e03915014869464fd64b2de4c688fa02d55f29415e3eac0423c8f1e142"
+    ],
+    "affected_paths": [
+      "rtl/ngage_sdram_stream.v",
+      "tests/phone/sdram/stream_tb.sv"
+    ]
+  },
+  {
+    "id": "captured-upp-owner",
+    "kind": "historical",
+    "base": "ae3ff842d227f970547db278b976e714b23460c0",
+    "target": "06a7aadcf06ba506a79e9489f707b7393d3a65ff",
+    "patches": [
+      "historical/captured-upp-owner.patch"
+    ],
+    "sha256": [
+      "ca382a509c3aaf2f9c58007910cb2ccfc4ac1f41cddd26f6998fb913b6129e6d"
+    ],
+    "affected_paths": [
+      "rtl/ngage_upp.v",
+      "tests/phone/upp_request_stage/run.sh",
+      "tests/phone/upp_request_stage/tb.v"
+    ]
+  },
+  {
+    "id": "packed-d-cache-write-enables",
+    "kind": "historical",
+    "base": "06a7aadcf06ba506a79e9489f707b7393d3a65ff",
+    "target": "69773affa4e020fc6dc463e57b060d2cac27f6bc",
+    "patches": [
+      "historical/packed-d-cache-write-enables.patch"
+    ],
+    "sha256": [
+      "733b1c569c90b5da71cb3763fcd5a242a089101cc7f0a1c6c1e39f6867abb2db"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/README.md",
+      "tests/cpu/arm9v2_board/packed_write_enable_tb.v",
+      "tests/cpu/arm9v2_board/run-packed-write-enable.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "cache-feedback-at-issue",
+    "kind": "historical",
+    "base": "69773affa4e020fc6dc463e57b060d2cac27f6bc",
+    "target": "ff8becc79a3680b548e9567a3557aa3928078f42",
+    "patches": [
+      "historical/cache-feedback-at-issue.patch"
+    ],
+    "sha256": [
+      "b92f4e8cae3741233ff973ed98113555731a5ac07a4faf3178ecb592b9ac7791"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/README.md",
+      "tests/cpu/arm9v2_board/background_load_lock_tb.v",
+      "tests/cpu/arm9v2_board/run-background-load-lock.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "sdram-payload-preview",
+    "kind": "historical",
+    "base": "ff8becc79a3680b548e9567a3557aa3928078f42",
+    "target": "c90ea0f93e378c29feaf917e2dce7e6db077b8cc",
+    "patches": [
+      "historical/sdram-payload-preview.patch"
+    ],
+    "sha256": [
+      "1384bd1c887dbf84897d9a3a308da35a7cb9efb5bb19d651b45dc3e3624e3116"
+    ],
+    "affected_paths": [
+      "rtl/ngage_dma_route.v",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_sdram_stream.v",
+      "rtl/sdram/ngage_sdram_scheduler.v",
+      "tests/phone/dma_route/ram_admission_tb.v",
+      "tests/phone/dma_route/run.sh"
+    ]
+  },
+  {
+    "id": "execute-forwarding",
+    "kind": "historical",
+    "base": "c90ea0f93e378c29feaf917e2dce7e6db077b8cc",
+    "target": "6c569deb404f168e4479ffac83c4d933241f3e77",
+    "patches": [
+      "historical/execute-forwarding.patch"
+    ],
+    "sha256": [
+      "c1c68e81c4d4f88f0d02156d79079174a9647775fc549a8db6790b5aa4780b4b"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "owned-wishbone-completion",
+    "kind": "historical",
+    "base": "6c569deb404f168e4479ffac83c4d933241f3e77",
+    "target": "d4edf9bc10d2c350cccdc717e50994ffe0fcddb2",
+    "patches": [
+      "historical/owned-wishbone-completion.patch"
+    ],
+    "sha256": [
+      "0825f5055731389788cbbdc2f577f46d168feaf5a5d3616b3a2d0715ad6bc32e"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/ngage_board.v",
+      "rtl/ngage_cpu.sv",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_sdram_arbiter.v",
+      "rtl/ngage_sdram_stream.v",
+      "rtl/ngage_upp.v",
+      "tests/cpu/arm9v2_board/frame_gap_donor_sdram.py",
+      "tests/cpu/arm9v2_board/refill_candidate_tb.v",
+      "tests/cpu/arm9v2_board/run-wb-completion.sh",
+      "tests/cpu/arm9v2_board/wb_completion_tb.sv",
+      "tests/phone/sdram/stream_tb.sv"
+    ]
+  },
+  {
+    "id": "register-shift-shape",
+    "kind": "historical",
+    "base": "d567759e0205a98bc4fc40abc2c77a567602d090",
+    "target": "94bcc14200ee8afacf3361b2b4d36601a96ce542",
+    "patches": [
+      "historical/register-shift-shape.patch"
+    ],
+    "sha256": [
+      "d91196423b4ffc7199e3b71af4376bd64e107c447b18d6c2c17605ca81461308"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "fetch-queue-original",
+    "kind": "historical",
+    "base": "74de910c4dda318193a754d0582a5cfe1abe08dd",
+    "target": "dc1903fb5d8a79942fcd008946dd26f001360ae7",
+    "patches": [
+      "historical/fetch-queue-original.patch"
+    ],
+    "sha256": [
+      "adebb8f4c85539398692e389188d8ca405cad2669f0a2157df99ad67fec04a6b"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/fetch_ram_tb.sv",
+      "tests/cpu/arm9v2_board/run-fetch-ram.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "registered-cache-authorization",
+    "kind": "historical",
+    "base": "6b66d43dc7029e00324c7737c81a696a037ec1eb",
+    "target": "2e7b7bd41ad280aa8c6cc1658871f42966f2bddc",
+    "patches": [
+      "historical/registered-cache-authorization.patch"
+    ],
+    "sha256": [
+      "724e84615840f220a601b05a2cb4f8800613d29a34e1b92dc101c3c3f17f1593"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/background_load_lock_tb.v",
+      "tests/cpu/arm9v2_board/run-background-load-lock.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "pipelined-register-shift",
+    "kind": "historical",
+    "base": "691ee0f49b1321c6a3446c7d0991f2d43b5b68e9",
+    "target": "e8bc7b44d76c828b1375846025cf759170a566a0",
+    "patches": [
+      "historical/pipelined-register-shift.patch"
+    ],
+    "sha256": [
+      "c35c81d21db64c828dd442605b677821abc4161fe2c7d49a01b7035815706093"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/register_shift_tb.v",
+      "tests/cpu/arm9v2_board/run-register-shift.sh",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "isolated-fit-harness",
+    "kind": "historical",
+    "base": "4c88998dc842881bd6442f5f53a79995629a3fc7",
+    "target": "08f79f8b4d56fdf2d678628107fb3946cd300849",
+    "patches": [
+      "historical/isolated-fit-harness.patch"
+    ],
+    "sha256": [
+      "526f2f5bdab0688f026dadd0698bccf2fca80f91c5b0efae4feeb2c912ae4444"
+    ],
+    "affected_paths": [
+      ".github/workflows/ci_build.yml",
+      ".github/workflows/timing_isolation.yml",
+      "tools/fit_isolation/README.md",
+      "tools/fit_isolation/board_master.vh",
+      "tools/fit_isolation/board_smoke.v",
+      "tools/fit_isolation/cpu_isolation.sdc",
+      "tools/fit_isolation/cpu_isolation.v",
+      "tools/fit_isolation/cpu_smoke.v",
+      "tools/fit_isolation/prepare.py",
+      "tools/fit_isolation/report.tcl",
+      "tools/fit_isolation/run-smoke.sh",
+      "tools/fit_isolation/verify_reports.py"
+    ]
+  },
+  {
+    "id": "lcd-packet-reservation",
+    "kind": "historical",
+    "base": "d5c3d62b9975a9db433fe0f517ab146d56fc4b16",
+    "target": "cd609b29589f0355de5df8d9c0c38d34d51dab96",
+    "patches": [
+      "historical/lcd-packet-reservation.patch"
+    ],
+    "sha256": [
+      "5974be16d6d34ea2d56c1410ceb0377396e89ae7dbe78ba220195ced9ff67aef"
+    ],
+    "affected_paths": [
+      "rtl/ngage_lcd_stream.v",
+      "tests/phone/lcd_stream/README.md"
+    ]
+  },
+  {
+    "id": "repeated-load-interlock",
+    "kind": "historical",
+    "base": "cd609b29589f0355de5df8d9c0c38d34d51dab96",
+    "target": "eb2abbc163a830f419901fe2467999cea2b520b3",
+    "patches": [
+      "historical/repeated-load-interlock.patch"
+    ],
+    "sha256": [
+      "d0fe1639980d43389e7e98fc7fc25f394f47e6bf6d5c23bb4a3559facb2e4931"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "wishbone-payload-banks",
+    "kind": "historical",
+    "base": "75186befcb448047e99336fee7f7ba64a2634b3d",
+    "target": "9d2e76cafe2baa8d47fb901534366b40f4dc12bd",
+    "patches": [
+      "historical/wishbone-payload-banks.patch"
+    ],
+    "sha256": [
+      "01b44cca7d65f63cd3caab6d1a399249f8cec2b2ce1b1feb2a20e88fba7b17e9"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/refill_candidate_tb.v",
+      "tools/gen_arm9v2_phone.py"
+    ]
+  },
+  {
+    "id": "d-admission-sim",
+    "kind": "simulation",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-d-refill-admission-sim.patch"
+    ],
+    "sha256": [
+      "14cb6756262181b97bdebbcf5cfc92f671a77d1751b8872c2d9ea45be48762c0"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_cpu.sv": "dafe39a3cfc53a2985be07ccd997cc9ef9d8e9c6e3fbc1adda52d3acf932ad6b"
+    }
+  },
+  {
+    "id": "d-return-buffered",
+    "kind": "simulation",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-d-return-buffered.patch",
+      "../../evidence/v5-104-d-return-tests.patch"
+    ],
+    "sha256": [
+      "6b659b9f87c452d26c96eb4bb4b80ff953e9bca01503acee4050cf09c813918b",
+      "287c809a951b7762f941357806e952e07d24ba852e2ff79331dfdbc864165c8e"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_cpu.sv": "5e2d1c642db80b3cd4701d3edf7778e8db5021004888adbd16f1d28d91a3eb54"
+    }
+  },
+  {
+    "id": "d-return-same-edge",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-d-return-same-edge.patch",
+      "../../evidence/v5-104-d-return-tests.patch"
+    ],
+    "sha256": [
+      "fdfe1edb53c7f1d77cad2f6bf8a3abd211b326972d6758b88cd9dc9794885f03",
+      "287c809a951b7762f941357806e952e07d24ba852e2ff79331dfdbc864165c8e"
+    ],
+    "target": "25e1208d22364c7f3d10d736f2d0c7debb96a1e9",
+    "measured_sha256": {
+      "rtl/ngage_cpu.sv": "91822a01447c5efea1ec8e21c5f05d14059b5fce5cfb303f1dd14a7f981b0072"
+    }
+  },
+  {
+    "id": "thumb-fallthrough",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-thumb-fallthrough.patch",
+      "patches/thumb-fallthrough-fit-tests.patch"
+    ],
+    "sha256": [
+      "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e",
+      "6dbd8ac29681b9ce54256c34841ea4d6bb5dffacba89c5d43e3080a2c0c0e195"
+    ],
+    "target": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a"
+  },
+  {
+    "id": "checked-workload-harness",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/checked-workload-harness.patch"
+    ],
+    "sha256": [
+      "1a9d8e287590c1901adae56d4492ec24c2b0ada4fa830a2156aea456bcc92049"
+    ]
+  },
+  {
+    "id": "store-pair-census-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/store-pair-census-fixture.patch"
+    ],
+    "sha256": [
+      "dc8ee3aa8ec5578a9c8e4b902025ea60c76ee899f687cf3730f16c5d20ef009c"
+    ]
+  },
+  {
+    "id": "refill-pair-and-admission-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/refill-pair-and-admission-fixture.patch"
+    ],
+    "sha256": [
+      "d199d1de05479ee036c8d67711eeaa2492346508ad5ce6c89a5ea39ebe760044"
+    ]
+  },
+  {
+    "id": "sequential-i-line-census-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/sequential-i-line-census-fixture.patch"
+    ],
+    "sha256": [
+      "ad5c14fdcb1e01c387fefcbb114dcaa7f0f09924cb3ff86d1081563ca02b11c0"
+    ]
+  },
+  {
+    "id": "physical-next-line-census-fixture",
+    "kind": "fixture",
+    "base": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+    "patches": [
+      "patches/physical-next-line-census-fixture.patch"
+    ],
+    "sha256": [
+      "199c8996c7a912ae081efbee6f40baf852de094092cb3b50685042017866d889"
+    ],
+    "affected_paths": [
+      "scratch/v5-donor-next-line/observe.vh",
+      "scratch/v5-donor-next-line/run.py",
+      "scratch/v5-donor-next-line/run_payload.py",
+      "scratch/v5-donor-next-line/summarize.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-donor-next-line/observe.vh": "419584826526cdb26d209239b572808bfe3104cd4c30d47e17eee4413c188dbe",
+      "scratch/v5-donor-next-line/run.py": "8c92afbe813f7bdd6121e94d75c19931829bdb55d7bb0db18b43ecaacd88e23d",
+      "scratch/v5-donor-next-line/run_payload.py": "e46fdbca3ac8580a72b37aca80589367d25c9ae7c7dd82404e4668b386cbcfbf",
+      "scratch/v5-donor-next-line/summarize.py": "1eacc64d88cb8fb33f2ff736c79e0bfd1b72c9a04c68da9b75fb9d10e2d76bbe"
+    }
+  },
+  {
+    "id": "frontend-redirect-census-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/frontend-redirect-census-fixture.patch"
+    ],
+    "sha256": [
+      "7709baebd9d0f4d57cbf9f765e2819cae4417e5d99c68354540676cced412771"
+    ]
+  },
+  {
+    "id": "thumb-and-d-admission-replay-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/thumb-and-d-admission-replay-fixture.patch"
+    ],
+    "sha256": [
+      "04d3e0adb98d201203fe703db168a180ca92c5524fe2f79c99c23910ffb31cdc"
+    ]
+  },
+  {
+    "id": "thumb-fallthrough-original-tests",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-thumb-fallthrough.patch",
+      "../../evidence/v5-104-thumb-fallthrough-tests.patch"
+    ],
+    "sha256": [
+      "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e",
+      "d6f46a96995e5b3f435e3fd83b4da8a88d367ce3195d1b6f2ceeb6e434e22147"
+    ]
+  },
+  {
+    "id": "four-ram-stacked",
+    "kind": "composition",
+    "base": "29479fecc32fe8a787378222f1ac2010a0eaf8a7",
+    "patches": [
+      "patches/ras-m10k.patch",
+      "patches/mmc-stream-tags.patch",
+      "patches/fetch-queue.patch",
+      "patches/posted-store-queue.patch"
+    ],
+    "sha256": [
+      "8bda96a3b7c47f5ee0e9e7376ade5283a132c4e621bfac5974470236360a2d3b",
+      "777f6bfd96948c45f7dc0ce38cdd9e6c0c609eee6fb57a9ead4fcf4c99fab0de",
+      "705ec07e568a7f6eb45b6da0bb194fbcc33008adf45984f2b59287d495963e47",
+      "531db9193dfcf6e1d67e9086bc37fc69fd915f277f4da95069da9b46bbd377db"
+    ],
+    "target": "739d3bdb6a10ad975df500576bbde39f7676ff47"
+  },
+  {
+    "id": "thumb-parallel-stacked",
+    "kind": "composition",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-thumb-fallthrough.patch",
+      "patches/thumb-fallthrough-fit-tests.patch",
+      "patches/thumb-parallel-valid.patch"
+    ],
+    "sha256": [
+      "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e",
+      "6dbd8ac29681b9ce54256c34841ea4d6bb5dffacba89c5d43e3080a2c0c0e195",
+      "edc00225c8ec355e90102171ad358baec17f19178bc93836111390554038e96e"
+    ],
+    "target": "f7d574611c1efd75cad82e90828c13f24d6c84ef"
+  },
+  {
+    "id": "later-bram-stacked",
+    "kind": "composition",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/refill-m10k.patch",
+      "patches/icu-probe-m10k.patch",
+      "patches/mmc-host-fifo-m10k.patch",
+      "patches/tlb-victims-m10k.patch"
+    ],
+    "sha256": [
+      "0ae22a6f55b7cb7cbabebd17d3ca75403efb8790433c9697a853dbb0412578c9",
+      "202b5966199a8436a5455ee27983b16bad4104509f28914c98d6faacda0a9d05",
+      "2363c6b282083a7a3f52934b585485157741e9521c40fbfbeccd7e79181158cd",
+      "32136bfde35c34aa43123c5e98d0ae4d11297196b335fbb3201c0528cc987282"
+    ]
+  },
+  {
+    "id": "thumb-and-same-edge-d-return",
+    "kind": "composition",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-thumb-fallthrough.patch",
+      "patches/thumb-fallthrough-fit-tests.patch",
+      "../../evidence/v5-104-d-return-same-edge.patch",
+      "../../evidence/v5-104-d-return-tests.patch"
+    ],
+    "sha256": [
+      "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e",
+      "6dbd8ac29681b9ce54256c34841ea4d6bb5dffacba89c5d43e3080a2c0c0e195",
+      "fdfe1edb53c7f1d77cad2f6bf8a3abd211b326972d6758b88cd9dc9794885f03",
+      "287c809a951b7762f941357806e952e07d24ba852e2ff79331dfdbc864165c8e"
+    ]
+  },
+  {
+    "id": "thumb-and-d-admission-simulation",
+    "kind": "composition",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "../../evidence/v5-104-thumb-fallthrough.patch",
+      "patches/thumb-fallthrough-fit-tests.patch",
+      "../../evidence/v5-104-d-refill-admission-sim.patch"
+    ],
+    "sha256": [
+      "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e",
+      "6dbd8ac29681b9ce54256c34841ea4d6bb5dffacba89c5d43e3080a2c0c0e195",
+      "14cb6756262181b97bdebbcf5cfc92f671a77d1751b8872c2d9ea45be48762c0"
+    ]
+  },
+  {
+    "id": "thumb-ordinary-redirect",
+    "kind": "design",
+    "base": "27bd8bff3f3a1a898ae628ecdfaf80bfaac5668a",
+    "target": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+    "patches": [
+      "patches/thumb-ordinary-redirect.patch"
+    ],
+    "sha256": [
+      "2d1bbb356aba60a3ca0c661e588372a1803115948777703e8b1ad1728a5c6f95"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/thumb_recovery_tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "d55c8a3c53cebd9f41d20aa5a406f8d0cd8e858a212dcd621b287dba4f5c4d84"
+    }
+  },
+  {
+    "id": "thumb-ordinary-stacked",
+    "kind": "composition",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "target": "e6c352c620c5fc592ecb414e4238e1c4ffba871b",
+    "patches": [
+      "../../evidence/v5-104-thumb-fallthrough.patch",
+      "patches/thumb-fallthrough-fit-tests.patch",
+      "patches/thumb-ordinary-redirect.patch"
+    ],
+    "sha256": [
+      "2aa728f3ba7e54d099d21d7ffab8043a6a009e535d81a0055388c8949929ab6e",
+      "6dbd8ac29681b9ce54256c34841ea4d6bb5dffacba89c5d43e3080a2c0c0e195",
+      "2d1bbb356aba60a3ca0c661e588372a1803115948777703e8b1ad1728a5c6f95"
+    ]
+  },
+  {
+    "id": "thumb-ordinary-replay-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/thumb-ordinary-redirect-fixture.patch"
+    ],
+    "sha256": [
+      "a199fe229f580e9a4d895a29eecd6183788ae636df3ae445c62c56f2481cfad4"
+    ]
+  },
+  {
+    "id": "all-four-benchmark-fixture",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/all-four-benchmark-fixture.patch"
+    ],
+    "sha256": [
+      "9dbca3bbff5a8d1c31b4af5a5c4bc8c918e000db517b98535acb51d038f08025"
+    ]
+  },
+  {
+    "id": "cache-completion-stage",
+    "kind": "simulation",
+    "base": "6c569deb404f168e4479ffac83c4d933241f3e77",
+    "patches": [
+      "historical/cache-completion-stage.patch"
+    ],
+    "sha256": [
+      "fa08aca68f2231e715a88c27ee796322519fa5ed7d42d04679decb994d4f2e09"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "df1890f326803bd735c5dec379ba867d3ca1bde013162dac14a727d2c15127a9"
+    }
+  },
+  {
+    "id": "cache-completion-stage-bench",
+    "kind": "fixture",
+    "base": "6c569deb404f168e4479ffac83c4d933241f3e77",
+    "patches": [
+      "historical/cache-completion-stage-bench.patch"
+    ],
+    "sha256": [
+      "8a6aa96a212f2acc8d35bbc6ef5fdc51b1dcdfec94d6f228dd3000f8e7e2107e"
+    ]
+  },
+  {
+    "id": "first-wishbone-reply",
+    "kind": "simulation",
+    "base": "6c569deb404f168e4479ffac83c4d933241f3e77",
+    "patches": [
+      "historical/first-wishbone-reply.patch"
+    ],
+    "sha256": [
+      "df9b473ea191487f566632c95ac85c3fc611a8987c70cc163185568216081979"
+    ],
+    "affected_paths": [
+      "rtl/ngage_cpu.sv"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_cpu.sv": "8a810de90efe5b9152cf653267b7310ae057bd7e164c8079e2731add58eb5388"
+    }
+  },
+  {
+    "id": "ddr-burst-bounds",
+    "kind": "design",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/ddr-burst-bounds.patch"
+    ],
+    "sha256": [
+      "dcc43e6e208ba3cb0fdd1fe8c7546832b49f6b789dc99d7352cedbe7429a3583"
+    ],
+    "target": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+    "affected_paths": [
+      "rtl/ngage_ddr_stream.v",
+      "tests/phone/ddr_stream/bounds.smt2",
+      "tests/phone/ddr_stream/bounds_tb.sv",
+      "tests/phone/ddr_stream/run-bounds.sh"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_ddr_stream.v": "376b0d805363dcedf72f641a266826c899380fd9add3f22dc8f2d7de4e3dad0c"
+    }
+  },
+  {
+    "id": "ddr-burst-bounds-replay",
+    "kind": "fixture",
+    "base": "739d3bdb6a10ad975df500576bbde39f7676ff47",
+    "patches": [
+      "patches/ddr-burst-bounds-replay.patch"
+    ],
+    "sha256": [
+      "e0ed2e361ec2033204f6e68635064d67fce83cbf4865bc442381023534131b90"
+    ]
+  },
+  {
+    "id": "execute-ready",
+    "kind": "design",
+    "base": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+    "patches": [
+      "patches/execute-ready.patch"
+    ],
+    "sha256": [
+      "59dd629d0f527d2033ac2821c10f2fe106343953499b55871a3367faf9fa143e"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/prepare_execute_ready_test.py",
+      "tests/cpu/arm9v2_board/run-execute-ready.sh",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "6ed724fa643e3093fe159ca161682f99a3bf213a5109639a4a9adc10d7c94a03",
+      "tools/gen_arm9v2_phone.py": "5733d0cf7c99065090d896739eb175a6e3261403a3cf21d3ee8da275d961d9e0",
+      "tests/cpu/arm9v2_board/prepare_execute_ready_test.py": "d96f274a99c3b0e762529a46b362d64b4e37a20d0001dad1c7cab29e7c94e6a2",
+      "tests/cpu/arm9v2_board/run-execute-ready.sh": "859f1e9f027a4bedb3ffcddfaaae6063347a9d2ab3673756f7c4209ea191a6f7"
+    }
+  },
+  {
+    "id": "execute-ready-replay",
+    "kind": "fixture",
+    "base": "b6d89816fb515c2bbd5cd7f868d28c05e42ea654",
+    "patches": [
+      "patches/execute-ready-replay.patch"
+    ],
+    "sha256": [
+      "2abd0ae95645cca4d5aa5addb16432c4ba735c03c4c0da4ef30e2c9d804f7da6"
+    ]
+  },
+  {
+    "id": "cp15-ap0",
+    "kind": "design",
+    "base": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+    "patches": [
+      "patches/cp15-ap0.patch"
+    ],
+    "sha256": [
+      "42962e66c2bfe3b84c900465a9d298411680e29b1c29d1cb57762d166cc1b0bc"
+    ],
+    "target": "85f65c8e8ba392f12f11ff68236c386e01b9566d",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/cp15_ap0_tb.sv",
+      "tests/cpu/arm9v2_board/run-cp15-ap0.sh",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "565ecd53a1d70b032a4d03d85c13ba25c9794e988caf6d34b139f152bb478f78",
+      "tests/cpu/arm9v2_board/cp15_ap0_tb.sv": "808783c5e3480c4ed3b78161ce83cda76379b09a86d138a78a3d5a7caaa2b560",
+      "tests/cpu/arm9v2_board/run-cp15-ap0.sh": "36693a0792475c042bbf7f162b6f4ffa64c4a0eb2039f26a0f30d9a7b5c0e2ae",
+      "tools/gen_arm9v2_phone.py": "58ece1a5c8692da5a64d2e36a443181c42f7d8653f82fad32a292a45bba095b6"
+    }
+  },
+  {
+    "id": "cp15-ap0-replay",
+    "kind": "fixture",
+    "base": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+    "patches": [
+      "patches/cp15-ap0-replay.patch"
+    ],
+    "sha256": [
+      "d7fb723ef0c9190ebfcb00036ab03b6ae4c5c88abd829bcb6f2b7936a9a9637a"
+    ]
+  },
+  {
+    "id": "d1-opcode-class",
+    "kind": "design",
+    "base": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+    "patches": [
+      "patches/d1-opcode-class.patch"
+    ],
+    "sha256": [
+      "1d5e2012f113d9465090fd6d75b56c0cfff970f190c547078d5987bfc50fe7b0"
+    ],
+    "target": "4b2c1144f337eb907bac124a7d96321d0a73db61",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/d1_opcode_tb.sv",
+      "tests/cpu/arm9v2_board/prepare_d1_opcode_test.py",
+      "tests/cpu/arm9v2_board/run-d1-opcode.sh",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "8ef443ae004096a2274e071ad1e940746e4e3f0ea0917d29860b87c08cef426b",
+      "tests/cpu/arm9v2_board/d1_opcode_tb.sv": "abcc9867efc7a0d05228f21573343ab7010815b8294fd660edba9480586d63de",
+      "tests/cpu/arm9v2_board/prepare_d1_opcode_test.py": "51121b86e353ce98cf361f375471503d0e350cc794c611f8c093b8d811090380",
+      "tests/cpu/arm9v2_board/run-d1-opcode.sh": "cbbac419302cc03c1014d53f4ec691a18018a644d56f62e549fa2ae0a15bb70d",
+      "tools/gen_arm9v2_phone.py": "be040e2d3528de3e1074277fcf27f747741e41301fd4839dca0ea55c2165f859"
+    }
+  },
+  {
+    "id": "d1-opcode-class-replay",
+    "kind": "fixture",
+    "base": "c492853ece51f106dc933c5cff8579eaffcd18ed",
+    "patches": [
+      "patches/d1-opcode-class-replay.patch"
+    ],
+    "sha256": [
+      "ece706322fb641b711438f82845799b43d51fa34bfbb8231008557aba0d07b6a"
+    ]
+  },
+  {
+    "id": "dma-command-predecode",
+    "kind": "design",
+    "base": "fc7b51349ed5a95baba0f8396185ab9d2efebce4",
+    "patches": [
+      "patches/dma-command-predecode.patch"
+    ],
+    "sha256": [
+      "3f3efc870891835f485f01c65917cbe30a7166901607cec8528ee2e40edef3cb"
+    ],
+    "target": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+    "affected_paths": [
+      "rtl/ngage_dma_channels.v",
+      "rtl/ngage_upp.v",
+      "tests/phone/dma_channels/program_predecode_tb.sv",
+      "tests/phone/dma_channels/run-predecode.sh"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_dma_channels.v": "71ee9850f2dbffe8553c3862d1e79a9f73784bd8f37c2c308bcbb1a4bd6ccc35",
+      "rtl/ngage_upp.v": "5864a6ddc4163193d028f5c31aa5fbda9f09d27b1bed455b3e327c742f64b4f1",
+      "tests/phone/dma_channels/program_predecode_tb.sv": "4a4466bf49460d66a5ba73593b05979b8cbc0b05f8acbd1012dd4d9b2e87ee4b",
+      "tests/phone/dma_channels/run-predecode.sh": "dddca1c1ccb17105870a419df9208682db6bf8371e806c5fcf7856bdbdfb8e4e"
+    }
+  },
+  {
+    "id": "dma-command-predecode-replay",
+    "kind": "fixture",
+    "base": "fc7b51349ed5a95baba0f8396185ab9d2efebce4",
+    "patches": [
+      "patches/dma-command-predecode-replay.patch"
+    ],
+    "sha256": [
+      "94515a9aca446c056727a2488e0b9b43444b5cc95f9e951cac4ba991fe7e20df"
+    ]
+  },
+  {
+    "id": "early-shift-select",
+    "kind": "design",
+    "base": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+    "patches": [
+      "patches/early-shift-select.patch"
+    ],
+    "sha256": [
+      "641f85c2fa32068788457c7a45d041593411b9dabd41e90e1c55edc9833b3485"
+    ],
+    "target": "7158a76cfe1bd32fe40b26b7a35c19590ad146c9",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/early_shift_tb.sv",
+      "tests/cpu/arm9v2_board/prepare_early_shift_test.py",
+      "tests/cpu/arm9v2_board/run-early-shift.sh",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "4996ae034a6b9450ff293f20d93fbfb5378dfbb9ed48775c0525b86b3e54f13b",
+      "tests/cpu/arm9v2_board/early_shift_tb.sv": "5ca58b2f9166829ecee5c37c648503632df5af81b82ad1f7d9e02da16f2fb1e5",
+      "tests/cpu/arm9v2_board/prepare_early_shift_test.py": "fea04f24de658e59785abea0700ad380bd92d554eb4746aae83bc95034e5d192",
+      "tests/cpu/arm9v2_board/run-early-shift.sh": "089f6b658c037113f4999a16b6a2685554f55960dcea432d758881972ece640e",
+      "tools/gen_arm9v2_phone.py": "858f484c5b58788f786a2925e0a60819d1a1edc591777c9adcfa15e776f8f044"
+    }
+  },
+  {
+    "id": "early-shift-select-replay",
+    "kind": "fixture",
+    "base": "fe145b0b997201c8b597e49d1cf9cad265e78e6b",
+    "patches": [
+      "patches/early-shift-select-replay.patch"
+    ],
+    "sha256": [
+      "cddccf4f9b072e47a19e8168be0b57cf15491ec14699b852b60393d6fd64aa1b"
+    ]
+  },
+  {
+    "id": "wb-rs-prep-aux",
+    "kind": "design",
+    "base": "3363c87903b85b18c73fe065cc46a6698c078e94",
+    "patches": [
+      "patches/wb-rs-prep-aux.patch"
+    ],
+    "sha256": [
+      "d40cb12562bd001b3e949204bfed24c5e7c5bbf8be205dccf1f42ef52d26bd1b"
+    ],
+    "target": "a846b872f0760816029da97caa4ee54a0f45cf67",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/prepare_wb_rs_test.py",
+      "tests/cpu/arm9v2_board/run-wb-rs.sh",
+      "tests/cpu/arm9v2_board/wb_rs_tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "ec8b09bcd0cd3886af9102e80c417ee1864d4f5f667c860884241dfaaaa50992",
+      "tests/cpu/arm9v2_board/prepare_wb_rs_test.py": "607fb2c7a50703bb7b16f67ce87b7dfedf0d79d05682f65a6fd1a0df0d6c2a09",
+      "tests/cpu/arm9v2_board/run-wb-rs.sh": "5f4140c6ecf859b5c34243dc90f4f5743bcc9ec5cef612e3d4deab4557e14ba1",
+      "tests/cpu/arm9v2_board/wb_rs_tb.sv": "da3f2a114c73e60bf07e3dc1ee834f977530f8acf4da43a1a3043027d03543f2",
+      "tools/gen_arm9v2_phone.py": "39956c1afa25c0df76820379eb381ec278dde39db086dddeb1c792bea0bf78dc"
+    }
+  },
+  {
+    "id": "wb-rs-prep-both",
+    "kind": "prototype",
+    "base": "3363c87903b85b18c73fe065cc46a6698c078e94",
+    "patches": [
+      "patches/wb-rs-prep-both.patch"
+    ],
+    "sha256": [
+      "2833ec76e71f98f3fa378a4fed42c16e8ddacb526546e7ae64340a3affb65404"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/prepare_wb_rs_test.py",
+      "tests/cpu/arm9v2_board/run-wb-rs.sh",
+      "tests/cpu/arm9v2_board/wb_rs_tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "a42dd2a4711ea4374bdefde07516e6c3b2cc0a93ff2ea3c453104418a089b6ff",
+      "tests/cpu/arm9v2_board/prepare_wb_rs_test.py": "607fb2c7a50703bb7b16f67ce87b7dfedf0d79d05682f65a6fd1a0df0d6c2a09",
+      "tests/cpu/arm9v2_board/run-wb-rs.sh": "f70f04326e6a8367adc08506832ed173fa45dc9baf8e847deeab9baa9daba53e",
+      "tests/cpu/arm9v2_board/wb_rs_tb.sv": "8f8fe5f1b5f65c82fb141a5c1b5186eebf9c6e6846419782a1f857f187f02763",
+      "tools/gen_arm9v2_phone.py": "4b8bc9036a0ec51113c9d9f3effb48b0fb73e473d704c3ae3e33fcac80cf5d79"
+    }
+  },
+  {
+    "id": "wb-rs-prep-replay",
+    "kind": "fixture",
+    "base": "3363c87903b85b18c73fe065cc46a6698c078e94",
+    "patches": [
+      "patches/wb-rs-prep-replay.patch"
+    ],
+    "sha256": [
+      "264264d68cf9932eb3a5aeea208e45682a0d693a463d1555c8495e8bfe59e873"
+    ]
+  },
+  {
+    "id": "prepared-wb-write-data",
+    "kind": "design",
+    "base": "a846b872f0760816029da97caa4ee54a0f45cf67",
+    "patches": [
+      "patches/prepared-wb-write-data.patch"
+    ],
+    "sha256": [
+      "9d5b26b62a4f2ba50b99a102657b484e3e042279b29f463df17fe7cbfe597be8"
+    ],
+    "target": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/prepare_wb_data_contract.py",
+      "tests/cpu/arm9v2_board/run-wb-data-contract.sh",
+      "tests/cpu/arm9v2_board/wb_data_contract_observe.vh",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "4aa8037c0051b43819de2dc9d9f96322ea2e2bb2d91c82df1383ad6840d5d37e",
+      "tests/cpu/arm9v2_board/prepare_wb_data_contract.py": "46404bc653e312f77d58693793b11b5d18c8064b2676ec0eb42e90a14524b4a3",
+      "tests/cpu/arm9v2_board/run-wb-data-contract.sh": "bcc50c88b0bb613eb39b1f2171440923dd8904ed233169dcd34d9451eec93751",
+      "tests/cpu/arm9v2_board/wb_data_contract_observe.vh": "c42464525dd902fd669767ba02b4e79058ac8d6e1e72f20973bf858bc272c801",
+      "tools/gen_arm9v2_phone.py": "88613ebf9a8c15b63411992fd7e551bc31f953bb8cd3f9178f3c7ba13caf8b7f"
+    }
+  },
+  {
+    "id": "prepared-wb-write-data-replay",
+    "kind": "fixture",
+    "base": "a846b872f0760816029da97caa4ee54a0f45cf67",
+    "patches": [
+      "patches/prepared-wb-write-data-replay.patch"
+    ],
+    "sha256": [
+      "a441bd41c4781319613878560309f19678eaaa42f0a11c189694085e3408126d"
+    ]
+  },
+  {
+    "id": "peripheral-lane13",
+    "kind": "design",
+    "base": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+    "patches": [
+      "patches/peripheral-lane13.patch"
+    ],
+    "sha256": [
+      "843a889ab595869264e69fcfeded47a1c4af0b03722426a8d11091a8f3cb2ce7"
+    ],
+    "target": "e02c2366d8258eed26656f34b173cfd47d3ad712",
+    "affected_paths": [
+      "rtl/ngage_keypad.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_euart.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/upp_euart/tb.v",
+      "tests/phone/upp_lane13/README.md",
+      "tests/phone/upp_lane13/run.sh",
+      "tests/phone/upp_lane13/tb.sv"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_keypad.v": "066a428209a5719aac7b08799a3453a952c8a6a3313d2c28fa6575fef91f6d74",
+      "rtl/ngage_upp.v": "0720d5d42fa0964e68fbe9ab8630e2dbf98e9bb963244e6d9a2920bd115a65ae",
+      "rtl/ngage_upp_euart.v": "af9fe9666aefe9cbff9870bed160d6b10c8b699f42c0a5dfde7c7e6c541c59b7",
+      "rtl/ngage_upp_peripherals.v": "dc0ba8747e6c6bc85efb1f2c6dfd8711cd99c646e1a28ee2d716aec2a69729c9",
+      "tests/phone/upp_euart/tb.v": "4696d8855c706a4475bb902b289fdff8de52295f46d6c9b096c53ec160b3e87f",
+      "tests/phone/upp_lane13/README.md": "52ca5307bf456a376763d35e4c0e093ceafda896233c993edae83ca66d7876d4",
+      "tests/phone/upp_lane13/run.sh": "cf83e7e9c69171be99346fd20ad982dc20f1eaa7135f10ff77eb9e338497dfb3",
+      "tests/phone/upp_lane13/tb.sv": "d19825d4139cb5289d7a89cba88facfb491f854488b1d2d3bfc780907e365c3d"
+    }
+  },
+  {
+    "id": "peripheral-lane13-replay",
+    "kind": "fixture",
+    "base": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+    "patches": [
+      "patches/peripheral-lane13-replay.patch"
+    ],
+    "sha256": [
+      "ad145b1549252d414267f74fa2bb7b13b8b2df51cf0ccfc779f420834cbc289a"
+    ]
+  },
+  {
+    "id": "upp-two-edge",
+    "kind": "design",
+    "base": "e7f1e31ea4f6d51e9e59463a7f13168b9a8f4530",
+    "patches": [
+      "patches/upp-two-edge.patch"
+    ],
+    "sha256": [
+      "29562b4cef60615c9e4a33879af602d9a80b374d52f6f270925798b86523705a"
+    ],
+    "target": "4c02fdab93f690945334ba06b8e4dadaaec3e9a6",
+    "affected_paths": [
+      "Template.sdc",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/upp_two_edge/README.md",
+      "tests/phone/upp_two_edge/endpoints.tcl",
+      "tests/phone/upp_two_edge/run.sh",
+      "tests/phone/upp_two_edge/tb.sv",
+      "tools/probe_retime_fit/report.tcl",
+      "tools/upp_mmio_timing.tcl"
+    ],
+    "measured_sha256": {
+      "Template.sdc": "f2ab4d38ee7c9d0ced195597ff93bd75ce452d1cc0aadf2c171c2808113dd459",
+      "rtl/ngage_upp.v": "cf71dc7b30a09124f418cec6ef024e6f59483284e470c84d5531daa81282e837",
+      "rtl/ngage_upp_peripherals.v": "97f34b94ae79c1afb6426b33611bba21ba8521f52e68a8310ce264e1a3ef121b",
+      "tests/phone/upp_two_edge/README.md": "7c3587b4824d99f4abd6a2289a60cce58212b76ef40a7c7ebe2c735a41eaf39a",
+      "tests/phone/upp_two_edge/endpoints.tcl": "578c71e5520571c403c94b8f2458c05f15c7683affa3639b8ab49022add52b16",
+      "tests/phone/upp_two_edge/run.sh": "ef9bf5703274c8e2f223853d6461380cb4b7a54c16eea318b8519c1ce3b085b6",
+      "tests/phone/upp_two_edge/tb.sv": "e4dc3afbd334c096380419d989de2c69966ee4c9461a1edaa98cb24f7055aec8",
+      "tools/probe_retime_fit/report.tcl": "d85610b59bfd240043d6eb83ec2004aa60482b2b0ad6ea7075147a8a71c2514c",
+      "tools/upp_mmio_timing.tcl": "fad908ad3e48c9128777b01774f7f605009c9e7496807ab4adb0afb1eabf4ce9"
+    }
+  },
+  {
+    "id": "upp-two-edge-replay",
+    "kind": "fixture",
+    "base": "e7f1e31ea4f6d51e9e59463a7f13168b9a8f4530",
+    "patches": [
+      "patches/upp-two-edge-replay.patch"
+    ],
+    "sha256": [
+      "9265d092da5d8d8af30c1b758544ba86b89b96af678193f2bd300af2436512aa"
+    ]
+  },
+  {
+    "id": "upp-two-edge-dma",
+    "kind": "design",
+    "base": "4c02fdab93f690945334ba06b8e4dadaaec3e9a6",
+    "patches": [
+      "patches/upp-two-edge-dma.patch"
+    ],
+    "sha256": [
+      "0ec1c3c33abd4758b2452ce5e676535e60d5bf1f672870c5a22417b7f6c410cd"
+    ],
+    "target": "174ed5e05ba1080d55d914f9e500dc2c1f566ceb",
+    "affected_paths": [
+      "rtl/ngage_upp.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_upp.v": "0150176bf02002e6d2c28223ad2e752bc5b7369c7ce4de3d094b102f3f041597"
+    }
+  },
+  {
+    "id": "upp-two-edge-dma-replay",
+    "kind": "fixture",
+    "base": "4c02fdab93f690945334ba06b8e4dadaaec3e9a6",
+    "patches": [
+      "patches/upp-two-edge-dma-replay.patch"
+    ],
+    "sha256": [
+      "335fe31fb6a7439b7110a7d9f2e73b31efc9b41b708b5951928fdc05f6da3dcc"
+    ]
+  },
+  {
+    "id": "wb-id-address",
+    "kind": "design",
+    "base": "e7beaf2e289b12ded13473113d0570d21882d813",
+    "patches": [
+      "patches/wb-id-address.patch"
+    ],
+    "sha256": [
+      "1086c85c1d85bd52e4f95334e4a10a5ef077bc1df56f6aad03074799c50fb089"
+    ],
+    "target": "f628271f2129d12e3119544241c5c73401fb22e1",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "6c1aea4c9b427950af3e022adc76de17fd5f99bb9102f086d5a0b452a126cefd",
+      "tools/gen_arm9v2_phone.py": "554b614cdac85b99e9d49d00980969b15f80a0883ddd25fc1e5fee270d1897f1"
+    }
+  },
+  {
+    "id": "wb-id-address-replay",
+    "kind": "fixture",
+    "base": "e7beaf2e289b12ded13473113d0570d21882d813",
+    "patches": [
+      "patches/wb-id-address-replay.patch"
+    ],
+    "sha256": [
+      "f3171b4702f3c8722423a53b92eb7cb072ed8afce8ae279f096abb198dcf492d"
+    ]
+  },
+  {
+    "id": "icache-strobe",
+    "kind": "design",
+    "base": "d87216ac1152cd8b5d66c31fcca913cd29c014ca",
+    "patches": [
+      "patches/icache-strobe.patch"
+    ],
+    "sha256": [
+      "0481c67232f9fbbd27313e1ed1e1f10501c92726fb2397bbb8ef434fc14bafb1"
+    ],
+    "target": "561a5cbe12ab758ac03daaa6cb8eadee351f946e",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "cc3de1d6eb5b5a84575e5272b4637cd24ae893dbd6efc6ad5feada139d8c420c",
+      "tools/gen_arm9v2_phone.py": "f7b3785c4e22dd6647b6f47653e6e06058517a2cbdd2bfdd188bafc24f5d9344"
+    }
+  },
+  {
+    "id": "icache-strobe-replay",
+    "kind": "fixture",
+    "base": "d87216ac1152cd8b5d66c31fcca913cd29c014ca",
+    "patches": [
+      "patches/icache-strobe-replay.patch"
+    ],
+    "sha256": [
+      "8a0325a5f01c8e329020a611401442a614ac9b0474d1051de46b52d86f281624"
+    ]
+  },
+  {
+    "id": "idcache-strobe",
+    "kind": "design",
+    "base": "a58c77b78e9496347dac0a37cae26cae37f0145f",
+    "patches": [
+      "patches/idcache-strobe.patch"
+    ],
+    "sha256": [
+      "21f824bc7ebc3e17d2b972b881cba6c9de4f2136b6763a67ce87ed3624f99058"
+    ],
+    "target": "6c605ce4de2a81da6e965fca06c21f11d638e2ff",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "39a9cefede1ab3fd19de7e864763b535c122ded4bd6daf4331097583de4c576f",
+      "tools/gen_arm9v2_phone.py": "c2d7c0e5099404763e0704db891626ee97d41d74a59b132ca4e12d32a11bbf0d"
+    }
+  },
+  {
+    "id": "idcache-strobe-delta",
+    "kind": "design",
+    "base": "561a5cbe12ab758ac03daaa6cb8eadee351f946e",
+    "patches": [
+      "patches/idcache-strobe-delta.patch"
+    ],
+    "sha256": [
+      "e87ce44f6eb3b620cb4c3fdfc58a9430054df7a4f171fdedee1ef404ba048794"
+    ],
+    "target": "6c605ce4de2a81da6e965fca06c21f11d638e2ff",
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "39a9cefede1ab3fd19de7e864763b535c122ded4bd6daf4331097583de4c576f",
+      "tools/gen_arm9v2_phone.py": "c2d7c0e5099404763e0704db891626ee97d41d74a59b132ca4e12d32a11bbf0d"
+    }
+  },
+  {
+    "id": "idcache-strobe-replay",
+    "kind": "fixture",
+    "base": "a58c77b78e9496347dac0a37cae26cae37f0145f",
+    "patches": [
+      "patches/idcache-strobe-replay.patch"
+    ],
+    "sha256": [
+      "7ddd891983a926d0fe34d5dd516ea40e2f5b176096e66de985e38787c7e7038b"
+    ]
+  },
+  {
+    "id": "cpu-posted-sdram-ack",
+    "kind": "design",
+    "base": "606ff0d05fc1019d87745c5065eed3b462fc81dd",
+    "patches": [
+      "patches/cpu-posted-sdram-ack.patch"
+    ],
+    "sha256": [
+      "cecb4a231ff62bb9a73e982397380c7eae0278a9aceea365105005ab8a76dd72"
+    ],
+    "target": "654217dc6959efbfc4ada18a6db5f21b36433ff9",
+    "affected_paths": [
+      "Template.sv",
+      "rtl/ngage_sdram_arbiter.v",
+      "rtl/ngage_sdram_stream.v"
+    ],
+    "measured_sha256": {
+      "Template.sv": "e96bfa9e7d3211855d8f953f25a7449786c7fea011541aeefc870f87908005cd",
+      "rtl/ngage_sdram_arbiter.v": "ffe40dafd8eeac570df2027c07147ced36778f0b5f7f9712bf60cc1a926f3e71",
+      "rtl/ngage_sdram_stream.v": "2d0fa68c72499bd364ba9ce7d2f941682a0bd527308b579203d6b585296898e8"
+    }
+  },
+  {
+    "id": "cpu-posted-sdram-ack-replay",
+    "kind": "fixture",
+    "base": "606ff0d05fc1019d87745c5065eed3b462fc81dd",
+    "patches": [
+      "patches/cpu-posted-sdram-ack-replay.patch"
+    ],
+    "sha256": [
+      "ed5f739fc093a4b5445d1a532555f6215eb7a007057520629dcac67ab3938019"
+    ]
+  },
+  {
+    "id": "live-rs-prep",
+    "kind": "design",
+    "base": "e11a637576e64e34ac4c3c9351a1e6c33f59d6b2",
+    "patches": [
+      "patches/live-rs-prep.patch"
+    ],
+    "sha256": [
+      "9cbb2722957a0509350761996afea02eb96370ac8787ee9773585548831fc255"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tests/cpu/arm9v2_board/wb_rs_tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "893764fe921a4b8c8892bab59d73aa5792f54731609748c552224b8d5b75f856",
+      "tests/cpu/arm9v2_board/wb_rs_tb.sv": "e85d176d6598370565e4f7bb3014566a3c87fd6acf2d16b240a1ae70f135e845",
+      "tools/gen_arm9v2_phone.py": "cad96cb675b543c4f09568280c8b155279d3668799f06bb543bf26cc306b8d82"
+    }
+  },
+  {
+    "id": "live-rs-prep-replay",
+    "kind": "fixture",
+    "base": "e11a637576e64e34ac4c3c9351a1e6c33f59d6b2",
+    "patches": [
+      "patches/live-rs-prep-replay.patch"
+    ],
+    "sha256": [
+      "03f02a1fdab6b663f80dc20c1969855c24429a957aa10f34d0e61e47b0e1edb9"
+    ]
+  },
+  {
+    "id": "sdram-post-capacity",
+    "kind": "design",
+    "base": "e11a637576e64e34ac4c3c9351a1e6c33f59d6b2",
+    "target": "ff66e03824cb617b462c239d9c020a6473ec4f0d",
+    "patches": [
+      "patches/sdram-post-capacity.patch"
+    ],
+    "sha256": [
+      "6fc3e2ef37e95029aee98cd66d4a2119477f7ba64d9c39f95070910da23bab18"
+    ],
+    "affected_paths": [
+      "rtl/ngage_sdram_stream.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_sdram_stream.v": "67a401dcbe3eaa7f48bb766a3d5be8c647238b83c001deaa1a587b2b409da02f"
+    }
+  },
+  {
+    "id": "sdram-post-capacity-replay",
+    "kind": "fixture",
+    "base": "e11a637576e64e34ac4c3c9351a1e6c33f59d6b2",
+    "patches": [
+      "patches/sdram-post-capacity-replay.patch"
+    ],
+    "sha256": [
+      "cf64df18c36c5bb61e672fe8ff1a02a9e789348fe3c1fc0e40b9e5607c50d99e"
+    ]
+  },
+  {
+    "id": "dcache-lock-valid",
+    "kind": "design",
+    "base": "81fa7685de2d43b4c60aad9e312bc454a49bef09",
+    "target": "8c5726fee4d7d2039ca6f4d96bc2edf72caae60a",
+    "patches": [
+      "patches/dcache-lock-valid.patch"
+    ],
+    "sha256": [
+      "3671e2c934a1d85890168df579dff832a0e4db65d939cc8b704808a88cfc14b0"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "881868d746e577c1a42297123cd4ca621e246371ded8fd78de71a90b358cf204",
+      "tools/gen_arm9v2_phone.py": "bab2619a0dc6658f9147630b440451e062e4124ae0d380fbe96b5cf6b1a32fed"
+    }
+  },
+  {
+    "id": "dcache-lock-valid-replay",
+    "kind": "fixture",
+    "base": "81fa7685de2d43b4c60aad9e312bc454a49bef09",
+    "patches": [
+      "patches/dcache-lock-valid-replay.patch"
+    ],
+    "sha256": [
+      "daa3b752a97397be580a48e307d058c41481928030af656878be20bfb7edbcea"
+    ]
+  },
+  {
+    "id": "alu-zero-predecode",
+    "kind": "design",
+    "base": "81fa7685de2d43b4c60aad9e312bc454a49bef09",
+    "target": "3d57ba329a0d81a8c91a93c9fa03f1a836ac78b4",
+    "patches": [
+      "patches/alu-zero-predecode.patch"
+    ],
+    "sha256": [
+      "4b94256bd41582938279d45f0b404d4a96afbb9c8007242695e8005e7945233e"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "3563fbb3cff7112599e605efa841c06205b861a07ebe2a1f151350ae96dbc8d5",
+      "tools/gen_arm9v2_phone.py": "27eb24abc54b372d0dc914047353e0de3f94d150a1dedff46704d803901e13a4"
+    }
+  },
+  {
+    "id": "alu-zero-predecode-replay",
+    "kind": "fixture",
+    "base": "81fa7685de2d43b4c60aad9e312bc454a49bef09",
+    "patches": [
+      "patches/alu-zero-predecode-replay.patch"
+    ],
+    "sha256": [
+      "6fed156540baa470dc71ca93a34ac68b815fb86bd1b45a647edb02edb19fea6d"
+    ]
+  },
+  {
+    "id": "periphery-auto",
+    "kind": "design",
+    "base": "bbed9e4a4bbc42d7c11f47b2e9685902c0bfa187",
+    "target": "bffd426971639c1cd17342ca36fa448415e3ac50",
+    "patches": [
+      "patches/periphery-auto.patch"
+    ],
+    "sha256": [
+      "6262d3efe2332b6c14e024064b29457b66824ae04f2368ce1f2fe9d55dc11bcd"
+    ],
+    "affected_paths": [
+      "Template.qsf"
+    ],
+    "measured_sha256": {
+      "Template.qsf": "fc90b1d9ad145bee2a6081e328f1a34e7c77b3484e6749cf08bbabc951f30890"
+    }
+  },
+  {
+    "id": "mmc-count-prepare",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-count-prepare.patch"
+    ],
+    "sha256": [
+      "96f4747b20c7b6557fc26587dabfc5a759adabb0ee5f6431abbb19474623eeb4"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_host.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_mmc_host.v": "b13acfef39ede0231b563198b221bf5ec8d428bf2c12e339f6a27bec2b751c73"
+    }
+  },
+  {
+    "id": "mmc-count-prepare-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-count-prepare-replay.patch"
+    ],
+    "sha256": [
+      "07d3bc4a658ed8528423fba512309efa67e98444ffc07b7ba0f7c552d76210b7"
+    ]
+  },
+  {
+    "id": "wb-reply-class",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/wb-reply-class.patch"
+    ],
+    "sha256": [
+      "bc335d91a05acb392989c6c7d981efe16f2ad9f0974d4084258719946623e897"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/arm9v2/arm925t_phone.v",
+      "rtl/ngage_board.v",
+      "rtl/ngage_cpu.sv",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_sdram_arbiter.v",
+      "rtl/ngage_sdram_stream.v",
+      "rtl/ngage_upp.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "Template.sv": "aa327e9a3506154b7b6792430d1adeac75939ca352339ae87a7e28718e048183",
+      "rtl/arm9v2/arm925t_phone.v": "7e01d505577d92de2bdd7f5d4346375108895e3e8d6a1a2148d5b8438c00efc3",
+      "rtl/ngage_board.v": "2c6f76c8a654ffe038bfd15dc5cd8bcfe777315e2b9e3fa31c0811c8cd9e606b",
+      "rtl/ngage_cpu.sv": "c6d1b5da0af706f942e3be06510ffa645039607e92e7625ac470c86515d57785",
+      "rtl/ngage_mister.v": "ba5d40c2a767b0e35dff7af20fdc9a04309e6e1276395e7c60bbe0a3e641236c",
+      "rtl/ngage_sdram_arbiter.v": "1258879d1aefd74357e4a3887fcbf4ea1e1ed964127cd936c9b2a948a04b90e3",
+      "rtl/ngage_sdram_stream.v": "bbb8f5aab32a8bd70ebd9afd06cb2a035ffa4d817ddb5723e395baaa435fc36f",
+      "rtl/ngage_upp.v": "80f5e5f8682297f291a121061eec765acd3b450bd30ea6c9804c7dce1bde36f8",
+      "tools/gen_arm9v2_phone.py": "95b65014f4fe4e3e9e1493301f6d8f39e5bac117311eb23834cd060f73326bc5"
+    }
+  },
+  {
+    "id": "wb-reply-class-directed-fixture",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/wb-reply-class-directed-fixture.patch"
+    ],
+    "sha256": [
+      "5c2142cbbf97333cf19989333b81f7b7a5f9b22c4300c97806449013a8fac163"
+    ],
+    "affected_paths": [
+      "tests/cpu/arm9v2_board/reply_class_tb.sv"
+    ],
+    "measured_sha256": {
+      "tests/cpu/arm9v2_board/reply_class_tb.sv": "89ce617137be27889873b73ec31567ab4881c3bce1a0dbac7f7af46729602086"
+    }
+  },
+  {
+    "id": "wb-reply-class-replay-tools",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/wb-reply-class-replay-tools.patch"
+    ],
+    "sha256": [
+      "a3d9d30cb12d4259e3cb1e2c4100ab2a64f1a5f76da50d7894398aa1c323cbe9"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/wb-reply-class/source/build/reply-class/prepare_mixed.py",
+      "scratch/v5-fit-loop/wb-reply-class/source/build/reply-class/qualify_bench.py",
+      "scratch/v5-fit-loop/wb-reply-class/source/build/reply-class/replay.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/wb-reply-class/source/build/reply-class/prepare_mixed.py": "5035fcf41bd5b7581dae9f445c560cfbc2a4eb4d94cfdf6de8c20264fd9263e0",
+      "scratch/v5-fit-loop/wb-reply-class/source/build/reply-class/qualify_bench.py": "8e5d97dd3f22d5a3dc5cf92fadd88dcd903843840f585738b71c56fd2cda9916",
+      "scratch/v5-fit-loop/wb-reply-class/source/build/reply-class/replay.py": "207bf85e7877c941ece57faade6336d87b3faf47b337456e7cbbce1ac1df4a05"
+    }
+  },
+  {
+    "id": "wb-mmc-combined",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/wb-reply-class.patch",
+      "patches/mmc-count-prepare.patch"
+    ],
+    "sha256": [
+      "bc335d91a05acb392989c6c7d981efe16f2ad9f0974d4084258719946623e897",
+      "96f4747b20c7b6557fc26587dabfc5a759adabb0ee5f6431abbb19474623eeb4"
+    ],
+    "affected_paths": [
+      "Template.sv",
+      "rtl/arm9v2/arm925t_phone.v",
+      "rtl/ngage_board.v",
+      "rtl/ngage_cpu.sv",
+      "rtl/ngage_mister.v",
+      "rtl/ngage_mmc_host.v",
+      "rtl/ngage_sdram_arbiter.v",
+      "rtl/ngage_sdram_stream.v",
+      "rtl/ngage_upp.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_mmc_host.v": "b13acfef39ede0231b563198b221bf5ec8d428bf2c12e339f6a27bec2b751c73",
+      "Template.sv": "aa327e9a3506154b7b6792430d1adeac75939ca352339ae87a7e28718e048183",
+      "rtl/arm9v2/arm925t_phone.v": "7e01d505577d92de2bdd7f5d4346375108895e3e8d6a1a2148d5b8438c00efc3",
+      "rtl/ngage_board.v": "2c6f76c8a654ffe038bfd15dc5cd8bcfe777315e2b9e3fa31c0811c8cd9e606b",
+      "rtl/ngage_cpu.sv": "c6d1b5da0af706f942e3be06510ffa645039607e92e7625ac470c86515d57785",
+      "rtl/ngage_mister.v": "ba5d40c2a767b0e35dff7af20fdc9a04309e6e1276395e7c60bbe0a3e641236c",
+      "rtl/ngage_sdram_arbiter.v": "1258879d1aefd74357e4a3887fcbf4ea1e1ed964127cd936c9b2a948a04b90e3",
+      "rtl/ngage_sdram_stream.v": "bbb8f5aab32a8bd70ebd9afd06cb2a035ffa4d817ddb5723e395baaa435fc36f",
+      "rtl/ngage_upp.v": "80f5e5f8682297f291a121061eec765acd3b450bd30ea6c9804c7dce1bde36f8",
+      "tools/gen_arm9v2_phone.py": "95b65014f4fe4e3e9e1493301f6d8f39e5bac117311eb23834cd060f73326bc5"
+    }
+  },
+  {
+    "id": "lane13-register-sources",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/lane13-register-sources.patch"
+    ],
+    "sha256": [
+      "314eb584bdfd3b42cd7d21dde32232f068c39c8694dff25b024cd062730005bc"
+    ],
+    "affected_paths": [
+      "rtl/ngage_upp_peripherals.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_upp_peripherals.v": "5189d7da1cd75052e0075af9a7966dc39399939446163529a86f89ca325f986f"
+    }
+  },
+  {
+    "id": "lane13-register-sources-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/lane13-register-sources-replay.patch"
+    ],
+    "sha256": [
+      "c46a72d3d0c2bb1716d8a8ab5548678295b06994280314b5a611230e9c08d0ff"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/lane13-register-sources/board.sh",
+      "scratch/v5-fit-loop/lane13-register-sources/mixed.py",
+      "scratch/v5-fit-loop/lane13-register-sources/replay.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/lane13-register-sources/board.sh": "1cb36b2189d99dbc2fe37e20158b1ed410a81429b6d516e4a09b21f4f291b0e2",
+      "scratch/v5-fit-loop/lane13-register-sources/mixed.py": "e90b226e366369964a70cc73ffa513c1861d21c412388bf15325c5b378ccd92e",
+      "scratch/v5-fit-loop/lane13-register-sources/replay.py": "b2d579b433cf96c09c8ae0fc01c9a5403edd89025f898a0da8b7cef49d9c9181"
+    }
+  },
+  {
+    "id": "dcache-live-trust",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-live-trust.patch"
+    ],
+    "sha256": [
+      "3c6470af90f5c7c08bdde8c4ac5cd9323c95fc70faeac46b413aa94284316192"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "65e6870bebab65f66b507cdd4a63c5e5bd33ad24ec6ccadc3ecff128f205a491",
+      "tools/gen_arm9v2_phone.py": "888046b6e913b6631fae497fdc72f0b6554ed66eca0a8a08a4f45e58ae5c7dd2"
+    }
+  },
+  {
+    "id": "dcache-live-trust-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-live-trust-replay.patch"
+    ],
+    "sha256": [
+      "d53076634674141191daa637b07d3526493a360e085b3112f1f7191cd857f501"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/dcache-live-trust/board.sh",
+      "scratch/v5-fit-loop/dcache-live-trust/mixed.py",
+      "scratch/v5-fit-loop/dcache-live-trust/prepare-proof.py",
+      "scratch/v5-fit-loop/dcache-live-trust/replay.py",
+      "scratch/v5-fit-loop/dcache-live-trust/routes.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/dcache-live-trust/board.sh": "a0d8833b304d3390d20b81b2598ae4fe21185a4d52b234e296ce2e812cc991c6",
+      "scratch/v5-fit-loop/dcache-live-trust/mixed.py": "e15c62c5f31555f160e87e7f641830d65a9d57a731fd66ee9dd71c56548a77c3",
+      "scratch/v5-fit-loop/dcache-live-trust/prepare-proof.py": "e0c5b36f48d6626b6d92852194a0e3579398573ba5bdc4fb4fec265234dd4378",
+      "scratch/v5-fit-loop/dcache-live-trust/replay.py": "693558d76b0c9c4734ebab900d71429199937c39aaf6853572ea5ef46f4349f4",
+      "scratch/v5-fit-loop/dcache-live-trust/routes.py": "a94a749552a13f25facc57cd17ab7c4406510a010a1a87a66225543ddfe3df5b"
+    }
+  },
+  {
+    "id": "lane13-mmc-combined",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-count-prepare.patch",
+      "patches/lane13-register-sources.patch"
+    ],
+    "sha256": [
+      "96f4747b20c7b6557fc26587dabfc5a759adabb0ee5f6431abbb19474623eeb4",
+      "314eb584bdfd3b42cd7d21dde32232f068c39c8694dff25b024cd062730005bc"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_host.v",
+      "rtl/ngage_upp_peripherals.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_mmc_host.v": "b13acfef39ede0231b563198b221bf5ec8d428bf2c12e339f6a27bec2b751c73",
+      "rtl/ngage_upp_peripherals.v": "5189d7da1cd75052e0075af9a7966dc39399939446163529a86f89ca325f986f"
+    }
+  },
+  {
+    "id": "lane13-mmc-combined-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/lane13-mmc-combined-replay.patch"
+    ],
+    "sha256": [
+      "b40569c7b8d45abe561424ee337b28a772381378061cd848701640f5854b9fa4"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/lane13-mmc-combined/mixed.py",
+      "scratch/v5-fit-loop/lane13-mmc-combined/preflight.py",
+      "scratch/v5-fit-loop/lane13-mmc-combined/prepare-host-tests.py",
+      "scratch/v5-fit-loop/lane13-mmc-combined/prepare.py",
+      "scratch/v5-fit-loop/lane13-mmc-combined/record-qualification.py",
+      "scratch/v5-fit-loop/lane13-mmc-combined/replay.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/lane13-mmc-combined/mixed.py": "026c74f13ddbb94f158a588ae05e3de78c12ecb9347934d3d3b93035da34417e",
+      "scratch/v5-fit-loop/lane13-mmc-combined/preflight.py": "268c4ffb6c1377893749797438440e9fc07e806cdb0c394c3e82850779f9a4d1",
+      "scratch/v5-fit-loop/lane13-mmc-combined/prepare-host-tests.py": "109bff560f32d6e43393b68b2030ad247bd53623f3bea62e53544f5ed0b62c47",
+      "scratch/v5-fit-loop/lane13-mmc-combined/prepare.py": "ba7e7e3533e8181e7eb72a31d03d50689e8fd413d0daa4c97da4e72b0780bb48",
+      "scratch/v5-fit-loop/lane13-mmc-combined/record-qualification.py": "b94506c598b0a1d3b74960be4cfe13ffeccb7ff067104c3ed29862c476c22ac4",
+      "scratch/v5-fit-loop/lane13-mmc-combined/replay.py": "c0684e1bf7a1eb960a767abaa62bbd9ce590e1f8ac7054f65f52cc33ab7b0e2a"
+    }
+  },
+  {
+    "id": "lltune-generated-clock",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/lltune-generated-clock.patch"
+    ],
+    "sha256": [
+      "c1d71d2e242d74e727d493dd7a4a98c779f3a2733b9f8e06a39cea51fc0332f5"
+    ],
+    "affected_paths": [
+      "sys/sys_top.sdc",
+      "tools/lltune_clock.tcl",
+      "tools/probe_retime_fit/report.tcl"
+    ],
+    "measured_sha256": {
+      "sys/sys_top.sdc": "cb8789f1db7b90fb598451d52261a69396ff4e2506b33cb7da840c22f24c2825",
+      "tools/lltune_clock.tcl": "654eb9548fcb57fcb4a2a17fd46d0f1335cbc7413edd5185a75d3e63137aa935",
+      "tools/probe_retime_fit/report.tcl": "f4a4230cdfaf11ee273372afd4a581a72436292ce952330a27bd9c8babf99779"
+    }
+  },
+  {
+    "id": "lltune-generated-clock-audit",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/lltune-generated-clock-audit.patch"
+    ],
+    "sha256": [
+      "a9edffe91f992b2ac195ee4d5f0408f494b7637e6d8d34540756321a3691982d"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/lltune-clock/evidence/mock-lltune.tcl",
+      "scratch/v5-fit-loop/lltune-clock/evidence/same-fit-audit.tcl"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/lltune-clock/evidence/mock-lltune.tcl": "54eea00f2609b35761adc63688f6816a9c952a52f771e40ec22dcec6e8a5b920",
+      "scratch/v5-fit-loop/lltune-clock/evidence/same-fit-audit.tcl": "12dcfb7ccbe49fd14f34b2a47a18bc318f2f7d927b3327f5fcaed25495af4a6b"
+    }
+  },
+  {
+    "id": "timer-write-prepare",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare.patch"
+    ],
+    "sha256": [
+      "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a"
+    ],
+    "affected_paths": [
+      "rtl/ngage_timers.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/timer_conformance/tb.v",
+      "tests/phone/timers/tb.sv"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+      "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+      "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+      "tests/phone/timer_conformance/tb.v": "2716e8f144611319d38079a4e4870432292eadd721970960f45ea47f23b08ed0",
+      "tests/phone/timers/tb.sv": "df48a45fbc9bdf41ba283b1bcd696f58f9c335698e265ad78fa4d93b4d958a44"
+    }
+  },
+  {
+    "id": "timer-write-prepare-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare-replay.patch"
+    ],
+    "sha256": [
+      "8395a1c3becb5c698d5016dc5271cb287edd032e1e19c51362c218d5a9c017c9"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/timer-write-prepare/board.sh",
+      "scratch/v5-fit-loop/timer-write-prepare/coexistence.sh",
+      "scratch/v5-fit-loop/timer-write-prepare/mixed.py",
+      "scratch/v5-fit-loop/timer-write-prepare/original.sh",
+      "scratch/v5-fit-loop/timer-write-prepare/prepare-coexistence.py",
+      "scratch/v5-fit-loop/timer-write-prepare/prepare-directed.py",
+      "scratch/v5-fit-loop/timer-write-prepare/record.py",
+      "scratch/v5-fit-loop/timer-write-prepare/replay.py",
+      "scratch/v5-fit-loop/timer-write-prepare/timer-directed.sv"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/timer-write-prepare/board.sh": "df556ac4c0760f0e6f502d3642d348660f45ae15976af0872f89539dfa34d0a2",
+      "scratch/v5-fit-loop/timer-write-prepare/coexistence.sh": "6e4dc726ac9a34f5dad72a8ff8ff46ed602b1c9202168ada69c5e8e5901be02e",
+      "scratch/v5-fit-loop/timer-write-prepare/mixed.py": "5cc13f65cae38cd70e0fbfa4bbda46d1dd728955182775906177b5c32f74bfed",
+      "scratch/v5-fit-loop/timer-write-prepare/original.sh": "fe4b1ebeeb549292881318d0de20ca99f3a5a293760d3d2b65cefd9581e2414e",
+      "scratch/v5-fit-loop/timer-write-prepare/prepare-coexistence.py": "cf5c9e18008fc76481887e4901f473a88af8491ed88741af3a403ee1ea22ec6d",
+      "scratch/v5-fit-loop/timer-write-prepare/prepare-directed.py": "f63b948f06483c0d76c909635bf84092b2daa9398e2dbff7e347f42a030a29db",
+      "scratch/v5-fit-loop/timer-write-prepare/record.py": "ed44f0292ba0399a108d973d731f9a70fb68dbb29fa3cd613181e57a9b62b1fd",
+      "scratch/v5-fit-loop/timer-write-prepare/replay.py": "c29edfccdaec6afbd4e38df09e1c7b31dc8cb0163f418b9a945bdbecce9d9a15",
+      "scratch/v5-fit-loop/timer-write-prepare/timer-directed.sv": "585b3f88a3b66b0614a92f32b79969652b37dfc0284911e82ba767365ed342d0"
+    }
+  },
+  {
+    "id": "dcache-trusted-hit-ack",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-trusted-hit-ack.patch"
+    ],
+    "sha256": [
+      "e756d997a69e8e3b75a2e3f9b5f508f3dbac9e49d6d30000d3a1ac6db834f06f"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "df0581e580b5aa4c920e0f275e5a849f6bbb7f17561b1d5010ddb73177f5e65b",
+      "tools/gen_arm9v2_phone.py": "81b4199e904f9f324a902de4389a53fc4a31e419faa6975d723662ddec4a9470"
+    }
+  },
+  {
+    "id": "dcache-trusted-hit-ack-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-trusted-hit-ack-replay.patch"
+    ],
+    "sha256": [
+      "2bc06ca43022dea0b3f86fb0ac76236f21da013e480a39bd7210d2338d94de81"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/architectural_trace.vh",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/board-phase.sh",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/board.sh",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/collect-receipt.py",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/mixed.py",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/prepare-proof.py",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/replay.py",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/wb-write-trace.vh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/architectural_trace.vh": "fd2af36acb4e5bd0e8e9caa95f4ad39404f06e4ce2f15bfb56cadd0d4c6ef151",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/board-phase.sh": "f91e923b084a1340d75c2aee3428334f4fecffb3251212631d3135800b26ce9e",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/board.sh": "7bf77411d4ce9c929274515552b7713e6a051efd728055058ada6f9049d7a091",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/collect-receipt.py": "e5ed2e13a8a5e465fca9864b44093b7037ac403096aa1000637e9f15117b1456",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/mixed.py": "18018b2ef39b4a1c0a320ea6d0d3a5a23630e10450428a9047d76786f4b179e2",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/prepare-proof.py": "2efbffb7f6815a6a6717456ee07aabd08335396bd8c47ffbb28cb422ddbf5dc2",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/replay.py": "27ce108884d8910e16c125a8fd9ed60c09c5349e77f61629a51e9010dcbffcca",
+      "scratch/v5-fit-loop/dcache-trusted-hit-ack/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
+    }
+  },
+  {
+    "id": "timer-live-trust-combined",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare.patch",
+      "patches/dcache-live-trust.patch"
+    ],
+    "sha256": [
+      "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a",
+      "3c6470af90f5c7c08bdde8c4ac5cd9323c95fc70faeac46b413aa94284316192"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "rtl/ngage_timers.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/timer_conformance/tb.v",
+      "tests/phone/timers/tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+      "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+      "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+      "tests/phone/timer_conformance/tb.v": "2716e8f144611319d38079a4e4870432292eadd721970960f45ea47f23b08ed0",
+      "tests/phone/timers/tb.sv": "df48a45fbc9bdf41ba283b1bcd696f58f9c335698e265ad78fa4d93b4d958a44",
+      "rtl/arm9v2/arm925t_phone.v": "65e6870bebab65f66b507cdd4a63c5e5bd33ad24ec6ccadc3ecff128f205a491",
+      "tools/gen_arm9v2_phone.py": "888046b6e913b6631fae497fdc72f0b6554ed66eca0a8a08a4f45e58ae5c7dd2"
+    }
+  },
+  {
+    "id": "timer-live-trust-combined-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-live-trust-combined-replay.patch"
+    ],
+    "sha256": [
+      "db6a5b8051fe7621682c1d5865b74364fc19857d34edcac0d12cf10fd6136333"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/timer-live-trust-combined/architectural_trace.vh",
+      "scratch/v5-fit-loop/timer-live-trust-combined/board.sh",
+      "scratch/v5-fit-loop/timer-live-trust-combined/coexistence.sh",
+      "scratch/v5-fit-loop/timer-live-trust-combined/mixed.py",
+      "scratch/v5-fit-loop/timer-live-trust-combined/original.sh",
+      "scratch/v5-fit-loop/timer-live-trust-combined/prepare-coexistence.py",
+      "scratch/v5-fit-loop/timer-live-trust-combined/prepare-directed.py",
+      "scratch/v5-fit-loop/timer-live-trust-combined/prepare-fit.py",
+      "scratch/v5-fit-loop/timer-live-trust-combined/qualify.sh",
+      "scratch/v5-fit-loop/timer-live-trust-combined/record.py",
+      "scratch/v5-fit-loop/timer-live-trust-combined/replay.py",
+      "scratch/v5-fit-loop/timer-live-trust-combined/timer-directed.sv",
+      "scratch/v5-fit-loop/timer-live-trust-combined/wb-write-trace.vh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/timer-live-trust-combined/architectural_trace.vh": "fd2af36acb4e5bd0e8e9caa95f4ad39404f06e4ce2f15bfb56cadd0d4c6ef151",
+      "scratch/v5-fit-loop/timer-live-trust-combined/board.sh": "85201218736409447bd4cebf1e30d1dc4603dcbd535e24acf7bc6b010e6f543a",
+      "scratch/v5-fit-loop/timer-live-trust-combined/coexistence.sh": "61edb4e1f6cd3ae62bb1ca4c5f6134b08e9ea68f032ab3e65ad54799b90f0df3",
+      "scratch/v5-fit-loop/timer-live-trust-combined/mixed.py": "c383428433d5a4c411a16aafa7783b63b0bf188bedc42ea45b69ef5c0ef23b26",
+      "scratch/v5-fit-loop/timer-live-trust-combined/original.sh": "199245f2cdf645ec8444473719937c0289f7833f6974e17212e1cb46f9d35045",
+      "scratch/v5-fit-loop/timer-live-trust-combined/prepare-coexistence.py": "a75900e52b87e4d3ea151f2ff41fe7d8d86747705f7aa9364dfd8af11af667e7",
+      "scratch/v5-fit-loop/timer-live-trust-combined/prepare-directed.py": "274e8df1b062f9dbc171d3427ee6bfe7af5813c8b32eed79322b8be729452bf0",
+      "scratch/v5-fit-loop/timer-live-trust-combined/prepare-fit.py": "45400476d616a24c3dfad97c58b77275cfadfda4dc93c6577c3b61b195423df6",
+      "scratch/v5-fit-loop/timer-live-trust-combined/qualify.sh": "cc6910b4e19e01d94bb64a74708fbfa9551061052200f33c641008d93ab4a89e",
+      "scratch/v5-fit-loop/timer-live-trust-combined/record.py": "3a5ec907fcb9935183655a118e3ae0ad08dbca1ce83f2c7cce867d862b654d6c",
+      "scratch/v5-fit-loop/timer-live-trust-combined/replay.py": "766d978ee9d408d7861f608f1a478eb6692648351b2c4c52ddd900ed4c1f4418",
+      "scratch/v5-fit-loop/timer-live-trust-combined/timer-directed.sv": "585b3f88a3b66b0614a92f32b79969652b37dfc0284911e82ba767365ed342d0",
+      "scratch/v5-fit-loop/timer-live-trust-combined/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
+    }
+  },
+  {
+    "id": "conservative-w-load-order",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/conservative-w-load-order.patch"
+    ],
+    "sha256": [
+      "a4717b4af199e9e8bbc901a195e62a2bce1ef963ded46a89e2d68894becc27c1"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "a060b789a1eaec4977a7fd0d18021549654453181aeebd774dac0a76ed9f8221",
+      "tools/gen_arm9v2_phone.py": "819d1cd5634983b87633f771629888f9762c391a3938b762159026521a7207db"
+    }
+  },
+  {
+    "id": "conservative-w-load-order-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/conservative-w-load-order-replay.patch"
+    ],
+    "sha256": [
+      "a40dfa9d672257d439518990021034b3a9cd770a790ac1b3ab1e668663ddb54e"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/conservative-w-load-order/board-waw.vh",
+      "scratch/v5-fit-loop/conservative-w-load-order/board.sh",
+      "scratch/v5-fit-loop/conservative-w-load-order/directed.sh",
+      "scratch/v5-fit-loop/conservative-w-load-order/guard-proof.py",
+      "scratch/v5-fit-loop/conservative-w-load-order/mixed.py",
+      "scratch/v5-fit-loop/conservative-w-load-order/prepare-directed.py",
+      "scratch/v5-fit-loop/conservative-w-load-order/record-qualification.py",
+      "scratch/v5-fit-loop/conservative-w-load-order/replay.py",
+      "scratch/v5-fit-loop/conservative-w-load-order/waw-census.vh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/conservative-w-load-order/board-waw.vh": "90901cb67923066a77a885dba4830fbe8506ff4b8e247c7aeb43ac7120bc311e",
+      "scratch/v5-fit-loop/conservative-w-load-order/board.sh": "7c28bc8d8e6129fcb0cbf5452d7b21adde85c219efa65f65c6f23e0e07dbdff7",
+      "scratch/v5-fit-loop/conservative-w-load-order/directed.sh": "7713826e08a91af86c2798bc69b044b36b841336fbd8af417fef3d03d82832b1",
+      "scratch/v5-fit-loop/conservative-w-load-order/guard-proof.py": "d5a019e4ba9cab8df793f2518cdf81d78532edab8199613a9c9c37cb7e91a3d5",
+      "scratch/v5-fit-loop/conservative-w-load-order/mixed.py": "43286871416b7902487b81813ed98d3d4eb21377827852b61479b7d4c8bae1b1",
+      "scratch/v5-fit-loop/conservative-w-load-order/prepare-directed.py": "be6f0ef07f3b0ed247e6c4784d975051226574878031ee0e7025ab938ffc317d",
+      "scratch/v5-fit-loop/conservative-w-load-order/record-qualification.py": "5b415ee5575a7b93f33f6a681689d390d1cde37273b37dd1d1e0a50fc11a8217",
+      "scratch/v5-fit-loop/conservative-w-load-order/replay.py": "02f48dff6000a36812302dc9017885417b1bc2cc9cf99da2860cd0535603e65a",
+      "scratch/v5-fit-loop/conservative-w-load-order/waw-census.vh": "7a6f99a82f161d8908abeebfbdd49f333328d9093c55cd609e5c0d6fe8d27a05"
+    }
+  },
+  {
+    "id": "mmc-footer-crc-direct",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-footer-crc-direct.patch"
+    ],
+    "sha256": [
+      "1f41e4feed53c1345dd3a114d0a99eaf8b0e4b21cf21c354999535377200d9f2"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_hps.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_mmc_hps.v": "0df16bfd82217bd5fb600ad37d472d668b98aca4fbae759c2b101651a376d342"
+    }
+  },
+  {
+    "id": "mmc-footer-crc-direct-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-footer-crc-direct-replay.patch"
+    ],
+    "sha256": [
+      "f6dc4a55a139d5f0f39824791667619a5adfa9b950c88370db9377a6f730b851"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/mixed.py",
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/prepare-verify.py",
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/record-qualification.py",
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/replay.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/mixed.py": "c29de18341cc38c54741c0cf561a30ae6adaf993674a73a22948513f65f3c520",
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/prepare-verify.py": "3e1d64219f1ba4abc1f4c74593aa020556682f3e913582765b30473e692d50ba",
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/record-qualification.py": "6f4327dbea24d71a513f19c7c1cbd71f966afc73bdc20f737d4df730375fd953",
+      "scratch/v5-fit-loop/mmc-footer-crc-direct/replay.py": "2004665ee7e267ff0fe0bb70786ca07ce6ead33bf249a78d14a6084d85979323"
+    }
+  },
+  {
+    "id": "mmc-footer-timer-combined",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare.patch",
+      "patches/mmc-footer-crc-direct.patch"
+    ],
+    "sha256": [
+      "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a",
+      "1f41e4feed53c1345dd3a114d0a99eaf8b0e4b21cf21c354999535377200d9f2"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_hps.v",
+      "rtl/ngage_timers.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/timer_conformance/tb.v",
+      "tests/phone/timers/tb.sv"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+      "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+      "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+      "tests/phone/timer_conformance/tb.v": "2716e8f144611319d38079a4e4870432292eadd721970960f45ea47f23b08ed0",
+      "tests/phone/timers/tb.sv": "df48a45fbc9bdf41ba283b1bcd696f58f9c335698e265ad78fa4d93b4d958a44",
+      "rtl/ngage_mmc_hps.v": "0df16bfd82217bd5fb600ad37d472d668b98aca4fbae759c2b101651a376d342"
+    }
+  },
+  {
+    "id": "mmc-footer-timer-combined-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-footer-timer-combined-replay.patch"
+    ],
+    "sha256": [
+      "f50d8ebb8597bca46cd0f26f3bbb357d9ed88fab86a6bd0dc42d8221cd5f9e76"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/coexistence.sh",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/mixed.py",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/prepare-coexistence.py",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/prepare-fit.py",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/qualify.sh",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/record.py",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/replay.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/coexistence.sh": "070f7caf3b5bbdbcc70fca59d9a435b81050f1d5c8226b406c74decfd49bcb04",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/mixed.py": "24c48972adb28d7385041680a17ee0388e224bbc74c330f10d3256d70a582b89",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/prepare-coexistence.py": "f45831ecbd9ab5905c2f10a36b1fa779d44e6cb2f6e4c3eeb208e88be3d3a5aa",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/prepare-fit.py": "1da77b2bea48257810e6dcb70410e8bd3a65f63da9d375d8ac721da90585e5b4",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/qualify.sh": "9e0369b45723a534b39edf3d1f549f9546b8da045920c639e49a3a959cefc8ee",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/record.py": "a1060cffce61dc6ab40fc7e0a87286d4261e14a05f4dcbe1bdd6cc0139db3775",
+      "scratch/v5-fit-loop/mmc-footer-timer-combined/replay.py": "d972cb88624653956fbc1b3e272a482d9218133ae8f8cc3f9aec428c7f665ff7"
+    }
+  },
+  {
+    "id": "mmc-hps-cancel-owner",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-hps-cancel-owner.patch"
+    ],
+    "sha256": [
+      "05163a00fc8da36feef4505b51cc9968e4d797c3c0c28d54a37b6a432da08f12"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_hps.v"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_mmc_hps.v": "1578f8fd6f8065dc9bd96e7d5cd32d426c9664f7986c17a78440cf7ac84fb13a"
+    }
+  },
+  {
+    "id": "mmc-hps-cancel-owner-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-hps-cancel-owner-replay.patch"
+    ],
+    "sha256": [
+      "98d3bb8fa0879032bbb38641dc68719ebf23e04bed4a1b34e12f91169947dc50"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/architectural_trace.vh",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/mixed.py",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/owner-phase.vh",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/prepare-owner-miter.py",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/record-qualification.py",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/replay.py",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/wb-write-trace.vh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/architectural_trace.vh": "fd2af36acb4e5bd0e8e9caa95f4ad39404f06e4ce2f15bfb56cadd0d4c6ef151",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/mixed.py": "29f9b0baa8cd9075fcb2e6e04beda9fd69fc79e5d6cead997364413ee52f62b3",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/owner-phase.vh": "51cf048d24729c2fb65afe330280f2ca47abc2140cd41fd211f71f88f0c8ce5d",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/prepare-owner-miter.py": "3b9aff73297953f291b292d361e79a40f5587d5825fb4e77d144243ce5ca22f2",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/record-qualification.py": "da5768d8a6f801db7e1bff014f239500499a1be533a9cce6e00d7b9fea0e35dd",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/replay.py": "ff88ec2a24a4675e75e8a95e288d3b0e4078afb243837e845e05893c7b12a37c",
+      "scratch/v5-fit-loop/mmc-hps-cancel-owner/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
+    }
+  },
+  {
+    "id": "owner-plus-timer",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare.patch",
+      "patches/mmc-hps-cancel-owner.patch"
+    ],
+    "sha256": [
+      "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a",
+      "05163a00fc8da36feef4505b51cc9968e4d797c3c0c28d54a37b6a432da08f12"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_hps.v",
+      "rtl/ngage_timers.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/timer_conformance/tb.v",
+      "tests/phone/timers/tb.sv"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+      "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+      "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+      "tests/phone/timer_conformance/tb.v": "2716e8f144611319d38079a4e4870432292eadd721970960f45ea47f23b08ed0",
+      "tests/phone/timers/tb.sv": "df48a45fbc9bdf41ba283b1bcd696f58f9c335698e265ad78fa4d93b4d958a44",
+      "rtl/ngage_mmc_hps.v": "1578f8fd6f8065dc9bd96e7d5cd32d426c9664f7986c17a78440cf7ac84fb13a"
+    }
+  },
+  {
+    "id": "owner-plus-footer-timer",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare.patch",
+      "patches/mmc-footer-crc-direct.patch",
+      "patches/mmc-hps-cancel-owner-on-footer.patch"
+    ],
+    "sha256": [
+      "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a",
+      "1f41e4feed53c1345dd3a114d0a99eaf8b0e4b21cf21c354999535377200d9f2",
+      "aac9499fe8c5bd616e8e71ca1b1c1bf27696922460d7851013321c9496c5af27"
+    ],
+    "affected_paths": [
+      "rtl/ngage_mmc_hps.v",
+      "rtl/ngage_timers.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/timer_conformance/tb.v",
+      "tests/phone/timers/tb.sv"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+      "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+      "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+      "tests/phone/timer_conformance/tb.v": "2716e8f144611319d38079a4e4870432292eadd721970960f45ea47f23b08ed0",
+      "tests/phone/timers/tb.sv": "df48a45fbc9bdf41ba283b1bcd696f58f9c335698e265ad78fa4d93b4d958a44",
+      "rtl/ngage_mmc_hps.v": "9c6ad985759d1d277cf01a7f88d6c222664a5ec8efde015ab3e6d7db387fd0c0"
+    }
+  },
+  {
+    "id": "mmc-hps-owner-timer-combined-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/mmc-hps-owner-timer-combined-replay.patch"
+    ],
+    "sha256": [
+      "78dbcb932825007601e9afdee7115fb4fea21a44663bcdf22bc1fb01b521b62e"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/architectural_trace.vh",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/coexistence.sh",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/mixed.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/owner-phase.vh",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-coexistence.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-directed.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-fit.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-owner-miter.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-verify.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/qualify.sh",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/record.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/replay.py",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/timer-directed.sv",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/wb-write-trace.vh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/architectural_trace.vh": "fd2af36acb4e5bd0e8e9caa95f4ad39404f06e4ce2f15bfb56cadd0d4c6ef151",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/coexistence.sh": "07a18ba8c7fe03aeb98b318708624c632384288b36863a0e2db194c17099ae4f",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/mixed.py": "659527fae543ce0120c9842053bb714e5c4e27d38c1044dfc23aa02c03b4df00",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/owner-phase.vh": "51cf048d24729c2fb65afe330280f2ca47abc2140cd41fd211f71f88f0c8ce5d",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-coexistence.py": "346481ad3fea8a3c2d95f81239c6164aa74a84140be2a7697274fa7911ab7d4e",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-directed.py": "251d8da57aac01f41d7512c816be5accc3e09f6069bcc6dc600f4049d5693486",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-fit.py": "4b3a01caa5c0c626d0f35caa5a0889aa13e6fef1f2bc24cf687cb342638d365e",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-owner-miter.py": "3f65aff340cb43ce791c19ef64f560d3f9b98f9b73875c09df56c17f49350170",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/prepare-verify.py": "c51308bf29c73923c77fdf2ff6c1b90ab3cbda44720fdc949aaee3015053e62a",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/qualify.sh": "03f86470e91e0a08da316a5961ac5a51b9c2be5b5bd83ad8def5d625e1015b34",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/record.py": "a673f21c2583838abefc4cd1cee0dc539b7de9dce45f7af3ae9c9092e7d2bd71",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/replay.py": "f4505a9fba1e93be9b74c1718e12b433e7b32ca7aaa3ffbb8a0e9d208d0c9351",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/timer-directed.sv": "585b3f88a3b66b0614a92f32b79969652b37dfc0284911e82ba767365ed342d0",
+      "scratch/v5-fit-loop/mmc-hps-owner-timer-combined/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
+    }
+  },
+  {
+    "id": "dcache-compact-lock",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-compact-lock.patch"
+    ],
+    "sha256": [
+      "abab9bfe0e0a7bb369e52baa3f7d8654d48d2ef0199f9646658283403e61e530"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "6157eab5bae7a7bf3d4588424fab8f65f8b6032611cf22e8295e5737d3ed576b",
+      "tools/gen_arm9v2_phone.py": "547402049a1350c7cff102a673b4a8e25c547af978d55c93aadd8d44aef2e6b4"
+    }
+  },
+  {
+    "id": "dcache-compact-lock-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-compact-lock-replay.patch"
+    ],
+    "sha256": [
+      "8994066e751f7c100670a5e8323c2e1ea4caa0e08af6fc94be59cedd69080dd2"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/dcache-compact-lock/board.sh",
+      "scratch/v5-fit-loop/dcache-compact-lock/check-lock-update.v",
+      "scratch/v5-fit-loop/dcache-compact-lock/directed.sh",
+      "scratch/v5-fit-loop/dcache-compact-lock/mixed.py",
+      "scratch/v5-fit-loop/dcache-compact-lock/mixed.sh",
+      "scratch/v5-fit-loop/dcache-compact-lock/prepare-directed.py",
+      "scratch/v5-fit-loop/dcache-compact-lock/prepare-state-proof.py",
+      "scratch/v5-fit-loop/dcache-compact-lock/record.py",
+      "scratch/v5-fit-loop/dcache-compact-lock/replay.py",
+      "scratch/v5-fit-loop/dcache-compact-lock/routes.py"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/dcache-compact-lock/board.sh": "7b0d11c4f144accf2183f6911accc2c2fc392a52e13028b8da23f11d8a9cee25",
+      "scratch/v5-fit-loop/dcache-compact-lock/check-lock-update.v": "a4e27763cd22bbf99d5d2eb9e618166b019d31c6890878fbe904498f94b2410d",
+      "scratch/v5-fit-loop/dcache-compact-lock/directed.sh": "2393c27ae5a1324e3608a9310f5fa21b3f8f6d0a5bc86c88b9d647861541b7e4",
+      "scratch/v5-fit-loop/dcache-compact-lock/mixed.py": "878d3bb362520461a14d7368ef4924fc315fa289d7d2319a6ae65d3b3891381e",
+      "scratch/v5-fit-loop/dcache-compact-lock/mixed.sh": "190db6fe2ebb94b5e6c3e83a90b057b0350a23faee09caaca6c545be41dc0b55",
+      "scratch/v5-fit-loop/dcache-compact-lock/prepare-directed.py": "8709c6d490d3010c865c90dced1247993a5c646e19c5d146bdd6f4f04c4eac3f",
+      "scratch/v5-fit-loop/dcache-compact-lock/prepare-state-proof.py": "8c5122b98d52730949bd7df4e9c9c6027d09630a03ea81c883c3a2fa3ae393e0",
+      "scratch/v5-fit-loop/dcache-compact-lock/record.py": "f0269683c46b0bc6f58eb13ca567827cc2cfc9f10de37462b1cc89ac0e06fc6e",
+      "scratch/v5-fit-loop/dcache-compact-lock/replay.py": "9f53ef9cc9fea6b2d950f9a15b10ed0e41eb9a8e0276a3302770d45ce794e8fa",
+      "scratch/v5-fit-loop/dcache-compact-lock/routes.py": "9613870b136d39dd2aec44cbf5aa7905ba3a57e75553cc0d42861f0816fe6251"
+    }
+  },
+  {
+    "id": "dcache-compact-owner-combined",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/timer-write-prepare.patch",
+      "patches/mmc-hps-cancel-owner.patch",
+      "patches/dcache-compact-lock.patch"
+    ],
+    "sha256": [
+      "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a",
+      "05163a00fc8da36feef4505b51cc9968e4d797c3c0c28d54a37b6a432da08f12",
+      "abab9bfe0e0a7bb369e52baa3f7d8654d48d2ef0199f9646658283403e61e530"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "rtl/ngage_mmc_hps.v",
+      "rtl/ngage_timers.v",
+      "rtl/ngage_upp.v",
+      "rtl/ngage_upp_peripherals.v",
+      "tests/phone/timer_conformance/tb.v",
+      "tests/phone/timers/tb.sv",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+      "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+      "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+      "tests/phone/timer_conformance/tb.v": "2716e8f144611319d38079a4e4870432292eadd721970960f45ea47f23b08ed0",
+      "tests/phone/timers/tb.sv": "df48a45fbc9bdf41ba283b1bcd696f58f9c335698e265ad78fa4d93b4d958a44",
+      "rtl/ngage_mmc_hps.v": "1578f8fd6f8065dc9bd96e7d5cd32d426c9664f7986c17a78440cf7ac84fb13a",
+      "rtl/arm9v2/arm925t_phone.v": "6157eab5bae7a7bf3d4588424fab8f65f8b6032611cf22e8295e5737d3ed576b",
+      "tools/gen_arm9v2_phone.py": "547402049a1350c7cff102a673b4a8e25c547af978d55c93aadd8d44aef2e6b4"
+    }
+  },
+  {
+    "id": "dcache-compact-owner-combined-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-compact-owner-combined-replay.patch"
+    ],
+    "sha256": [
+      "9a1165624b09d7ec8876996083285d73397512f5cf34e4665ca4547b5d100d4f"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/board.sh",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/directed.sh",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/hps.sh",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/mixed.py",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/mixed.sh",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/prepare-directed.py",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/prepare-fit.py",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/prepare-owner-miter.py",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/qualify.sh",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/record.py",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/replay.py",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/stage.sh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/board.sh": "b6c643c36363cfd33b7034808498f36905b7770957087d8aa9e898c862e0dfb4",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/directed.sh": "064f8e155135e02861dac75cf7d6fb0db7145839b062500913223b1fe210c899",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/hps.sh": "9660d7998081567b693662cc66792a9dd1ec48babec0df8f80e3965b33a5efc1",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/mixed.py": "8cda18857a997272abfed90772a1484e1d16a257eade45f2497d14894ed5f09a",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/mixed.sh": "66f97896073533317723eb2747c85fcadaf7d04800e639f4d083848d383e97c3",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/prepare-directed.py": "0480e4c4001911d82db2d973d48a0d90289dded6f5899bb70f0cd2b1963383ba",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/prepare-fit.py": "5062416b016faa854a0a4fd64722004a2bd8d9a9f883c56e35fd7737454017e0",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/prepare-owner-miter.py": "18b812d53ae84b3d33ba23705ba7c1aa9afe9c77ecf03c29aee5a05b7c220872",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/qualify.sh": "3d336af7abb218cbf47db3c397d9cd35edde2947d0e6e1336b3b961e22ee9191",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/record.py": "62b8bcfccff8e81c42f7e33fd616a87f311666543cee54c34727f1a2d230801c",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/replay.py": "fac21b5465bfef6004b71a7586524d2d734297708975839161b717a34eea9342",
+      "scratch/v5-fit-loop/dcache-compact-owner-combined/stage.sh": "782fb9f03c77016a18fa86f23845546ae8e03ab8dbee2941ab97af5adc8fcabb"
+    }
+  },
+  {
+    "id": "dcache-dirty-clean-descriptor",
+    "kind": "design",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-dirty-clean-descriptor.patch"
+    ],
+    "sha256": [
+      "baaa34c9743a94c80d296ed1dd8c5dec08aa5c8a5f6572afc943977e33ff1ec6"
+    ],
+    "affected_paths": [
+      "rtl/arm9v2/arm925t_phone.v",
+      "tools/gen_arm9v2_phone.py"
+    ],
+    "measured_sha256": {
+      "rtl/arm9v2/arm925t_phone.v": "af019841f3bad5168995bbc19987c55f6525e00b10b97de9dbf891e7d770fba9",
+      "tools/gen_arm9v2_phone.py": "b54d9c59a8c80d27a5c0f68c01131ec929b79a524ff456d22e1b569d497e358e"
+    }
+  },
+  {
+    "id": "dcache-dirty-clean-descriptor-replay",
+    "kind": "fixture",
+    "base": "11c4a0c32983cc9aba89cae986684558583a33f2",
+    "patches": [
+      "patches/dcache-dirty-clean-descriptor-replay.patch"
+    ],
+    "sha256": [
+      "738a04471de8e78719b09e9d0867723893f6e0b9412c81421986cda61f1889d1"
+    ],
+    "affected_paths": [
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/architectural_trace.vh",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/board.sh",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/coexistence.sh",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/cp15-phase.sh",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/mixed.py",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/prepare-coexistence.py",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/prepare-cp15-phase.py",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/prepare-metadata-proof.py",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/record.py",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/replay.py",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/wb-write-trace.vh"
+    ],
+    "measured_sha256": {
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/architectural_trace.vh": "fd2af36acb4e5bd0e8e9caa95f4ad39404f06e4ce2f15bfb56cadd0d4c6ef151",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/board.sh": "e451d662ccf7a1c19c4d778538c5ddfe3540c112556ec66d2db362c01aea2f5f",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/coexistence.sh": "b1474cde69d0ba46d3f7ac59493f735614f0484fbc392dbd99388bccc15947ec",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/cp15-phase.sh": "f9408626e1ebda51256b78df6b9239b7ba9150be04701b956cd5c88261076533",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/mixed.py": "3b6572018374fe2a614df439c6d8aafaa71baf399bac063486aa6192fe434fa9",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/prepare-coexistence.py": "1b7bb8845d0ae0958ea6cb00155e2eff8b75c1405b290fb206c2cb74cc2c0a7c",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/prepare-cp15-phase.py": "5133e4ed78ffa7fc91b9813be6e71b263a6f53847b68576bec832add1319c0b9",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/prepare-metadata-proof.py": "8fe4aea98ef2ba38a747632bd074d3964478d3237166219fc969f3e94eb50edc",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/record.py": "0f68fe9252d9b8ad57c0ed07bbe32a3dbe1546063e660afbff9fc9a7b0f466eb",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/replay.py": "fabfd6be6e80a945e5df0b1afa535d4e0ee0a6dd62a28bfe904b30e67ea4bb2e",
+      "scratch/v5-fit-loop/dcache-dirty-clean-descriptor/wb-write-trace.vh": "5c97f19e0a1920e5e0d2da1e13100dc5b93da5ada9cda4977ff7280b41b57a78"
+    }
+  }
+]

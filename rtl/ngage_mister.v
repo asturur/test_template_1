@@ -18,11 +18,15 @@ module ngage_mister #(
                       DIRECT_SDRAM       = 1,
                       DMA_LOCAL          = 1,
                       GENERAL_DMA        = 1,
+                      LCD_LINE_BYTES     = 0,
                       GAME_PCM           = 0,
+                      DDR_UPP_RAM        = 0,
                       TEST_SIM_ENABLE    = 1,
+                      MMC_CLK_DIV        = 4,
                       SYS_CLK_HZ         = 104000000,
                       TIMER_CLK_DIV      = 1,
-                      NOS_TICK_HZ        = 1000
+                      NOS_TICK_HZ        = 1000,
+                      RAM_LINE_EARLY     = 0
 ) (
     output wire         ddram_line,
     input  wire         ddram_beat_valid,
@@ -38,6 +42,16 @@ module ngage_mister #(
     input  wire         clk_sys,              // CPU/bus clock domain
     input  wire         reset,
     input  wire         cold_reset,
+    // Private volatile RAM client on the HPS DDR3 transport.
+    output wire         upp_ddr_req,
+    output wire         upp_ddr_we,
+    output wire [ 16:2] upp_ddr_addr,
+    output wire [ 31:0] upp_ddr_wdata,
+    output wire [  3:0] upp_ddr_be,
+    input  wire         upp_ddr_ack,
+    input  wire [ 31:0] upp_ddr_rdata,
+    output wire         upp_ddr_clear,
+    input  wire         upp_ddr_clear_done,
     input  wire         sim_present,
     output wire         dma_reset,
     // X553 backing interface. The board's direct native-MMC connection is a
@@ -61,6 +75,12 @@ module ngage_mister #(
     input  wire         dma_sdram_accept,
     output wire         dma_sdram_req,
     output wire [ 24:0] dma_sdram_addr,
+    output wire         lcd_line_req,
+    output wire [ 24:0] lcd_line_addr,
+    input  wire         lcd_line_ready,
+    input  wire         lcd_line_valid,
+    input  wire [ 15:0] lcd_line_data,
+    input  wire         lcd_line_last,
     input  wire         dma_sdram_ack,
     input  wire [ 31:0] dma_sdram_data,
     output wire         pcm_sdram_req,
@@ -107,14 +127,16 @@ module ngage_mister #(
     output wire         bus_lock,             // reserve shared memory for an atomic CPU swap
 
     // SDRAM port (phone RAM — active R/W, 16MB)
-    output wire [24:0] sdram_addr,
-    output wire [31:0] sdram_din,
-    input  wire [31:0] sdram_dout,
-    output wire [ 3:0] sdram_be,
-    output wire        sdram_we,
-    output wire        sdram_req,
-    input  wire        sdram_ack,
-    input  wire        sdram_accept,
+    output wire [ 24:0] sdram_addr,
+    output wire [ 31:0] sdram_din,
+    input  wire [ 31:0] sdram_dout,
+    output wire [  3:0] sdram_be,
+    output wire         sdram_we,
+    output wire         sdram_req,
+    output wire         sdram_write_block,
+    output wire [127:0] sdram_block_data,
+    input  wire         sdram_ack,
+    input  wire         sdram_accept,
 
     // DDR3 port (ROM + C: drive — mostly read, HPS-loaded)
     output wire [31:0] ddram_addr,
@@ -152,10 +174,11 @@ module ngage_mister #(
     wire [3:0] fast_ram_be;
     wire irq_line, fiq_line;
 
-    // Keep the CPU in reset until any accepted flash transaction has drained.
+    // Keep the CPU in reset until accepted flash and private RAM requests drain.
     // Command state is cleared while draining; pending command setup alone must
     // not prevent release. Cold reset cancels controller state with the transport.
-    wire code_idle, user_idle;
+    wire code_idle, user_idle, upp_ddr_idle;
+    wire upp_startup_ready = !DDR_UPP_RAM || (board_init_done && upp_ddr_idle);
     // Assert cancellation immediately, but release only on a clock edge after
     // both flash engines have drained. The registered output, rather than a
     // live OR of loader/readiness flags, drives the phone reset tree. Quartus
@@ -165,7 +188,7 @@ module ngage_mister #(
     (* maxfan = 128, preserve *)reg  reset_drain = 1'b1;
     always @(posedge clk_sys or posedge reset_request) begin
         if (reset_request) reset_drain <= 1'b1;
-        else if (reset_drain && code_idle && user_idle) reset_drain <= 1'b0;
+        else if (reset_drain && code_idle && user_idle && upp_startup_ready) reset_drain <= 1'b0;
     end
     wire core_reset = reset_drain;
     // All external DMA routing/arbitration/adapters share this cancellation
@@ -192,6 +215,7 @@ module ngage_mister #(
     wire cpu_fetch;
     wire raw_ce, raw_hsync, raw_vsync, raw_hblank, raw_vblank;
     wire [11:0] raw_rgb;
+    wire        line_no_late_error;
     wire line_req, line_ready, line_valid, line_wide, line_last, line_error;
     wire [31:0] line_addr;
     wire [63:0] line_data;
@@ -226,7 +250,10 @@ module ngage_mister #(
         .LCD_ENABLE        (1),
         .LCD_DMA_ENABLE    (1),
         .GENERAL_DMA       (GENERAL_DMA),
+        .LCD_LINE_BYTES    (LCD_LINE_BYTES),
         .GAME_PCM          (GAME_PCM),
+        .DDR_UPP_RAM       (DDR_UPP_RAM),
+        .MMC_CLK_DIV       (MMC_CLK_DIV),
         .UEM_POWERUP_STATUS(UEM_POWERUP_STATUS)
     ) board (
         .host_timestamp       (host_timestamp),
@@ -239,6 +266,7 @@ module ngage_mister #(
         .line_wide            (line_wide),
         .line_last            (line_last),
         .line_error           (line_error),
+        .line_no_late_error   (line_no_late_error),
         .debug_pc             (cpu_pc),
         .debug_cpsr           (cpu_cpsr),
         .debug_instruction    (cpu_instruction),
@@ -256,6 +284,8 @@ module ngage_mister #(
         .ram_code             (fast_ram_code),
         .ram_address          (fast_ram_address),
         .ram_wdata            (fast_ram_data),
+        .ram_write_block      (sdram_write_block),
+        .ram_block_data       (sdram_block_data),
         .ram_be               (fast_ram_be),
         .ram_pending          (fast_ram_pending),
         .ram_response         (fast_ram_response),
@@ -264,6 +294,12 @@ module ngage_mister #(
         .dma_mem_addr         (dma_sdram_addr),
         .dma_mem_ack          (dma_sdram_ack),
         .dma_mem_data         (dma_sdram_data),
+        .lcd_line_req         (lcd_line_req),
+        .lcd_line_addr        (lcd_line_addr),
+        .lcd_line_ready       (lcd_line_ready),
+        .lcd_line_valid       (lcd_line_valid),
+        .lcd_line_data        (lcd_line_data),
+        .lcd_line_last        (lcd_line_last),
         .dma_error_pending    (dma_error_pending),
         .dma_cmd_valid        (dma_cmd_valid),
         .dma_cmd_ready        (dma_cmd_ready),
@@ -330,6 +366,16 @@ module ngage_mister #(
         .mmc_active           (mmc_active),
         .rst                  (core_reset),
         .init_rst             (cold_reset),
+        .upp_ddr_req          (upp_ddr_req),
+        .upp_ddr_we           (upp_ddr_we),
+        .upp_ddr_addr         (upp_ddr_addr),
+        .upp_ddr_wdata        (upp_ddr_wdata),
+        .upp_ddr_be           (upp_ddr_be),
+        .upp_ddr_ack          (upp_ddr_ack),
+        .upp_ddr_rdata        (upp_ddr_rdata),
+        .upp_ddr_clear        (upp_ddr_clear),
+        .upp_ddr_clear_done   (upp_ddr_clear_done),
+        .upp_ddr_idle         (upp_ddr_idle),
         .clk                  (clk_sys),
         .cyc                  (1'b0),
         .stb                  (1'b0),
@@ -581,10 +627,19 @@ module ngage_mister #(
     // intentionally stronger: reset must still drain every accepted mutation.
     assign line_ready = LINE_REFILL && !core_reset && line_state==LINE_IDLE &&
                         code_idle && user_ready && !memory_req && !flash_issued;
+    // Explicit promise on accepted backing-array reads. Reject/fallback
+    // and reset are outside this transport contract.
+    wire line_ram_eligible = line_ram_hit && DIRECT_SDRAM;
+    wire line_rom_eligible = line_rom_hit && !line_c_hit && !line_pmm_hit && code_array_mode[line_die];
+    assign line_no_late_error = line_ready && (line_ram_eligible || line_rom_eligible);
     wire line_ddr_offer = line_state == LINE_ROM_ISSUE && !core_reset;
     assign ddram_line = line_ddr_offer;
-    assign ram_line_req = line_state == LINE_RAM_ISSUE && !core_reset;
-    assign ram_line_addr = line_ram_address;
+    // With the queued SDRAM port, offer the RAM command on the same edge
+    // that accepts its upstream line. Keep the saved address if the RAM
+    // arbiter cannot take it on that edge.
+    wire ram_line_preview = RAM_LINE_EARLY && line_req && line_ready && line_ram_eligible;
+    assign ram_line_req = !core_reset && (line_state == LINE_RAM_ISSUE || ram_line_preview);
+    assign ram_line_addr = line_state == LINE_RAM_ISSUE ? line_ram_address : line_addr[24:0];
     assign line_valid = !core_reset && ((line_state==LINE_ROM_WAIT && ddram_beat_valid) ||
                                        (line_state==LINE_RAM_WAIT && ram_line_valid));
     assign line_data = line_state==LINE_RAM_WAIT ? {48'b0,ram_line_data} : {line_decoded_high,line_decoded_low};
@@ -599,10 +654,10 @@ module ngage_mister #(
                 LINE_IDLE:
                 if (line_req && line_ready) begin
                     line_decode_address <= line_addr;
-                    if (line_ram_hit && DIRECT_SDRAM) begin
+                    if (line_ram_eligible) begin
                         line_ram_address <= line_addr[24:0];
-                        line_state       <= LINE_RAM_ISSUE;
-                    end else if(line_rom_hit && !line_c_hit && !line_pmm_hit && code_array_mode[line_die])begin
+                        line_state       <= ram_line_preview && ram_line_ready ? LINE_RAM_WAIT : LINE_RAM_ISSUE;
+                    end else if (line_rom_eligible) begin
                         line_backing <= 32'h30000000 + {line_rom_offset[24:5], 5'b0};
                         line_state   <= LINE_ROM_ISSUE;
                     end else line_reject <= 1;

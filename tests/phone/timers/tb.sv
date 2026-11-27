@@ -11,7 +11,7 @@ integer cycles=0, cases=0,n,k,first,last,elapsed;reg [31:0] saved;
 always @(posedge clk) cycles=cycles+1;
 wire [5:0] unused_status_clear;
 ngage_timers #(.CLOCK_DIV(DIV)) dut(clk,reset,req,commit,we,addr,din,sel,clear1,
- claim,bad,dout,p0,p1,p60,rearm,periodic,1'b0,pending,ready,unused_status_clear);
+ claim,bad,dout,p0,p1,p60,rearm,periodic,1'b0,pending,ready,unused_status_clear,6'd0,6'd0);
 task tick;begin @(posedge clk);#1;end endtask
 task fresh;begin @(negedge clk);reset=1;req=0;commit=0;we=0;tick();@(negedge clk);reset=0;end endtask
 task wr(input integer unit_no,input integer off,input [31:0] value);begin

@@ -1,0 +1,94 @@
+diff --git a/rtl/ngage_cpu.sv b/rtl/ngage_cpu.sv
+index 834b9a1..c13baaa 100644
+--- a/rtl/ngage_cpu.sv
++++ b/rtl/ngage_cpu.sv
+@@ -51,11 +51,13 @@ module ngage_cpu #(
+     assign wb_stb = wb_cyc;
+ 
+     ngage_arm9v2_refill #(
+-        .ENABLE                (LINE_REFILL),
+-        .REGISTERED_SCALAR_PEER(REGISTERED_SCALAR_PEER)
++        .ENABLE                 (LINE_REFILL),
++        .REGISTERED_D_LINE_OFFER(1'b1),
++        .REGISTERED_SCALAR_PEER (REGISTERED_SCALAR_PEER)
+     ) refill (
+         .clk               (clk),
+         .reset             (reset),
++        .cpu_code          (wb_code),
+         .cpu_cyc           (donor_cyc),
+         .cpu_lock          (donor_lock),
+         .cpu_line_candidate(donor_line_candidate),
+@@ -184,8 +186,9 @@ endmodule
+ // The board can send 16-bit SDRAM or 64-bit DDR beats without backpressure.
+ // Deliver each registered word in order while the rest of the line arrives.
+ module ngage_arm9v2_refill #(
+-    parameter ENABLE                 = 0,
+-    parameter REGISTERED_SCALAR_PEER = 0
++    parameter ENABLE                  = 0,
++    parameter REGISTERED_SCALAR_PEER  = 0,
++    parameter REGISTERED_D_LINE_OFFER = 0
+ ) (
+     input  wire        clk,
+     input  wire        reset,
+@@ -215,7 +218,8 @@ module ngage_arm9v2_refill #(
+     input  wire [63:0] line_data,
+     input  wire        line_wide,
+     input  wire        line_last,
+-    input  wire        line_error
++    input  wire        line_error,
++    input  wire        cpu_code
+ );
+     localparam       IDLE  = 2'd0, LINE = 2'd1, SCALAR = 2'd2;
+     localparam [2:0] BURST = 3'b010, END_BEAT = 3'b111;
+@@ -227,13 +231,44 @@ module ngage_arm9v2_refill #(
+     reg [31:0] words    [0:7];
+ 
+     wire burst = cpu_cti == BURST;
+-    assign line_req  = ENABLE && !reset && state == IDLE && cpu_cyc && !cpu_lock &&
+-                       cpu_line_candidate;
+-    assign line_addr = cpu_address;
+-    assign wb_cyc = !reset && cpu_cyc && state != LINE && !line_req;
+-    // A younger SWP cannot reach the bus before this older refill retires.
+-    // Its lock must not prevent SDRAM from accepting the owned line request.
+-    assign wb_lock = !reset && cpu_lock && state != LINE;
++    wire live_line = ENABLE && !reset && state == IDLE && cpu_cyc && !cpu_lock &&
++                     cpu_line_candidate;
++    wire data_offer_pending;
++    generate
++        if (ENABLE && REGISTERED_D_LINE_OFFER) begin : g_data_line_offer
++            (* dont_retime *)reg         offer_valid;
++            (* dont_retime *)reg  [26:0] offer_address;
++            wire        capture = live_line && !cpu_code && !offer_valid;
++
++            // The donor holds its first D-cache beat until a reply. This
++            // register owns both eligibility and address up to board grant.
++            always @(posedge clk) begin
++                if (reset || (offer_valid && line_ready)) offer_valid <= 1'b0;
++                else if (capture) offer_valid <= 1'b1;
++                if (capture) offer_address <= cpu_address[31:5];
++            end
++            assign data_offer_pending = offer_valid;
++            assign line_req           = !reset && (offer_valid || (live_line && cpu_code));
++            assign line_addr          = offer_valid ? {offer_address, 5'b0} : cpu_address;
++
++            // synthesis translate_off
++            always @(posedge clk)
++                if (!reset && offer_valid &&
++                    (state != IDLE || !cpu_cyc || cpu_code || !cpu_line_candidate ||
++                     cpu_address !== {offer_address, 5'b0}))
++                    $fatal(1, "Donor changed the pending D-cache line offer");
++            // synthesis translate_on
++        end else begin : g_direct_line_offer
++            assign data_offer_pending = 1'b0;
++            assign line_req           = live_line;
++            assign line_addr          = cpu_address;
++        end
++    endgenerate
++
++    assign wb_cyc  = !reset && cpu_cyc && state != LINE && !live_line && !data_offer_pending;
++    // An older refill owns the port from D offer capture or I-line grant.
++    // A younger SWP must wait for that refill while keeping both its own beats locked.
++    assign wb_lock = !reset && cpu_lock && state != LINE && !data_offer_pending;
+     // The UPP route returns a scalar reply only after capturing its owner.
+     // Remember that we offered this beat. A dropped donor CYC masks the
+     // reply immediately, and a later request must establish its own owner.

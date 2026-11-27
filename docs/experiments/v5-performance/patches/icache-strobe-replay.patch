@@ -1,0 +1,290 @@
+diff --git a/scratch/v5-fit-loop/icache-strobe/check-strobe.py b/scratch/v5-fit-loop/icache-strobe/check-strobe.py
+new file mode 100644
+index 0000000..9ca2452
+--- /dev/null
++++ b/scratch/v5-fit-loop/icache-strobe/check-strobe.py
+@@ -0,0 +1,93 @@
++"""Compare actual generated cache strobe logic over binary inputs."""
++from pathlib import Path
++import re
++import subprocess
++
++stage = Path(__file__).resolve().parent
++reference = (stage / 'reference.v').read_text()
++candidate = (stage / 'source/rtl/arm9v2/arm925t_phone.v').read_text()
++
++def module(source, name):
++    pattern = rf'^module ngage2_{name}\b.*?^endmodule'
++    return re.search(pattern, source, flags=re.M | re.S)[0]
++
++fsm_inputs = ('i_rd', 'i_wr', 'i_cache_en', 'i_cache_inv', 'i_cache_clean',
++              'i_fault', 'i_busy', 'i_wb_ack', 'i_wb_err')
++verilog = [module(reference, 'refill_region')]
++for each, tag in ((reference, 'old'), (candidate, 'new')):
++    fsm = module(each, 'zap_cache_fsm')
++    verilog.append(fsm.replace('module ngage2_zap_cache_fsm', f'module fsm_{tag}', 1))
++    outer = module(each, 'zap_cache').split('    generate\n        if (CACHE_LINE == 32) begin : g_early_fill_candidate',1)[1]
++    logic_start = outer.index('\tassign o_wb_cyc_nxt =') if tag == 'old' else outer.index('    wire any_request')
++    logic_end = outer.index('\tassign o_wb_bte_nxt')
++    verilog.append(
++        f'module arb_{tag} (input [2:0] wb_cyc, state_ff, o_wb_cti, '
++        'input o_wb_stb, i_wb_ack, i_wb_err, output o_wb_cyc_nxt, o_wb_stb_nxt);\n'
++        "localparam [2:0] CTI_EOB=3'b111;\n"
++        'wire [2:0] wb_stb=wb_cyc;\n'
++        + outer[logic_start:logic_end].split('`ifndef SYNTHESIS')[0] + '\nendmodule\n')
++
++verilog += [
++    'module tb #(parameter CACHE_LINE=32);',
++    'localparam COUNTER_BITS = $clog2(CACHE_LINE/4)+1;',
++    'reg [3:0] state = 0;',
++    'reg [COUNTER_BITS-1:0] count = 0;',
++    'reg active = 0;',
++    'reg [8:0] inputs = 0;',
++    'reg [2:0] source_active=0, owner=0, cti=0;',
++    'reg ack=0, err=0;',
++    'integer s, p, c, b, n=0, total=0;',
++    'wire [1:0] old_req, new_req, old_arb, new_arb;',
++]
++ports = re.findall(r'^\s*input wire(?: \[[^;]+\])? (i_\w+);', module(reference, 'zap_cache_fsm'), re.M)
++for tag in ('old', 'new'):
++    connections = [f'.{port}(' + (f'inputs[{fsm_inputs.index(port)}]' if port in fsm_inputs else "'0") + ')'
++                   for port in ports]
++    connections += [f'.o_wb_cyc_nxt({tag}_req[0])', f'.o_wb_stb_nxt({tag}_req[1])']
++    verilog.append(
++        f'fsm_{tag} #(.CACHE_SIZE(16384), .CACHE_LINE(CACHE_LINE), .WAYS(2)) '
++        f'{tag}_fsm(' + ','.join(connections) + ');')
++    verilog.append(f'arb_{tag} {tag}_arbiter(source_active, owner, cti, active, ack, err, '
++                   f'{tag}_arb[0], {tag}_arb[1]);')
++verilog.append("""
++initial begin
++    force old_fsm.state_ff=state;
++    force new_fsm.state_ff=state;
++    force old_fsm.adr_ctr_ff=count;
++    force new_fsm.adr_ctr_ff=count;
++    force old_fsm.o_wb_cyc_ff=active;
++    force new_fsm.o_wb_cyc_ff=active;
++    force old_fsm.o_wb_stb_ff=active;
++    force new_fsm.o_wb_stb_ff=active;
++    for (s=0;s<9;s=s+1)
++        for (p=0;p<2;p=p+1)
++            for (c=0;c<(1<<COUNTER_BITS);c=c+1)
++                for (b=0;b<512;b=b+1) begin
++                    state=s; active=p; count=c; inputs=b;
++                    #1;
++                    if (old_req !== new_req)
++                        $fatal(1,"FSM state=%d pending=%d word=%d inputs=%9b",s,p,c,b);
++                    n=n+1;
++                end
++    for (s=0;s<3;s=s+1)
++        for (p=0;p<8;p=p+1)
++            for (c=0;c<8;c=c+1)
++                for (b=0;b<8;b=b+1) begin
++                    owner=1<<s; source_active=p; cti=c; {active,ack,err}=b[2:0];
++                    #1;
++                    if (old_arb !== new_arb)
++                        $fatal(1,"ARB owner=%d active=%b cti=%b ack=%b err=%b",s,active,cti,ack,err);
++                    total=total+1;
++                end
++    $display("PASS line=%0d, %0d FSM cases and %0d arbiter cases",CACHE_LINE,n,total);
++    $finish;
++end
++endmodule
++""")
++test = stage/'strobe-miter.sv'
++test.write_text('\n'.join(verilog))
++for line in (16,32):
++    output = stage/f'miter-{line}'
++    subprocess.run(['iverilog', '-g2012', '-s', 'tb', f'-Ptb.CACHE_LINE={line}',
++                    '-o', str(output), str(test)], check=True)
++    subprocess.run(['vvp', str(output)], check=True)
+diff --git a/scratch/v5-fit-loop/icache-strobe/replay.py b/scratch/v5-fit-loop/icache-strobe/replay.py
+new file mode 100644
+index 0000000..97103f7
+--- /dev/null
++++ b/scratch/v5-fit-loop/icache-strobe/replay.py
+@@ -0,0 +1,185 @@
++"""Replay Prepared Wishbone write data against the frozen 104 MHz execute control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++parser.add_argument('--control', action='store_true')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = stage / args.output
++work.mkdir(exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / ('reference.v' if args.control else 'source/rtl/arm9v2/arm925t_phone.v')
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(repo / 'tests/cpu/arm9v2_board'))
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/icache-strobe/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/icache-strobe/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((stage.parent/'dma-command-predecode'/'final-replay'/f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert {k:v for k,v in trial.items() if k!='wb_writes'} == expected, (name, trial, expected)
++        exact = next(r['candidate'] for r in json.loads(
++            (stage.parent/'prepared-wb-write-data'/'candidate'/f'{kind}.json').read_text())['rows']
++            if r['candidate']['case']==name)
++        assert trial == {**exact,'profile':(0,0)}, (name, trial, exact)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                upp_sha256=digest(stage / 'source/rtl/ngage_upp.v'), rows=rows),indent=2)+'\n')

@@ -2,6 +2,6 @@
 set -eu
 mkdir -p build/sim/unit-cflash
 for profile in current-boot simif-board; do
- g++ -std=c++17 -O2 -I"tests/phone/reference/$profile/board" tests/phone/cflash/reference.cpp "tests/phone/reference/$profile/board/boot_profile.cpp" tests/phone/reference/modem/ngage_modem.c -o "build/sim/unit-cflash/$profile"
+ g++ -std=c++17 -O2 -I"scratch/$profile/board" tests/phone/cflash/reference.cpp "scratch/$profile/board/boot_profile.cpp" scratch/modem/ngage_modem.c -o "build/sim/unit-cflash/$profile"
  "build/sim/unit-cflash/$profile"
 done

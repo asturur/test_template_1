@@ -1,0 +1,885 @@
+diff --git a/scratch/v5-fit-loop/dcache-compact-lock/board.sh b/scratch/v5-fit-loop/dcache-compact-lock/board.sh
+new file mode 100644
+index 0000000..13b02d1
+--- /dev/null
++++ b/scratch/v5-fit-loop/dcache-compact-lock/board.sh
+@@ -0,0 +1,47 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/dcache-compact-lock
++out=build/sim/v5-104-dcache-compact-lock/board
++fixture=tests/cpu/arm9v2_board
++mkdir -p "$out"
++arm-none-eabi-gcc -c -mcpu=arm920t -marm -DEXPECTED_CTYPE=0x0514a14a -DASSOC_WAYS=2 \
++    -DSECTION_INDEX_TEST "$area/reference/$fixture/contract.S" -o "$out/guest.o"
++arm-none-eabi-ld -T "$area/reference/sim/programs/link.ld" "$out/guest.o" -o "$out/guest.elf"
++arm-none-eabi-objcopy -O binary "$out/guest.elf" "$out/guest.bin"
++python3 -B - "$out" <<'PY'
++from pathlib import Path
++import struct
++import sys
++
++out = Path(sys.argv[1])
++words = struct.iter_unpack('<I', (out / 'guest.bin').read_bytes())
++(out / 'guest.hex').write_text(''.join(f'{word:08x}\n' for (word,) in words))
++PY
++
++for leg in reference source; do
++    mkdir -p "$out/$leg"
++    docker run --rm --pull=never --network none --platform linux/arm64 \
++        -v "$PWD/$area/$leg:/work:ro" -v "$PWD/$out:/results" -w /work \
++        --entrypoint sh jotego/simulator:arm64 -ec '
++        out=/results/$1
++        verilator --binary --timing --assert -j 2 \
++            -Wno-fatal -Wno-lint -DNGAGE_ARM9V2 --top-module contract --Mdir "$out/obj" \
++            rtl/ngage_cpu.sv rtl/ngage_upp.v rtl/arm9v2/arm925t_phone.v \
++            rtl/arm9v2/upstream/sim/stubs/*.sv tests/cpu/arm9v2_board/contract.v > "$out/build.log" 2>&1
++        for burst in 0 1; do
++            for wait in 0 5; do
++                log="$out/burst-$burst-wait-$wait.log"
++                "$out/obj/Vcontract" +program=/results/guest.hex "+wait=$wait" "+burst=$burst" \
++                    +half-writeback +section-reads=2 > "$log" 2>&1
++                grep -E "^(PASS|LINES|ASSOC|SECTION|DATA_FAULT|REFILL_FAULT) " "$log" > "${log%.log}.trace"
++                grep -q "^PASS " "$log"
++            done
++        done' board "$leg"
++done
++for burst in 0 1; do
++    for wait in 0 5; do
++        name=burst-$burst-wait-$wait.trace
++        cmp "$out/reference/$name" "$out/source/$name"
++        grep '^PASS ' "$out/source/$name"
++    done
++done
+diff --git a/scratch/v5-fit-loop/dcache-compact-lock/check-lock-update.v b/scratch/v5-fit-loop/dcache-compact-lock/check-lock-update.v
+new file mode 100644
+index 0000000..6d08c5a
+--- /dev/null
++++ b/scratch/v5-fit-loop/dcache-compact-lock/check-lock-update.v
+@@ -0,0 +1,36 @@
++`timescale 1ns / 1ps
++
++module check_lock_update;
++    reg valid, install;
++    reg [5:0] held_tag, incoming_tag;
++    reg [63:0] returned;
++    wire [63:0] previous = valid ? 64'd1 << held_tag : 64'd0;
++    wire [63:0] bitmap = (previous & ~returned) | (install ? 64'd1 << incoming_tag : 64'd0);
++    wire next_valid = install || (valid && !returned[held_tag]);
++    wire [5:0] next_tag = install ? incoming_tag : held_tag;
++    integer old_idx, new_idx, return_idx, mode, coverage = 0;
++
++    initial begin
++        for (mode = 0; mode < 4; mode = mode + 1) begin
++            {valid, install} = mode[1:0];
++            for (old_idx = 0; old_idx < 64; old_idx = old_idx + 1) begin
++                held_tag = old_idx[5:0];
++                for (new_idx = 0; new_idx < 64; new_idx = new_idx + 1) begin
++                    incoming_tag = new_idx[5:0];
++                    for (return_idx = 0; return_idx <= 64; return_idx = return_idx + 1) begin
++                        returned = 64'd1 << return_idx;
++                        #1;
++                        if (next_valid !== (|bitmap))
++                            $fatal(1, "scalar valid differs from bitmap nonempty");
++                        if (!(valid && install && !returned[held_tag] && held_tag != incoming_tag) &&
++                            bitmap !== (next_valid ? 64'd1 << next_tag : 64'd0))
++                            $fatal(1, "single-owner tag differs from bitmap");
++                        coverage = coverage + 1;
++                    end
++                end
++            end
++        end
++        $display("PASS scalar valid equals bitmap nonempty over %0d transitions", coverage);
++        $finish;
++    end
++endmodule
+diff --git a/scratch/v5-fit-loop/dcache-compact-lock/directed.sh b/scratch/v5-fit-loop/dcache-compact-lock/directed.sh
+new file mode 100644
+index 0000000..42fda3e
+--- /dev/null
++++ b/scratch/v5-fit-loop/dcache-compact-lock/directed.sh
+@@ -0,0 +1,22 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/dcache-compact-lock
++out=build/sim/v5-104-dcache-compact-lock/directed
++mkdir -p "$out"
++python3 -B "$area/prepare-directed.py"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD/$area:/bench:ro" -v "$PWD/$out:/results" -w /results \
++  --entrypoint sh jotego/simulator:arm64 -ec '
++    for leg in reference source; do
++      iverilog -g2001 -s background_load_lock_tb -o "$leg" "/bench/$leg/rtl/arm9v2/arm925t_phone.v" \
++        /bench/reference/tests/cpu/arm9v2_board/background_load_lock_tb.v
++      vvp "$leg" > "$leg.log"
++      grep "^PASS " "$leg.log"
++    done
++    cmp reference.log source.log
++    iverilog -g2001 -s background_load_lock_tb -o directed /bench/source/rtl/arm9v2/arm925t_phone.v reference.v tb.v
++    vvp directed > directed.log
++    grep "^PASS " directed.log
++    iverilog -g2001 -s check_lock_update -o formula /bench/check-lock-update.v
++    vvp formula > formula.log
++    grep "^PASS " formula.log'
+diff --git a/scratch/v5-fit-loop/dcache-compact-lock/mixed.py b/scratch/v5-fit-loop/dcache-compact-lock/mixed.py
+new file mode 100644
+index 0000000..6d7e9d3
+--- /dev/null
++++ b/scratch/v5-fit-loop/dcache-compact-lock/mixed.py
+@@ -0,0 +1,28 @@
++"""Stage the compact lock netlist in the validated timer-only pin model."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-timer-write-prepare/mixed')
++trial = Path('build/sim/v5-104-dcache-compact-lock/mixed')
++rtl = 'rtl/arm9v2/arm925t_phone.v'
++
++trial.mkdir(parents=True, exist_ok=True)
++shutil.copytree(base / 'source', trial / 'source', dirs_exist_ok=True)
++for name in ('stress.hex', 'image.hex', 'program.hex'):
++    shutil.copyfile(base / name, trial / name)
++shutil.copyfile(stage / 'source' / rtl, trial / 'source' / rtl)
++
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert len(hashes) == 114 and rtl in hashes
++for name, reference in hashes.items():
++    if name.startswith('rtl/'):
++        assert sha256((stage / 'reference' / name).read_bytes()).hexdigest() == reference, name
++    actual = sha256((trial / 'source' / name).read_bytes()).hexdigest()
++    assert (actual != reference) == (name == rtl), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++(trial / 'build.sh').write_text((base / 'build.sh').read_text().replace(str(base), str(trial)))
+diff --git a/scratch/v5-fit-loop/dcache-compact-lock/mixed.sh b/scratch/v5-fit-loop/dcache-compact-lock/mixed.sh
+new file mode 100644
+index 0000000..d1274de
+--- /dev/null
++++ b/scratch/v5-fit-loop/dcache-compact-lock/mixed.sh
+@@ -0,0 +1,25 @@
++#!/bin/sh
++set -eu
++area=scratch/v5-fit-loop/dcache-compact-lock
++base=build/sim/v5-104-timer-write-prepare
++out=build/sim/v5-104-dcache-compact-lock
++original=build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed
++mixed="$out/mixed"
++overlap="$out/coexistence"
++mkdir -p "$overlap"
++python3 -B "$area/mixed.py"
++cp "$base/coexistence/stress-timer.hex" "$overlap/stress-timer.hex"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -w /work --entrypoint sh jotego/simulator:arm64 \
++  -ec "sh '$mixed/build.sh'
++'$mixed/obj/Vtb' +upp_stress '+compare_trace=$mixed/traffic.log' > '$mixed/replay.log'"
++cmp "$base/mixed/traffic.log" "$mixed/traffic.log"
++grep '^PASS ' "$mixed/replay.log"
++docker run --rm --pull=never --network none --platform linux/arm64 \
++  -v "$PWD:/work" -v "$PWD/$overlap/stress-timer.hex:/work/$original/stress.hex:ro" -w /work \
++  --entrypoint "/work/$mixed/obj/Vtb" jotego/simulator:arm64 \
++  +upp_stress "+compare_trace=$overlap/candidate.trace" > "$overlap/candidate.log"
++cmp "$base/coexistence/candidate.trace" "$overlap/candidate.trace"
++grep '^PASS ' "$overlap/candidate.log" > "$overlap/candidate.pass"
++cmp "$base/coexistence/candidate.pass" "$overlap/candidate.pass"
++cat "$overlap/candidate.pass"
+diff --git a/scratch/v5-fit-loop/dcache-compact-lock/prepare-directed.py b/scratch/v5-fit-loop/dcache-compact-lock/prepare-directed.py
+new file mode 100644
+index 0000000..447fa34
+--- /dev/null
++++ b/scratch/v5-fit-loop/dcache-compact-lock/prepare-directed.py
+@@ -0,0 +1,184 @@
++"""Run exact retained, candidate legacy and compact FSMs in the same fixture."""
++from pathlib import Path
++import re
++
++
++stage = Path(__file__).resolve().parent
++out = Path('build/sim/v5-104-dcache-compact-lock/directed')
++out.mkdir(parents=True, exist_ok=True)
++ref = (stage / 'reference/rtl/arm9v2/arm925t_phone.v').read_text()
++match = re.search(r'^module ngage2_zap_dcache_fsm \(.*?^endmodule$', ref, re.M | re.S)
++assert match
++(out / 'reference.v').write_text(match[0].replace('ngage2_zap_dcache_fsm', 'reference_zap_dcache_fsm') + '\n')
++bench = (stage / 'reference/tests/cpu/arm9v2_board/background_load_lock_tb.v').read_text()
++
++
++def edit(before, after):
++    global bench
++    assert bench.count(before) == 1, before
++    bench = bench.replace(before, after)
++
++
++edit('  reg [5:0] destination = 0;', '''  reg [5:0] destination = 0, owner_hold = 0, owner_advance = 0;
++  reg owner_move = 0, victim_valid = 0, victim_dirty = 0, abort_refill = 0;
++  reg [45:0] victim_tag = 0;
++  wire [131:0] reference_lock_state, legacy_lock_state, compact_lock_state;
++  wire [31:0] legacy_data, compact_data;
++  wire [6:0] legacy_handshake, compact_handshake;
++  wire owner, lock_return, wb_write;
++  wire [5:0] legacy_tag, compact_tag;
++  integer compare_cycles = 0, return_installs = 0, cache_aborts = 0;''')
++edit('  ngage2_zap_dcache_fsm #(', '  reference_zap_dcache_fsm #(')
++edit('      .i_lock_owner_hold(destination),\n      .i_lock_owner_advance(destination),\n      .i_lock_owner_move(1\'b0),', '''      .i_lock_owner_hold(owner_hold),
++      .i_lock_owner_advance(owner_advance),
++      .i_lock_owner_move(owner_move),
++      .o_lock_owner(owner),
++      .o_lock_return(lock_return),''')
++edit("      .i_cache_tag_dirty(1'b0),\n      .i_cache_tag(46'b0),\n      .i_cache_tag_valid(1'b0),", """      .i_cache_tag_dirty(victim_dirty),
++      .i_cache_tag(victim_tag),
++      .i_cache_tag_valid(victim_valid),""")
++edit("      .o_wb_stb_ff(wb_stb),", """      .o_wb_stb_ff(wb_stb),
++      .o_wb_wen_ff(wb_write),""")
++marker = '  always #5 clk = !clk;'
++start = bench.index('  reference_zap_dcache_fsm #(')
++end = bench.index('  );', start) + len('  );')
++inst = bench[start:end]
++outputs = {'bitmap': (131, 68), 'returned': (67, 4), 'lock_valid': (3, 3),
++           'owner': (2, 2), 'lock_return': (1, 1), 'wb_stb': (0, 0)}
++checked = {'idle': 6, 'fill': 5, 'ack': 4, 'error': 3, 'wb_write': 2}
++# The tag is checked independently with its full six-bit width.
++decl = '''  assign reference_lock_state = {bitmap, returned, lock_valid, owner, lock_return, wb_stb};
++  always @(negedge clk) begin
++    #0.1;
++    if (reference_lock_state !== legacy_lock_state || reference_lock_state !== compact_lock_state ||
++        {idle, fill, ack, error, wb_write} !== legacy_handshake[6:2] ||
++        {idle, fill, ack, error, wb_write} !== compact_handshake[6:2] ||
++        lock_tag !== legacy_tag || lock_tag !== compact_tag ||
++        (|returned && (returned_data !== legacy_data || returned_data !== compact_data)))
++      $fatal(1, "Lock owner, bitmap, data or handshake diverged at %t", $time);
++    if (!reset) compare_cycles = compare_cycles + 1;
++  end
++'''
++copies = []
++for leg, opt in (('legacy', ''), ('compact', ",\n      .COMPACT_LOCK(1'b1)")):
++    copy = inst.replace('reference_zap_dcache_fsm', 'ngage2_zap_dcache_fsm')
++    copy = copy.replace('.LOCK_SPLIT(1)', f'.LOCK_SPLIT(1){opt}').replace(') cache (', f') {leg} (')
++    for signal, (top, bottom) in outputs.items():
++        slc = str(top) if top == bottom else f'{top}:{bottom}'
++        copy, count = re.subn(r'(\.o_\w+\()' + signal + r'(\))',
++                              rf'\g<1>{leg}_lock_state[{slc}]\g<2>', copy)
++        assert count == 1, signal
++    for signal, bit in checked.items():
++        copy, count = re.subn(r'(\.o_\w+\()' + signal + r'(\))',
++                              rf'\g<1>{leg}_handshake[{bit}]\g<2>', copy)
++        assert count == 1, signal
++    copies.append(copy.replace('(returned_data)', f'({leg}_data)').replace('(lock_tag)', f'({leg}_tag)'))
++edit(marker, '\n\n'.join([*copies, decl, marker]))
++edit('      destination = tag;\n      read = 1;', '''      destination = tag;
++      owner_hold = tag ^ 6'h3f;
++      owner_advance = tag;
++      owner_move = 1;
++      read = 1;''')
++edit('        $fatal(1, "Wrong miss owner %0d", tag);\n      read = 0;', '''        $fatal(1, "Wrong miss owner %0d", tag);
++      if (!owner || lock_return)
++        $fatal(1, "Advance must admit the new tag while the held tag stays unlocked");
++      read = 0;''')
++edit('        wb_ack  = 1;\n        tick;', '''        owner_hold = tag;
++        owner_advance = tag ^ 6'h3f;
++        owner_move = beat[0];
++        wb_ack = !abort_refill || beat != critical;
++        wb_error = abort_refill && beat == critical;
++        tick;''')
++edit('        wb_ack = 0;\n        tick;', '''        if (beat <= critical && (owner !== !owner_move || !lock_return))
++          $fatal(1, "Held and advancing owners did not use the registered return edge");
++        wb_ack = 0;
++        wb_error = 0;
++        tick;
++        if (beat >= critical && (owner || lock_return))
++          $fatal(1, "Returned destination remained locked");''')
++edit('  initial begin\n    repeat (2) tick;', '''  task simultaneous;
++    input [5:0] incoming;
++    begin
++      reset = 1;
++      tick;
++      reset = 0;
++      // Force an IDLE register image with a coincident old return. Natural
++      // refill traffic clears the owner before IDLE, so test priority here.
++      force cache.lock_ff = 64'h80;
++      force cache.o_lock_any = 1'b1;
++      force cache.o_lock_tag = 6'd7;
++      force cache.o_reg_idx = 64'h80;
++      force legacy.g_bitmap_lock.lock_ff = 64'h80;
++      force legacy.o_lock_any = 1'b1;
++      force legacy.o_lock_tag = 6'd7;
++      force legacy.o_reg_idx = 64'h80;
++      force compact.o_lock_any = 1'b1;
++      force compact.o_lock_tag = 6'd7;
++      force compact.o_reg_idx = 64'h80;
++      force compact.g_compact_lock.return_ff = 1'b1;
++      #0.5;
++      release cache.lock_ff;
++      release cache.o_lock_any;
++      release cache.o_lock_tag;
++      release cache.o_reg_idx;
++      release legacy.g_bitmap_lock.lock_ff;
++      release legacy.o_lock_any;
++      release legacy.o_lock_tag;
++      release legacy.o_reg_idx;
++      release compact.o_lock_any;
++      release compact.o_lock_tag;
++      release compact.o_reg_idx;
++      release compact.g_compact_lock.return_ff;
++      owner_hold = 7;
++      owner_advance = incoming;
++      owner_move = 1;
++      destination = incoming;
++      read = 1;
++      #1;
++      if (!cache.lock_set_nxt) $fatal(1, "Synthetic simultaneous new install did not settle");
++      tick;
++      if (!lock_valid || lock_tag !== incoming || !owner || lock_return !== (incoming == 7))
++        $fatal(1, "Simultaneous old return and new install lost the incoming owner");
++      read = 0;
++      return_installs = return_installs + 1;
++    end
++  endtask
++
++  initial begin
++    repeat (2) tick;''')
++edit('    $display("PASS background load tags', '''    victim_valid = 1;
++    victim_dirty = 1;
++    victim_tag = {27'h501800, 19'b0};
++    start_miss(6'd58, 32'h0a030000, 3'd7);
++    for (tag = 0; tag < 8; tag = tag + 1) begin
++      while (!wb_stb) tick;
++      if (!wb_write || !lock_valid || |returned)
++        $fatal(1, "Aliasing dirty victim lost its new fill owner");
++      wb_ack = 1;
++      tick;
++      wb_ack = 0;
++      tick;
++    end
++    victim_valid = 0;
++    victim_dirty = 0;
++    abort_refill = 1;
++    drain_fill(6'd58, 3'd7);
++    cache_aborts = cache_aborts + 1;
++    abort_refill = 0;
++
++    start_miss(6'd28, 32'h0a044000, 3'd0);
++    while (!wb_stb) tick;
++    wb_ack = 1;
++    reset = 1;
++    tick;
++    if (lock_valid || bitmap || returned || owner || lock_return)
++      $fatal(1, "Reset did not take precedence over the returning fill");
++    wb_ack = 0;
++    reset = 0;
++
++    simultaneous(6'd7);
++    simultaneous(6'd54);
++    $display("PASS compact lock comparison cycles=%0d simultaneous=%0d cached_errors=%0d",
++             compare_cycles, return_installs, cache_aborts);
++    $display("PASS background load tags''')
++(out / 'tb.v').write_text(bench)
+diff --git a/scratch/v5-fit-loop/dcache-compact-lock/prepare-state-proof.py b/scratch/v5-fit-loop/dcache-compact-lock/prepare-state-proof.py
+new file mode 100644
+index 0000000..51f5e14
+--- /dev/null
++++ b/scratch/v5-fit-loop/dcache-compact-lock/prepare-state-proof.py
+@@ -0,0 +1,135 @@
++"""Build an Icarus miter from the exact retained and candidate FSM modules."""
++from pathlib import Path
++import re
++
++
++stage = Path(__file__).resolve().parent
++work = Path('build/sim/v5-104-dcache-compact-lock/state-proof')
++work.mkdir(parents=True, exist_ok=True)
++rtl = 'rtl/arm9v2/arm925t_phone.v'
++
++
++def extract_module(leg, name):
++    netlist = (stage / leg / rtl).read_text()
++    return re.search(rf'^module {name} \(.*?^endmodule$', netlist, re.M | re.S)[0]
++
++
++name = 'ngage2_zap_dcache_fsm'
++reference = extract_module('reference', name)
++candidate = extract_module('source', name)
++region = extract_module('reference', 'ngage2_refill_region')
++assert region == extract_module('source', 'ngage2_refill_region')
++(work / 'region.v').write_text(region)
++for name, source in (('reference', reference), ('trial', candidate)):
++    (work / f'{name}.v').write_text(source.replace('module ngage2_zap_dcache_fsm (', f'module {name}_fsm ('))
++
++states = {
++    'IDLE': ('i_rd i_wr i_cache_inv i_cache_clean i_line_req i_align_fault i_fault i_busy '
++             'post_stream i_cache_en i_cacheable i_wt i_post_full post_eligible i_cache_hit '
++             'i_cache_tag_valid cache_dirty victim_alias').split(),
++    'UNCACHEABLE': ['i_wb_ack', 'i_wb_err'],
++    'UNCACHEABLE_PREPARE': [],
++    'CLEAN_SINGLE': ['writeback_next_valid', 'defer_writeback', 'keep_more', 'wait1_ff'],
++    'FETCH_SINGLE': ['take', 'beat_inc_ok', 'beat_cur_ok'],
++    'INVALIDATE': ['i_cache_inv_done'],
++    'CLEAN': ['i_cache_clean_done'],
++    'UNLOCK_REG': ['o_writeback_busy', 'wr', 'i_rd', 'i_wr'],
++    'LINEOP': ['i_line_done_tr'],
++    'UNC_DONE': [],
++    'UNLOCK_WR': ['keep_more', 'wait1_ff'],
++    'RELOOKUP0': [],
++    'RELOOKUP1': [],
++    'RELOOKUP2': [],
++}
++terms = sorted({term for branch in states.values() for term in branch})
++indices = {name: int(index) for name, index in re.findall(r"localparam \[3:0\] (\w+) = 4'd(\d+);", reference)
++           if name in states}
++assert sorted(indices.values()) == list(range(len(states)))
++assert len(re.findall(r'\bstate_ff(?:\[IDLE\])? <= ', reference)) == 3
++assert set(re.findall(r'\bstate_ff\[(\w+)\]: begin', reference)) == states.keys()
++assert reference.count('state_nxt = state_ff;') == 1
++
++tb = ["""
++`timescale 1ns/1ps
++module tb;
++    reg clk = 0;
++    reg reset = 1;
++    reg [13:0] current_state;
++    reg [13:0] hypothetical_next;
++    reg [13:0] reached;
++    integer checks = 0;
++    integer mask, state;
++    integer admissions = 0;
++    reference_fsm #(.CACHE_LINE(32), .CACHE_SIZE(16384), .WAYS(2), .HALF_WRITEBACK(1), .FLAT_ACK(1))
++        ref_dut (.i_clk(clk), .i_reset(reset), .i_reg_idx_bin(6'd0));
++    trial_fsm #(.COMPACT_LOCK(1), .CACHE_LINE(32), .CACHE_SIZE(16384), .WAYS(2), .HALF_WRITEBACK(1), .FLAT_ACK(1))
++        trial_dut (.i_clk(clk), .i_reset(reset), .i_reg_idx_bin(6'd0));
++
++    task pulse;
++        begin
++            #1 clk = 1;
++            #1 clk = 0;
++        end
++    endtask
++
++    task check_next_state;
++        begin
++            #1;
++            if ((^ref_dut.state_nxt === 1'bx) || (ref_dut.state_nxt == 0) ||
++                ((ref_dut.state_nxt & (ref_dut.state_nxt - 14'd1)) != 0))
++                $fatal(1, "Non-one-hot next state for %h mask %h: %h", current_state, mask, ref_dut.state_nxt);
++            if (trial_dut.state_nxt !== ref_dut.state_nxt)
++                $fatal(1, "Different next state for %h mask %h", current_state, mask);
++            if (trial_dut.lock_set_nxt !== ref_dut.lock_set_nxt)
++                $fatal(1, "Changed lock admission for state %h mask %h", current_state, mask);
++            if (ref_dut.lock_set_nxt) begin
++                if (!ref_dut.state_ff[ref_dut.IDLE] ||
++                    !(ref_dut.state_nxt[ref_dut.FETCH_SINGLE] || ref_dut.state_nxt[ref_dut.CLEAN_SINGLE]))
++                    $fatal(1, "Lock install did not start a read fill");
++                if (ref_dut.state_nxt[ref_dut.CLEAN_SINGLE] && !ref_dut.victim_alias)
++                    $fatal(1, "Read install must lead directly to fetch after dirty writeback");
++                admissions = admissions + 1;
++            end
++            if (ref_dut.state_ff[ref_dut.CLEAN_SINGLE] && !ref_dut.defer_writeback &&
++                !(ref_dut.state_nxt[ref_dut.CLEAN_SINGLE] || ref_dut.state_nxt[ref_dut.FETCH_SINGLE]))
++                $fatal(1, "Aliasing writeback can bypass its fill");
++            reached = reached | ref_dut.state_nxt;
++            checks = checks + 1;
++        end
++    endtask
++"""]
++tb.extend(f'    reg {term} = 0;\n' for term in terms)
++tb.append('    initial begin\n')
++for term in terms:
++    for dut in ('ref_dut', 'trial_dut'):
++        tb.append(f'        force {dut}.{term} = {term};\n')
++tb.append("""
++        pulse;
++        if (ref_dut.state_ff !== 14'd1 || trial_dut.state_ff !== 14'd1)
++            $fatal(1, "Cold reset failed");
++        reset = 0;
++        force ref_dut.state_ff = current_state;
++        force trial_dut.state_ff = current_state;
++""")
++for state, state_terms in states.items():
++    tb.extend((f'        current_state = 14\'d{1 << indices[state]};\n',
++               '        reached = 0;\n',
++               f'        for (mask = 0; mask < {1 << len(state_terms)}; mask = mask + 1) begin\n'))
++    tb.extend(f'            {term} = mask[{index}];\n' for index, term in enumerate(state_terms))
++    tb.append('            check_next_state;\n        end\n')
++    tb.extend(f'        {term} = 0;\n' for term in state_terms)
++    tb.append(f'        $display("TRANSITION {state} controls={1 << len(state_terms)} successors=%h", reached);\n')
++tb.append("""
++        release ref_dut.state_ff;
++        release trial_dut.state_ff;
++        reset = 1;
++        pulse;
++        if (ref_dut.state_ff !== 14'd1 || trial_dut.state_ff !== 14'd1 ||
++            ref_dut.o_lock_any !== 1'b0 || trial_dut.o_lock_any !== 1'b0)
++            $fatal(1, "Warm reset failed");
++        $display("PASS next_state_cases=%0d lock_admission_cases=%0d resets=2", checks, admissions);
++        $finish;
++    end
++endmodule
++""")
++(work / 'tb.sv').write_text(''.join(tb))
+diff --git a/scratch/v5-fit-loop/dcache-compact-lock/record.py b/scratch/v5-fit-loop/dcache-compact-lock/record.py
+new file mode 100644
+index 0000000..aa48ce1
+--- /dev/null
++++ b/scratch/v5-fit-loop/dcache-compact-lock/record.py
+@@ -0,0 +1,117 @@
++"""Record the exact compact D-cache lock source, transition tests and replays."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shlex
++
++
++stage = Path(__file__).resolve().parent
++root = stage.parents[2]
++out = root / 'build/sim/v5-104-dcache-compact-lock'
++timer = root / 'build/sim/v5-104-timer-write-prepare'
++rtls = ('rtl/arm9v2/arm925t_phone.v', 'tools/gen_arm9v2_phone.py')
++netlist = rtls[0]
++base = '9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e'
++base_tree = '0ccd13d8cd502bc14d3b89c6431ff0ebe4745612'
++patch = stage / 'dcache-compact-lock.patch'
++
++
++def digest(path):
++    return sha256(path.read_bytes()).hexdigest()
++
++
++def read_json(path):
++    return json.loads(path.read_bytes())
++
++
++def passes(path):
++    return [line for line in path.read_text().splitlines() if line.startswith('PASS ')]
++
++
++def fingerprint(manifest, suffix):
++    records = [shlex.split(line) for line in manifest.read_text().splitlines()
++               if line.startswith('S ') and line.endswith(f'{suffix}"')]
++    (record,) = records
++    return record[-2]
++
++
++source = {name: digest(stage / 'source' / name) for name in rtls}
++reference = {name: digest(stage / 'reference' / name) for name in rtls}
++assert source[netlist] != reference[netlist]
++assert reference[netlist] == '4aa8037c0051b43819de2dc9d9f96322ea2e2bb2d91c82df1383ad6840d5d37e'
++proof = passes(out / 'state-proof/run.log')
++formula = passes(out / 'directed/formula.log')
++directed = passes(out / 'directed/directed.log')
++old_fixture = passes(out / 'directed/source.log')
++assert proof == ['PASS next_state_cases=262203 lock_admission_cases=576 resets=2']
++assert formula == ['PASS scalar valid equals bitmap nonempty over 1064960 transitions']
++assert 'cycles=1281 simultaneous=2 cached_errors=1' in directed[0]
++assert 'fills=66 returns=66 hits_under_miss=64' in directed[1]
++assert 'fills=65 returns=65 hits_under_miss=64' in old_fixture[0]
++assert old_fixture == passes(out / 'directed/reference.log')
++
++mixer = out / 'mixed'
++finger = fingerprint(mixer / 'obj/Vtb__verFiles.dat', netlist)
++assert digest(mixer / 'source' / netlist) == source[netlist]
++control_hashes = read_json(timer / 'mixed/source-hashes.json')
++candidate_hashes = read_json(mixer / 'source-hashes.json')
++assert len(control_hashes) == 114 and control_hashes.keys() == candidate_hashes.keys()
++assert {key for key in control_hashes if control_hashes[key] != candidate_hashes[key]} == {netlist}
++assert candidate_hashes[netlist] == source[netlist] and control_hashes[netlist] == reference[netlist]
++
++replays = {}
++for name, trace, log, events, clocks in (
++    ('normal', 'mixed/traffic.log', 'mixed/replay.log', 171496, 1201547),
++    ('timer_overlap', 'coexistence/candidate.trace', 'coexistence/candidate.log', 171497, 1201528),
++):
++    traffic = out / trace
++    assert digest(traffic) == digest(timer / trace)
++    assert len(traffic.read_bytes().splitlines()) == events
++    pass_rows = passes(out / log)
++    assert pass_rows == passes(timer / log)
++    assert any(f'cycles={clocks} reads=4 writes=1' in row for row in pass_rows)
++    replays[name] = {'events': events, 'cycles': clocks, 'traffic_sha256': digest(traffic), 'passes': pass_rows}
++
++board = {}
++for burst in (0, 1):
++    for wait in (0, 5):
++        profile = f'burst-{burst}-wait-{wait}.trace'
++        expected = out / 'board/reference' / profile
++        observed = out / 'board/source' / profile
++        assert digest(observed) == digest(expected) == digest(timer / 'board/source' / profile)
++        assert len(passes(observed)) == 1
++        board[profile] = {'sha256': digest(observed), 'pass': passes(observed)[0]}
++assert fingerprint(out / 'board/source/obj/Vcontract__verFiles.dat', netlist) == finger
++retained_finger = fingerprint(out / 'board/reference/obj/Vcontract__verFiles.dat', netlist)
++assert retained_finger != finger
++
++work = out / 'qualification-final'
++workload = {}
++for kind, key, expected in (('fixed', 'windows', 105), ('native', 'frames', 4)):
++    receipt = work / f'{kind}.json'
++    control = read_json(timer / 'qualification' / f'{kind}.json')
++    rows = read_json(receipt)
++    assert rows['status'] == control['status'] == 'PASS'
++    assert rows['netlist_sha256'] == source[netlist] and control['netlist_sha256'] == reference[netlist]
++    assert rows['rows'] == control['rows']
++    assert sum(len(row['candidate'][key]) for row in rows['rows']) == expected
++    assert digest(work / f'{kind}-candidate-cpu.v') == source[netlist]
++    assert fingerprint(work / f'obj-{kind}/Vtb__verFiles.dat', f'{kind}-candidate-cpu.v') == finger
++    workload[kind] = {'count': expected, 'upstream_receipt_sha256': digest(receipt)}
++native = rows['rows'][0]['candidate']
++workload['native']['cycles'] = [frame['clocks'] for frame in native['frames']]
++workload['native']['guest_result_sha256'] = native['output_sha256']
++
++report = {'status': 'PASS', 'base': base, 'base_tree': base_tree,
++          'design_patch_sha256': digest(patch),
++          'fixture_patch_sha256': digest(stage / 'dcache-compact-lock-replay.patch'),
++          'source_sha256': source, 'reference_sha256': reference,
++          'stock_sha256': digest(root / 'build/arm9v2-assoc/stock-pinned.v'),
++          'simulator': (out / 'image.id').read_text().strip(),
++          'compiled_candidate_fingerprint': finger, 'compiled_reference_fingerprint': retained_finger,
++          'state_proof': proof, 'original_exhaustive_formula': formula, 'original_directed': old_fixture,
++          'paired_fsm': directed, 'paired_fsm_fixture_sha256': digest(out / 'directed/tb.v'),
++          'board': board, 'workload': workload, 'physical_input_count': len(candidate_hashes),
++          'physical_replays': replays,
++          'routed_baseline_census_sha256': digest(stage / 'routes.json')}
++(stage / 'qualification.json').write_text(json.dumps(report, indent=2) + '\n')
+diff --git a/scratch/v5-fit-loop/dcache-compact-lock/replay.py b/scratch/v5-fit-loop/dcache-compact-lock/replay.py
+new file mode 100644
+index 0000000..fb98747
+--- /dev/null
++++ b/scratch/v5-fit-loop/dcache-compact-lock/replay.py
+@@ -0,0 +1,182 @@
++"""Replay the compact D-cache load lock against the retained 104 MHz control."""
++import argparse
++from concurrent.futures import ThreadPoolExecutor
++from hashlib import sha256
++import json
++from pathlib import Path
++import re
++import shlex
++import statistics
++import subprocess
++import sys
++
++parser = argparse.ArgumentParser()
++parser.add_argument('kind', choices=('fixed', 'native'))
++parser.add_argument('--case', action='append')
++parser.add_argument('--workers', type=int, default=3)
++parser.add_argument('--output', default='replay')
++args = parser.parse_args()
++kind = args.kind
++stage = Path(__file__).resolve().parent
++repo = stage.parents[2]
++work = repo / 'build/sim/v5-104-dcache-compact-lock' / args.output
++work.mkdir(parents=True, exist_ok=True)
++baseline_name = 'v5-104-all-four-ram-candidate'
++fixed = repo / 'build/sim/payload-clocks' / baseline_name
++native = repo / 'build/sim/polycount' / baseline_name
++timing_baseline = repo / 'scratch/refill-issue-739d3bd'
++d_stage = stage / 'ngage_cpu.sv'
++candidate = stage / 'source/rtl/arm9v2/arm925t_phone.v'
++image = 'jotego/simulator:arm64'
++docker = ['docker', 'run', '--rm', '--pull=never', '--network', 'none', '--platform', 'linux/arm64',
++          '-v', f'{work}:/work', '-v', f'{repo}:/frozen:ro', '-w', '/work', '--entrypoint']
++sys.path.insert(0, str(stage / 'source/tests/cpu/arm9v2_board'))
++import payload_clocks
++payload_clocks.OUT = repo / "build/sim"
++from payload_clocks import qualified_inputs
++
++
++def frozen(path):
++    return '/frozen/' + str(path.relative_to(repo))
++
++
++def run(options, entrypoint, log):
++    with log.open('w') as handle:
++        return subprocess.run(docker + [entrypoint, image] + options, stdout=handle,
++                              stderr=subprocess.STDOUT, check=False).returncode
++
++
++def build():
++    compiled_netlist = work / f'{kind}-candidate-cpu.v'
++    compiled_netlist.write_bytes(candidate.read_bytes())
++    ref = fixed if kind == 'fixed' else native / 'i16'
++    bench = (ref / 'tb.v').read_text()
++    observer = (stage / 'architectural_trace.vh').read_text() + (stage / 'wb-write-trace.vh').read_text()
++    (work / f'{kind}.sv').write_text(bench.rsplit('endmodule', 1)[0] + observer + '\nendmodule\n')
++    command = next(line for line in (ref / 'mmc3-nos64/Vtb__verFiles.dat').read_text().splitlines()
++                   if line.startswith('C '))
++    options = shlex.split(command.removeprefix('C "').removesuffix('"'))
++    net_hits, wrapper_hits, bench_hits = 0, 0, 0
++    for i, option in enumerate(options):
++        if option == 'rtl/ngage_cpu.sv':
++            options[i] = frozen(d_stage)
++            wrapper_hits += 1
++        elif option in {'rtl/ngage_ddr_stream.v', 'rtl/ngage_upp.v', 'rtl/ngage_dma_channels.v', 'rtl/ngage_upp_peripherals.v', 'rtl/ngage_keypad.v', 'rtl/ngage_upp_euart.v', 'rtl/ngage_timers.v'}:
++            options[i] = frozen(stage / 'source' / option)
++        elif option.startswith('/work/') and option.endswith(('/arm925t_phone.v', '/arm925t-i16.v')):
++            options[i] = '/work/' + compiled_netlist.name
++            net_hits += 1
++        elif option.startswith('/work/') and option.endswith('/tb.v'):
++            options[i] = f'/work/{kind}.sv'
++            bench_hits += 1
++        elif option.startswith('/work/') and option.endswith(('.v', '.sv')):
++            options[i] = option.replace('/work/', '/frozen/', 1)
++        elif option.startswith('-Irtl/'):
++            options[i] = '-I' + frozen(timing_baseline / 'leg' / option[2:])
++        elif option.endswith(('.v', '.sv')):
++            source = timing_baseline / 'leg' / option
++            assert source.is_file(), source
++            options[i] = frozen(source)
++    assert net_hits == wrapper_hits == bench_hits == 1, (net_hits, wrapper_hits, bench_hits)
++    options[options.index('--Mdir') + 1] = f'obj-{kind}'
++    options.insert(0, '-I'+frozen(timing_baseline / 'leg'))
++    options[options.index('-j') + 1] = '3'
++    log = work / f'build-{kind}.log'
++    assert run(options, 'verilator', log) == 0, log
++    compiled = (work / f'obj-{kind}/Vtb__verFiles.dat').read_text().splitlines()
++    assert any(line.startswith('S ') and line.endswith('/dcache-compact-lock/source/rtl/ngage_ddr_stream.v\"') for line in compiled)
++    for changed in ('ngage_upp.v', 'ngage_dma_channels.v', 'ngage_upp_peripherals.v', 'ngage_keypad.v', 'ngage_upp_euart.v', 'ngage_timers.v'):
++        assert any(line.startswith('S ') and line.endswith(f'/dcache-compact-lock/source/rtl/{changed}"') for line in compiled), changed
++    for source in (f'{kind}.sv', compiled_netlist.name):
++        assert any(line.startswith('S ') and line.endswith(f'"/work/{source}"') for line in compiled), source
++    for cache in (work / f'obj-{kind}').glob('*.gch'):
++        cache.unlink()
++
++
++def scan(log, prefix, hex_fields=False):
++    rows = []
++    for line in log.read_text().splitlines():
++        if line.startswith(prefix):
++            pairs = re.findall(r'(\w+)=(-?[0-9a-f]+)', line)
++            rows.append({k: int(v, 16 if hex_fields and k.endswith('_hash') else 10) for k, v in pairs})
++    return rows
++
++
++def digest(file):
++    return sha256(file.read_bytes()).hexdigest()
++
++
++def execute(profile, case, attempt=0, wrong=False):
++    delay, thumb = profile
++    inputs = ['+ngage-compact-trace', '+no-board-log',
++              '+extension=' + frozen(repo / 'build/firmware/nem4-factory/extension.bin')]
++    suffix = f'{delay}{thumb}-{attempt}{"-wrong" if wrong else ""}'
++    if kind == 'fixed':
++        name = case['name']
++        inputs += ['+core=' + frozen(fixed / f'{name}-{wrong}.bin'), '+cdrive=' + frozen(fixed / 'cdrive.bin'),
++                   f'+begin_pc={case["begin"]:x}', f'+end_pc={case["end"]:x}',
++                   f'+payload_base={case["payload_base"]:x}', f'+helper_base={case["helper_base"]:x}']
++    else:
++        name = 'native'
++        result = work / f'native-{suffix}.bin'
++        inputs += ['+core=' + frozen(native / 'core.bin'), '+cdrive=' + frozen(native / 'cdrive.bin'),
++                   '+snapshot=' + frozen(native / 'snapshot.bin'), f'+results=/work/native-{suffix}',
++                   '+begin_pc=68', '+end_pc=6c', '+done_pc=80', '+fail_pc=84']
++    log = work / f'{name}-{suffix}.log'
++    code = run(inputs, f'/work/obj-{kind}/Vtb', log)
++    if wrong:
++        assert code != 0 and 'Guest output check rejected payload' in log.read_text(), log
++        return None
++    assert code == 0, log
++    architecture = scan(log, 'RES_ARCH ', hex_fields=True)
++    wb_writes = scan(log, 'RES_WB ', hex_fields=True)
++    assert len(wb_writes) == len(architecture)
++    if kind == 'fixed':
++        windows = scan(log, 'PAYLOAD_RESULT ')
++        assert len(architecture) == len(windows) == 7, log
++        assert len(scan(log, 'PAYLOAD_PASS ')) == 1
++        for actual, expect in zip(windows, case['windows'], strict=True):
++            assert actual['payload_ops'] == expect['payload_retire_proxy']
++            assert actual['helper_ops'] == expect['helper_retire_proxy']
++        return dict(profile=profile, case=name, windows=windows, architecture=architecture, wb_writes=wb_writes,
++                    median=statistics.median(x['cycles'] for x in windows[2:]))
++    frames = scan(log, 'POLY_FRAME ')
++    assert len(architecture) == len(frames) == 4, log
++    assert len(scan(log, 'PASS_POLYCOUNT ')) == 1
++    assert digest(result) == digest(native / 'i16/result.bin')
++    return dict(profile=profile, case=name, frames=frames, architecture=architecture, wb_writes=wb_writes,
++                output_sha256=digest(result), median=statistics.median(f['clocks'] for f in frames[1:]))
++
++
++def architectural_work(row):
++    return [{k:v for k,v in entry.items() if k != 'recover'} for entry in row['architecture']]
++
++control = json.loads((stage.parent/'prepared-wb-write-data'/'candidate'/f'{kind}.json').read_text())
++assert control['status'] == 'PASS'
++assert control['ddr_stream_sha256'] == digest(stage/'source/rtl/ngage_ddr_stream.v')
++reference = {r['candidate']['case']:r['candidate'] for r in control['rows']}
++
++build()
++rows=[]
++with ThreadPoolExecutor(max_workers=args.workers) as pool:
++    cases = [None] if kind=='native' else [case for case in qualified_inputs()
++                                            if not args.case or case['name'] in args.case]
++    if kind=='fixed':
++        assert len(cases)==(len(args.case) if args.case else 15)
++        cases.sort(key=lambda r:r['name']!='sega-scan')
++    for case in cases:
++        primary = pool.submit(execute, (0,0), case)
++        repeat = pool.submit(execute, (0,0), case, attempt=1) if kind=='fixed' else None
++        wrong = pool.submit(execute,(0,0),case,wrong=True) if kind=='fixed' else None
++        trial=primary.result()
++        if repeat:
++            assert trial==repeat.result() and wrong.result() is None
++        name=trial['case']
++        expected = {**reference[name], 'profile': (0,0)}
++        assert trial == expected, (name, trial, expected)
++        rows.append(dict(candidate=trial, control=expected))
++        print(name, trial['median'], flush=True)
++(work/f'{kind}.json').write_text(json.dumps(dict(status='PASS', netlist_sha256=digest(candidate),
++                                                wrapper_sha256=digest(d_stage), ddr_stream_sha256=digest(stage / 'source/rtl/ngage_ddr_stream.v'),
++                                                dma_channels_sha256=digest(stage / 'source/rtl/ngage_dma_channels.v'),
++                                                source_sha256={name:digest(stage / 'source/rtl' / name) for name in ('ngage_upp.v','ngage_upp_peripherals.v','ngage_upp_euart.v', 'ngage_timers.v','ngage_keypad.v')}, rows=rows),indent=2)+'\n')
+diff --git a/scratch/v5-fit-loop/dcache-compact-lock/routes.py b/scratch/v5-fit-loop/dcache-compact-lock/routes.py
+new file mode 100644
+index 0000000..67f18a1
+--- /dev/null
++++ b/scratch/v5-fit-loop/dcache-compact-lock/routes.py
+@@ -0,0 +1,49 @@
++"""Summarize timer-control and earlier lock-valid path families."""
++import csv
++import json
++from pathlib import Path
++
++
++stage = Path(__file__).resolve().parent
++root = stage.parents[2]
++cohorts = {'timer': {13: 45824513460, 43: 45824520116, 31337: 45824525843},
++           'old_valid_only': {13: 45720741046, 43: 45720741108, 31337: 45720741271}}
++signals = ('o_lock_any', 'o_lock_owner', 'o_lock_return', 'o_reg_idx[')
++report = {}
++for group, seeds in cohorts.items():
++    report[group] = {}
++    for seed, run in seeds.items():
++        model = root / f'build/timing-audit-{run}/output_files/timing/resident-store/104'
++        corners = {}
++        report[group][seed] = {'run': run, 'corners': corners}
++        for source in sorted(model.glob('corner-*/setup.csv')):
++            with source.open() as handle:
++                reader = csv.reader(handle)
++                header = next(reader)
++                paths = list(reader)
++            assert len(paths) == 1000 and header == ['rank', 'slack_ns', 'data_delay_ns', 'logic_levels', 'from', 'to']
++            name = (source.parent / 'operating-condition.txt').read_text().splitlines()[0].split()[1]
++            samples = {}
++            corners[name] = {'file': str(source.relative_to(root)), 'families': samples}
++            for signal in signals:
++                matches = [path for path in paths if '|u_zap_cache_fsm|' in path[-1] and
++                           path[-1].split('|')[-1].startswith(signal)]
++                # Current generated hierarchy includes the type name on the FSM node.
++                matches += [path for path in paths if '|ngage2_zap_dcache_fsm:u_zap_cache_fsm|' in path[-1] and
++                            path[-1].split('|')[-1].startswith(signal)]
++                if matches:
++                    worst = min(matches, key=lambda path: float(path[1]))
++                    samples[signal] = {'count': len(matches), 'rank': int(worst[0]), 'slack_ns': float(worst[1]),
++                                       'data_ns': float(worst[2]), 'cell_levels': int(worst[3]),
++                                       'from': worst[-2], 'to': worst[-1]}
++        assert len(corners) == 4, model
++
++for group, seeds in report.items():
++    print(group)
++    for seed, data in seeds.items():
++        for corner, facts in data['corners'].items():
++            if '_slow_' not in corner:
++                continue
++            print(seed, corner, {key: (value['rank'], value['slack_ns'], value['count'])
++                                         for key, value in facts['families'].items()})
++(stage / 'routes.json').write_text(json.dumps(report, indent=2) + '\n')

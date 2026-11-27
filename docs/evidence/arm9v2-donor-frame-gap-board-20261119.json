@@ -1,0 +1,44 @@
+{
+  "observed_on": "2026-11-19",
+  "source": "Read-only comparison of the MiSTer SD card mounted over SMB",
+  "reported_system_hz": 78000000,
+  "independently_timed_native_frames": false,
+  "user_confirmed_current_78_mhz_branch_tips": true,
+  "v5": {
+    "installed_path": "/media/fat/_Console/ngage1.rbf",
+    "size_bytes": 4314156,
+    "sha256": "490f031351486b555ce8c4bf33704bcd02d072fe2363090d14080b2a678455d1",
+    "reported_game_fps": 5.79,
+    "artifact_match": true,
+    "commit": "8546db172cf518391ab6a91e764da79faecf03bf",
+    "ci_run": "https://github.com/asturur/test_template_1/actions/runs/44419903846",
+    "fitter_seed": 43,
+    "debugger_enabled": false,
+    "archived_setup_slack_ns": -0.185,
+    "archived_hold_slack_ns": 0.248,
+    "firmware": {
+      "version": "NEM-4 4.03",
+      "boot.rom": "e948c435c977772a30ff2dd8ef608f7542a978c0acfd257bc0986925fd548690",
+      "boot1.rom": "fd4126eeaddf5c0cd72a9961f51e283bd1ed4245106e20f01d5a5551e85fddc7"
+    }
+  },
+  "ngage2": {
+    "installed_path": "/media/fat/_Console/NGage.rbf",
+    "size_bytes": 4335772,
+    "sha256": "dd8a97de3fdbc8f3b163bc876ab4636d3ccb59a4cbb51d868b5cf47cfae9e4d3",
+    "reported_game_fps": 6.62,
+    "artifact_match": false,
+    "source_confirmation": "User identified the current 78 MHz build. Local and remote test-78 tips match the simulation commit.",
+    "simulation_commit": "ff6dcff7f92a8ce999f2e89fdc08b873b5172404",
+    "compared_artifacts": {
+      "test_78_ci_44306424503": "2c3660a5745fdc829b727fced258e61e15a35be49289491dd04430ec42ce9e1d",
+      "master_ci_44482629227": "4a457d4032b4e887c780dac7e743d88e0181e467a961c2cab8d7e6d639c9d6bd",
+      "release_2026_11_16": "da7d2cb58d40b2327b7d8fcd13dda345a86598919856aa195e06009b954c6090"
+    },
+    "firmware": {
+      "version": "RH-29 4.10",
+      "boot0.rom": "3ce529d6fbcd6db1f4290fabe8b70c62242a23444c4fa74caec42657d12ab4a0",
+      "boot1.rom": "657c2d1bafbad6797732c86892999a9e201e10961ee8c1801b0b6cc73bb41fa5"
+    }
+  }
+}

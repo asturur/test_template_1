@@ -10,6 +10,15 @@ models no LCD pin timing.
 The descriptor accepts a literal 33-bit positive word count. Source plus byte
 extent uses 36 bits, including the carry from a maximum 35-bit extent, and must
 end at or before `0b000000`. Inputs can change after descriptor acceptance.
+The accepted count fits in 23 bits because the source window is 16 MiB.
+Two registered flags track the unreserved words and whether a full line
+fits. The first packet is reserved at descriptor acceptance. One reserve
+slot can prepare the following packet while an accepted scalar or line
+read drains. Reserving the address and size consumes the count locally.
+The shared arbiter only grants the reserved packet. The scalar owner keeps
+its accepted address until ACK. Stop discards an unaccepted reservation
+while an accepted read drains.
+
 `mem_addr` is the low 25-bit byte address, not a word index. `mem_accept` captures
 a level request, which stays asserted with immutable address through its owned
 ACK. Unowned ACKs are ignored; acceptance and ACK on the same edge are legal.
@@ -40,6 +49,20 @@ With continuously ready pixels, direct latency-one/three memory takes
 36,609/73,217 clocks for 18,304 words (approximately two/four per word). The
 actual native arbiter adds its grant clock: 54,913/91,521 (three/five per word).
 These synthetic measurements do not measure physical SDRAM or phone boot speed.
+
+The registered eligibility update was compared cycle by cycle with the
+original counter-based implementation across 1,952 descriptors in scalar,
+16-byte and 32-byte configurations. The cases covered held requests,
+mixed line and scalar tails, overflow rejection, and cancellation on the
+final SDRAM response. All 18 physical SDRAM LCD cases at 104 MHz matched
+the original request counts, transfer clocks and contention metrics.
+
+The reservation matched round three in all 18 physical 104 MHz cases,
+including 16-byte production lines, scalar and 32-byte modes. Frame clocks,
+SDRAM traffic, upload words and contention metrics matched. The LCD, MMC
+and PCM pin replay retained its 1,189,662 clocks and all checked outputs.
+The separate analog display test retained both native and diagnostic sync
+timing at 6.5 MHz.
 
 ## Matched legacy comparison
 

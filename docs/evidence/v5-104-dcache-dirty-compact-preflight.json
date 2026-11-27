@@ -1,0 +1,119 @@
+{
+  "status": "PASS",
+  "active_timer": "9f16d1a5b5bd5b255eb8f0b1a131399b7dcfb56e",
+  "active_compact": "aaeef9ef24dc089255f7d41d0c7c4d32c2ba9179",
+  "timer_tree": "0ccd13d8cd502bc14d3b89c6431ff0ebe4745612",
+  "restore": "da03b02263c9820129d7331d21efc27bf340ddad",
+  "restore_parent": "aaeef9ef24dc089255f7d41d0c7c4d32c2ba9179",
+  "archive_patch_sha256": {
+    "dcache-compact-lock": "abab9bfe0e0a7bb369e52baa3f7d8654d48d2ef0199f9646658283403e61e530",
+    "dcache-dirty-clean-descriptor": "baaa34c9743a94c80d296ed1dd8c5dec08aa5c8a5f6572afc943977e33ff1ec6"
+  },
+  "pinned_donor_sha256": "087714b2a692fb949bf8a0586674742118383eb18452f1357c4b4e786a69ab4c",
+  "private_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-dirty-compact-combined/dispatch-20261126/objects",
+  "alternate_objects": "/Users/andreabogazzi/develop/NGage_MiSTer/.git/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-compact-owner-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-hps-owner-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-footer-timer-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/timer-live-trust-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/dcache-live-trust/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lltune-clock/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/lane13-mmc-combined/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/mmc-count-prepare/dispatch-20261126/objects:/Users/andreabogazzi/develop/NGage_MiSTer/scratch/v5-fit-loop/wb-reply-class/dispatch-20261126/objects",
+  "variants": {
+    "descriptor-on-timer": {
+      "sha": "dbad302dd2f85f5a1b016e472cd9557a58e19927",
+      "parent": "da03b02263c9820129d7331d21efc27bf340ddad",
+      "tree": "159a15098717310628494618f19d279f702f68fb",
+      "paths_since_parent": [
+        "rtl/arm9v2/arm925t_phone.v",
+        "tools/gen_arm9v2_phone.py"
+      ],
+      "file_sha256": {
+        "rtl/arm9v2/arm925t_phone.v": "af019841f3bad5168995bbc19987c55f6525e00b10b97de9dbf891e7d770fba9",
+        "tools/gen_arm9v2_phone.py": "b54d9c59a8c80d27a5c0f68c01131ec929b79a524ff456d22e1b569d497e358e"
+      },
+      "delta_patch_sha256": "d10e01812b24abbf3a0cd2c5b0727934d2ae1046677b19c09686fbdaba98dfc1",
+      "changed_modules": [
+        "ngage2_zap_dcache_half_tag_ram"
+      ],
+      "production": {
+        "13": {
+          "control_run": 45824513460,
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/arm9v2/arm925t_phone.v": "af019841f3bad5168995bbc19987c55f6525e00b10b97de9dbf891e7d770fba9"
+          },
+          "manifest_sha256": "ee002ed4d48d142b98cf315a9da20aa51082db4a3ed5f34c17f242501178a626"
+        },
+        "43": {
+          "control_run": 45824520116,
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/arm9v2/arm925t_phone.v": "af019841f3bad5168995bbc19987c55f6525e00b10b97de9dbf891e7d770fba9"
+          },
+          "manifest_sha256": "c97c0d8a6ff23f4662d90f23f76f9eccb478f59ec5278484b92d44f22052b388"
+        },
+        "31337": {
+          "control_run": 45824525843,
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/arm9v2/arm925t_phone.v": "af019841f3bad5168995bbc19987c55f6525e00b10b97de9dbf891e7d770fba9"
+          },
+          "manifest_sha256": "33585dbd49be2c5d6003e3bbf277c0fe801f7b0a02ba6a1ede2a9f1cf3f0f540"
+        }
+      }
+    },
+    "descriptor-plus-compact": {
+      "sha": "6f8bdfef1388510f588d8653871fa051161c6492",
+      "parent": "aaeef9ef24dc089255f7d41d0c7c4d32c2ba9179",
+      "tree": "fb98eb14aaddc030492cd1007d463b4770034782",
+      "paths_since_parent": [
+        "rtl/arm9v2/arm925t_phone.v",
+        "tools/gen_arm9v2_phone.py"
+      ],
+      "file_sha256": {
+        "rtl/arm9v2/arm925t_phone.v": "3e4f8ba9a54a0157f6a77fb9662bb61f630a5c83c291d9ff8bd2fc8c39c2a42f",
+        "tools/gen_arm9v2_phone.py": "0cf342fbc317db39fe96b0c17432d35a347dc4cafe52cf12c116f2d5c4ee6673"
+      },
+      "delta_patch_sha256": "ac782fd4b435d9d1f1492169459ebff97a1a5f4c27541b6bd62fc7f90e958589",
+      "changed_modules": [
+        "ngage2_arm925t",
+        "ngage2_zap_dcache",
+        "ngage2_zap_dcache_fsm",
+        "ngage2_zap_dcache_half_tag_ram",
+        "ngage2_zap_top"
+      ],
+      "production": {
+        "13": {
+          "control_run": 45824513460,
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/arm9v2/arm925t_phone.v": "3e4f8ba9a54a0157f6a77fb9662bb61f630a5c83c291d9ff8bd2fc8c39c2a42f"
+          },
+          "manifest_sha256": "53dbaa1a71af80fa326c79b9ad695faacbc56ff0b5b7d53c6da3d1f501bb5f38"
+        },
+        "43": {
+          "control_run": 45824520116,
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/arm9v2/arm925t_phone.v": "3e4f8ba9a54a0157f6a77fb9662bb61f630a5c83c291d9ff8bd2fc8c39c2a42f"
+          },
+          "manifest_sha256": "68e46ad91c5b6307ff84ed77135f4c7e33ebd1a23bd059fb4e6b1a534d9a20b9"
+        },
+        "31337": {
+          "control_run": 45824525843,
+          "physical_cpu_mhz": 104,
+          "ddr_debug": false,
+          "compiled_source_count": 133,
+          "compiled_input_delta": {
+            "rtl/arm9v2/arm925t_phone.v": "3e4f8ba9a54a0157f6a77fb9662bb61f630a5c83c291d9ff8bd2fc8c39c2a42f"
+          },
+          "manifest_sha256": "39923ae76baf3e4b5311e84b7edd4de38385d34de3ed34dd2a195ae13d04e617"
+        }
+      }
+    }
+  }
+}

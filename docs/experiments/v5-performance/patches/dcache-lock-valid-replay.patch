@@ -1,0 +1,78 @@
+diff --git a/scratch/v5-fit-loop/dcache-lock-valid/check-lock-update.v b/scratch/v5-fit-loop/dcache-lock-valid/check-lock-update.v
+new file mode 100644
+index 0000000..6d08c5a
+--- /dev/null
++++ b/scratch/v5-fit-loop/dcache-lock-valid/check-lock-update.v
+@@ -0,0 +1,36 @@
++`timescale 1ns / 1ps
++
++module check_lock_update;
++    reg valid, install;
++    reg [5:0] held_tag, incoming_tag;
++    reg [63:0] returned;
++    wire [63:0] previous = valid ? 64'd1 << held_tag : 64'd0;
++    wire [63:0] bitmap = (previous & ~returned) | (install ? 64'd1 << incoming_tag : 64'd0);
++    wire next_valid = install || (valid && !returned[held_tag]);
++    wire [5:0] next_tag = install ? incoming_tag : held_tag;
++    integer old_idx, new_idx, return_idx, mode, coverage = 0;
++
++    initial begin
++        for (mode = 0; mode < 4; mode = mode + 1) begin
++            {valid, install} = mode[1:0];
++            for (old_idx = 0; old_idx < 64; old_idx = old_idx + 1) begin
++                held_tag = old_idx[5:0];
++                for (new_idx = 0; new_idx < 64; new_idx = new_idx + 1) begin
++                    incoming_tag = new_idx[5:0];
++                    for (return_idx = 0; return_idx <= 64; return_idx = return_idx + 1) begin
++                        returned = 64'd1 << return_idx;
++                        #1;
++                        if (next_valid !== (|bitmap))
++                            $fatal(1, "scalar valid differs from bitmap nonempty");
++                        if (!(valid && install && !returned[held_tag] && held_tag != incoming_tag) &&
++                            bitmap !== (next_valid ? 64'd1 << next_tag : 64'd0))
++                            $fatal(1, "single-owner tag differs from bitmap");
++                        coverage = coverage + 1;
++                    end
++                end
++            end
++        end
++        $display("PASS scalar valid equals bitmap nonempty over %0d transitions", coverage);
++        $finish;
++    end
++endmodule
+diff --git a/scratch/v5-fit-loop/dcache-lock-valid/mixed.py b/scratch/v5-fit-loop/dcache-lock-valid/mixed.py
+new file mode 100644
+index 0000000..de0845f
+--- /dev/null
++++ b/scratch/v5-fit-loop/dcache-lock-valid/mixed.py
+@@ -0,0 +1,30 @@
++"""Stage the retained mixed board replay with only the candidate netlist replaced."""
++from hashlib import sha256
++import json
++from pathlib import Path
++import shutil
++
++
++stage = Path(__file__).resolve().parent
++base = Path('build/sim/v5-104-more-ram-prepared-wb-write-data-pin-mixed/mixed')
++trial = Path('build/sim/v5-104-dcache-lock-valid-pin-mixed/mixed')
++trial.mkdir(parents=True)
++for name in ('source', 'build.sh', 'stress.hex', 'image.hex', 'program.hex'):
++    original = base / name
++    if original.is_dir():
++        shutil.copytree(original, trial / name)
++    else:
++        shutil.copyfile(original, trial / name)
++
++netlist = 'rtl/arm9v2/arm925t_phone.v'
++shutil.copyfile(stage / 'source' / netlist, trial / 'source' / netlist)
++hashes = json.loads((base / 'source-hashes.json').read_text())
++assert netlist in hashes
++for name, reference in hashes.items():
++    file = trial / 'source' / name
++    actual = sha256((file if file.is_file() else Path(name)).read_bytes()).hexdigest()
++    assert (actual != reference) == (name == netlist), name
++    hashes[name] = actual
++(trial / 'source-hashes.json').write_text(json.dumps(hashes, indent=2) + '\n')
++build = trial / 'build.sh'
++build.write_text(build.read_text().replace(str(base), str(trial)))

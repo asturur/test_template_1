@@ -31,8 +31,8 @@ It also rejects deliberately wrong expected outputs. `--case ID` and
 `--profile I:D` select a subset; compare only identically selected groups.
 `--jobs` controls Verilator compilation parallelism (default4).
 
-The input modules default to the local test fixtures under
-`tests/cpu/spmark_payload/local/`. Override with
+The input modules default to the existing extraction under
+`scratch/spmark-benchmark-20261114/files/System/Apps/SPMark`. Override with
 `--payload-dir DIRECTORY`. If missing, use `--mmc LOCAL_SPMARK04_MMC` to extract
 the hash-qualified modules without modifying the card image. The decoded
 original firmware defaults to `build/firmware/nem4-factory/core.bin`; override

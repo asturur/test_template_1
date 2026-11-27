@@ -1,0 +1,2130 @@
+{
+  "control": [
+    {
+      "run": 45414696142,
+      "sha": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+      "seed": 43,
+      "alms": 36446,
+      "m10ks": 321,
+      "registers": 40425,
+      "average_routing_pct": 44.4,
+      "peak_routing_pct": 77.3,
+      "core_setup_tns_sta_summary_ns": -5288.569,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.508,
+          "hold-summary": 0.216,
+          "recovery-summary": 1.738,
+          "removal-summary": 0.946,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.49
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.428,
+          "hold-summary": 0.102,
+          "recovery-summary": 1.829,
+          "removal-summary": 0.914,
+          "min-pulse": 0.961,
+          "fmax_mhz": 83.04
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.468,
+          "hold-summary": 0.101,
+          "recovery-summary": 4.595,
+          "removal-summary": 0.448,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.92
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.63,
+          "hold-summary": 0.08,
+          "recovery-summary": 4.946,
+          "removal-summary": 0.377,
+          "min-pulse": 0.961,
+          "fmax_mhz": 169.35
+        }
+      ],
+      "worst_setup_ns": -2.508,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 0,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 85,
+        "ngage2_zap_tlb:": 28,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 153
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.2,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 259.6,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 237.2,
+          "direct_registers": 290,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 195.9,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 851.2,
+          "direct_registers": 916,
+          "inclusive_m10ks": 0
+        }
+      },
+      "peripheral_read_paths": {
+        "run": 45414696142,
+        "sha": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+        "seed": 43,
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "cutoff_ns": -1.174,
+            "lane13_count": 15,
+            "worst_lane13": {
+              "rank": "1",
+              "slack_ns": "-2.508",
+              "data_delay_ns": "11.395",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            },
+            "address_to_lane13_count": 10,
+            "worst_address_to_lane13": {
+              "rank": "1",
+              "slack_ns": "-2.508",
+              "data_delay_ns": "11.395",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            }
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "cutoff_ns": -0.99,
+            "lane13_count": 7,
+            "worst_lane13": {
+              "rank": "15",
+              "slack_ns": "-2.057",
+              "data_delay_ns": "10.954",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            },
+            "address_to_lane13_count": 7,
+            "worst_address_to_lane13": {
+              "rank": "15",
+              "slack_ns": "-2.057",
+              "data_delay_ns": "10.954",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "cutoff_ns": 3.523,
+            "lane13_count": 15,
+            "worst_lane13": {
+              "rank": "2",
+              "slack_ns": "2.529",
+              "data_delay_ns": "6.613",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            },
+            "address_to_lane13_count": 9,
+            "worst_address_to_lane13": {
+              "rank": "2",
+              "slack_ns": "2.529",
+              "data_delay_ns": "6.613",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "cutoff_ns": 4.273,
+            "lane13_count": 7,
+            "worst_lane13": {
+              "rank": "4",
+              "slack_ns": "3.710",
+              "data_delay_ns": "5.433",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            },
+            "address_to_lane13_count": 4,
+            "worst_address_to_lane13": {
+              "rank": "4",
+              "slack_ns": "3.710",
+              "data_delay_ns": "5.433",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            }
+          }
+        ],
+        "hot_top_1000": {
+          "into_registered_uart_decode": {
+            "count": 0,
+            "worst": null
+          },
+          "from_registered_uart_decode": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_to_lane13": {
+            "count": 10,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.508,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[4]~DUPLICATE"
+                ],
+                [
+                  "nos_timer",
+                  "Equal11~0"
+                ],
+                [
+                  "nos_timer",
+                  "Equal11~1"
+                ],
+                [
+                  "nos_timer",
+                  "Equal12~1"
+                ],
+                [
+                  "peripherals",
+                  "always5~9_RESYN12905"
+                ],
+                [
+                  "peripherals",
+                  "always5~9"
+                ],
+                [
+                  "peripherals",
+                  "dout_unkeyed[15]~30"
+                ],
+                [
+                  "peripherals",
+                  "dout_unkeyed[14]~55"
+                ],
+                [
+                  "peripherals",
+                  "registered_response.local_results[13].data[14]~feeder"
+                ]
+              ]
+            }
+          },
+          "any_to_lane13": {
+            "count": 15,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.508,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[4]~DUPLICATE"
+                ],
+                [
+                  "nos_timer",
+                  "Equal11~0"
+                ],
+                [
+                  "nos_timer",
+                  "Equal11~1"
+                ],
+                [
+                  "nos_timer",
+                  "Equal12~1"
+                ],
+                [
+                  "peripherals",
+                  "always5~9_RESYN12905"
+                ],
+                [
+                  "peripherals",
+                  "always5~9"
+                ],
+                [
+                  "peripherals",
+                  "dout_unkeyed[15]~30"
+                ],
+                [
+                  "peripherals",
+                  "dout_unkeyed[14]~55"
+                ],
+                [
+                  "peripherals",
+                  "registered_response.local_results[13].data[14]~feeder"
+                ]
+              ]
+            }
+          },
+          "uart_into_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "nos_or_unkeyed_into_lane13": {
+            "count": 14,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.508,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[4]~DUPLICATE"
+                ],
+                [
+                  "nos_timer",
+                  "Equal11~0"
+                ],
+                [
+                  "nos_timer",
+                  "Equal11~1"
+                ],
+                [
+                  "nos_timer",
+                  "Equal12~1"
+                ],
+                [
+                  "peripherals",
+                  "always5~9_RESYN12905"
+                ],
+                [
+                  "peripherals",
+                  "always5~9"
+                ],
+                [
+                  "peripherals",
+                  "dout_unkeyed[15]~30"
+                ],
+                [
+                  "peripherals",
+                  "dout_unkeyed[14]~55"
+                ],
+                [
+                  "peripherals",
+                  "registered_response.local_results[13].data[14]~feeder"
+                ]
+              ]
+            }
+          },
+          "request_address_through_uart": {
+            "count": 39,
+            "worst": {
+              "rank": 58,
+              "slack_ns": -1.897,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_uem:uem|ngage_cbus_uem:cbus|Mux0~42_OTERM8178",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[5]"
+                ],
+                [
+                  "euart1",
+                  "Equal13~1"
+                ],
+                [
+                  "cbus",
+                  "Equal4~1"
+                ],
+                [
+                  "cbus",
+                  "bad~10"
+                ],
+                [
+                  "cbus",
+                  "bad~15"
+                ],
+                [
+                  "cbus",
+                  "bad~18"
+                ],
+                [
+                  "cbus",
+                  "command_write~1"
+                ],
+                [
+                  "cbus",
+                  "Decoder1~58"
+                ],
+                [
+                  "cbus",
+                  "written[131]_NEW3779"
+                ],
+                [
+                  "cbus",
+                  "Mux0~42"
+                ]
+              ]
+            }
+          },
+          "request_address_through_nos_or_unkeyed": {
+            "count": 13,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.508,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[4]~DUPLICATE"
+                ],
+                [
+                  "nos_timer",
+                  "Equal11~0"
+                ],
+                [
+                  "nos_timer",
+                  "Equal11~1"
+                ],
+                [
+                  "nos_timer",
+                  "Equal12~1"
+                ],
+                [
+                  "peripherals",
+                  "always5~9_RESYN12905"
+                ],
+                [
+                  "peripherals",
+                  "always5~9"
+                ],
+                [
+                  "peripherals",
+                  "dout_unkeyed[15]~30"
+                ],
+                [
+                  "peripherals",
+                  "dout_unkeyed[14]~55"
+                ],
+                [
+                  "peripherals",
+                  "registered_response.local_results[13].data[14]~feeder"
+                ]
+              ]
+            }
+          },
+          "request_address_to_peripherals": {
+            "count": 57,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.508,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[4]~DUPLICATE"
+                ],
+                [
+                  "nos_timer",
+                  "Equal11~0"
+                ],
+                [
+                  "nos_timer",
+                  "Equal11~1"
+                ],
+                [
+                  "nos_timer",
+                  "Equal12~1"
+                ],
+                [
+                  "peripherals",
+                  "always5~9_RESYN12905"
+                ],
+                [
+                  "peripherals",
+                  "always5~9"
+                ],
+                [
+                  "peripherals",
+                  "dout_unkeyed[15]~30"
+                ],
+                [
+                  "peripherals",
+                  "dout_unkeyed[14]~55"
+                ],
+                [
+                  "peripherals",
+                  "registered_response.local_results[13].data[14]~feeder"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "run": 45414703565,
+      "sha": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+      "seed": 13,
+      "alms": 36420,
+      "m10ks": 321,
+      "registers": 40529,
+      "average_routing_pct": 45.0,
+      "peak_routing_pct": 73.7,
+      "core_setup_tns_sta_summary_ns": -4606.649,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.061,
+          "hold-summary": 0.218,
+          "recovery-summary": 2.47,
+          "removal-summary": 1.116,
+          "min-pulse": 0.961,
+          "fmax_mhz": 85.65
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -1.95,
+          "hold-summary": 0.144,
+          "recovery-summary": 2.766,
+          "removal-summary": 1.046,
+          "min-pulse": 0.961,
+          "fmax_mhz": 86.47
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.623,
+          "hold-summary": 0.098,
+          "recovery-summary": 4.758,
+          "removal-summary": 0.569,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.02
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.702,
+          "hold-summary": 0.052,
+          "recovery-summary": 5.12,
+          "removal-summary": 0.49,
+          "min-pulse": 0.961,
+          "fmax_mhz": 171.61
+        }
+      ],
+      "worst_setup_ns": -2.061,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 67,
+        "ngage_icu_extra:extra_regs|": 52,
+        "ngage_mmc_host:": 17,
+        "ngage2_zap_tlb:": 36,
+        "ngage2_zap_wb_merger:": 58,
+        "ngage2_arm9v2_execute:": 35
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.7,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 260.8,
+          "direct_registers": 305,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.9,
+          "direct_registers": 292,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 191.8,
+          "direct_registers": 209,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 825.3,
+          "direct_registers": 912,
+          "inclusive_m10ks": 0
+        }
+      },
+      "peripheral_read_paths": {
+        "run": 45414703565,
+        "sha": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+        "seed": 13,
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "cutoff_ns": -1.214,
+            "lane13_count": 7,
+            "worst_lane13": {
+              "rank": "1",
+              "slack_ns": "-2.061",
+              "data_delay_ns": "10.925",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+            },
+            "address_to_lane13_count": 2,
+            "worst_address_to_lane13": {
+              "rank": "1",
+              "slack_ns": "-2.061",
+              "data_delay_ns": "10.925",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+            }
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "cutoff_ns": -0.962,
+            "lane13_count": 6,
+            "worst_lane13": {
+              "rank": "83",
+              "slack_ns": "-1.568",
+              "data_delay_ns": "10.442",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+            },
+            "address_to_lane13_count": 3,
+            "worst_address_to_lane13": {
+              "rank": "83",
+              "slack_ns": "-1.568",
+              "data_delay_ns": "10.442",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "cutoff_ns": 3.485,
+            "lane13_count": 15,
+            "worst_lane13": {
+              "rank": "1",
+              "slack_ns": "2.623",
+              "data_delay_ns": "6.503",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+            },
+            "address_to_lane13_count": 6,
+            "worst_address_to_lane13": {
+              "rank": "1",
+              "slack_ns": "2.623",
+              "data_delay_ns": "6.503",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "cutoff_ns": 4.226,
+            "lane13_count": 3,
+            "worst_lane13": {
+              "rank": "8",
+              "slack_ns": "3.788",
+              "data_delay_ns": "5.344",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+            },
+            "address_to_lane13_count": 2,
+            "worst_address_to_lane13": {
+              "rank": "8",
+              "slack_ns": "3.788",
+              "data_delay_ns": "5.344",
+              "logic_levels": "8",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]"
+            }
+          }
+        ],
+        "hot_top_1000": {
+          "into_registered_uart_decode": {
+            "count": 0,
+            "worst": null
+          },
+          "from_registered_uart_decode": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_to_lane13": {
+            "count": 2,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.061,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[5]~DUPLICATE"
+                ],
+                [
+                  "peripherals",
+                  "Equal37~1"
+                ],
+                [
+                  "euart1",
+                  "Equal27~1"
+                ],
+                [
+                  "euart1",
+                  "Equal27~2"
+                ],
+                [
+                  "euart1",
+                  "Selector13~1"
+                ],
+                [
+                  "euart1",
+                  "Selector13~2"
+                ],
+                [
+                  "euart1",
+                  "Selector13~3"
+                ],
+                [
+                  "euart1",
+                  "dout[22]~22"
+                ],
+                [
+                  "euart1",
+                  "dout[22]~24"
+                ]
+              ]
+            }
+          },
+          "any_to_lane13": {
+            "count": 7,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.061,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[5]~DUPLICATE"
+                ],
+                [
+                  "peripherals",
+                  "Equal37~1"
+                ],
+                [
+                  "euart1",
+                  "Equal27~1"
+                ],
+                [
+                  "euart1",
+                  "Equal27~2"
+                ],
+                [
+                  "euart1",
+                  "Selector13~1"
+                ],
+                [
+                  "euart1",
+                  "Selector13~2"
+                ],
+                [
+                  "euart1",
+                  "Selector13~3"
+                ],
+                [
+                  "euart1",
+                  "dout[22]~22"
+                ],
+                [
+                  "euart1",
+                  "dout[22]~24"
+                ]
+              ]
+            }
+          },
+          "uart_into_lane13": {
+            "count": 2,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.061,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[5]~DUPLICATE"
+                ],
+                [
+                  "peripherals",
+                  "Equal37~1"
+                ],
+                [
+                  "euart1",
+                  "Equal27~1"
+                ],
+                [
+                  "euart1",
+                  "Equal27~2"
+                ],
+                [
+                  "euart1",
+                  "Selector13~1"
+                ],
+                [
+                  "euart1",
+                  "Selector13~2"
+                ],
+                [
+                  "euart1",
+                  "Selector13~3"
+                ],
+                [
+                  "euart1",
+                  "dout[22]~22"
+                ],
+                [
+                  "euart1",
+                  "dout[22]~24"
+                ]
+              ]
+            }
+          },
+          "nos_or_unkeyed_into_lane13": {
+            "count": 6,
+            "worst": {
+              "rank": 72,
+              "slack_ns": -1.839,
+              "from": "emu:emu|ngage_mister:core|reset_drain~SynDup_58DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[24]",
+              "cells": [
+                [
+                  "core",
+                  "reset_drain~SynDup_58DUPLICATE"
+                ],
+                [
+                  "cpu_inside.request_stage",
+                  "out_cyc~0"
+                ],
+                [
+                  "cpu_inside.request_stage",
+                  "out_cyc~1"
+                ],
+                [
+                  "nos_timer",
+                  "claim"
+                ],
+                [
+                  "keypad_enabled.keypad",
+                  "value[26]~15"
+                ],
+                [
+                  "keypad_enabled.keypad",
+                  "value[26]~16"
+                ],
+                [
+                  "peripherals",
+                  "dout_unkeyed[24]~9"
+                ],
+                [
+                  "peripherals",
+                  "registered_response.local_results[13].data[24]~feeder"
+                ]
+              ]
+            }
+          },
+          "request_address_through_uart": {
+            "count": 5,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.061,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[5]~DUPLICATE"
+                ],
+                [
+                  "peripherals",
+                  "Equal37~1"
+                ],
+                [
+                  "euart1",
+                  "Equal27~1"
+                ],
+                [
+                  "euart1",
+                  "Equal27~2"
+                ],
+                [
+                  "euart1",
+                  "Selector13~1"
+                ],
+                [
+                  "euart1",
+                  "Selector13~2"
+                ],
+                [
+                  "euart1",
+                  "Selector13~3"
+                ],
+                [
+                  "euart1",
+                  "dout[22]~22"
+                ],
+                [
+                  "euart1",
+                  "dout[22]~24"
+                ]
+              ]
+            }
+          },
+          "request_address_through_nos_or_unkeyed": {
+            "count": 1,
+            "worst": {
+              "rank": 141,
+              "slack_ns": -1.717,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[4]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[13]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[4]~DUPLICATE"
+                ],
+                [
+                  "nos_timer",
+                  "Equal11~0"
+                ],
+                [
+                  "nos_timer",
+                  "Equal11~1"
+                ],
+                [
+                  "euart1",
+                  "Equal9~0"
+                ],
+                [
+                  "euart1",
+                  "Selector23~1"
+                ],
+                [
+                  "euart1",
+                  "dout[13]~48"
+                ],
+                [
+                  "euart1",
+                  "dout[13]~49"
+                ]
+              ]
+            }
+          },
+          "request_address_to_peripherals": {
+            "count": 75,
+            "worst": {
+              "rank": 1,
+              "slack_ns": -2.061,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[22]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[5]~DUPLICATE"
+                ],
+                [
+                  "peripherals",
+                  "Equal37~1"
+                ],
+                [
+                  "euart1",
+                  "Equal27~1"
+                ],
+                [
+                  "euart1",
+                  "Equal27~2"
+                ],
+                [
+                  "euart1",
+                  "Selector13~1"
+                ],
+                [
+                  "euart1",
+                  "Selector13~2"
+                ],
+                [
+                  "euart1",
+                  "Selector13~3"
+                ],
+                [
+                  "euart1",
+                  "dout[22]~22"
+                ],
+                [
+                  "euart1",
+                  "dout[22]~24"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "run": 45414709004,
+      "sha": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+      "seed": 31337,
+      "alms": 36461,
+      "m10ks": 321,
+      "registers": 40532,
+      "average_routing_pct": 46.5,
+      "peak_routing_pct": 78.4,
+      "core_setup_tns_sta_summary_ns": -5143.651,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.278,
+          "hold-summary": 0.219,
+          "recovery-summary": 2.077,
+          "removal-summary": 0.934,
+          "min-pulse": 0.961,
+          "fmax_mhz": 84.08
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.471,
+          "hold-summary": 0.082,
+          "recovery-summary": 2.26,
+          "removal-summary": 0.909,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.74
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.622,
+          "hold-summary": 0.13,
+          "recovery-summary": 4.9,
+          "removal-summary": 0.427,
+          "min-pulse": 0.961,
+          "fmax_mhz": 143.88
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.339,
+          "hold-summary": 0.074,
+          "recovery-summary": 5.19,
+          "removal-summary": 0.363,
+          "min-pulse": 0.961,
+          "fmax_mhz": 173.55
+        }
+      ],
+      "worst_setup_ns": -2.471,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 27,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 40,
+        "ngage2_zap_tlb:": 100,
+        "ngage2_zap_wb_merger:": 72,
+        "ngage2_arm9v2_execute:": 156
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_sdram_scheduler:sdram_ctrl|ready_q",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 244.5,
+          "direct_registers": 304,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 261.3,
+          "direct_registers": 303,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 239.6,
+          "direct_registers": 293,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 197.6,
+          "direct_registers": 208,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 834.5,
+          "direct_registers": 908,
+          "inclusive_m10ks": 0
+        }
+      },
+      "peripheral_read_paths": {
+        "run": 45414709004,
+        "sha": "e9552bd8e2a395dca1770abf8d23e4b1d66c1ca5",
+        "seed": 31337,
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "cutoff_ns": -1.168,
+            "lane13_count": 0,
+            "worst_lane13": null,
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "cutoff_ns": -0.918,
+            "lane13_count": 0,
+            "worst_lane13": null,
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "cutoff_ns": 3.457,
+            "lane13_count": 0,
+            "worst_lane13": null,
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "cutoff_ns": 4.281,
+            "lane13_count": 0,
+            "worst_lane13": null,
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          }
+        ],
+        "hot_top_1000": {
+          "into_registered_uart_decode": {
+            "count": 0,
+            "worst": null
+          },
+          "from_registered_uart_decode": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_to_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "any_to_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "uart_into_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "nos_or_unkeyed_into_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_through_uart": {
+            "count": 5,
+            "worst": {
+              "rank": 225,
+              "slack_ns": -1.506,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[5]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_adsp:audio_boot.d550|state[0]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[5]"
+                ],
+                [
+                  "peripherals",
+                  "Decoder0~0"
+                ],
+                [
+                  "euart1",
+                  "claim~3"
+                ],
+                [
+                  "euart1",
+                  "claim~5"
+                ],
+                [
+                  "euart1",
+                  "claim~6"
+                ],
+                [
+                  "euart1",
+                  "accepted~0"
+                ],
+                [
+                  "euart1",
+                  "rx_ready"
+                ],
+                [
+                  "audio_boot.d550",
+                  "Mux11~0"
+                ],
+                [
+                  "audio_boot.d550",
+                  "Mux11~1"
+                ],
+                [
+                  "audio_boot.d550",
+                  "state~14"
+                ]
+              ]
+            }
+          },
+          "request_address_through_nos_or_unkeyed": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_to_peripherals": {
+            "count": 41,
+            "worst": {
+              "rank": 12,
+              "slack_ns": -2.002,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[3]~DUPLICATE",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|nfifo[4]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[3]~DUPLICATE"
+                ],
+                [
+                  "code_flash",
+                  "Equal17~7"
+                ],
+                [
+                  "extra_regs",
+                  "low~2_RESYN12007"
+                ],
+                [
+                  "extra_regs",
+                  "low~2"
+                ],
+                [
+                  "extra_regs",
+                  "bad~14"
+                ],
+                [
+                  "peripherals",
+                  "mmc_accept~3"
+                ],
+                [
+                  "mmc_enabled.host",
+                  "always4~1"
+                ],
+                [
+                  "mmc_enabled.host",
+                  "Add23~45"
+                ],
+                [
+                  "mmc_enabled.host",
+                  "Add23~49"
+                ],
+                [
+                  "mmc_enabled.host",
+                  "Add23~41"
+                ],
+                [
+                  "mmc_enabled.host",
+                  "Add23~21"
+                ],
+                [
+                  "mmc_enabled.host",
+                  "Add23~17"
+                ],
+                [
+                  "mmc_enabled.host",
+                  "nfifo[4]_NEW9039"
+                ]
+              ]
+            }
+          }
+        }
+      }
+    }
+  ],
+  "candidate": [
+    {
+      "run": 45444020154,
+      "sha": "e02c2366d8258eed26656f34b173cfd47d3ad712",
+      "seed": 43,
+      "alms": 36989,
+      "m10ks": 321,
+      "registers": 40506,
+      "average_routing_pct": 47.0,
+      "peak_routing_pct": 80.7,
+      "core_setup_tns_sta_summary_ns": -4984.144,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -3.087,
+          "hold-summary": 0.193,
+          "recovery-summary": 1.913,
+          "removal-summary": 1.011,
+          "min-pulse": 0.961,
+          "fmax_mhz": 78.73
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -3.052,
+          "hold-summary": 0.073,
+          "recovery-summary": 2.334,
+          "removal-summary": 0.957,
+          "min-pulse": 0.961,
+          "fmax_mhz": 78.95
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.57,
+          "hold-summary": 0.095,
+          "recovery-summary": 5.105,
+          "removal-summary": 0.474,
+          "min-pulse": 0.961,
+          "fmax_mhz": 141.94
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.581,
+          "hold-summary": 0.078,
+          "recovery-summary": 5.393,
+          "removal-summary": 0.406,
+          "min-pulse": 0.961,
+          "fmax_mhz": 167.25
+        }
+      ],
+      "worst_setup_ns": -3.087,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 14,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 11,
+        "ngage2_zap_tlb:": 36,
+        "ngage2_zap_wb_merger:": 60,
+        "ngage2_arm9v2_execute:": 163
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_arm9v2_core:g_arm9.u_arm9_core|ngage2_arm9v2_front_decode:u_front_decode|ngage2_arm9v2_decode:u_decode|redirect_ff[74]",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[29]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 250.6,
+          "direct_registers": 302,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 269.9,
+          "direct_registers": 308,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 239.5,
+          "direct_registers": 292,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 211.1,
+          "direct_registers": 222,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 848.4,
+          "direct_registers": 928,
+          "inclusive_m10ks": 0
+        }
+      },
+      "peripheral_read_paths": {
+        "run": 45444020154,
+        "sha": "e02c2366d8258eed26656f34b173cfd47d3ad712",
+        "seed": 43,
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "cutoff_ns": -1.231,
+            "lane13_count": 3,
+            "worst_lane13": {
+              "rank": "365",
+              "slack_ns": "-1.658",
+              "data_delay_ns": "10.435",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[17]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            },
+            "address_to_lane13_count": 3,
+            "worst_address_to_lane13": {
+              "rank": "365",
+              "slack_ns": "-1.658",
+              "data_delay_ns": "10.435",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[17]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            }
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "cutoff_ns": -1.065,
+            "lane13_count": 2,
+            "worst_lane13": {
+              "rank": "477",
+              "slack_ns": "-1.363",
+              "data_delay_ns": "10.158",
+              "logic_levels": "7",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|Equal27~1_OTERM579",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            },
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "cutoff_ns": 3.495,
+            "lane13_count": 8,
+            "worst_lane13": {
+              "rank": "24",
+              "slack_ns": "2.842",
+              "data_delay_ns": "6.235",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[17]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            },
+            "address_to_lane13_count": 7,
+            "worst_address_to_lane13": {
+              "rank": "24",
+              "slack_ns": "2.842",
+              "data_delay_ns": "6.235",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[17]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            }
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "cutoff_ns": 4.254,
+            "lane13_count": 4,
+            "worst_lane13": {
+              "rank": "120",
+              "slack_ns": "3.985",
+              "data_delay_ns": "5.098",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[17]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            },
+            "address_to_lane13_count": 4,
+            "worst_address_to_lane13": {
+              "rank": "120",
+              "slack_ns": "3.985",
+              "data_delay_ns": "5.098",
+              "logic_levels": "6",
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[17]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]"
+            }
+          }
+        ],
+        "hot_top_1000": {
+          "into_registered_uart_decode": {
+            "count": 6,
+            "worst": {
+              "rank": 878,
+              "slack_ns": -1.304,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|cpu_inside.dma_addr[27]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|euart_packet.held_hits[2]",
+              "cells": [
+                [
+                  "upp",
+                  "cpu_inside.dma_addr[27]"
+                ],
+                [
+                  "upp",
+                  "comb~53"
+                ],
+                [
+                  "euart_packet.decode",
+                  "Equal0~0"
+                ],
+                [
+                  "euart_packet.decode",
+                  "Equal0~1"
+                ],
+                [
+                  "euart_packet.decode",
+                  "Equal0~2"
+                ],
+                [
+                  "euart_packet.decode",
+                  "Equal0~3"
+                ],
+                [
+                  "euart_packet.decode",
+                  "Equal1~1"
+                ],
+                [
+                  "euart_packet.decode",
+                  "Equal2~0"
+                ],
+                [
+                  "euart_packet.decode",
+                  "Equal4~0"
+                ]
+              ]
+            }
+          },
+          "from_registered_uart_decode": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_to_lane13": {
+            "count": 3,
+            "worst": {
+              "rank": 365,
+              "slack_ns": -1.658,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[17]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[17]"
+                ],
+                [
+                  "peripherals",
+                  "gpr_q[31]~0"
+                ],
+                [
+                  "peripherals",
+                  "gpr_q[4]~14"
+                ],
+                [
+                  "peripherals",
+                  "always5~6"
+                ],
+                [
+                  "peripherals",
+                  "always5~7"
+                ],
+                [
+                  "peripherals",
+                  "gpio_data[14]~40"
+                ],
+                [
+                  "peripherals",
+                  "registered_response.local_results[13].data[14]~feeder"
+                ]
+              ]
+            }
+          },
+          "any_to_lane13": {
+            "count": 3,
+            "worst": {
+              "rank": 365,
+              "slack_ns": -1.658,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[17]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[13].data[14]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[17]"
+                ],
+                [
+                  "peripherals",
+                  "gpr_q[31]~0"
+                ],
+                [
+                  "peripherals",
+                  "gpr_q[4]~14"
+                ],
+                [
+                  "peripherals",
+                  "always5~6"
+                ],
+                [
+                  "peripherals",
+                  "always5~7"
+                ],
+                [
+                  "peripherals",
+                  "gpio_data[14]~40"
+                ],
+                [
+                  "peripherals",
+                  "registered_response.local_results[13].data[14]~feeder"
+                ]
+              ]
+            }
+          },
+          "uart_into_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "nos_or_unkeyed_into_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_through_uart": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_through_nos_or_unkeyed": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_to_peripherals": {
+            "count": 14,
+            "worst": {
+              "rank": 74,
+              "slack_ns": -2.061,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[6].data[1]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[7]"
+                ],
+                [
+                  "icu",
+                  "Mux60~0"
+                ],
+                [
+                  "peripherals",
+                  "registered_response.local_results[6].data[5]~7"
+                ],
+                [
+                  "icu",
+                  "WideOr7~1"
+                ],
+                [
+                  "icu",
+                  "WideOr9~1"
+                ],
+                [
+                  "icu",
+                  "WideOr9~3"
+                ],
+                [
+                  "icu",
+                  "Add1~0"
+                ],
+                [
+                  "peripherals",
+                  "icu_data[1]~55"
+                ],
+                [
+                  "peripherals",
+                  "icu_data[1]~104"
+                ],
+                [
+                  "peripherals",
+                  "icu_data[1]~56"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "verified_changed_compiled_sources": [
+        "rtl/ngage_keypad.v",
+        "rtl/ngage_upp.v",
+        "rtl/ngage_upp_euart.v",
+        "rtl/ngage_upp_peripherals.v"
+      ]
+    },
+    {
+      "run": 45444025138,
+      "sha": "e02c2366d8258eed26656f34b173cfd47d3ad712",
+      "seed": 13,
+      "alms": 36900,
+      "m10ks": 321,
+      "registers": 40604,
+      "average_routing_pct": 46.6,
+      "peak_routing_pct": 79.9,
+      "core_setup_tns_sta_summary_ns": -4824.573,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.523,
+          "hold-summary": 0.232,
+          "recovery-summary": 2.821,
+          "removal-summary": 0.907,
+          "min-pulse": 0.961,
+          "fmax_mhz": 82.39
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.364,
+          "hold-summary": 0.141,
+          "recovery-summary": 2.99,
+          "removal-summary": 0.887,
+          "min-pulse": 0.961,
+          "fmax_mhz": 83.48
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.463,
+          "hold-summary": 0.099,
+          "recovery-summary": 5.272,
+          "removal-summary": 0.428,
+          "min-pulse": 0.961,
+          "fmax_mhz": 139.82
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.654,
+          "hold-summary": 0.079,
+          "recovery-summary": 5.493,
+          "removal-summary": 0.361,
+          "min-pulse": 0.961,
+          "fmax_mhz": 170.85
+        }
+      ],
+      "worst_setup_ns": -2.523,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 8,
+        "ngage_icu_extra:extra_regs|": 49,
+        "ngage_mmc_host:": 49,
+        "ngage2_zap_tlb:": 26,
+        "ngage2_zap_wb_merger:": 40,
+        "ngage2_arm9v2_execute:": 259
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_sdram_arbiter:ram_arbiter|owner",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[19]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 250.3,
+          "direct_registers": 302,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 269.3,
+          "direct_registers": 307,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 238.3,
+          "direct_registers": 300,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 205.9,
+          "direct_registers": 220,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 810.5,
+          "direct_registers": 893,
+          "inclusive_m10ks": 0
+        }
+      },
+      "peripheral_read_paths": {
+        "run": 45444025138,
+        "sha": "e02c2366d8258eed26656f34b173cfd47d3ad712",
+        "seed": 13,
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "cutoff_ns": -1.13,
+            "lane13_count": 0,
+            "worst_lane13": null,
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "cutoff_ns": -0.924,
+            "lane13_count": 0,
+            "worst_lane13": null,
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "cutoff_ns": 3.452,
+            "lane13_count": 0,
+            "worst_lane13": null,
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "cutoff_ns": 4.245,
+            "lane13_count": 0,
+            "worst_lane13": null,
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          }
+        ],
+        "hot_top_1000": {
+          "into_registered_uart_decode": {
+            "count": 0,
+            "worst": null
+          },
+          "from_registered_uart_decode": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_to_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "any_to_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "uart_into_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "nos_or_unkeyed_into_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_through_uart": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_through_nos_or_unkeyed": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_to_peripherals": {
+            "count": 39,
+            "worst": {
+              "rank": 3,
+              "slack_ns": -2.413,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[13]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_mmc_host:mmc_enabled.host|len_reg[12]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[13]"
+                ],
+                [
+                  "extra_regs",
+                  "ready~5_RESYN14042"
+                ],
+                [
+                  "extra_regs",
+                  "ready~5"
+                ],
+                [
+                  "extra_regs",
+                  "ready~18"
+                ],
+                [
+                  "peripherals",
+                  "mmc_accept~1"
+                ],
+                [
+                  "mmc_enabled.host",
+                  "always4~1"
+                ],
+                [
+                  "mmc_enabled.host",
+                  "len_reg[9]~1"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "verified_changed_compiled_sources": [
+        "rtl/ngage_keypad.v",
+        "rtl/ngage_upp.v",
+        "rtl/ngage_upp_euart.v",
+        "rtl/ngage_upp_peripherals.v"
+      ]
+    },
+    {
+      "run": 45444030096,
+      "sha": "e02c2366d8258eed26656f34b173cfd47d3ad712",
+      "seed": 31337,
+      "alms": 36905,
+      "m10ks": 321,
+      "registers": 40569,
+      "average_routing_pct": 47.6,
+      "peak_routing_pct": 81.6,
+      "core_setup_tns_sta_summary_ns": -4159.758,
+      "corners": [
+        {
+          "corner": "Slow 1100mV 100C Model",
+          "setup-summary": -2.249,
+          "hold-summary": 0.249,
+          "recovery-summary": 1.505,
+          "removal-summary": 1.192,
+          "min-pulse": 0.961,
+          "fmax_mhz": 84.29
+        },
+        {
+          "corner": "Slow 1100mV -40C Model",
+          "setup-summary": -2.404,
+          "hold-summary": 0.143,
+          "recovery-summary": 1.863,
+          "removal-summary": 1.133,
+          "min-pulse": 0.961,
+          "fmax_mhz": 83.2
+        },
+        {
+          "corner": "Fast 1100mV 100C Model",
+          "setup-summary": 2.756,
+          "hold-summary": 0.133,
+          "recovery-summary": 4.831,
+          "removal-summary": 0.608,
+          "min-pulse": 0.961,
+          "fmax_mhz": 145.79
+        },
+        {
+          "corner": "Fast 1100mV -40C Model",
+          "setup-summary": 3.577,
+          "hold-summary": 0.098,
+          "recovery-summary": 5.385,
+          "removal-summary": 0.513,
+          "min-pulse": 0.961,
+          "fmax_mhz": 176.4
+        }
+      ],
+      "worst_setup_ns": -2.404,
+      "top1000_touching": {
+        "ngage_arm9v2_refill:refill|": 54,
+        "ngage_icu_extra:extra_regs|": 0,
+        "ngage_mmc_host:": 98,
+        "ngage2_zap_tlb:": 79,
+        "ngage2_zap_wb_merger:": 45,
+        "ngage2_arm9v2_execute:": 129
+      },
+      "limiting_route": {
+        "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb|ngage2_zap_tlb_fsm:u_zap_tlb_fsm|fault_match~0_OTERM7035",
+        "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_wb_merger:l_merger_for_core_with_cache_mmu.u_zap_wb_merger|o_wb_adr[30]"
+      },
+      "owners": {
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_cache:l_generate_with_cache_mmu.u_code_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 251.5,
+          "direct_registers": 302,
+          "inclusive_m10ks": 14
+        },
+        "|sys_top|emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_cpu:cpu_inside.cpu|ngage2_arm925t:u_arm925t|ngage2_zap_top:u_zap|ngage2_zap_dcache:l_generate_with_cache_mmu.u_data_cache|ngage2_zap_tlb:u_zap_tlb": {
+          "direct_alms": 268.0,
+          "direct_registers": 306,
+          "inclusive_m10ks": 14
+        },
+        "|ngage_arm9v2_refill:refill|": {
+          "direct_alms": 236.6,
+          "direct_registers": 294,
+          "inclusive_m10ks": 0
+        },
+        "|ngage_icu_extra:extra_regs|": {
+          "direct_alms": 215.2,
+          "direct_registers": 216,
+          "inclusive_m10ks": 3
+        },
+        "|ngage_mmc_host:mmc_enabled.host|": {
+          "direct_alms": 830.9,
+          "direct_registers": 901,
+          "inclusive_m10ks": 0
+        }
+      },
+      "peripheral_read_paths": {
+        "run": 45444030096,
+        "sha": "e02c2366d8258eed26656f34b173cfd47d3ad712",
+        "seed": 31337,
+        "corners": [
+          {
+            "model": "display_name: Slow 1100mV 100C Model",
+            "cutoff_ns": -1.096,
+            "lane13_count": 0,
+            "worst_lane13": null,
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          },
+          {
+            "model": "display_name: Slow 1100mV -40C Model",
+            "cutoff_ns": -0.846,
+            "lane13_count": 0,
+            "worst_lane13": null,
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          },
+          {
+            "model": "display_name: Fast 1100mV 100C Model",
+            "cutoff_ns": 3.522,
+            "lane13_count": 0,
+            "worst_lane13": null,
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          },
+          {
+            "model": "display_name: Fast 1100mV -40C Model",
+            "cutoff_ns": 4.282,
+            "lane13_count": 0,
+            "worst_lane13": null,
+            "address_to_lane13_count": 0,
+            "worst_address_to_lane13": null
+          }
+        ],
+        "hot_top_1000": {
+          "into_registered_uart_decode": {
+            "count": 0,
+            "worst": null
+          },
+          "from_registered_uart_decode": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_to_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "any_to_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "uart_into_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "nos_or_unkeyed_into_lane13": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_through_uart": {
+            "count": 0,
+            "worst": null
+          },
+          "request_address_through_nos_or_unkeyed": {
+            "count": 7,
+            "worst": {
+              "rank": 723,
+              "slack_ns": -1.221,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[2]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|ngage_keypad:keypad_enabled.keypad|pending[19]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[2]"
+                ],
+                [
+                  "nos_timer",
+                  "Equal13~0"
+                ],
+                [
+                  "boot_regs",
+                  "WideOr1~10"
+                ],
+                [
+                  "boot_regs",
+                  "WideOr1~13"
+                ],
+                [
+                  "boot_regs",
+                  "claim"
+                ],
+                [
+                  "peripherals",
+                  "aux_selected~2"
+                ],
+                [
+                  "keypad_enabled.keypad",
+                  "always1~4"
+                ],
+                [
+                  "keypad_enabled.keypad",
+                  "status_write"
+                ],
+                [
+                  "keypad_enabled.keypad",
+                  "pending~15"
+                ]
+              ]
+            }
+          },
+          "request_address_to_peripherals": {
+            "count": 9,
+            "worst": {
+              "rank": 225,
+              "slack_ns": -1.498,
+              "from": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_request_stage:cpu_inside.request_stage|out_address[7]",
+              "to": "emu:emu|ngage_mister:core|ngage_board:board|ngage_upp:upp|ngage_upp_peripherals:peripherals|registered_response.local_results[6].data[5]",
+              "cells": [
+                [
+                  "cpu_inside.request_stage",
+                  "out_address[7]"
+                ],
+                [
+                  "icu",
+                  "Mux33~0"
+                ],
+                [
+                  "peripherals",
+                  "registered_response.local_results[6].data[5]~4"
+                ],
+                [
+                  "icu",
+                  "group8~1"
+                ],
+                [
+                  "icu",
+                  "WideOr9~2"
+                ],
+                [
+                  "icu",
+                  "WideOr9~3"
+                ],
+                [
+                  "icu",
+                  "Add1~2"
+                ],
+                [
+                  "peripherals",
+                  "icu_data[5]~90_RESYN15081"
+                ],
+                [
+                  "peripherals",
+                  "icu_data[5]~90"
+                ],
+                [
+                  "peripherals",
+                  "icu_data[5]~91"
+                ]
+              ]
+            }
+          }
+        }
+      },
+      "verified_changed_compiled_sources": [
+        "rtl/ngage_keypad.v",
+        "rtl/ngage_upp.v",
+        "rtl/ngage_upp_euart.v",
+        "rtl/ngage_upp_peripherals.v"
+      ]
+    }
+  ],
+  "best_bitstream": {
+    "run": 45444030096,
+    "seed": 31337,
+    "file": "build/fit/v5-104mhz-e02c236-seed31337/ngage1.rbf",
+    "sha256": "300dca1160549047187da7ebce80f56963b8053a0b0e619f87448b56fe8f1dea"
+  },
+  "scope": "Three seed-matched physical 104 MHz production fits. Endpoint counts use each corner's worst 1,000 setup paths. Peripheral read path counts match named cells only in the 100 C detailed report. Paths outside the cutoff or renamed by synthesis have no inferred exact slack."
+}

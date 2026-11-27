@@ -1,0 +1,550 @@
+{
+  "status": "PASS",
+  "baseline": "11c4a0c32983cc9aba89cae986684558583a33f2",
+  "baseline_tree": "8406276acdc60d658e189d09d31b0699217717ba",
+  "design_patch_sha256": "da2bc2cf45311ecc8db2640b06c25901de9f219b260da1f700447fe15b057d0a",
+  "fixture_patch_sha256": "8395a1c3becb5c698d5016dc5271cb287edd032e1e19c51362c218d5a9c017c9",
+  "candidate_rtl_sha256": {
+    "rtl/ngage_timers.v": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+    "rtl/ngage_upp.v": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+    "rtl/ngage_upp_peripherals.v": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854"
+  },
+  "retained_rtl_sha256": {
+    "rtl/ngage_timers.v": "c13e586583a5bf97c70869d3bfa29012f96cd1c7852e0044e679371abc5ab6b2",
+    "rtl/ngage_upp.v": "5864a6ddc4163193d028f5c31aa5fbda9f09d27b1bed455b3e327c742f64b4f1",
+    "rtl/ngage_upp_peripherals.v": "e45b57efc7106962e4d9ea2edaa1970c34000959553e142bd7c595e72907ee2c"
+  },
+  "simulator": "sha256:df6f55924d5fab96083d01332e45cd734f22277c4dd3b34f55a09cd8dbc3eb8d linux/arm64",
+  "directed": {
+    "decode_cases": 8192,
+    "responses": 6025,
+    "clocks": 41235,
+    "trace_records": 8397,
+    "trace_sha256": "20c253cc82476c0b7e29b5bd50cd90efd1fdad2f1b097816c817137621d5adf3"
+  },
+  "timer_units": {
+    "trace_sha256": "ad089353f8d7187d931817f616409ec7adfa6adde4f2c078169c3ac10958621c",
+    "matched_tests": [
+      "PASS programmable six timers DIV=1 cases=46 cycles=1537",
+      "PASS programmable six timers DIV=3 cases=46 cycles=4341",
+      "PASS programmable six timers DIV=4 cases=46 cycles=5744",
+      "PASS timer26MHz/OS64Hz/NOS64Hz at CPU 78000000",
+      "PASS timer26MHz/OS64Hz/NOS64Hz at CPU 104000000",
+      "PASS UPP request stage mode=0: sample latency, held payload, cancellation, next owner and reset",
+      "PASS UPP request stage mode=1: sample latency, held payload, cancellation, next owner and reset",
+      "PASS passive timer/ICU RAM oracle: 12848 transactions, 4286 added read clocks; live IRQ/counters identical",
+      "PASS peripheral registered responses: 33 coherent/held/authorized transactions, masks, faults, keypad, SIM, sparse and warm reset"
+    ],
+    "timer_icu_conformance": [
+      "PASS programmable timer ICU ownership cases=19 cycles=178"
+    ]
+  },
+  "original_timer_instructions": {
+    "input_manifest_sha256": "0cc068f02abc9d4cb85891846e44fbd9f6c932d7abab62c730066598b4133d3a",
+    "pass_sha256": "8e797c9fe3b321252e2ffdcf4a8cef204c0a840481d5a3b140b6077ef3afe822",
+    "matched_profiles": [
+      "PASS original NEM4 timer instructions DIV=3 waits=0 phases=7 mmio=403 cycles=15607",
+      "PASS original NEM4 timer instructions DIV=3 waits=3 phases=7 mmio=271 cycles=21043",
+      "PASS original NEM4 timer instructions DIV=4 waits=0 phases=7 mmio=510 cycles=17612",
+      "PASS original NEM4 timer instructions DIV=4 waits=3 phases=7 mmio=330 cycles=23032"
+    ]
+  },
+  "board_contract": [
+    {
+      "burst": 0,
+      "wait": 0,
+      "pass": "PASS cycles=33464 scalar_wait_cycles=13853 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "trace_sha256": "5eb36a2549bc68ac5e750b70d2e5ddb95e97900ce3d5a39ecfa59971bdc46c57"
+    },
+    {
+      "burst": 0,
+      "wait": 5,
+      "pass": "PASS cycles=67865 scalar_wait_cycles=48355 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "trace_sha256": "6d7c90428c2072dcba11c44b696e1e2d19b8d6f46f38973b840f09f1ecfed809"
+    },
+    {
+      "burst": 1,
+      "wait": 0,
+      "pass": "PASS cycles=28464 scalar_wait_cycles=4573 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "trace_sha256": "31cd1b51eb82c54931c436fcfa8b933f8fba7b6dcac00d9bb26f3df437b0f2ee"
+    },
+    {
+      "burst": 1,
+      "wait": 5,
+      "pass": "PASS cycles=42543 scalar_wait_cycles=15875 swp_beats=2 clean_writes=1 walks=2 prefetch_aborts=1",
+      "trace_sha256": "12349a2fe3c61600eb64ba3f1214fbdc25324d5fb59e6f5a90e96511eb6d26f4"
+    }
+  ],
+  "fixed": {
+    "source_checks": {
+      "rtl/ngage_timers.v": {
+        "sha256": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+        "verilator_fingerprint": "isQf7D76Xu08uZY7Lafqj7rFa1gZ62VlhBJZAGcx"
+      },
+      "rtl/ngage_upp.v": {
+        "sha256": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+        "verilator_fingerprint": "BcAJTKLH0bIQFDjI885EY7ft4ifZXUokHIhqYxUS"
+      },
+      "rtl/ngage_upp_peripherals.v": {
+        "sha256": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+        "verilator_fingerprint": "lShlwu3ut64jyzMlintNj7kxV5kQEWsUNGYxiUTD"
+      }
+    },
+    "candidate_receipt_sha256": "7be437a34f27f0f2d9a6b29daf88e1f810312da9afe030c70011297f09e7d876",
+    "retained_receipt_sha256": "123dc97b71855f37f6bb0214f04ec345659fea46767ec213a5941ff75618e9cd",
+    "rows": [
+      {
+        "case": "sega-scan",
+        "architectural_sha256": "752ddf424d2cb016777fc23eea0c80313831abcf4e595bffc48063235c3fd40a",
+        "valid_write_trace_sha256": "e04b769ac9b62908e168c833e49f61cc4735288bceb5dd020027b1070960ec8d",
+        "window_cycles": [
+          2396210,
+          2395853,
+          2395905,
+          2395767,
+          2395767,
+          2395767,
+          2395767
+        ],
+        "median_cycles": 2395767,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "matrix4",
+        "architectural_sha256": "8a4bfc3b50f0ba65527d9596740e2d4d48b6a1c5b31681d35400e340cd7de805",
+        "valid_write_trace_sha256": "014c69ff8203a29c0b39a31523c58a76fecaa74153900e7ac2fff02c912e0a7c",
+        "window_cycles": [
+          17981,
+          16937,
+          16937,
+          16937,
+          16949,
+          16946,
+          16952
+        ],
+        "median_cycles": 16946,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "transpose4",
+        "architectural_sha256": "a3b9b955c2f58976e7ed5e1cc85d08efccb032fed44a1df1e54961c2e45a14d1",
+        "valid_write_trace_sha256": "d862024d04e9cff1190fdf4b105a86f8c59db163220ce51f636affa96e49b71d",
+        "window_cycles": [
+          3055,
+          2964,
+          2964,
+          2976,
+          2976,
+          2979,
+          2976
+        ],
+        "median_cycles": 2976,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "triangle_edges",
+        "architectural_sha256": "716dfabe69fd7437ce96b1f8dc66be556870f400683729bf954c377cdb2fe40a",
+        "valid_write_trace_sha256": "628fac748048b787f0e0fe499043c0bc7d46e248e445ef71b42faa43f4dcd530",
+        "window_cycles": [
+          13136,
+          12220,
+          12226,
+          12262,
+          12253,
+          12220,
+          12220
+        ],
+        "median_cycles": 12226,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "fill16_frame",
+        "architectural_sha256": "a6fdcb4ae85a2735807a3624880b9acc0fcfbb5ae8906e79e0afcc8cba3b4896",
+        "valid_write_trace_sha256": "45dcaa0ceaf49f4e021af7357c86879ad0ddf4ce2ef81e17e9fcaad05d84275c",
+        "window_cycles": [
+          122534,
+          122402,
+          122402,
+          122402,
+          122402,
+          122402,
+          122402
+        ],
+        "median_cycles": 122402,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "fill16_tail",
+        "architectural_sha256": "66b9ab8b0a9384c1bf20a604469bfcfc7c92d0e29f51f486be101ad7c05791e2",
+        "valid_write_trace_sha256": "7fd15793d5c620315210dcbb2eb91f65f866a910e76465db648772d408d95fd1",
+        "window_cycles": [
+          876,
+          725,
+          725,
+          728,
+          725,
+          725,
+          725
+        ],
+        "median_cycles": 725,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "fill8_tail",
+        "architectural_sha256": "c7b95489c6c3a262b9e2129dabb348afcdc5ea10975137cab0df9840a2767544",
+        "valid_write_trace_sha256": "7fd15793d5c620315210dcbb2eb91f65f866a910e76465db648772d408d95fd1",
+        "window_cycles": [
+          903,
+          753,
+          753,
+          753,
+          753,
+          753,
+          753
+        ],
+        "median_cycles": 753,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "monkey-forward",
+        "architectural_sha256": "3b6b63ec6c698bb9b5f5423d451ec939745d6a1c8ef2fd3c6f5b4d220d5b895e",
+        "valid_write_trace_sha256": "7aa2a13d2d3fa536a23ef7c09a667cf49b8b1923f498ff358d79b98e0942e4f8",
+        "window_cycles": [
+          16021,
+          15937,
+          15940,
+          15940,
+          15949,
+          15937,
+          15940
+        ],
+        "median_cycles": 15940,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "monkey-reverse",
+        "architectural_sha256": "02f6a0c7003fdc2868b2fbe177bba74451fe753ca78d933fcf529dc19f51b593",
+        "valid_write_trace_sha256": "7aa2a13d2d3fa536a23ef7c09a667cf49b8b1923f498ff358d79b98e0942e4f8",
+        "window_cycles": [
+          16021,
+          15937,
+          15940,
+          15940,
+          15949,
+          15937,
+          15940
+        ],
+        "median_cycles": 15940,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "sega-span",
+        "architectural_sha256": "236194c3163d8eb49ae4fc565866241229cf3712f7b748a63f8b92aba079a6b6",
+        "valid_write_trace_sha256": "07d8196eb3a8c0a45f912ff171fe5773717bca6bd0158a46ac4de453f849a4da",
+        "window_cycles": [
+          15585,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430,
+          15430
+        ],
+        "median_cycles": 15430,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "sega-fill",
+        "architectural_sha256": "0a91d3cfca48a8a88052cec087179f16d3bdc89cd3a04a6d8f38ab3f912e233a",
+        "valid_write_trace_sha256": "0972e9e06d27d11a8c2a7d4f7fb311ab1dcdd17699f53de7ebcd2a88a845be45",
+        "window_cycles": [
+          2757,
+          2628,
+          2628,
+          2628,
+          2628,
+          2628,
+          2628
+        ],
+        "median_cycles": 2628,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "asphalt-table",
+        "architectural_sha256": "5d4d18a58859b10751f2dce40478288f0a438dad00330562f2364d59c8969f7d",
+        "valid_write_trace_sha256": "3207c8d13d3637428264ac4c63fc1b6bb6b6267d6694c40e4331d46490c4704e",
+        "window_cycles": [
+          21328,
+          21155,
+          21160,
+          21152,
+          21168,
+          21163,
+          21171
+        ],
+        "median_cycles": 21163,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "asphalt-double",
+        "architectural_sha256": "ae0104ff8edab7c242c476f37e55052eff1804d43788452fbfd0c5b9eb0cd770",
+        "valid_write_trace_sha256": "e04cdc08d6c7faaacb9436edcadb9e3b2252f4b50469487c5ecc0c6a107c1eef",
+        "window_cycles": [
+          12140,
+          11974,
+          11982,
+          11974,
+          11977,
+          11974,
+          11974
+        ],
+        "median_cycles": 11974,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "asphalt-single",
+        "architectural_sha256": "789fbb5906deb9466f569b4985ea3d196caf114a4e8d1bcbfcb64e1b46d95ea6",
+        "valid_write_trace_sha256": "670d01be3e0ae560f26e172eea9ccdd6f8faf542890fe1c64114813674e39856",
+        "window_cycles": [
+          7933,
+          7753,
+          7753,
+          7762,
+          7753,
+          7753,
+          7753
+        ],
+        "median_cycles": 7753,
+        "repeat_and_negative_output_check": true
+      },
+      {
+        "case": "diffuse_m10_8x8_jpeg",
+        "architectural_sha256": "8b1243eb3e9cb34ca7c65670504d2d72ec6175be6d352341dd3f1b1ce52cfe8b",
+        "valid_write_trace_sha256": "763214f102342029781558e849fb36af0ccc39956bb693ebd1ab7b970a3a2538",
+        "window_cycles": [
+          36331,
+          35324,
+          35324,
+          35324,
+          35324,
+          35324,
+          35324
+        ],
+        "median_cycles": 35324,
+        "repeat_and_negative_output_check": true
+      }
+    ]
+  },
+  "native": {
+    "source_checks": {
+      "rtl/ngage_timers.v": {
+        "sha256": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+        "verilator_fingerprint": "isQf7D76Xu08uZY7Lafqj7rFa1gZ62VlhBJZAGcx"
+      },
+      "rtl/ngage_upp.v": {
+        "sha256": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+        "verilator_fingerprint": "BcAJTKLH0bIQFDjI885EY7ft4ifZXUokHIhqYxUS"
+      },
+      "rtl/ngage_upp_peripherals.v": {
+        "sha256": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+        "verilator_fingerprint": "lShlwu3ut64jyzMlintNj7kxV5kQEWsUNGYxiUTD"
+      }
+    },
+    "candidate_receipt_sha256": "58dd57a3630a4688230313aeae588750f1638be6180aeb7a08530817cc8e2621",
+    "retained_receipt_sha256": "7fbe89c3f7e8d6bd61feca2b90339ee501d65d272a3b54dc440d116a35fc26dd",
+    "rows": [
+      {
+        "case": "native",
+        "architectural_sha256": "92aad0ebfee308867abd3ab7121d0af405bfaf5885e5d9f517ca1fb0de63ea00",
+        "valid_write_trace_sha256": "a1b3fa4962c6bcb0fa054f6d6a16e98e2908ba1b3e6aae12eb14c6fc8f5c440f",
+        "frame_cycles": [
+          14391395,
+          14467552,
+          14346201,
+          14303223
+        ],
+        "output_sha256": "6b40df550fe6fecdf042e623ab384683a8065a71605a0a169f8d0c01365b4d77"
+      }
+    ]
+  },
+  "physical_mixed": {
+    "trace_sha256": "0c64786a64cf781dae65b781d8acc0e32b3f4f505a934851287a25e1b2c7be26",
+    "events": 171496,
+    "clocks": 1201547,
+    "checks": [
+      "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+      "PASS native LCD grants=4576 completed=4576",
+      "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+      "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201547 reads=4 writes=1"
+    ],
+    "source_count": 114,
+    "source_checks": {
+      "rtl/ngage_timers.v": {
+        "sha256": "8ac41fec3efa5eed3cb9963b2da7ea8fbac56b5819eb6565841259f867312418",
+        "verilator_fingerprint": "isQf7D76Xu08uZY7Lafqj7rFa1gZ62VlhBJZAGcx"
+      },
+      "rtl/ngage_upp.v": {
+        "sha256": "05cf894ca2c7d1b2101438c8f3ce4463b7ede227d95d4a241c886a6315123e8d",
+        "verilator_fingerprint": "BcAJTKLH0bIQFDjI885EY7ft4ifZXUokHIhqYxUS"
+      },
+      "rtl/ngage_upp_peripherals.v": {
+        "sha256": "952865c2edeeb7ae23cb33258a7b4d8fb931579910116b143466318944c3d854",
+        "verilator_fingerprint": "lShlwu3ut64jyzMlintNj7kxV5kQEWsUNGYxiUTD"
+      }
+    }
+  },
+  "timer_mmc_lcd_coexistence": {
+    "trace_sha256": "0e9fb47c965bab211b315c129e08effab414ed1ccc9e579aee4d56d9d29ba824",
+    "events": 171497,
+    "clocks": 1201528,
+    "checks": [
+      "PASS production UPP DDR RAM upload=261/260 NOS=261/260 SWP with LCD DMA waiting=11 fetch=11 PCM hash=175ee178",
+      "PASS native LCD grants=4576 completed=4576",
+      "PASS PCM/LCD/MMC coexistence: PCM reads=128 rendered words=18304 overlapping LCD words=727 PCM ticks=1 underflows=0 overwritten=0",
+      "PASS authored ARM CMD24 TX2-DMA actual card/backing persisted512bytes+PIOreadback cycles=1201528 reads=4 writes=1"
+    ],
+    "stress_sha256": "c42f491a8149bb4282306aaccfcc537a588138d8d5be55936673c29e25df82fc"
+  },
+  "retained_timer_count_paths": [
+    {
+      "seed": 1,
+      "run": 45780077300,
+      "hot": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      },
+      "cold": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      }
+    },
+    {
+      "seed": 2,
+      "run": 45780081579,
+      "hot": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      },
+      "cold": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      }
+    },
+    {
+      "seed": 3,
+      "run": 45780077827,
+      "hot": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      },
+      "cold": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      }
+    },
+    {
+      "seed": 4,
+      "run": 45780074613,
+      "hot": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      },
+      "cold": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      }
+    },
+    {
+      "seed": 5,
+      "run": 45780076796,
+      "hot": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      },
+      "cold": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      }
+    },
+    {
+      "seed": 6,
+      "run": 45780082010,
+      "hot": {
+        "below_minus_1_5_ns": 12,
+        "from_reset_drain": 0,
+        "worst_ns": -1.574
+      },
+      "cold": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      }
+    },
+    {
+      "seed": 7,
+      "run": 45780082099,
+      "hot": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      },
+      "cold": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      }
+    },
+    {
+      "seed": 13,
+      "run": 45771268571,
+      "hot": {
+        "below_minus_1_5_ns": 50,
+        "from_reset_drain": 50,
+        "worst_ns": -1.931
+      },
+      "cold": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      }
+    },
+    {
+      "seed": 43,
+      "run": 45771267820,
+      "hot": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      },
+      "cold": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      }
+    },
+    {
+      "seed": 31337,
+      "run": 45771266151,
+      "hot": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      },
+      "cold": {
+        "below_minus_1_5_ns": 0,
+        "from_reset_drain": 0,
+        "worst_ns": null
+      }
+    }
+  ]
+}

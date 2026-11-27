@@ -1,0 +1,41 @@
+diff --git a/rtl/arm9v2/arm925t_phone.v b/rtl/arm9v2/arm925t_phone.v
+index bb4bd15..0b33095 100644
+--- a/rtl/arm9v2/arm925t_phone.v
++++ b/rtl/arm9v2/arm925t_phone.v
+@@ -10619,7 +10619,8 @@ module ngage2_zap_dcache_fsm (
+ 			repair_ff <= repair_nxt;
+ 			hum_slot_ff <= hum_slot_nxt;
+ 			o_live_lookup <= state_nxt[IDLE] || hum_slot_nxt;
+-			o_live_trust <= (state_nxt[IDLE] || hum_slot_nxt) && !(o_fill_busy && !fill_busy_nxt);
++			// The fill slot implies next fill busy. One-hot IDLE excludes it.
++			o_live_trust <= hum_slot_nxt || (state_nxt[IDLE] && !o_fill_busy);
+ 			o_relookup <= ((state_nxt[RELOOKUP0] || state_nxt[RELOOKUP1]) || state_nxt[RELOOKUP2] ? {state_nxt[RELOOKUP2], state_nxt[RELOOKUP1], state_nxt[RELOOKUP0]} : repair_nxt | {2'b00, cpu_wait && fill_busy_nxt});
+ 		end
+ 	assign hum_slot_nxt = (((state_nxt[CLEAN_SINGLE] || state_nxt[FETCH_SINGLE]) || state_nxt[UNLOCK_WR]) && lookup_ready_nxt) && (line_safe_nxt || ((state_nxt[CLEAN_SINGLE] && fill_visible_ff) && victim_safe_nxt));
+diff --git a/tools/gen_arm9v2_phone.py b/tools/gen_arm9v2_phone.py
+index 75b39c4..cf86c63 100644
+--- a/tools/gen_arm9v2_phone.py
++++ b/tools/gen_arm9v2_phone.py
+@@ -894,6 +894,14 @@ endmodule
+     return ''.join(parts)
+ 
+ 
++def simplify_dcache_live_trust(phone):
++    """Keep the full refill-state decode out of D-cache live-hit trust."""
++    return edit(phone,
++                '\t\t\to_live_trust <= (state_nxt[IDLE] || hum_slot_nxt) && !(o_fill_busy && !fill_busy_nxt);',
++                '\t\t\t// The fill slot implies next fill busy. One-hot IDLE excludes it.\n'
++                '\t\t\to_live_trust <= hum_slot_nxt || (state_nxt[IDLE] && !o_fill_busy);')
++
++
+ def resolve_execute_forward_candidates(phone):
+     """Resolve each possible A-entry/hold grant in parallel with W completion."""
+     parts = re.split(r'(?=^module )', phone, flags=re.M)
+@@ -1379,6 +1387,7 @@ def main():
+     generated = predecode_refill_candidates(half_dirty_writeback(generated))
+     generated = predecode_dcache_write_enable(generated)
+     generated = register_background_load_tag(generated)
++    generated = simplify_dcache_live_trust(generated)
+     generated = resolve_execute_forward_candidates(generated)
+     generated = split_execute_readiness(generated)
+     generated = move_fetch_payload_to_ram(generated)

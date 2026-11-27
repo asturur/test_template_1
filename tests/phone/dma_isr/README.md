@@ -53,7 +53,7 @@ Explicit boundaries:
   phone electrical behavior. Production handover has a separate board fixture.
 
 Private extracted instructions, build files, compact logs and manifests stay
-under `build/sim/phone-tests/lcd-handover/isr/`. No phone checkpoint or
+under `scratch/ngage2-integration/lcd-handover/isr/`. No phone checkpoint or
 other checkout is opened or changed.
 
 Observed locally on 2026-11-11: zero waits passed in 11,067 cycles and three

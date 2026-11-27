@@ -15,7 +15,7 @@ spec.loader.exec_module(m)
 
 class RawTests(unittest.TestCase):
     def setUp(self):
-        self.tmp = tempfile.TemporaryDirectory(prefix='raw-test-')
+        self.tmp = tempfile.TemporaryDirectory(dir='scratch', prefix='raw-test-')
         self.addCleanup(self.tmp.cleanup)
         self.p = Path(self.tmp.name)
         self.source = self.p/'original.NGA'
